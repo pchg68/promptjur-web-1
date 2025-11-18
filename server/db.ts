@@ -283,3 +283,59 @@ export async function upsertConfiguracao(data: InsertConfiguracao) {
     },
   });
 }
+
+
+
+
+
+// ===== TEMPLATE HELPERS =====
+
+export async function getTemplatesUsuario(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select().from(templates)
+    .where(and(
+      eq(templates.userId, userId),
+      eq(templates.isAtivo, true)
+    ))
+    .orderBy(desc(templates.createdAt));
+    
+  return result;
+}
+
+export async function getTemplatesSistema() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select().from(templates)
+    .where(and(
+      eq(templates.userId, null as any),
+      eq(templates.isAtivo, true)
+    ))
+    .orderBy(templates.areaJuridica);
+    
+  return result;
+}
+
+export async function salvarTemplate(data: InsertTemplate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(templates).values(data);
+  return result[0].insertId;
+}
+
+export async function deletarTemplate(templateId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const [template] = await db.select().from(templates)
+    .where(eq(templates.id, templateId))
+    .limit(1);
+    
+  if (!template || template.userId !== userId) return false;
+  
+  await db.delete(templates).where(eq(templates.id, templateId));
+  return true;
+}

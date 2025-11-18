@@ -15,6 +15,13 @@
       "when": 1763490649609,
       "tag": "0001_plain_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1763491777607,
+      "tag": "0002_flippant_warlock",
+      "breakpoints": true
     }
   ]
 }

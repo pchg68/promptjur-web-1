@@ -62,6 +62,7 @@ export type InsertAnalise = typeof analises.$inferInsert;
  */
 export const templates = mysqlTable("templates", {
   id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"), // null = template do sistema, valor = template do usuário
   areaJuridica: varchar("areaJuridica", { length: 100 }).notNull(),
   nome: varchar("nome", { length: 255 }).notNull(),
   descricao: text("descricao"),
@@ -69,6 +70,7 @@ export const templates = mysqlTable("templates", {
   variaveis: json("variaveis"), // Array de variáveis que podem ser substituídas
   exemplos: json("exemplos"), // Array de exemplos de uso
   isAtivo: boolean("isAtivo").default(true),
+  isPublico: boolean("isPublico").default(false), // Se outros usuários podem ver
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

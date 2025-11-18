@@ -340,6 +340,73 @@ Responda em formato JSON com:
       })
   }),
 
+  historico: router({
+    // Listar histórico do usuário
+    listar: protectedProcedure
+      .input(z.object({
+        limit: z.number().optional().default(50)
+      }))
+      .query(async ({ input, ctx }) => {
+        return db.getUserHistorico(ctx.user.id, input.limit);
+      }),
+
+    // Listar prompts com filtros
+    prompts: protectedProcedure
+      .input(z.object({
+        tipo: z.enum(["analise", "geracao", "otimizacao"]).optional(),
+        area: z.string().optional(),
+        favoritos: z.boolean().optional(),
+        limit: z.number().optional().default(50)
+      }))
+      .query(async ({ input, ctx }) => {
+        const { limit, ...filtros } = input;
+        return db.getUserPrompts(ctx.user.id, limit);
+      }),
+  }),
+
+  templates: router({
+    // Listar templates do usuário
+    meus: protectedProcedure.query(async ({ ctx }) => {
+      return db.getTemplatesUsuario(ctx.user.id);
+    }),
+
+    // Listar templates do sistema
+    sistema: publicProcedure.query(async () => {
+      return db.getTemplatesSistema();
+    }),
+
+    // Salvar template
+    salvar: protectedProcedure
+      .input(z.object({
+        areaJuridica: z.string(),
+        nome: z.string().min(3),
+        descricao: z.string().optional(),
+        template: z.string().min(10),
+        isPublico: z.boolean().optional().default(false)
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const result = await db.salvarTemplate({
+          userId: ctx.user.id,
+          ...input,
+          isAtivo: true
+        });
+        return { success: true, templateId: result };
+      }),
+
+    // Deletar template
+    deletar: protectedProcedure
+      .input(z.object({
+        templateId: z.number()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const success = await db.deletarTemplate(input.templateId, ctx.user.id);
+        if (!success) {
+          throw new Error("Template não encontrado ou sem permissão");
+        }
+        return { success: true };
+      })
+  }),
+
   configuracoes: router({
     // Obter configurações do usuário
     get: protectedProcedure.query(async ({ ctx }) => {

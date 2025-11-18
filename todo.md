@@ -79,3 +79,24 @@
 
 ## Bugs e Correções
 - [x] Corrigir página travada - diagnosticar e resolver erros
+
+
+## Novas Funcionalidades (Solicitadas pelo Usuário)
+- [x] Histórico de Prompts
+  - [x] Atualizar schema para salvar histórico completo
+  - [x] Criar procedures tRPC para listar histórico
+  - [x] Implementar página de histórico com filtros (área, data, tipo)
+  - [ ] Adicionar funcionalidade de reutilização de prompts (botão funcional)
+
+- [ ] Sistema de Templates Salvos
+  - [x] Adicionar tabela de templates personalizados
+  - [x] Criar procedures para salvar/listar/deletar templates
+  - [ ] Implementar interface de gerenciamento de templates
+  - [ ] Adicionar botão "Salvar como Template" nas páginas
+
+- [ ] Verificação de Fontes Jurídicas
+  - [ ] Pesquisar e documentar APIs oficiais (STF, STJ, CNJ)
+  - [ ] Implementar integração com APIs jurídicas
+  - [ ] Adicionar validação automática de citações
+  - [ ] Implementar badges de confiabilidade (verde/amarelo/vermelho)
+  - [ ] Adicionar links diretos para fontes oficiais
