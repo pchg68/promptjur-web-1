@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Historico from "./pages/Historico";
+import Templates from "./pages/Templates";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/historico"} component={Historico} />
+      <Route path={"/templates"} component={Templates} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

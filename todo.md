@@ -102,3 +102,18 @@
   - [ ] Adicionar links diretos para fontes oficiais
 
 - [x] Corrigir erro de API retornando HTML ao invés de JSON no Dashboard (problema era falta de import useState)
+
+## Melhorias em Implementação (Sessão Atual)
+- [x] Adicionar navegação no header do dashboard (links para Histórico e Templates)
+- [x] Implementar página de Templates Salvos (/templates)
+  - [x] Interface de listagem de templates
+  - [x] Botão de deletar template
+  - [x] Botão de copiar template
+  - [x] Visualização de detalhes do template
+  - [x] Estado vazio com mensagem e CTA
+- [x] Adicionar botão "Salvar como Template" no dashboard
+  - [x] Na aba de Análise
+  - [x] Na aba de Geração
+  - [x] Na aba de Otimização
+  - [x] Dialog para entrada de nome e descrição
+- [x] Testar todas as funcionalidades implementadas

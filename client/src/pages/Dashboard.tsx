@@ -8,11 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2 } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
+import { Link } from "wouter";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -45,6 +48,27 @@ export default function Dashboard() {
 
   // Estado para Otimização
   const [promptOtimizacao, setPromptOtimizacao] = useState("");
+  
+  // Estado para salvar template
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateNome, setTemplateNome] = useState("");
+  const [templateDescricao, setTemplateDescricao] = useState("");
+  const [templateConteudo, setTemplateConteudo] = useState("");
+  const [templateArea, setTemplateArea] = useState("");
+  const salvarTemplateMutation = trpc.templates.salvar.useMutation({
+    onSuccess: () => {
+      toast.success("Template salvo com sucesso!");
+      setShowSaveTemplate(false);
+      setTemplateNome("");
+      setTemplateDescricao("");
+      setTemplateConteudo("");
+      setTemplateArea("");
+    },
+    onError: (error) => {
+      toast.error(`Erro ao salvar template: ${error.message}`);
+    }
+  });
+
   const otimizacaoMutation = trpc.prompts.otimizar.useMutation({
     onSuccess: () => {
       toast.success("Otimização concluída com sucesso!");
@@ -99,6 +123,29 @@ export default function Dashboard() {
     toast.success("Copiado para a área de transferência!");
   };
 
+  const openSaveTemplateDialog = (conteudo: string, area: string) => {
+    setTemplateConteudo(conteudo);
+    setTemplateArea(area);
+    setShowSaveTemplate(true);
+  };
+
+  const handleSaveTemplate = () => {
+    if (!templateNome.trim()) {
+      toast.error("Por favor, insira um nome para o template");
+      return;
+    }
+    if (!templateConteudo.trim()) {
+      toast.error("Conteúdo do template inválido");
+      return;
+    }
+    salvarTemplateMutation.mutate({
+      nome: templateNome,
+      descricao: templateDescricao,
+      template: templateConteudo,
+      areaJuridica: templateArea || "Geral"
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -112,8 +159,28 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-foreground">Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">Olá, {user?.name}</span>
+            <div className="flex items-center gap-6">
+              <nav className="flex items-center gap-4">
+                <Link href="/">
+                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <Home className="w-4 h-4" />
+                    Início
+                  </a>
+                </Link>
+                <Link href="/historico">
+                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <History className="w-4 h-4" />
+                    Histórico
+                  </a>
+                </Link>
+                <Link href="/templates">
+                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <BookTemplate className="w-4 h-4" />
+                    Templates
+                  </a>
+                </Link>
+              </nav>
+              <span className="text-sm text-muted-foreground border-l border-border pl-6">Olá, {user?.name}</span>
             </div>
           </div>
         </div>
@@ -182,14 +249,24 @@ export default function Dashboard() {
                   <div className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-foreground">Resultado da Análise</h3>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToClipboard(JSON.stringify(analiseMutation.data, null, 2))}
-                      >
-                        <Copy className="w-4 h-4 mr-2" />
-                        Copiar
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openSaveTemplateDialog(promptAnalise, analiseMutation.data?.area || "Geral")}
+                        >
+                          <BookTemplate className="w-4 h-4 mr-2" />
+                          Salvar Template
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(JSON.stringify(analiseMutation.data, null, 2))}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copiar
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">
@@ -329,16 +406,26 @@ export default function Dashboard() {
 
                 {geracaoMutation.data && (
                   <div className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm">
-                    <div className="flex items-center justify-between">
+                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-foreground">Prompt Gerado</h3>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToClipboard(geracaoMutation.data?.promptGerado || "")}
-                      >
-                        <Copy className="w-4 h-4 mr-2" />
-                        Copiar
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openSaveTemplateDialog(geracaoMutation.data?.promptGerado || "", areaGeracao)}
+                        >
+                          <BookTemplate className="w-4 h-4 mr-2" />
+                          Salvar Template
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(geracaoMutation.data?.promptGerado || "")}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copiar
+                        </Button>
+                      </div>
                     </div>
                     <div className="p-4 bg-muted/30 rounded-sm">
                       <Streamdown className="text-sm font-mono whitespace-pre-wrap">
@@ -437,6 +524,14 @@ export default function Dashboard() {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => openSaveTemplateDialog(otimizacaoMutation.data?.promptOtimizado || "", otimizacaoMutation.data?.area || "Geral")}
+                          >
+                            <BookTemplate className="w-4 h-4 mr-2" />
+                            Salvar Template
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => copyToClipboard(otimizacaoMutation.data?.promptOtimizado || "")}
                           >
                             <Copy className="w-4 h-4 mr-2" />
@@ -463,6 +558,70 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Dialog para Salvar Template */}
+      <Dialog open={showSaveTemplate} onOpenChange={setShowSaveTemplate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Salvar como Template</DialogTitle>
+            <DialogDescription>
+              Salve este prompt como um template reutilizável para uso futuro
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="template-nome">Nome do Template *</Label>
+              <Input
+                id="template-nome"
+                placeholder="Ex: Análise de Contrato de Locação"
+                value={templateNome}
+                onChange={(e) => setTemplateNome(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="template-descricao">Descrição (opcional)</Label>
+              <Textarea
+                id="template-descricao"
+                placeholder="Descreva quando e como usar este template..."
+                value={templateDescricao}
+                onChange={(e) => setTemplateDescricao(e.target.value)}
+                className="mt-1 min-h-[80px]"
+              />
+            </div>
+            <div>
+              <Label className="text-muted-foreground">Conteúdo</Label>
+              <div className="mt-1 p-3 bg-muted/50 rounded-sm border border-border max-h-[150px] overflow-y-auto">
+                <p className="text-sm font-mono whitespace-pre-wrap">
+                  {templateConteudo.substring(0, 200)}{templateConteudo.length > 200 && "..."}
+                </p>
+              </div>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">Área Jurídica</Label>
+              <Badge variant="secondary" className="mt-1">{templateArea}</Badge>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveTemplate(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveTemplate} disabled={salvarTemplateMutation.isPending}>
+              {salvarTemplateMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <BookTemplate className="mr-2 w-4 h-4" />
+                  Salvar Template
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
