@@ -241,7 +241,7 @@ export async function getUserHistorico(userId: number, limit = 100) {
 
 export async function getUserStats(userId: number) {
   const db = await getDb();
-  if (!db) return { totalAnalises: 0, totalGeracoes: 0, totalOtimizacoes: 0 };
+  if (!db) return { totalAnalises: 0, totalGeracoes: 0, totalOtimizacoes: 0, totalTemplates: 0 };
   
   const hist = await db.select().from(historico)
     .where(and(
@@ -253,7 +253,15 @@ export async function getUserStats(userId: number) {
   const totalGeracoes = hist.filter(h => h.acao === 'geracao').length;
   const totalOtimizacoes = hist.filter(h => h.acao === 'otimizacao').length;
   
-  return { totalAnalises, totalGeracoes, totalOtimizacoes };
+  // Contar templates do usuário
+  const userTemplates = await db.select().from(templates)
+    .where(and(
+      eq(templates.userId, userId),
+      eq(templates.isAtivo, true)
+    ));
+  const totalTemplates = userTemplates.length;
+  
+  return { totalAnalises, totalGeracoes, totalOtimizacoes, totalTemplates };
 }
 
 // ===== CONFIGURACAO HELPERS =====

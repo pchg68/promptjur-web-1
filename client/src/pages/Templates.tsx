@@ -3,7 +3,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles } from "lucide-react";
+import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -21,6 +22,7 @@ import {
 export default function Templates() {
   const { user } = useAuth();
   const [templateToDelete, setTemplateToDelete] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const templatesQuery = trpc.templates.meus.useQuery();
   const deleteMutation = trpc.templates.deletar.useMutation({
@@ -42,6 +44,16 @@ export default function Templates() {
   const handleDelete = (id: number) => {
     deleteMutation.mutate({ templateId: id });
   };
+
+  // Filtrar templates com base na busca
+  const filteredTemplates = templatesQuery.data?.filter(template => {
+    const query = searchQuery.toLowerCase();
+    return (
+      template.nome.toLowerCase().includes(query) ||
+      template.descricao?.toLowerCase().includes(query) ||
+      template.areaJuridica.toLowerCase().includes(query)
+    );
+  }) || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,9 +96,23 @@ export default function Templates() {
             <BookTemplate className="w-6 h-6 text-primary" />
             <h2 className="text-3xl font-bold text-foreground">Meus Templates</h2>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Gerencie seus templates personalizados de prompts jurídicos
           </p>
+          
+          {/* Campo de Busca */}
+          {templatesQuery.data && templatesQuery.data.length > 0 && (
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar templates por nome, descrição ou área..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          )}
         </div>
 
         {templatesQuery.isLoading && (
@@ -122,8 +148,23 @@ export default function Templates() {
         )}
 
         {templatesQuery.data && templatesQuery.data.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2">
-            {templatesQuery.data.map((template) => (
+          <>
+            {filteredTemplates.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center py-12">
+                  <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum template encontrado</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Nenhum template corresponde à sua busca "{searchQuery}". Tente outros termos.
+                  </p>
+                  <Button variant="outline" onClick={() => setSearchQuery("")}>
+                    Limpar Busca
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2">
+                {filteredTemplates.map((template) => (
               <Card key={template.id} className="hover:border-primary/50 transition-colors">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -152,10 +193,20 @@ export default function Templates() {
 
                   <div className="flex items-center gap-2">
                     <Button
+                      asChild
+                      variant="default"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Link href={`/dashboard?template=${template.id}`}>
+                        <Play className="w-4 h-4 mr-2" />
+                        Usar Template
+                      </Link>
+                    </Button>
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => copyToClipboard(template.template)}
-                      className="flex-1"
                     >
                       <Copy className="w-4 h-4 mr-2" />
                       Copiar
@@ -178,6 +229,8 @@ export default function Templates() {
               </Card>
             ))}
           </div>
+            )}
+          </>
         )}
       </main>
 

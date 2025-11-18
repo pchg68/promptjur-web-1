@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,13 +13,40 @@ import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [location] = useLocation();
   const [activeTab, setActiveTab] = useState("analisar");
+  
+  // Buscar estatísticas do usuário
+  const statsQuery = trpc.prompts.stats.useQuery();
+  
+  // Detectar template ID da URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const templateIdFromUrl = urlParams.get('template');
+  
+  // Buscar template se ID estiver presente
+  const templateQuery = trpc.templates.meus.useQuery(undefined, {
+    enabled: !!templateIdFromUrl
+  });
+  
+  // Carregar template quando dados estiverem disponíveis
+  useEffect(() => {
+    if (templateIdFromUrl && templateQuery.data) {
+      const template = templateQuery.data.find(t => t.id === parseInt(templateIdFromUrl));
+      if (template) {
+        // Preencher campo de análise por padrão
+        setPromptAnalise(template.template);
+        toast.success(`Template "${template.nome}" carregado!`);
+        // Limpar URL
+        window.history.replaceState({}, '', '/dashboard');
+      }
+    }
+  }, [templateIdFromUrl, templateQuery.data]);
 
   // Estado para Análise
   const [promptAnalise, setPromptAnalise] = useState("");
@@ -182,6 +209,73 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-7xl">
+        {/* Cards de Métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Análises</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {statsQuery.data?.totalAnalises || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Gerações</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {statsQuery.data?.totalGeracoes || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Otimizações</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {statsQuery.data?.totalOtimizacoes || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Templates</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {statsQuery.data?.totalTemplates || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
+                  <BookTemplate className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="analisar" className="flex items-center gap-2">

@@ -120,3 +120,18 @@
 
 ## Bugs Reportados
 - [x] Corrigir erro de <a> aninhados no header (Link do wouter já renderiza <a>)
+
+## Melhorias UX (Sessão Atual)
+- [x] Adicionar cards de métricas no topo do Dashboard
+  - [x] Total de análises realizadas
+  - [x] Total de gerações realizadas
+  - [x] Total de otimizações realizadas
+  - [x] Total de templates salvos
+- [x] Implementar sistema de busca na página de Templates
+  - [x] Campo de busca por nome/descrição/área
+  - [x] Filtro em tempo real
+  - [x] Estado vazio quando nenhum resultado encontrado
+- [x] Adicionar botão "Usar Template" na página de Templates
+  - [x] Navegação para Dashboard com template pré-carregado
+  - [x] Preenchimento automático do campo de análise
+  - [x] Toast de confirmação ao carregar template
