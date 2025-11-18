@@ -20,22 +20,22 @@
 - [x] Implementar navegação entre seções
 
 ## Fase 4: Funcionalidades Principais
-- [ ] Interface de Análise de Prompts
-  - [ ] Campo de entrada de texto
-  - [ ] Exibição de resultados (área jurídica, qualidade, sugestões)
-  - [ ] Extração de entidades e palavras-chave
-  - [ ] Badge de qualidade visual
-- [ ] Interface de Geração de Prompts
-  - [ ] Seletor de área jurídica (12 áreas)
-  - [ ] Campo de objetivo
-  - [ ] Slider de nível de detalhe
-  - [ ] Campo de persona
-  - [ ] Checkbox de referências legais
-  - [ ] Geração com templates especializados
-- [ ] Interface de Otimização de Prompts
-  - [ ] Campo de entrada de prompt original
-  - [ ] Comparação lado a lado (antes/depois)
-  - [ ] Explicação das melhorias aplicadas
+- [x] Interface de Análise de Prompts
+  - [x] Campo de entrada de texto
+  - [x] Exibição de resultados (área jurídica, qualidade, sugestões)
+  - [x] Extração de entidades e palavras-chave
+  - [x] Badge de qualidade visual
+- [x] Interface de Geração de Prompts
+  - [x] Seletor de área jurídica (12 áreas)
+  - [x] Campo de objetivo
+  - [x] Slider de nível de detalhe
+  - [x] Campo de persona
+  - [x] Checkbox de referências legais
+  - [x] Geração com templates especializados
+- [x] Interface de Otimização de Prompts
+  - [x] Campo de entrada de prompt original
+  - [x] Comparação lado a lado (antes/depois)
+  - [x] Explicação das melhorias aplicadas
 
 ## Fase 5: Funcionalidades Avançadas
 - [ ] Sistema de Verificação de Fontes
@@ -55,9 +55,9 @@
   - [ ] Validação progressiva
 
 ## Fase 6: Dashboard e Histórico
-- [ ] Histórico de prompts gerados
+- [x] Histórico de prompts gerados
 - [ ] Métricas de uso (total de análises, gerações, otimizações)
-- [ ] Favoritos e salvos
+- [x] Favoritos e salvos
 - [ ] Exportação de resultados
 
 ## Fase 7: Integrações e APIs
@@ -100,3 +100,5 @@
   - [ ] Adicionar validação automática de citações
   - [ ] Implementar badges de confiabilidade (verde/amarelo/vermelho)
   - [ ] Adicionar links diretos para fontes oficiais
+
+- [x] Corrigir erro de API retornando HTML ao invés de JSON no Dashboard (problema era falta de import useState)

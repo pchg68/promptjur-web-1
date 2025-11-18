@@ -20,25 +20,57 @@ export default function Dashboard() {
 
   // Estado para Análise
   const [promptAnalise, setPromptAnalise] = useState("");
-  const analiseMutation = trpc.prompts.analisar.useMutation();
+  const analiseMutation = trpc.prompts.analisar.useMutation({
+    onSuccess: () => {
+      toast.success("Análise concluída com sucesso!");
+    },
+    onError: (error) => {
+      toast.error(`Erro na análise: ${error.message}`);
+    }
+  });
 
   // Estado para Geração
   const [areaGeracao, setAreaGeracao] = useState<string>("");
   const [objetivoGeracao, setObjetivoGeracao] = useState("");
   const [nivelDetalhe, setNivelDetalhe] = useState([7]);
   const [incluirReferencias, setIncluirReferencias] = useState(true);
-  const geracaoMutation = trpc.prompts.gerar.useMutation();
+  const geracaoMutation = trpc.prompts.gerar.useMutation({
+    onSuccess: () => {
+      toast.success("Prompt gerado com sucesso!");
+    },
+    onError: (error) => {
+      toast.error(`Erro na geração: ${error.message}`);
+    }
+  });
 
   // Estado para Otimização
   const [promptOtimizacao, setPromptOtimizacao] = useState("");
-  const otimizacaoMutation = trpc.prompts.otimizar.useMutation();
+  const otimizacaoMutation = trpc.prompts.otimizar.useMutation({
+    onSuccess: () => {
+      toast.success("Otimização concluída com sucesso!");
+    },
+    onError: (error) => {
+      toast.error(`Erro na otimização: ${error.message}`);
+    }
+  });
 
   const handleAnalisar = async () => {
+    console.log('[DEBUG] handleAnalisar chamado');
+    console.log('[DEBUG] promptAnalise:', promptAnalise);
+    
     if (!promptAnalise.trim()) {
+      console.log('[DEBUG] Prompt vazio');
       toast.error("Por favor, insira um prompt para analisar");
       return;
     }
-    analiseMutation.mutate({ prompt: promptAnalise });
+    
+    console.log('[DEBUG] Chamando mutation com:', { prompt: promptAnalise });
+    try {
+      analiseMutation.mutate({ prompt: promptAnalise });
+      console.log('[DEBUG] Mutation chamada com sucesso');
+    } catch (error) {
+      console.error('[DEBUG] Erro ao chamar mutation:', error);
+    }
   };
 
   const handleGerar = async () => {
