@@ -117,3 +117,6 @@
   - [x] Na aba de Otimização
   - [x] Dialog para entrada de nome e descrição
 - [x] Testar todas as funcionalidades implementadas
+
+## Bugs Reportados
+- [x] Corrigir erro de <a> aninhados no header (Link do wouter já renderiza <a>)

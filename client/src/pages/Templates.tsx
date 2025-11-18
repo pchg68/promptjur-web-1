@@ -58,23 +58,17 @@ export default function Templates() {
             </div>
             <div className="flex items-center gap-6">
               <nav className="flex items-center gap-4">
-                <Link href="/">
-                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <Home className="w-4 h-4" />
-                    Início
-                  </a>
+                <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Home className="w-4 h-4" />
+                  Início
                 </Link>
-                <Link href="/dashboard">
-                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <Sparkles className="w-4 h-4" />
-                    Dashboard
-                  </a>
+                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Sparkles className="w-4 h-4" />
+                  Dashboard
                 </Link>
-                <Link href="/historico">
-                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <History className="w-4 h-4" />
-                    Histórico
-                  </a>
+                <Link href="/historico" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <History className="w-4 h-4" />
+                  Histórico
                 </Link>
               </nav>
               <span className="text-sm text-muted-foreground border-l border-border pl-6">Olá, {user?.name}</span>

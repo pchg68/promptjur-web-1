@@ -161,23 +161,17 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-6">
               <nav className="flex items-center gap-4">
-                <Link href="/">
-                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <Home className="w-4 h-4" />
-                    Início
-                  </a>
+                <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Home className="w-4 h-4" />
+                  Início
                 </Link>
-                <Link href="/historico">
-                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <History className="w-4 h-4" />
-                    Histórico
-                  </a>
+                <Link href="/historico" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <History className="w-4 h-4" />
+                  Histórico
                 </Link>
-                <Link href="/templates">
-                  <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <BookTemplate className="w-4 h-4" />
-                    Templates
-                  </a>
+                <Link href="/templates" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <BookTemplate className="w-4 h-4" />
+                  Templates
                 </Link>
               </nav>
               <span className="text-sm text-muted-foreground border-l border-border pl-6">Olá, {user?.name}</span>
