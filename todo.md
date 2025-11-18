@@ -135,3 +135,19 @@
   - [x] Navegação para Dashboard com template pré-carregado
   - [x] Preenchimento automático do campo de análise
   - [x] Toast de confirmação ao carregar template
+
+## Funcionalidades Avançadas (Sessão Atual)
+- [x] Adicionar filtros por área jurídica na página de Templates
+  - [x] Chips clicáveis das 12 áreas jurídicas
+  - [x] Filtro combinado com busca textual
+  - [x] Botão "Limpar Filtros"
+- [x] Implementar página de Histórico completa
+  - [x] Tabela com histórico de ações
+  - [x] Filtros por tipo de ação (análise/geração/otimização)
+  - [x] Dialog de detalhes com informações completas
+  - [x] Visualizar detalhes do prompt
+  - [x] Design consistente com tema Legal Blueprint
+- [x] Adicionar botões de exportação nos resultados
+  - [x] Exportar como PDF (via impressão do navegador)
+  - [x] Exportar como Markdown (download direto)
+  - [x] Botões nas 3 abas (Análise, Geração, Otimização)

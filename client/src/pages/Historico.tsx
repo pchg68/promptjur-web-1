@@ -1,74 +1,34 @@
+import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { APP_LOGO, APP_TITLE, AREAS_JURIDICAS, getLoginUrl } from "@/const";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Calendar, FileText, Filter, Heart, Loader2, Search, Star } from "lucide-react";
-import { useState } from "react";
+import { toast } from "sonner";
 import { Link } from "wouter";
+import { AREAS_JURIDICAS } from "@/const";
 
 export default function Historico() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
-  const [filtroArea, setFiltroArea] = useState<string>("todas");
-  const [filtroFavoritos, setFiltroFavoritos] = useState(false);
+  const [selectedPrompt, setSelectedPrompt] = useState<any | null>(null);
 
-  // Queries
-  const { data: prompts, isLoading: promptsLoading } = trpc.historico.prompts.useQuery(
-    {
-      tipo: filtroTipo !== "todos" ? (filtroTipo as any) : undefined,
-      area: filtroArea !== "todas" ? filtroArea : undefined,
-      favoritos: filtroFavoritos || undefined,
-      limit: 100
-    },
-    { enabled: isAuthenticated }
-  );
+  // Query de histórico
+  const historicoQuery = trpc.historico.listar.useQuery({ limit: 100 });
 
-  const { data: historico, isLoading: historicoLoading } = trpc.historico.listar.useQuery(
-    { limit: 100 },
-    { enabled: isAuthenticated }
-  );
+  // Filtrar histórico
+  const filteredHistorico = historicoQuery.data?.filter((item) => {
+    const matchesTipo = filtroTipo === "todos" || item.acao === filtroTipo;
+    return matchesTipo;
+  }) || [];
 
-  const toggleFavoritoMutation = trpc.prompts.toggleFavorito.useMutation({
-    onSuccess: () => {
-      // Invalidar queries para atualizar a lista
-      trpc.useUtils().historico.prompts.invalidate();
-    }
-  });
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900">
-        <Loader2 className="h-8 w-8 animate-spin text-gold" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Acesso Restrito</CardTitle>
-            <CardDescription>
-              Você precisa estar autenticado para acessar o histórico.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button asChild className="w-full">
-              <a href={getLoginUrl()}>Fazer Login</a>
-            </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/">Voltar para Home</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const clearFilters = () => {
+    setFiltroTipo("todos");
+  };
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -80,272 +40,262 @@ export default function Historico() {
     }).format(new Date(date));
   };
 
-  const getTipoBadgeColor = (tipo: string) => {
+  const getTipoBadge = (tipo: string) => {
     switch (tipo) {
-      case 'analise': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'geracao': return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'otimizacao': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      case 'analise':
+        return <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">Análise</Badge>;
+      case 'geracao':
+        return <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">Geração</Badge>;
+      case 'otimizacao':
+        return <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">Otimização</Badge>;
+      default:
+        return <Badge variant="outline">{tipo}</Badge>;
     }
   };
 
-  const getAcaoBadgeColor = (acao: string) => {
-    switch (acao) {
-      case 'analise': return 'bg-blue-500/20 text-blue-400';
-      case 'geracao': return 'bg-green-500/20 text-green-400';
-      case 'otimizacao': return 'bg-purple-500/20 text-purple-400';
-      case 'verificacao': return 'bg-gold/20 text-gold';
-      default: return 'bg-gray-500/20 text-gray-400';
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Prompt copiado para a área de transferência!");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-white/10 bg-navy-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-border/50 backdrop-blur-sm sticky top-0 z-50 bg-background/95">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button asChild variant="ghost" size="icon">
-                <Link href="/dashboard">
-                  <ArrowLeft className="h-5 w-5" />
-                </Link>
-              </Button>
+            <div className="flex items-center gap-3">
+              <Scale className="w-6 h-6 text-primary" />
               <div>
-                <h1 className="text-2xl font-bold text-gold">Histórico</h1>
-                <p className="text-sm text-gray-400">Visualize e gerencie seus prompts</p>
+                <h1 className="text-xl font-bold text-foreground">PromptJur</h1>
+                <p className="text-xs text-muted-foreground">Histórico</p>
               </div>
             </div>
+
+            <nav className="flex items-center gap-1">
+              <Link href="/" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                <Home className="w-4 h-4" />
+                Início
+              </Link>
+              <Link href="/dashboard" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                <Scale className="w-4 h-4" />
+                Dashboard
+              </Link>
+              <Link href="/templates" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                <BookTemplate className="w-4 h-4" />
+                Templates
+              </Link>
+            </nav>
+
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">{user?.name}</span>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
+              <span className="text-sm text-muted-foreground">Olá, {user?.name}</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="prompts" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="prompts">
-              <FileText className="h-4 w-4 mr-2" />
-              Prompts Salvos
-            </TabsTrigger>
-            <TabsTrigger value="atividades">
-              <Calendar className="h-4 w-4 mr-2" />
-              Atividades
-            </TabsTrigger>
-          </TabsList>
+      <main className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <HistoryIcon className="w-6 h-6 text-primary" />
+            <h2 className="text-3xl font-bold text-foreground">Histórico de Atividades</h2>
+          </div>
+          <p className="text-muted-foreground">
+            Visualize todas as suas análises, gerações e otimizações de prompts
+          </p>
+        </div>
 
-          {/* Tab: Prompts Salvos */}
-          <TabsContent value="prompts" className="space-y-6">
-            {/* Filtros */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="h-5 w-5" />
-                  Filtros
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Tipo</label>
-                    <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos</SelectItem>
-                        <SelectItem value="analise">Análise</SelectItem>
-                        <SelectItem value="geracao">Geração</SelectItem>
-                        <SelectItem value="otimizacao">Otimização</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+        {/* Filtros */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="w-5 h-5" />
+              Filtros
+            </CardTitle>
+            <CardDescription>
+              Filtre o histórico por tipo de ação
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 space-y-2">
+                <label className="text-sm font-medium">Tipo de Ação</label>
+                <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="analise">Análise</SelectItem>
+                    <SelectItem value="geracao">Geração</SelectItem>
+                    <SelectItem value="otimizacao">Otimização</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Área Jurídica</label>
-                    <Select value={filtroArea} onValueChange={setFiltroArea}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todas">Todas</SelectItem>
-                        {AREAS_JURIDICAS.map(area => (
-                          <SelectItem key={area} value={area}>{area}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              {filtroTipo !== "todos" && (
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Limpar Filtros
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-                  <div className="flex items-end">
-                    <Button
-                      variant={filtroFavoritos ? "default" : "outline"}
-                      onClick={() => setFiltroFavoritos(!filtroFavoritos)}
-                      className="w-full"
-                    >
-                      <Heart className={`h-4 w-4 mr-2 ${filtroFavoritos ? 'fill-current' : ''}`} />
-                      Favoritos
-                    </Button>
-                  </div>
+        {/* Tabela de Histórico */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Registros ({filteredHistorico.length})</CardTitle>
+            <CardDescription>
+              {filteredHistorico.length === 0 
+                ? "Nenhum registro encontrado com os filtros selecionados" 
+                : "Clique em um registro para ver detalhes"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {historicoQuery.isLoading ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Carregando histórico...</p>
+              </div>
+            ) : filteredHistorico.length === 0 ? (
+              <div className="text-center py-12">
+                <HistoryIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum registro encontrado</h3>
+                <p className="text-muted-foreground mb-6">
+                  {historicoQuery.data && historicoQuery.data.length > 0
+                    ? "Tente ajustar os filtros para ver mais resultados."
+                    : "Comece usando o dashboard para criar seu primeiro prompt."}
+                </p>
+                {filtroTipo !== "todos" && (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Limpar Filtros
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data/Hora</TableHead>
+                      <TableHead>Tipo</TableHead>
 
-                  <div className="flex items-end">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setFiltroTipo("todos");
-                        setFiltroArea("todas");
-                        setFiltroFavoritos(false);
-                      }}
-                      className="w-full"
-                    >
-                      Limpar Filtros
-                    </Button>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredHistorico.map((item) => (
+                      <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
+                        <TableCell className="font-medium">
+                          {formatDate(item.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          {getTipoBadge(item.acao)}
+                        </TableCell>
+
+                        <TableCell>
+                          {item.sucesso ? (
+                            <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                              Sucesso
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
+                              Erro
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedPrompt(item)}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Detalhes
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+
+      {/* Dialog de Detalhes */}
+      <Dialog open={selectedPrompt !== null} onOpenChange={() => setSelectedPrompt(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              Detalhes do Registro
+              {selectedPrompt && getTipoBadge(selectedPrompt.acao)}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedPrompt && formatDate(selectedPrompt.createdAt)}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedPrompt && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Tipo de Ação</h4>
+                {getTipoBadge(selectedPrompt.acao)}
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Status</h4>
+                {selectedPrompt.sucesso ? (
+                  <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                    Sucesso
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
+                    Erro
+                  </Badge>
+                )}
+              </div>
+
+              {selectedPrompt.duracaoMs && (
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Duração</h4>
+                  <p className="text-sm">{selectedPrompt.duracaoMs}ms</p>
+                </div>
+              )}
+
+              {selectedPrompt.detalhes && (
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Detalhes</h4>
+                  <div className="bg-muted p-4 rounded-lg">
+                    <pre className="text-sm whitespace-pre-wrap font-mono">
+                      {JSON.stringify(selectedPrompt.detalhes, null, 2)}
+                    </pre>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              )}
 
-            {/* Lista de Prompts */}
-            {promptsLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-gold" />
-              </div>
-            ) : prompts && prompts.length > 0 ? (
-              <div className="grid gap-4">
-                {prompts.map((prompt) => (
-                  <Card key={prompt.id} className="hover:border-gold/30 transition-colors">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge className={getTipoBadgeColor(prompt.tipo)}>
-                              {prompt.tipo === 'analise' ? 'Análise' : 
-                               prompt.tipo === 'geracao' ? 'Geração' : 'Otimização'}
-                            </Badge>
-                            {prompt.areaJuridica && (
-                              <Badge variant="outline">{prompt.areaJuridica}</Badge>
-                            )}
-                            {prompt.qualidade && (
-                              <Badge variant="outline" className={
-                                prompt.qualidade === 'excelente' ? 'border-green-500/50 text-green-400' :
-                                prompt.qualidade === 'bom' ? 'border-yellow-500/50 text-yellow-400' :
-                                'border-red-500/50 text-red-400'
-                              }>
-                                {prompt.qualidade === 'excelente' ? 'Excelente' :
-                                 prompt.qualidade === 'bom' ? 'Bom' : 'Ruim'}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-400">
-                            {formatDate(prompt.createdAt)}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleFavoritoMutation.mutate({
-                            promptId: prompt.id,
-                            isFavorito: !prompt.isFavorito
-                          })}
-                        >
-                          <Heart className={`h-5 w-5 ${prompt.isFavorito ? 'fill-gold text-gold' : 'text-gray-400'}`} />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-400 mb-1">Prompt Original:</h4>
-                        <p className="text-sm line-clamp-2">{prompt.promptOriginal}</p>
-                      </div>
-                      {prompt.promptOtimizado && (
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-400 mb-1">Prompt Otimizado:</h4>
-                          <p className="text-sm line-clamp-2 text-green-400">{prompt.promptOtimizado}</p>
-                        </div>
-                      )}
-                      <div className="flex gap-2 pt-2">
-                        <Button size="sm" variant="outline">
-                          Ver Detalhes
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          Reutilizar
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          Salvar como Template
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-                  <p className="text-gray-400 mb-4">Nenhum prompt encontrado com os filtros selecionados.</p>
-                  <Button asChild>
-                    <Link href="/dashboard">Criar Novo Prompt</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Tab: Atividades */}
-          <TabsContent value="atividades" className="space-y-4">
-            {historicoLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-gold" />
-              </div>
-            ) : historico && historico.length > 0 ? (
-              <div className="space-y-3">
-                {historico.map((item) => (
-                  <Card key={item.id} className="hover:border-gold/30 transition-colors">
-                    <CardContent className="py-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <Badge className={getAcaoBadgeColor(item.acao)}>
-                            {item.acao === 'analise' ? 'Análise' :
-                             item.acao === 'geracao' ? 'Geração' :
-                             item.acao === 'otimizacao' ? 'Otimização' : 'Verificação'}
-                          </Badge>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {item.sucesso ? 'Concluído com sucesso' : 'Falhou'}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {formatDate(item.createdAt)}
-                              {item.duracaoMs && ` • ${(item.duracaoMs / 1000).toFixed(2)}s`}
-                            </p>
-                          </div>
-                        </div>
-                        {!item.sucesso && item.mensagemErro && (
-                          <Badge variant="destructive">Erro</Badge>
-                        )}
-                      </div>
-                      {!item.sucesso && item.mensagemErro && (
-                        <p className="text-xs text-red-400 mt-2">{item.mensagemErro}</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-                  <p className="text-gray-400">Nenhuma atividade registrada ainda.</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-      </main>
+              {selectedPrompt.mensagemErro && (
+                <div>
+                  <h4 className="text-sm font-medium text-destructive mb-2">Mensagem de Erro</h4>
+                  <div className="bg-destructive/10 border border-destructive/30 p-4 rounded-lg">
+                    <p className="text-sm text-destructive">{selectedPrompt.mensagemErro}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,11 +3,12 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play } from "lucide-react";
+import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { AREAS_JURIDICAS } from "@/const";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +24,7 @@ export default function Templates() {
   const { user } = useAuth();
   const [templateToDelete, setTemplateToDelete] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedArea, setSelectedArea] = useState<string | null>(null);
   
   const templatesQuery = trpc.templates.meus.useQuery();
   const deleteMutation = trpc.templates.deletar.useMutation({
@@ -45,15 +47,23 @@ export default function Templates() {
     deleteMutation.mutate({ templateId: id });
   };
 
-  // Filtrar templates com base na busca
+  // Filtrar templates com base na busca e área selecionada
   const filteredTemplates = templatesQuery.data?.filter(template => {
     const query = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = 
       template.nome.toLowerCase().includes(query) ||
       template.descricao?.toLowerCase().includes(query) ||
-      template.areaJuridica.toLowerCase().includes(query)
-    );
+      template.areaJuridica.toLowerCase().includes(query);
+    
+    const matchesArea = !selectedArea || template.areaJuridica === selectedArea;
+    
+    return matchesSearch && matchesArea;
   }) || [];
+  
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedArea(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -100,17 +110,45 @@ export default function Templates() {
             Gerencie seus templates personalizados de prompts jurídicos
           </p>
           
-          {/* Campo de Busca */}
+          {/* Campo de Busca e Filtros */}
           {templatesQuery.data && templatesQuery.data.length > 0 && (
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Buscar templates por nome, descrição ou área..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar templates por nome, descrição ou área..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                {(searchQuery || selectedArea) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Limpar Filtros
+                  </Button>
+                )}
+              </div>
+              
+              {/* Chips de Áreas Jurídicas */}
+              <div className="flex flex-wrap gap-2">
+                {AREAS_JURIDICAS.map((area) => (
+                  <Badge
+                    key={area}
+                    variant={selectedArea === area ? "default" : "outline"}
+                    className="cursor-pointer hover:bg-primary/10 transition-colors"
+                    onClick={() => setSelectedArea(selectedArea === area ? null : area)}
+                  >
+                    {area}
+                  </Badge>
+                ))}
+              </div>
             </div>
           )}
         </div>

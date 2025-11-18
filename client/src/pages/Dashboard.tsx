@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -148,6 +148,75 @@ export default function Dashboard() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copiado para a área de transferência!");
+  };
+
+  // Funções de exportação
+  const exportAsMarkdown = (title: string, content: any) => {
+    let markdown = `# ${title}\n\n`;
+    markdown += `**Data:** ${new Date().toLocaleString('pt-BR')}\n\n`;
+    
+    if (typeof content === 'string') {
+      markdown += content;
+    } else {
+      markdown += '```json\n' + JSON.stringify(content, null, 2) + '\n```';
+    }
+    
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Exportado como Markdown!");
+  };
+
+  const exportAsPDF = (title: string, content: any) => {
+    // Criar HTML para PDF
+    let html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${title}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+          h1 { color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; }
+          .metadata { color: #666; font-size: 14px; margin-bottom: 20px; }
+          pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+          .content { line-height: 1.6; }
+        </style>
+      </head>
+      <body>
+        <h1>${title}</h1>
+        <div class="metadata">Data: ${new Date().toLocaleString('pt-BR')}</div>
+        <div class="content">
+    `;
+    
+    if (typeof content === 'string') {
+      html += `<p>${content.replace(/\n/g, '<br>')}</p>`;
+    } else {
+      html += `<pre>${JSON.stringify(content, null, 2)}</pre>`;
+    }
+    
+    html += `
+        </div>
+      </body>
+      </html>
+    `;
+    
+    // Abrir em nova janela para imprimir
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+      toast.success("Abrindo janela de impressão...");
+    }
   };
 
   const openSaveTemplateDialog = (conteudo: string, area: string) => {
@@ -341,6 +410,22 @@ export default function Dashboard() {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => exportAsMarkdown("Análise de Prompt", analiseMutation.data)}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Markdown
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportAsPDF("Análise de Prompt", analiseMutation.data)}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" />
+                          PDF
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => openSaveTemplateDialog(promptAnalise, analiseMutation.data?.area || "Geral")}
                         >
                           <BookTemplate className="w-4 h-4 mr-2" />
@@ -496,24 +581,40 @@ export default function Dashboard() {
                   <div className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm">
                      <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-foreground">Prompt Gerado</h3>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openSaveTemplateDialog(geracaoMutation.data?.promptGerado || "", areaGeracao)}
-                        >
-                          <BookTemplate className="w-4 h-4 mr-2" />
-                          Salvar Template
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(geracaoMutation.data?.promptGerado || "")}
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copiar
-                        </Button>
-                      </div>
+                       <div className="flex items-center gap-2">
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => exportAsMarkdown("Prompt Gerado", geracaoMutation.data?.promptGerado || "")}
+                         >
+                           <FileText className="w-4 h-4 mr-2" />
+                           Markdown
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => exportAsPDF("Prompt Gerado", geracaoMutation.data?.promptGerado || "")}
+                         >
+                           <FileDown className="w-4 h-4 mr-2" />
+                           PDF
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => openSaveTemplateDialog(geracaoMutation.data?.promptGerado || "", areaGeracao)}
+                         >
+                           <BookTemplate className="w-4 h-4 mr-2" />
+                           Salvar Template
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => copyToClipboard(geracaoMutation.data?.promptGerado || "")}
+                         >
+                           <Copy className="w-4 h-4 mr-2" />
+                           Copiar
+                         </Button>
+                       </div>
                     </div>
                     <div className="p-4 bg-muted/30 rounded-sm">
                       <Streamdown className="text-sm font-mono whitespace-pre-wrap">
@@ -607,25 +708,41 @@ export default function Dashboard() {
                     <div className="p-6 bg-card border border-primary/20 rounded-sm">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-foreground">Prompt Otimizado</h3>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="default">Depois</Badge>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openSaveTemplateDialog(otimizacaoMutation.data?.promptOtimizado || "", otimizacaoMutation.data?.area || "Geral")}
-                          >
-                            <BookTemplate className="w-4 h-4 mr-2" />
-                            Salvar Template
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(otimizacaoMutation.data?.promptOtimizado || "")}
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copiar
-                          </Button>
-                        </div>
+                         <div className="flex items-center gap-2">
+                           <Badge variant="default">Depois</Badge>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => exportAsMarkdown("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
+                           >
+                             <FileText className="w-4 h-4 mr-2" />
+                             Markdown
+                           </Button>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => exportAsPDF("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
+                           >
+                             <FileDown className="w-4 h-4 mr-2" />
+                             PDF
+                           </Button>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => openSaveTemplateDialog(otimizacaoMutation.data?.promptOtimizado || "", otimizacaoMutation.data?.area || "Geral")}
+                           >
+                             <BookTemplate className="w-4 h-4 mr-2" />
+                             Salvar Template
+                           </Button>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => copyToClipboard(otimizacaoMutation.data?.promptOtimizado || "")}
+                           >
+                             <Copy className="w-4 h-4 mr-2" />
+                             Copiar
+                           </Button>
+                         </div>
                       </div>
                       <div className="p-4 bg-muted/30 rounded-sm">
                         <Streamdown className="text-sm font-mono whitespace-pre-wrap">
