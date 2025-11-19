@@ -2,9 +2,13 @@ import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-11-17.clover',
-});
+// Inicializar Stripe apenas se a chave estiver configurada
+let stripe: Stripe | null = null;
+if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-11-17.clover',
+  });
+}
 
 export const stripeRouter = router({
   // Criar sessão de checkout
@@ -15,6 +19,10 @@ export const stripeRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { priceId } = input;
       const user = ctx.user;
+
+      if (!stripe) {
+        throw new Error('Stripe não está configurado. Configure STRIPE_SECRET_KEY nas variáveis de ambiente.');
+      }
 
       try {
         const session = await stripe.checkout.sessions.create({
@@ -48,6 +56,10 @@ export const stripeRouter = router({
   createPortalSession: protectedProcedure
     .mutation(async ({ ctx }) => {
       const user = ctx.user;
+
+      if (!stripe) {
+        throw new Error('Stripe não está configurado. Configure STRIPE_SECRET_KEY nas variáveis de ambiente.');
+      }
 
       if (!user.stripeCustomerId) {
         throw new Error('Nenhuma assinatura ativa encontrada');

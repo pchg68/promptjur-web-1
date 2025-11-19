@@ -217,3 +217,8 @@
   - [ ] Atribuir templates a coleções
   - [ ] Navegação por coleção
   - [ ] Compartilhar coleção inteira
+
+## Problemas Reportados
+- [x] Servidor não carrega imagem - investigar incompatibilidade Stripe
+  - [x] Adicionar verificação de STRIPE_SECRET_KEY antes de inicializar
+  - [x] Adicionar mensagens de erro claras quando Stripe não configurado
