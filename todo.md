@@ -166,3 +166,17 @@
   - [x] Tempo médio de processamento por tipo
   - [x] Integração com backend de analytics
   - [x] Exibição de métricas de desempenho
+
+## Melhorias Finais (Sessão Atual)
+- [x] Renomear "Salvar Template" para "Salvar Prompt"
+  - [x] Atualizar textos no Dashboard
+  - [x] Atualizar labels e botões
+- [ ] Implementar atribuição de tags aos templates (funcionalidade futura)
+  - [x] Backend preparado (mutations criadas)
+  - [ ] UI de gerenciamento (pendente)
+- [ ] Adicionar gráficos visuais no Analytics (funcionalidade futura)
+  - [ ] Gráfico de linha: evolução de uso
+  - [ ] Gráfico de pizza: distribuição por tipo
+- [ ] Sistema de favoritos (funcionalidade futura)
+  - [ ] Schema e backend
+  - [ ] UI de favoritar

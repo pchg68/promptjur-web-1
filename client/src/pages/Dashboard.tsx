@@ -481,7 +481,7 @@ export default function Dashboard() {
                           onClick={() => openSaveTemplateDialog(promptAnalise, analiseMutation.data?.area || "Geral")}
                         >
                           <BookTemplate className="w-4 h-4 mr-2" />
-                          Salvar Template
+                          Salvar Prompt
                         </Button>
                         <Button
                           variant="outline"
@@ -656,7 +656,7 @@ export default function Dashboard() {
                            onClick={() => openSaveTemplateDialog(geracaoMutation.data?.promptGerado || "", areaGeracao)}
                          >
                            <BookTemplate className="w-4 h-4 mr-2" />
-                           Salvar Template
+                           Salvar Prompt
                          </Button>
                          <Button
                            variant="outline"
@@ -784,8 +784,8 @@ export default function Dashboard() {
                              onClick={() => openSaveTemplateDialog(otimizacaoMutation.data?.promptOtimizado || "", otimizacaoMutation.data?.area || "Geral")}
                            >
                              <BookTemplate className="w-4 h-4 mr-2" />
-                             Salvar Template
-                           </Button>
+                            Salvar Prompt
+                          </Button>
                            <Button
                              variant="outline"
                              size="sm"
@@ -816,13 +816,13 @@ export default function Dashboard() {
         </Tabs>
       </main>
 
-      {/* Dialog para Salvar Template */}
+      {/* Dialog para Salvar Prompt */}
       <Dialog open={showSaveTemplate} onOpenChange={setShowSaveTemplate}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Salvar como Template</DialogTitle>
+            <DialogTitle>Salvar Prompt</DialogTitle>
             <DialogDescription>
-              Salve este prompt como um template reutilizável para uso futuro
+              Salve este prompt para reutilização futura
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -872,7 +872,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   <BookTemplate className="mr-2 w-4 h-4" />
-                  Salvar Template
+                  Salvar Prompt
                 </>
               )}
             </Button>

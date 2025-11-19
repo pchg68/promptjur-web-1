@@ -38,6 +38,8 @@ export default function Templates() {
   const [showCreateTag, setShowCreateTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#3b82f6");
+  const [managingTagsFor, setManagingTagsFor] = useState<number | null>(null);
+  const [templateTags, setTemplateTags] = useState<Record<number, number[]>>({});
   
   const templatesQuery = trpc.templates.meus.useQuery();
   const tagsQuery = trpc.tags.minhas.useQuery();
@@ -51,6 +53,26 @@ export default function Templates() {
     },
     onError: (error) => {
       toast.error(`Erro ao criar tag: ${error.message}`);
+    }
+  });
+
+  const atribuirTagMutation = trpc.tags.atribuirTemplate.useMutation({
+    onSuccess: () => {
+      toast.success("Tag atribuída com sucesso!");
+      templatesQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao atribuir tag: ${error.message}`);
+    }
+  });
+
+  const removerTagMutation = trpc.tags.removerTemplate.useMutation({
+    onSuccess: () => {
+      toast.success("Tag removida com sucesso!");
+      templatesQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao remover tag: ${error.message}`);
     }
   });
 
@@ -102,6 +124,23 @@ export default function Templates() {
         ? prev.filter(id => id !== tagId)
         : [...prev, tagId]
     );
+  };
+
+  const toggleTemplateTag = (templateId: number, tagId: number) => {
+    const currentTags = templateTags[templateId] || [];
+    if (currentTags.includes(tagId)) {
+      removerTagMutation.mutate({ templateId, tagId });
+      setTemplateTags(prev => ({
+        ...prev,
+        [templateId]: currentTags.filter(id => id !== tagId)
+      }));
+    } else {
+      atribuirTagMutation.mutate({ templateId, tagId });
+      setTemplateTags(prev => ({
+        ...prev,
+        [templateId]: [...currentTags, tagId]
+      }));
+    }
   };
 
   // Filtrar templates com base na busca e área selecionada
