@@ -101,8 +101,20 @@ export default function Dashboard() {
     onSuccess: () => {
       toast.success("Otimização concluída com sucesso!");
     },
-    onError: (error) => {
-      toast.error(`Erro na otimização: ${error.message}`);
+    onError: (error: any) => {
+      console.error("Erro ao otimizar:", error);
+      toast.error(`Erro ao otimizar: ${error.message}`);
+    }
+  });
+
+  const portalMutation = trpc.stripe.createPortalSession.useMutation({
+    onSuccess: (data: any) => {
+      if (data.url) {
+        window.open(data.url, '_blank');
+      }
+    },
+    onError: (error: any) => {
+      toast.error(`Erro: ${error.message}`);
     }
   });
 
@@ -270,8 +282,24 @@ export default function Dashboard() {
                   <BookTemplate className="w-4 h-4" />
                   Templates
                 </Link>
+                <Link href="/planos" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Zap className="w-4 h-4" />
+                  Planos
+                </Link>
               </nav>
-              <span className="text-sm text-muted-foreground border-l border-border pl-6">Olá, {user?.name}</span>
+              <div className="flex items-center gap-4 border-l border-border pl-6">
+                <span className="text-sm text-muted-foreground">Olá, {user?.name}</span>
+                {user?.subscriptionPlan && user.subscriptionPlan !== 'free' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => portalMutation.mutate()}
+                    disabled={portalMutation.isPending}
+                  >
+                    {portalMutation.isPending ? 'Carregando...' : 'Gerenciar Assinatura'}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -222,3 +222,14 @@
 - [x] Servidor não carrega imagem - investigar incompatibilidade Stripe
   - [x] Adicionar verificação de STRIPE_SECRET_KEY antes de inicializar
   - [x] Adicionar mensagens de erro claras quando Stripe não configurado
+
+## Completar Integração Stripe (Sessão Atual)
+- [x] Adicionar link "Planos" no header da landing page
+- [x] Adicionar link "Planos" no header do dashboard
+- [x] Criar botão "Gerenciar Assinatura" no dashboard
+- [x] Implementar webhook Stripe (/api/stripe/webhook)
+  - [x] Processar evento checkout.session.completed
+  - [x] Processar evento customer.subscription.updated
+  - [x] Processar evento customer.subscription.deleted
+  - [x] Atualizar campos do usuário no banco
+  - [x] Registrar rota no Express com raw body
