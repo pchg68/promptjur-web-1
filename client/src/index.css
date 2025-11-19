@@ -43,40 +43,39 @@
 }
 
 :root {
-  /* Legal Blueprint Theme - Navy & Gold */
-  --primary: oklch(0.65 0.12 75); /* Gold #d4af37 */
-  --primary-foreground: oklch(0.22 0.03 240); /* Navy text on gold */
-  --sidebar-primary: oklch(0.65 0.12 75);
-  --sidebar-primary-foreground: oklch(0.22 0.03 240);
-  --chart-1: oklch(0.65 0.12 75);
-  --chart-2: oklch(0.55 0.15 240);
-  --chart-3: oklch(0.45 0.12 240);
-  --chart-4: oklch(0.35 0.08 240);
-  --chart-5: oklch(0.25 0.05 240);
-  --radius: 0.25rem; /* Minimal rounding for legal feel */
-  --background: oklch(0.22 0.03 240); /* Navy #1a2332 */
-  --foreground: oklch(0.98 0 0); /* Light text */
-  --card: oklch(0.26 0.03 240); /* Slightly lighter navy */
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.26 0.03 240);
-  --popover-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.60 0.15 240); /* Blue accent #4a90e2 */
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.32 0.03 240); /* Muted navy */
-  --muted-foreground: oklch(0.80 0.01 240);
-  --accent: oklch(0.65 0.12 75); /* Gold accent */
-  --accent-foreground: oklch(0.22 0.03 240);
-  --destructive: oklch(0.60 0.20 25); /* Red */
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.32 0.03 240);
-  --input: oklch(0.32 0.03 240);
-  --ring: oklch(0.65 0.12 75); /* Gold ring */
-  --sidebar: oklch(0.22 0.03 240);
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.32 0.03 240);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.32 0.03 240);
-  --sidebar-ring: oklch(0.65 0.12 75);
+  --primary: var(--color-blue-700);
+  --primary-foreground: var(--color-blue-50);
+  --sidebar-primary: var(--color-blue-600);
+  --sidebar-primary-foreground: var(--color-blue-50);
+  --chart-1: var(--color-blue-300);
+  --chart-2: var(--color-blue-500);
+  --chart-3: var(--color-blue-600);
+  --chart-4: var(--color-blue-700);
+  --chart-5: var(--color-blue-800);
+  --radius: 0.65rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.235 0.015 65);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.235 0.015 65);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.235 0.015 65);
+  --secondary: oklch(0.98 0.001 286.375);
+  --secondary-foreground: oklch(0.4 0.015 65);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.141 0.005 285.823);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.623 0.214 259.815);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.235 0.015 65);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.623 0.214 259.815);
 }
 
 .dark {
@@ -120,14 +119,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-  }
-  code, pre {
-    font-family: 'JetBrains Mono', 'Courier New', monospace;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

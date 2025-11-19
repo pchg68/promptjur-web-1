@@ -19,21 +19,3 @@ export const getLoginUrl = () => {
 
   return url.toString();
 };
-
-// Áreas jurídicas
-export const AREAS_JURIDICAS = [
-  "Civil",
-  "Penal",
-  "Trabalhista",
-  "Tributário",
-  "Administrativo",
-  "Constitucional",
-  "Empresarial",
-  "Consumidor",
-  "Família",
-  "Previdenciário",
-  "Ambiental",
-  "Internacional"
-] as const;
-
-export type AreaJuridica = typeof AREAS_JURIDICAS[number];
