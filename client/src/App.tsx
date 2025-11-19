@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Historico from "./pages/Historico";
 import Templates from "./pages/Templates";
+import Planos from "./pages/Planos";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/historico"} component={Historico} />
       <Route path={"/templates"} component={Templates} />
+      <Route path={"/planos"} component={Planos} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

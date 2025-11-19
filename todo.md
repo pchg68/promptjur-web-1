@@ -193,3 +193,27 @@
   - [x] Campo isPublico no schema (já existia)
   - [x] Botão de alternar visibilidade (público/privado)
   - [x] Botão de copiar link de compartilhamento
+
+## Funcionalidades Avançadas + Monetização (Sessão Atual)
+- [x] Sistema de pagamentos Stripe
+  - [x] Adicionar feature Stripe ao projeto
+  - [x] Configurar planos de assinatura (Free, Pro, Enterprise)
+  - [x] Página de planos e preços (/planos)
+  - [x] Integração com autenticação
+  - [x] Schema de usuário atualizado com campos Stripe
+  - [ ] Webhook para processar eventos (pendente)
+- [ ] Página pública de template (/template/:id)
+  - [ ] Rota pública para visualizar template
+  - [ ] Botão "Importar para Minha Biblioteca"
+  - [ ] Informações do autor
+- [ ] Estatísticas de uso de templates
+  - [ ] Campos no schema (vezesUsado, vezesCopiado, vezesCompartilhado)
+  - [ ] Incrementar contadores nas ações
+  - [ ] Exibir estatísticas nos cards
+  - [ ] Ordenação por popularidade
+- [ ] Sistema de categorias/coleções
+  - [ ] Schema de coleções
+  - [ ] CRUD de coleções
+  - [ ] Atribuir templates a coleções
+  - [ ] Navegação por coleção
+  - [ ] Compartilhar coleção inteira
