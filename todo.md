@@ -233,3 +233,18 @@
   - [x] Processar evento customer.subscription.deleted
   - [x] Atualizar campos do usuário no banco
   - [x] Registrar rota no Express com raw body
+
+## Bug Crítico Reportado
+- [x] Pré-visualização não carrega - resolvido (processo duplicado na porta 3000)
+
+## Recomendações Urgentes (Análise Anthropic)
+- [ ] Testar webhook Stripe com Stripe CLI
+- [ ] Validar todos os eventos do webhook (checkout, subscription)
+- [ ] Implementar verificação básica de fontes jurídicas
+  - [ ] Validar formato de citações (Lei X/YYYY, art. Y)
+  - [ ] Avisar usuário que citações não foram verificadas
+  - [ ] Adicionar disclaimer de responsabilidade
+- [ ] Criar página pública de templates (/template/:id)
+  - [ ] Visualização de template compartilhado
+  - [ ] Botão "Importar para Minha Biblioteca"
+  - [ ] Funciona sem login

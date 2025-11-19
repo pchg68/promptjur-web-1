@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, AlertTriangle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -452,6 +452,12 @@ export default function Dashboard() {
                 <CardDescription>
                   Cole seu prompt abaixo para análise automática de área jurídica, palavras-chave e qualidade
                 </CardDescription>
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-sm flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-800 dark:text-amber-300">
+                    <strong>Aviso:</strong> As citações legais (leis, artigos, jurisprudências) são verificadas automaticamente pelo sistema, mas não são validadas por fontes oficiais. Sempre confirme as referências em bases jurídicas oficiais antes de usar em documentos formais.
+                  </p>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -590,6 +596,12 @@ export default function Dashboard() {
                 <CardDescription>
                   Configure os parâmetros abaixo para gerar um prompt jurídico otimizado
                 </CardDescription>
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-sm flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-800 dark:text-amber-300">
+                    <strong>Aviso:</strong> As citações legais (leis, artigos, jurisprudências) são verificadas automaticamente pelo sistema, mas não são validadas por fontes oficiais. Sempre confirme as referências em bases jurídicas oficiais antes de usar em documentos formais.
+                  </p>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -724,6 +736,12 @@ export default function Dashboard() {
                 <CardDescription>
                   Cole um prompt existente para receber sugestões de melhoria e uma versão otimizada
                 </CardDescription>
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-sm flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-800 dark:text-amber-300">
+                    <strong>Aviso:</strong> As citações legais (leis, artigos, jurisprudências) são verificadas automaticamente pelo sistema, mas não são validadas por fontes oficiais. Sempre confirme as referências em bases jurídicas oficiais antes de usar em documentos formais.
+                  </p>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
