@@ -134,3 +134,59 @@ export const configuracoes = mysqlTable("configuracoes", {
 
 export type Configuracao = typeof configuracoes.$inferSelect;
 export type InsertConfiguracao = typeof configuracoes.$inferInsert;
+
+/**
+ * Tabela de tags personalizadas
+ */
+export const tags = mysqlTable("tags", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  nome: varchar("nome", { length: 50 }).notNull(),
+  cor: varchar("cor", { length: 7 }).default("#3b82f6"), // Hex color
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Tag = typeof tags.$inferSelect;
+export type InsertTag = typeof tags.$inferInsert;
+
+/**
+ * Tabela de relacionamento entre templates e tags
+ */
+export const templateTags = mysqlTable("template_tags", {
+  id: int("id").autoincrement().primaryKey(),
+  templateId: int("templateId").notNull(),
+  tagId: int("tagId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TemplateTag = typeof templateTags.$inferSelect;
+export type InsertTemplateTag = typeof templateTags.$inferInsert;
+
+/**
+ * Tabela de relacionamento entre prompts e tags
+ */
+export const promptTags = mysqlTable("prompt_tags", {
+  id: int("id").autoincrement().primaryKey(),
+  promptId: int("promptId").notNull(),
+  tagId: int("tagId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PromptTag = typeof promptTags.$inferSelect;
+export type InsertPromptTag = typeof promptTags.$inferInsert;
+
+/**
+ * Tabela de versões de prompts para comparação
+ */
+export const promptVersoes = mysqlTable("prompt_versoes", {
+  id: int("id").autoincrement().primaryKey(),
+  promptId: int("promptId").notNull(),
+  versao: int("versao").notNull(), // 1, 2, 3...
+  conteudo: text("conteudo").notNull(),
+  tipo: mysqlEnum("tipo", ["original", "otimizado", "manual"]).notNull(),
+  observacoes: text("observacoes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PromptVersao = typeof promptVersoes.$inferSelect;
+export type InsertPromptVersao = typeof promptVersoes.$inferInsert;

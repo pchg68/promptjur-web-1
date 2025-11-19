@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ export default function Dashboard() {
   
   // Buscar estatísticas do usuário
   const statsQuery = trpc.prompts.stats.useQuery();
+  const analyticsQuery = trpc.analytics.get.useQuery();
   
   // Detectar template ID da URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -344,6 +345,57 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Seção de Analytics */}
+        {analyticsQuery.data && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Analytics de Uso
+              </CardTitle>
+              <CardDescription>
+                Estatísticas e métricas de desempenho
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Tempo Médio de Análise */}
+                <div className="p-4 bg-muted/30 rounded-sm">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Análise</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {analyticsQuery.data.avgTimes.analise > 0 
+                      ? `${(analyticsQuery.data.avgTimes.analise / 1000).toFixed(1)}s`
+                      : "N/A"
+                    }
+                  </p>
+                </div>
+                
+                {/* Tempo Médio de Geração */}
+                <div className="p-4 bg-muted/30 rounded-sm">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Geração</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {analyticsQuery.data.avgTimes.geracao > 0 
+                      ? `${(analyticsQuery.data.avgTimes.geracao / 1000).toFixed(1)}s`
+                      : "N/A"
+                    }
+                  </p>
+                </div>
+                
+                {/* Tempo Médio de Otimização */}
+                <div className="p-4 bg-muted/30 rounded-sm">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Otimização</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {analyticsQuery.data.avgTimes.otimizacao > 0 
+                      ? `${(analyticsQuery.data.avgTimes.otimizacao / 1000).toFixed(1)}s`
+                      : "N/A"
+                    }
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">

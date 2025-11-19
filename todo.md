@@ -151,3 +151,18 @@
   - [x] Exportar como PDF (via impressão do navegador)
   - [x] Exportar como Markdown (download direto)
   - [x] Botões nas 3 abas (Análise, Geração, Otimização)
+
+## Funcionalidades Avançadas v2 (Sessão Atual)
+- [x] Sistema de tags personalizadas
+  - [x] Adicionar tabela de tags ao schema
+  - [x] Criar procedures para gerenciar tags
+  - [x] UI para criar tags com nome e cor
+  - [x] Filtro por múltiplas tags na página de Templates
+  - [x] Dialog de criação de tags
+- [ ] Comparação de versões (adiado - complexidade alta)
+  - [x] Schema de versões criado
+  - [ ] UI de comparação (não implementado)
+- [x] Seção de Analytics no Dashboard
+  - [x] Tempo médio de processamento por tipo
+  - [x] Integração com backend de analytics
+  - [x] Exibição de métricas de desempenho

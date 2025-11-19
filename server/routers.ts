@@ -407,6 +407,103 @@ Responda em formato JSON com:
       })
   }),
 
+  tags: router({
+    // Listar tags do usuário
+    minhas: protectedProcedure.query(async ({ ctx }) => {
+      return db.getTagsUsuario(ctx.user.id);
+    }),
+
+    // Criar tag
+    criar: protectedProcedure
+      .input(z.object({
+        nome: z.string().min(1).max(50),
+        cor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().default("#3b82f6")
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const tagId = await db.criarTag({
+          userId: ctx.user.id,
+          ...input
+        });
+        return { success: true, tagId };
+      }),
+
+    // Deletar tag
+    deletar: protectedProcedure
+      .input(z.object({
+        tagId: z.number()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const success = await db.deletarTag(input.tagId, ctx.user.id);
+        if (!success) {
+          throw new Error("Tag não encontrada ou sem permissão");
+        }
+        return { success: true };
+      }),
+
+    // Atribuir tag a template
+    atribuirTemplate: protectedProcedure
+      .input(z.object({
+        templateId: z.number(),
+        tagId: z.number()
+      }))
+      .mutation(async ({ input }) => {
+        await db.atribuirTagTemplate(input.templateId, input.tagId);
+        return { success: true };
+      }),
+
+    // Remover tag de template
+    removerTemplate: protectedProcedure
+      .input(z.object({
+        templateId: z.number(),
+        tagId: z.number()
+      }))
+      .mutation(async ({ input }) => {
+        await db.removerTagTemplate(input.templateId, input.tagId);
+        return { success: true };
+      }),
+
+    // Obter tags de um template
+    getTemplate: protectedProcedure
+      .input(z.object({
+        templateId: z.number()
+      }))
+      .query(async ({ input }) => {
+        return db.getTagsTemplate(input.templateId);
+      })
+  }),
+
+  analytics: router({
+    // Obter estatísticas de uso
+    get: protectedProcedure.query(async ({ ctx }) => {
+      return db.getAnalytics(ctx.user.id);
+    })
+  }),
+
+  versoes: router({
+    // Salvar versão de prompt
+    salvar: protectedProcedure
+      .input(z.object({
+        promptId: z.number(),
+        versao: z.number(),
+        conteudo: z.string(),
+        tipo: z.enum(["original", "otimizado", "manual"]),
+        observacoes: z.string().optional()
+      }))
+      .mutation(async ({ input }) => {
+        const versaoId = await db.salvarVersaoPrompt(input);
+        return { success: true, versaoId };
+      }),
+
+    // Listar versões de um prompt
+    listar: protectedProcedure
+      .input(z.object({
+        promptId: z.number()
+      }))
+      .query(async ({ input }) => {
+        return db.getVersoesPrompt(input.promptId);
+      })
+  }),
+
   configuracoes: router({
     // Obter configurações do usuário
     get: protectedProcedure.query(async ({ ctx }) => {

@@ -3,7 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play, X } from "lucide-react";
+import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play, X, Tag, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -19,14 +19,52 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export default function Templates() {
   const { user } = useAuth();
   const [templateToDelete, setTemplateToDelete] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [showCreateTag, setShowCreateTag] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState("#3b82f6");
   
   const templatesQuery = trpc.templates.meus.useQuery();
+  const tagsQuery = trpc.tags.minhas.useQuery();
+  const createTagMutation = trpc.tags.criar.useMutation({
+    onSuccess: () => {
+      toast.success("Tag criada com sucesso!");
+      tagsQuery.refetch();
+      setShowCreateTag(false);
+      setNewTagName("");
+      setNewTagColor("#3b82f6");
+    },
+    onError: (error) => {
+      toast.error(`Erro ao criar tag: ${error.message}`);
+    }
+  });
+
+  const deleteTagMutation = trpc.tags.deletar.useMutation({
+    onSuccess: () => {
+      toast.success("Tag deletada com sucesso!");
+      tagsQuery.refetch();
+      templatesQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao deletar tag: ${error.message}`);
+    }
+  });
+
   const deleteMutation = trpc.templates.deletar.useMutation({
     onSuccess: () => {
       toast.success("Template deletado com sucesso!");
@@ -45,6 +83,25 @@ export default function Templates() {
 
   const handleDelete = (id: number) => {
     deleteMutation.mutate({ templateId: id });
+  };
+
+  const handleCreateTag = () => {
+    if (!newTagName.trim()) {
+      toast.error("Nome da tag é obrigatório");
+      return;
+    }
+    createTagMutation.mutate({
+      nome: newTagName.trim(),
+      cor: newTagColor
+    });
+  };
+
+  const toggleTagFilter = (tagId: number) => {
+    setSelectedTags(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
   };
 
   // Filtrar templates com base na busca e área selecionada
@@ -149,6 +206,52 @@ export default function Templates() {
                   </Badge>
                 ))}
               </div>
+
+              {/* Tags Personalizadas */}
+              {tagsQuery.data && tagsQuery.data.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Filtrar por Tags</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowCreateTag(true)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Nova Tag
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {tagsQuery.data.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        variant={selectedTags.includes(tag.id) ? "default" : "outline"}
+                        className="cursor-pointer hover:bg-primary/10 transition-colors"
+                        style={{
+                          backgroundColor: selectedTags.includes(tag.id) ? (tag.cor || undefined) : undefined,
+                          borderColor: tag.cor || undefined
+                        }}
+                        onClick={() => toggleTagFilter(tag.id)}
+                      >
+                        <Tag className="w-3 h-3 mr-1" />
+                        {tag.nome}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Botão para criar primeira tag */}
+              {(!tagsQuery.data || tagsQuery.data.length === 0) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCreateTag(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Primeira Tag
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -292,6 +395,63 @@ export default function Templates() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog para criar tag */}
+      <Dialog open={showCreateTag} onOpenChange={setShowCreateTag}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Nova Tag</DialogTitle>
+            <DialogDescription>
+              Tags ajudam a organizar e filtrar seus templates
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="tagName">Nome da Tag</Label>
+              <Input
+                id="tagName"
+                placeholder="Ex: Urgente, Favorito, Revisar..."
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                maxLength={50}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tagColor">Cor</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="tagColor"
+                  type="color"
+                  value={newTagColor}
+                  onChange={(e) => setNewTagColor(e.target.value)}
+                  className="w-20 h-10"
+                />
+                <Input
+                  type="text"
+                  value={newTagColor}
+                  onChange={(e) => setNewTagColor(e.target.value)}
+                  placeholder="#3b82f6"
+                  maxLength={7}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateTag(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateTag}
+              disabled={createTagMutation.isPending}
+            >
+              {createTagMutation.isPending ? "Criando..." : "Criar Tag"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

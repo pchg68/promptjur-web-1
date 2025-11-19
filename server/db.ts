@@ -7,7 +7,11 @@ import {
   templates, InsertTemplate,
   fontesJuridicas, InsertFonteJuridica,
   historico, InsertHistorico,
-  configuracoes, InsertConfiguracao
+  configuracoes, InsertConfiguracao,
+  tags, InsertTag,
+  templateTags, InsertTemplateTag,
+  promptTags, InsertPromptTag,
+  promptVersoes, InsertPromptVersao
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -346,4 +350,162 @@ export async function deletarTemplate(templateId: number, userId: number) {
   
   await db.delete(templates).where(eq(templates.id, templateId));
   return true;
+}
+
+// ===== TAG HELPERS =====
+
+export async function getTagsUsuario(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select().from(tags)
+    .where(eq(tags.userId, userId))
+    .orderBy(tags.nome);
+    
+  return result;
+}
+
+export async function criarTag(data: InsertTag) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(tags).values(data);
+  return result[0].insertId;
+}
+
+export async function deletarTag(tagId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const [tag] = await db.select().from(tags)
+    .where(eq(tags.id, tagId))
+    .limit(1);
+    
+  if (!tag || tag.userId !== userId) return false;
+  
+  // Deletar relacionamentos primeiro
+  await db.delete(templateTags).where(eq(templateTags.tagId, tagId));
+  await db.delete(promptTags).where(eq(promptTags.tagId, tagId));
+  
+  // Deletar tag
+  await db.delete(tags).where(eq(tags.id, tagId));
+  return true;
+}
+
+export async function atribuirTagTemplate(templateId: number, tagId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Verificar se já existe
+  const existing = await db.select().from(templateTags)
+    .where(and(
+      eq(templateTags.templateId, templateId),
+      eq(templateTags.tagId, tagId)
+    ))
+    .limit(1);
+    
+  if (existing.length > 0) return existing[0].id;
+  
+  const result = await db.insert(templateTags).values({
+    templateId,
+    tagId
+  });
+  return result[0].insertId;
+}
+
+export async function removerTagTemplate(templateId: number, tagId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  await db.delete(templateTags).where(and(
+    eq(templateTags.templateId, templateId),
+    eq(templateTags.tagId, tagId)
+  ));
+  return true;
+}
+
+export async function getTagsTemplate(templateId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select({
+    id: tags.id,
+    nome: tags.nome,
+    cor: tags.cor
+  })
+  .from(templateTags)
+  .innerJoin(tags, eq(templateTags.tagId, tags.id))
+  .where(eq(templateTags.templateId, templateId));
+  
+  return result;
+}
+
+// ===== VERSÃO HELPERS =====
+
+export async function salvarVersaoPrompt(data: InsertPromptVersao) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(promptVersoes).values(data);
+  return result[0].insertId;
+}
+
+export async function getVersoesPrompt(promptId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select().from(promptVersoes)
+    .where(eq(promptVersoes.promptId, promptId))
+    .orderBy(desc(promptVersoes.versao));
+    
+  return result;
+}
+
+// ===== ANALYTICS HELPERS =====
+
+export async function getAnalytics(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  // Obter histórico completo
+  const recentHistory = await db.select().from(historico)
+    .where(and(
+      eq(historico.userId, userId),
+      eq(historico.sucesso, true)
+    ))
+    .orderBy(desc(historico.createdAt));
+  
+  // Calcular tempo médio por tipo
+  const avgTimes = {
+    analise: 0,
+    geracao: 0,
+    otimizacao: 0
+  };
+  
+  const counts = {
+    analise: 0,
+    geracao: 0,
+    otimizacao: 0
+  };
+  
+  recentHistory.forEach(item => {
+    if (item.duracaoMs && item.acao !== "verificacao") {
+      avgTimes[item.acao as keyof typeof avgTimes] += item.duracaoMs;
+      counts[item.acao as keyof typeof counts]++;
+    }
+  });
+  
+  Object.keys(avgTimes).forEach(tipo => {
+    if (counts[tipo as keyof typeof counts] > 0) {
+      avgTimes[tipo as keyof typeof avgTimes] = Math.round(avgTimes[tipo as keyof typeof avgTimes] / counts[tipo as keyof typeof counts]);
+    }
+  });
+  
+  return {
+    totalAnalises: recentHistory.filter(h => h.acao === "analise").length,
+    totalGeracoes: recentHistory.filter(h => h.acao === "geracao").length,
+    totalOtimizacoes: recentHistory.filter(h => h.acao === "otimizacao").length,
+    avgTimes,
+    recentHistory: recentHistory.slice(0, 10)
+  };
 }
