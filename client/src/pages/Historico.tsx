@@ -3,10 +3,11 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy } from "lucide-react";
+import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -15,6 +16,7 @@ import { AREAS_JURIDICAS } from "@/const";
 export default function Historico() {
   const { user } = useAuth();
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedPrompt, setSelectedPrompt] = useState<any | null>(null);
 
   // Query de histórico
@@ -23,11 +25,25 @@ export default function Historico() {
   // Filtrar histórico
   const filteredHistorico = historicoQuery.data?.filter((item) => {
     const matchesTipo = filtroTipo === "todos" || item.acao === filtroTipo;
+    
+    // Filtro de busca
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const detalhes = item.detalhes as any;
+      const matchesSearch = 
+        (detalhes?.prompt && String(detalhes.prompt).toLowerCase().includes(query)) ||
+        (detalhes?.area && String(detalhes.area).toLowerCase().includes(query)) ||
+        (detalhes?.areaJuridica && String(detalhes.areaJuridica).toLowerCase().includes(query));
+      
+      return matchesTipo && matchesSearch;
+    }
+    
     return matchesTipo;
   }) || [];
 
   const clearFilters = () => {
     setFiltroTipo("todos");
+    setSearchQuery("");
   };
 
   const formatDate = (date: Date) => {
@@ -118,10 +134,22 @@ export default function Historico() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="flex-1 space-y-2">
-                <label className="text-sm font-medium">Tipo de Ação</label>
-                <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+            <div className="space-y-4">
+              {/* Campo de busca */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por conteúdo ou área jurídica..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex-1 space-y-2">
+                  <label className="text-sm font-medium">Tipo de Ação</label>
+                  <Select value={filtroTipo} onValueChange={setFiltroTipo}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -134,18 +162,19 @@ export default function Historico() {
                 </Select>
               </div>
 
-              {filtroTipo !== "todos" && (
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearFilters}
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Limpar Filtros
-                  </Button>
-                </div>
-              )}
+                {(filtroTipo !== "todos" || searchQuery) && (
+                  <div className="flex items-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearFilters}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Limpar Filtros
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

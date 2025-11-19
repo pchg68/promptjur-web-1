@@ -180,3 +180,16 @@
 - [ ] Sistema de favoritos (funcionalidade futura)
   - [ ] Schema e backend
   - [ ] UI de favoritar
+
+## Implementação Final (Sessão Atual)
+- [x] Completar UI de gerenciamento de tags
+  - [x] Botão "Gerenciar Tags" nos cards de template
+  - [x] Dialog com checkboxes de tags disponíveis
+  - [x] Exibir tags atribuídas nos cards com badges coloridos
+- [x] Adicionar busca no Histórico
+  - [x] Campo de busca por conteúdo/área
+  - [x] Filtro em tempo real
+- [x] Sistema de compartilhamento de templates
+  - [x] Campo isPublico no schema (já existia)
+  - [x] Botão de alternar visibilidade (público/privado)
+  - [x] Botão de copiar link de compartilhamento

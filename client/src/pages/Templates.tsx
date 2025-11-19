@@ -3,7 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play, X, Tag, Plus } from "lucide-react";
+import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play, X, Tag, Plus, CheckCircle2, Share2, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -66,6 +66,16 @@ export default function Templates() {
     }
   });
 
+  const togglePublicoMutation = trpc.templates.togglePublico.useMutation({
+    onSuccess: () => {
+      toast.success("Visibilidade alterada com sucesso!");
+      templatesQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao alterar visibilidade: ${error.message}`);
+    }
+  });
+
   const removerTagMutation = trpc.tags.removerTemplate.useMutation({
     onSuccess: () => {
       toast.success("Tag removida com sucesso!");
@@ -124,6 +134,16 @@ export default function Templates() {
         ? prev.filter(id => id !== tagId)
         : [...prev, tagId]
     );
+  };
+
+  const handleTogglePublico = (templateId: number) => {
+    togglePublicoMutation.mutate({ templateId });
+  };
+
+  const handleCopyShareLink = (templateId: number) => {
+    const shareUrl = `${window.location.origin}/template/${templateId}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast.success("Link copiado para área de transferência!");
   };
 
   const toggleTemplateTag = (templateId: number, tagId: number) => {
@@ -353,9 +373,23 @@ export default function Templates() {
                         <FileText className="w-5 h-5 text-primary" />
                         {template.nome}
                       </CardTitle>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <Badge variant="secondary">{template.areaJuridica}</Badge>
                         {template.isPublico && <Badge variant="outline">Público</Badge>}
+                        {/* Exibir tags atribuídas */}
+                        {(templateTags[template.id] || []).map(tagId => {
+                          const tag = tagsQuery.data?.find(t => t.id === tagId);
+                          return tag ? (
+                            <Badge 
+                              key={tagId} 
+                              variant="outline"
+                              style={{ borderColor: tag.cor || undefined }}
+                            >
+                              <Tag className="w-3 h-3 mr-1" />
+                              {tag.nome}
+                            </Badge>
+                          ) : null;
+                        })}
                       </div>
                     </div>
                   </div>
@@ -391,6 +425,36 @@ export default function Templates() {
                       <Copy className="w-4 h-4 mr-2" />
                       Copiar
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setManagingTagsFor(template.id)}
+                    >
+                      <Tag className="w-4 h-4 mr-2" />
+                      Tags
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTogglePublico(template.id)}
+                      title={template.isPublico ? "Tornar privado" : "Tornar público"}
+                    >
+                      {template.isPublico ? (
+                        <Globe className="w-4 h-4" />
+                      ) : (
+                        <Share2 className="w-4 h-4" />
+                      )}
+                    </Button>
+                    {template.isPublico && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCopyShareLink(template.id)}
+                        title="Copiar link de compartilhamento"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -434,6 +498,70 @@ export default function Templates() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog para gerenciar tags do template */}
+      <Dialog open={managingTagsFor !== null} onOpenChange={(open) => !open && setManagingTagsFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gerenciar Tags</DialogTitle>
+            <DialogDescription>
+              Selecione as tags para este template
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {tagsQuery.data && tagsQuery.data.length > 0 ? (
+              <div className="space-y-2">
+                {tagsQuery.data.map((tag) => {
+                  const isSelected = managingTagsFor ? (templateTags[managingTagsFor] || []).includes(tag.id) : false;
+                  return (
+                    <div
+                      key={tag.id}
+                      className="flex items-center gap-3 p-3 rounded-sm border cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => managingTagsFor && toggleTemplateTag(managingTagsFor, tag.id)}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                          isSelected ? 'bg-primary border-primary' : 'border-muted-foreground'
+                        }`}
+                      >
+                        {isSelected && (
+                          <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
+                        )}
+                      </div>
+                      <Badge
+                        variant="outline"
+                        style={{ borderColor: tag.cor || undefined }}
+                      >
+                        <Tag className="w-3 h-3 mr-1" />
+                        {tag.nome}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">Nenhuma tag criada ainda</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setManagingTagsFor(null);
+                    setShowCreateTag(true);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Primeira Tag
+                </Button>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManagingTagsFor(null)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog para criar tag */}
       <Dialog open={showCreateTag} onOpenChange={setShowCreateTag}>

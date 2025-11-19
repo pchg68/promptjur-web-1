@@ -338,6 +338,27 @@ export async function salvarTemplate(data: InsertTemplate) {
   return result[0].insertId;
 }
 
+export async function toggleTemplatePublico(templateId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  // Buscar template atual
+  const [template] = await db.select().from(templates)
+    .where(eq(templates.id, templateId))
+    .limit(1);
+  
+  if (!template || template.userId !== userId) {
+    return false;
+  }
+  
+  // Alternar estado público
+  await db.update(templates)
+    .set({ isPublico: !template.isPublico })
+    .where(eq(templates.id, templateId));
+  
+  return true;
+}
+
 export async function deletarTemplate(templateId: number, userId: number) {
   const db = await getDb();
   if (!db) return false;

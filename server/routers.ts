@@ -393,6 +393,14 @@ Responda em formato JSON com:
         return { success: true, templateId: result };
       }),
 
+    // Alternar visibilidade pública
+    togglePublico: protectedProcedure
+      .input(z.object({ templateId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await db.toggleTemplatePublico(input.templateId, ctx.user.id);
+        return { success: true };
+      }),
+
     // Deletar template
     deletar: protectedProcedure
       .input(z.object({
