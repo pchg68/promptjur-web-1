@@ -5,7 +5,6 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
-import { verificarFontes, formatarResultado } from "./verificacaoFontes";
 import { AREAS_JURIDICAS, PALAVRAS_CHAVE_AREAS, TEMPLATES_BASE, REFERENCIAS_LEGAIS } from "@shared/juridico";
 import { stripeRouter } from "./stripeRouter";
 
@@ -77,9 +76,6 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
           const content = analiseResponse.choices[0].message.content;
           const analise = JSON.parse(typeof content === 'string' ? content : "{}");
           
-          // Verificar fontes jurídicas
-          const verificacao = verificarFontes(input.prompt);
-          
           // Determinar qualidade textual
           let qualidadeTexto: "excelente" | "bom" | "ruim" = "ruim";
           if (analise.qualidade >= 80) qualidadeTexto = "excelente";
@@ -127,14 +123,7 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
             entidades: analise.entidades,
             qualidade: qualidadeTexto,
             pontuacaoQualidade: analise.qualidade,
-            sugestoes: analise.sugestoes,
-            verificacaoFontes: {
-              citacoes: verificacao.citacoesEncontradas,
-              score: verificacao.score,
-              avisos: verificacao.avisos,
-              recomendacoes: verificacao.recomendacoes,
-              relatorioFormatado: formatarResultado(verificacao)
-            }
+            sugestoes: analise.sugestoes
           };
         } catch (error) {
           await db.createHistorico({
@@ -425,39 +414,6 @@ Responda em formato JSON com:
           throw new Error("Template não encontrado ou sem permissão");
         }
         return { success: true };
-      }),
-
-    // Obter template público (sem autenticação)
-    getPublico: publicProcedure
-      .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
-        const template = await db.getTemplatePublico(input.id);
-        if (!template) {
-          throw new Error("Template não encontrado ou não é público");
-        }
-        return template;
-      }),
-
-    // Importar template público para biblioteca do usuário
-    importar: protectedProcedure
-      .input(z.object({ templateId: z.number() }))
-      .mutation(async ({ input, ctx }) => {
-        const templateOriginal = await db.getTemplatePublico(input.templateId);
-        if (!templateOriginal) {
-          throw new Error("Template não encontrado ou não é público");
-        }
-        
-        // Criar cópia para o usuário
-        const novoTemplateId = await db.salvarTemplate({
-          userId: ctx.user.id,
-          areaJuridica: templateOriginal.areaJuridica,
-          nome: `${templateOriginal.nome} (importado)`,
-          descricao: templateOriginal.descricao,
-          template: templateOriginal.template,
-          isPublico: false
-        });
-        
-        return { success: true, templateId: novoTemplateId };
       })
   }),
 

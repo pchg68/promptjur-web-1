@@ -338,21 +338,6 @@ export async function salvarTemplate(data: InsertTemplate) {
   return result[0].insertId;
 }
 
-export async function getTemplatePublico(templateId: number) {
-  const db = await getDb();
-  if (!db) return null;
-  
-  const [template] = await db.select().from(templates)
-    .where(and(
-      eq(templates.id, templateId),
-      eq(templates.isPublico, true),
-      eq(templates.isAtivo, true)
-    ))
-    .limit(1);
-  
-  return template || null;
-}
-
 export async function toggleTemplatePublico(templateId: number, userId: number) {
   const db = await getDb();
   if (!db) return false;
