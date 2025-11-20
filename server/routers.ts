@@ -784,6 +784,42 @@ Responda em formato JSON com:
           temAcesso,
           motivo: temAcesso ? undefined : "Este modelo é exclusivo para assinantes Premium. Faça upgrade para acessar!"
         };
+      }),
+
+    // Registrar uso de modelo
+    registrarUso: protectedProcedure
+      .input(z.object({
+        modeloId: z.string()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await db.registrarUsoModelo(ctx.user.id, input.modeloId);
+        return { sucesso: true };
+      }),
+
+    // Listar modelos mais usados pelo usuário
+    maisUsados: protectedProcedure
+      .input(z.object({
+        limit: z.number().default(5)
+      }).optional())
+      .query(async ({ input, ctx }) => {
+        const { MODELOS_PROFISSIONAIS } = await import("./modelos-profissionais");
+        const limit = input?.limit || 5;
+        
+        const usados = await db.getModelosMaisUsados(ctx.user.id, limit);
+        
+        // Retornar modelos completos com contagem de uso
+        const modelosComUso = usados
+          .map(u => {
+            const modelo = MODELOS_PROFISSIONAIS.find(m => m.id === u.modeloId);
+            if (!modelo) return null;
+            return {
+              ...modelo,
+              vezesUsado: Number(u.count)
+            };
+          })
+          .filter(m => m !== null);
+        
+        return modelosComUso;
       })
   })
 });

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2 } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -124,11 +124,14 @@ export default function Dashboard() {
   const [filtroTipoModelo, setFiltroTipoModelo] = useState<string | undefined>(undefined);
   const [filtroAreaModelo, setFiltroAreaModelo] = useState<string | undefined>(undefined);
   const [buscaModelo, setBuscaModelo] = useState("");
+  const [modeloPreview, setModeloPreview] = useState<any>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const modelosQuery = trpc.modelos.listar.useQuery({
     tipo: filtroTipoModelo || undefined as any,
     area: filtroAreaModelo || undefined,
     busca: buscaModelo || undefined
   });
+  const modelosMaisUsadosQuery = trpc.modelos.maisUsados.useQuery({ limit: 5 });
 
   // Estado para Otimização
   const [promptOtimizacao, setPromptOtimizacao] = useState("");
@@ -297,7 +300,12 @@ export default function Dashboard() {
   };
 
   // Função para usar modelo (preencher tab Gerar automaticamente)
+  const registrarUsoMutation = trpc.modelos.registrarUso.useMutation();
+
   const usarModelo = (modelo: any) => {
+    // Registrar uso do modelo
+    registrarUsoMutation.mutate({ modeloId: modelo.id });
+    
     // Preencher campos da tab Gerar
     setTipoDocumento(modelo.tipoDocumento);
     setContextoJuridico(modelo.contextoJuridico);
@@ -392,7 +400,7 @@ export default function Dashboard() {
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Tabs Principais - Prioridade Máxima */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="analisar" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               Analisar Prompt
@@ -959,6 +967,74 @@ export default function Dashboard() {
                   </div>
                 </div>
 
+                {/* Seção de Modelos Mais Usados */}
+                {modelosMaisUsadosQuery.data && modelosMaisUsadosQuery.data.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                      Seus Modelos Favoritos
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {modelosMaisUsadosQuery.data.map((modelo: any) => (
+                        <Card key={modelo.id} className="hover:border-primary/50 transition-colors border-primary/30">
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <CardTitle className="text-base">{modelo.nome}</CardTitle>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {modelo.vezesUsado}x
+                                </Badge>
+                                {modelo.isPremium && (
+                                  <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                                    Premium
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <CardDescription className="text-sm">{modelo.descricao}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {modelo.tipoDocumento === "peticao" && "Petição"}
+                                {modelo.tipoDocumento === "parecer" && "Parecer"}
+                                {modelo.tipoDocumento === "contrato" && "Contrato"}
+                                {modelo.tipoDocumento === "recurso" && "Recurso"}
+                                {modelo.tipoDocumento === "defesa" && "Defesa"}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {modelo.areaJuridica}
+                              </Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => {
+                                  setModeloPreview(modelo);
+                                  setShowPreviewModal(true);
+                                }}
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                Visualizar
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => usarModelo(modelo)}
+                              >
+                                <Zap className="w-4 h-4 mr-2" />
+                                Usar
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Grid de Modelos */}
                 {modelosQuery.isLoading && (
                   <div className="flex items-center justify-center py-12">
@@ -1001,13 +1077,28 @@ export default function Dashboard() {
                               {modelo.areaJuridica}
                             </Badge>
                           </div>
-                          <Button
-                            className="w-full"
-                            onClick={() => usarModelo(modelo)}
-                          >
-                            <Zap className="w-4 h-4 mr-2" />
-                            Usar Este Modelo
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => {
+                                setModeloPreview(modelo);
+                                setShowPreviewModal(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Visualizar
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => usarModelo(modelo)}
+                            >
+                              <Zap className="w-4 h-4 mr-2" />
+                              Usar
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
@@ -1017,6 +1108,112 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Modal de Preview de Modelo */}
+        <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl">{modeloPreview?.nome}</DialogTitle>
+              <DialogDescription>{modeloPreview?.descricao}</DialogDescription>
+            </DialogHeader>
+            
+            {modeloPreview && (
+              <div className="space-y-4 py-4">
+                {/* Badges */}
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">
+                    {modeloPreview.tipoDocumento === "peticao" && "Petição"}
+                    {modeloPreview.tipoDocumento === "parecer" && "Parecer"}
+                    {modeloPreview.tipoDocumento === "contrato" && "Contrato"}
+                    {modeloPreview.tipoDocumento === "recurso" && "Recurso"}
+                    {modeloPreview.tipoDocumento === "defesa" && "Defesa"}
+                  </Badge>
+                  <Badge variant="outline">{modeloPreview.areaJuridica}</Badge>
+                  {modeloPreview.isPremium && (
+                    <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                      Premium
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Contexto Jurídico */}
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Contexto Jurídico</h4>
+                  <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                    {modeloPreview.contextoJuridico}
+                  </p>
+                </div>
+
+                {/* Objetivo Específico */}
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Objetivo Específico</h4>
+                  <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                    {modeloPreview.objetivoEspecifico}
+                  </p>
+                </div>
+
+                {/* Legislação Relevante */}
+                {modeloPreview.legislacaoRelevante && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Legislação Relevante</h4>
+                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                      {modeloPreview.legislacaoRelevante}
+                    </p>
+                  </div>
+                )}
+
+                {/* Partes Envolvidas */}
+                {modeloPreview.partesEnvolvidas && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Partes Envolvidas</h4>
+                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                      {modeloPreview.partesEnvolvidas}
+                    </p>
+                  </div>
+                )}
+
+                {/* Detalhes Adicionais */}
+                {modeloPreview.detalhesAdicionais && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Detalhes Adicionais</h4>
+                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                      {modeloPreview.detalhesAdicionais}
+                    </p>
+                  </div>
+                )}
+
+                {/* Tags */}
+                {modeloPreview.tags && modeloPreview.tags.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Tags</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {modeloPreview.tags.map((tag: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowPreviewModal(false)}>
+                Fechar
+              </Button>
+              <Button onClick={() => {
+                if (modeloPreview) {
+                  usarModelo(modeloPreview);
+                  setShowPreviewModal(false);
+                }
+              }}>
+                <Zap className="w-4 h-4 mr-2" />
+                Usar Este Modelo
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Seções Secundárias - Após as Tabs Principais */}
         {!isCompactMode && (

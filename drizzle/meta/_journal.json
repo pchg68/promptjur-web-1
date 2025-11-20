@@ -57,6 +57,13 @@
       "when": 1763664684814,
       "tag": "0007_wealthy_sumo",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1763677346599,
+      "tag": "0008_modern_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

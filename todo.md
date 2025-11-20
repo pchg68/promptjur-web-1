@@ -371,3 +371,24 @@
   - [x] Problema: filtroAreaModelo inicializado como "" (string vazia)
   - [x] tRPC rejeita string vazia no enum de áreas jurídicas
   - [x] Solução: inicializar como undefined ao invés de ""
+
+## Melhorias na Tab Modelos (Sessão Atual) ✅ CONCLUÍDA
+- [x] Sistema de Busca Avançada
+  - [x] Implementar busca em conteúdo completo (contexto + objetivo + legislação + partes + tags)
+  - [x] Atualizar função filtrarModelos para buscar em todos os campos
+  - [ ] Adicionar highlight dos termos encontrados nos cards (complexidade alta - adiado)
+  - [x] Melhorar relevância dos resultados
+
+- [x] Preview de Modelos
+  - [x] Criar modal de preview com visualização completa
+  - [x] Exibir todos os campos do modelo (tipo, área, contexto, objetivo, legislação, tags)
+  - [x] Adicionar botão "Usar Este Modelo" dentro do modal
+  - [x] Botão "Visualizar" nos cards de modelo
+
+- [x] Histórico de Modelos Usados
+  - [x] Criar tabela uso_modelos no schema
+  - [x] Implementar procedure para registrar uso de modelo (modelos.registrarUso)
+  - [x] Implementar query para listar modelos mais usados (modelos.maisUsados)
+  - [x] Criar seção "Seus Modelos Favoritos" no topo da tab
+  - [x] Exibir 5 modelos mais usados pelo usuário com contador (1x, 2x, etc.)
+  - [x] Atualizar contador automaticamente ao usar modelo

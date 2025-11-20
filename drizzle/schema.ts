@@ -192,3 +192,16 @@ export const promptVersoes = mysqlTable("prompt_versoes", {
 
 export type PromptVersao = typeof promptVersoes.$inferSelect;
 export type InsertPromptVersao = typeof promptVersoes.$inferInsert;
+
+/**
+ * Tabela de rastreamento de uso de modelos profissionais
+ */
+export const usoModelos = mysqlTable("uso_modelos", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  modeloId: varchar("modeloId", { length: 50 }).notNull(), // ID do modelo (pet-001, par-001, etc.)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UsoModelo = typeof usoModelos.$inferSelect;
+export type InsertUsoModelo = typeof usoModelos.$inferInsert;

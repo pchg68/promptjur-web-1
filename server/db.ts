@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -11,7 +11,8 @@ import {
   tags, InsertTag,
   templateTags, InsertTemplateTag,
   promptTags, InsertPromptTag,
-  promptVersoes, InsertPromptVersao
+  promptVersoes, InsertPromptVersao,
+  usoModelos, InsertUsoModelo
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -665,3 +666,28 @@ export async function getTagsPrompt(promptId: number) {
   return result;
 }
 
+// ===== USO DE MODELOS HELPERS =====
+
+export async function registrarUsoModelo(userId: number, modeloId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(usoModelos).values({ userId, modeloId });
+}
+
+export async function getModelosMaisUsados(userId: number, limit: number = 5) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select({
+    modeloId: usoModelos.modeloId,
+    count: sql<number>`COUNT(*)`
+  })
+  .from(usoModelos)
+  .where(eq(usoModelos.userId, userId))
+  .groupBy(usoModelos.modeloId)
+  .orderBy(desc(sql`COUNT(*)`))
+  .limit(limit);
+  
+  return result;
+}

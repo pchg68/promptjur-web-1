@@ -321,6 +321,11 @@ export function filtrarModelos(
     resultado = resultado.filter(m =>
       m.nome.toLowerCase().includes(buscaLower) ||
       m.descricao.toLowerCase().includes(buscaLower) ||
+      m.contextoJuridico.toLowerCase().includes(buscaLower) ||
+      m.objetivoEspecifico.toLowerCase().includes(buscaLower) ||
+      (m.partesEnvolvidas && m.partesEnvolvidas.toLowerCase().includes(buscaLower)) ||
+      (m.legislacaoRelevante && m.legislacaoRelevante.toLowerCase().includes(buscaLower)) ||
+      (m.detalhesAdicionais && m.detalhesAdicionais.toLowerCase().includes(buscaLower)) ||
       m.tags.some(tag => tag.toLowerCase().includes(buscaLower))
     );
   }
