@@ -6,6 +6,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
 import { AREAS_JURIDICAS, PALAVRAS_CHAVE_AREAS, TEMPLATES_BASE, REFERENCIAS_LEGAIS } from "@shared/juridico";
+import { gerarAvisosFontes } from "@shared/verificacao-fontes";
 
 export const appRouter = router({
   system: systemRouter,
@@ -113,6 +114,9 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
             sucesso: true
           });
 
+          // Verificar fontes jurídicas no prompt
+          const avisosFontes = gerarAvisosFontes(input.prompt);
+
           return {
             promptId,
             area: analise.area,
@@ -121,7 +125,8 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
             entidades: analise.entidades,
             qualidade: qualidadeTexto,
             pontuacaoQualidade: analise.qualidade,
-            sugestoes: analise.sugestoes
+            sugestoes: analise.sugestoes,
+            avisosFontes
           };
         } catch (error) {
           await db.createHistorico({
@@ -200,11 +205,15 @@ ${input.incluirReferencias ? "- Citar legislação aplicável" : ""}`;
             sucesso: true
           });
 
+          // Verificar fontes jurídicas no prompt gerado
+          const avisosFontes = gerarAvisosFontes(promptGerado);
+
           return {
             promptId,
             promptGerado,
             area: input.area,
-            referencias: referencias
+            referencias: referencias,
+            avisosFontes
           };
         } catch (error) {
           await db.createHistorico({
@@ -295,12 +304,16 @@ Responda em formato JSON com:
             sucesso: true
           });
 
+          // Verificar fontes jurídicas no prompt otimizado
+          const avisosFontes = gerarAvisosFontes(resultado.promptOtimizado);
+
           return {
             promptId,
             promptOriginal: input.prompt,
             promptOtimizado: resultado.promptOtimizado,
             melhorias: resultado.melhorias,
-            area: resultado.areaIdentificada
+            area: resultado.areaIdentificada,
+            avisosFontes
           };
         } catch (error) {
           await db.createHistorico({

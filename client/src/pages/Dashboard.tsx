@@ -424,6 +424,12 @@ export default function Dashboard() {
                 <CardDescription>
                   Cole seu prompt abaixo para análise automática de área jurídica, palavras-chave e qualidade
                 </CardDescription>
+                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-2">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <Shield className="w-4 h-4 inline mr-1" />
+                    <strong>Atenção:</strong> Sempre verifique citações legais (leis, artigos, CF/88) em fontes oficiais antes de usar em documentos jurídicos.
+                  </p>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -562,6 +568,12 @@ export default function Dashboard() {
                 <CardDescription>
                   Configure os parâmetros abaixo para gerar um prompt jurídico otimizado
                 </CardDescription>
+                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-2">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <Shield className="w-4 h-4 inline mr-1" />
+                    <strong>Atenção:</strong> Sempre verifique citações legais (leis, artigos, CF/88) em fontes oficiais antes de usar em documentos jurídicos.
+                  </p>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -696,6 +708,12 @@ export default function Dashboard() {
                 <CardDescription>
                   Cole um prompt existente para receber sugestões de melhoria e uma versão otimizada
                 </CardDescription>
+                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-2">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <Shield className="w-4 h-4 inline mr-1" />
+                    <strong>Atenção:</strong> Sempre verifique citações legais (leis, artigos, CF/88) em fontes oficiais antes de usar em documentos jurídicos.
+                  </p>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
