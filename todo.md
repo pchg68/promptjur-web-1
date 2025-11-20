@@ -365,3 +365,9 @@
   - [x] Clicar em "Usar Este Modelo" (testado com Ação de Cobrança)
   - [x] Verificar preenchimento automático na tab Gerar (100% funcional)
   - [x] Validar badges premium e integração completa
+
+## Bugs Reportados (Sessão Atual)
+- [x] Corrigir erro de validação no filtro de área jurídica da tab Modelos
+  - [x] Problema: filtroAreaModelo inicializado como "" (string vazia)
+  - [x] tRPC rejeita string vazia no enum de áreas jurídicas
+  - [x] Solução: inicializar como undefined ao invés de ""

@@ -121,8 +121,8 @@ export default function Dashboard() {
   });
 
   // Estados para Modelos
-  const [filtroTipoModelo, setFiltroTipoModelo] = useState<string>("");
-  const [filtroAreaModelo, setFiltroAreaModelo] = useState<string>("");
+  const [filtroTipoModelo, setFiltroTipoModelo] = useState<string | undefined>(undefined);
+  const [filtroAreaModelo, setFiltroAreaModelo] = useState<string | undefined>(undefined);
   const [buscaModelo, setBuscaModelo] = useState("");
   const modelosQuery = trpc.modelos.listar.useQuery({
     tipo: filtroTipoModelo || undefined as any,
