@@ -322,156 +322,8 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* Cards de Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Análises</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {statsQuery.data?.totalAnalises || 0}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Gerações</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {statsQuery.data?.totalGeracoes || 0}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Otimizações</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {statsQuery.data?.totalOtimizacoes || 0}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Templates</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {statsQuery.data?.totalTemplates || 0}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
-                  <BookTemplate className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Seção de Favoritos */}
-        <div className="mb-8">
-          <FavoritosSection />
-        </div>
-        
-        {/* Gerenciamento de Tags */}
-        <div className="mb-8">
-          <TagsManager />
-        </div>
-
-        {/* Seção de Analytics */}
-        {analyticsQuery.data && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Analytics de Uso
-              </CardTitle>
-              <CardDescription>
-                Estatísticas e métricas de desempenho
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Tempo Médio de Análise */}
-                <div className="p-4 bg-muted/30 rounded-sm">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Análise</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {analyticsQuery.data.avgTimes.analise > 0 
-                      ? `${(analyticsQuery.data.avgTimes.analise / 1000).toFixed(1)}s`
-                      : "N/A"
-                    }
-                  </p>
-                </div>
-                
-                {/* Tempo Médio de Geração */}
-                <div className="p-4 bg-muted/30 rounded-sm">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Geração</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {analyticsQuery.data.avgTimes.geracao > 0 
-                      ? `${(analyticsQuery.data.avgTimes.geracao / 1000).toFixed(1)}s`
-                      : "N/A"
-                    }
-                  </p>
-                </div>
-                
-                {/* Tempo Médio de Otimização */}
-                <div className="p-4 bg-muted/30 rounded-sm">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Otimização</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {analyticsQuery.data.avgTimes.otimizacao > 0 
-                      ? `${(analyticsQuery.data.avgTimes.otimizacao / 1000).toFixed(1)}s`
-                      : "N/A"
-                    }
-                  </p>
-                </div>
-              </div>
-              
-              {/* Gráficos */}
-              {usageByDateQuery.data && usageByDateQuery.data.length > 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                  {/* Gráfico de Evolução */}
-                  <div className="p-4 bg-muted/30 rounded-sm">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Evolução de Uso (últimos 7 dias)</h4>
-                    <UsageChart data={usageByDateQuery.data} />
-                  </div>
-                  
-                  {/* Gráfico de Distribuição */}
-                  <div className="p-4 bg-muted/30 rounded-sm">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Distribuição por Tipo</h4>
-                    <DistributionChart data={{
-                      analises: statsQuery.data?.totalAnalises || 0,
-                      geracoes: statsQuery.data?.totalGeracoes || 0,
-                      otimizacoes: statsQuery.data?.totalOtimizacoes || 0
-                    }} />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Tabs Principais - Prioridade Máxima */}
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="analisar" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
@@ -874,6 +726,159 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Seções Secundárias - Após as Tabs Principais */}
+        
+        {/* Cards de Métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Análises</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {statsQuery.data?.totalAnalises || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Gerações</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {statsQuery.data?.totalGeracoes || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Otimizações</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {statsQuery.data?.totalOtimizacoes || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Templates</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {statsQuery.data?.totalTemplates || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center">
+                  <BookTemplate className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Seção de Favoritos */}
+        <div className="mb-8">
+          <FavoritosSection />
+        </div>
+        
+        {/* Gerenciamento de Tags */}
+        <div className="mb-8">
+          <TagsManager />
+        </div>
+
+        {/* Seção de Analytics */}
+        {analyticsQuery.data && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Analytics de Uso
+              </CardTitle>
+              <CardDescription>
+                Estatísticas e métricas de desempenho
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Tempo Médio de Análise */}
+                <div className="p-4 bg-muted/30 rounded-sm">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Análise</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {analyticsQuery.data.avgTimes.analise > 0 
+                      ? `${(analyticsQuery.data.avgTimes.analise / 1000).toFixed(1)}s`
+                      : "N/A"
+                    }
+                  </p>
+                </div>
+                
+                {/* Tempo Médio de Geração */}
+                <div className="p-4 bg-muted/30 rounded-sm">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Geração</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {analyticsQuery.data.avgTimes.geracao > 0 
+                      ? `${(analyticsQuery.data.avgTimes.geracao / 1000).toFixed(1)}s`
+                      : "N/A"
+                    }
+                  </p>
+                </div>
+                
+                {/* Tempo Médio de Otimização */}
+                <div className="p-4 bg-muted/30 rounded-sm">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Otimização</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {analyticsQuery.data.avgTimes.otimizacao > 0 
+                      ? `${(analyticsQuery.data.avgTimes.otimizacao / 1000).toFixed(1)}s`
+                      : "N/A"
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              {/* Gráficos */}
+              {usageByDateQuery.data && usageByDateQuery.data.length > 0 && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                  {/* Gráfico de Evolução */}
+                  <div className="p-4 bg-muted/30 rounded-sm">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Evolução de Uso (últimos 7 dias)</h4>
+                    <UsageChart data={usageByDateQuery.data} />
+                  </div>
+                  
+                  {/* Gráfico de Distribuição */}
+                  <div className="p-4 bg-muted/30 rounded-sm">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Distribuição por Tipo</h4>
+                    <DistributionChart data={{
+                      analises: statsQuery.data?.totalAnalises || 0,
+                      geracoes: statsQuery.data?.totalGeracoes || 0,
+                      otimizacoes: statsQuery.data?.totalOtimizacoes || 0
+                    }} />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+
       </main>
 
       {/* Dialog para Salvar Prompt */}

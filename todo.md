@@ -251,3 +251,9 @@
   - [x] Exibir promptOriginal vs promptOtimizado
   - [x] Destacar diferenças entre versões
   - [ ] Adicionar botão de restauração de versões (funcionalidade futura)
+
+## Melhorias de UX - Reorganização do Dashboard (Sessão Atual)
+- [x] Reorganizar layout do Dashboard
+  - [x] Mover tabs principais (Analisar, Gerar, Otimizar) para o topo da página
+  - [x] Reposicionar seções secundárias (métricas, favoritos, tags, analytics) após as tabs
+  - [x] Melhorar hierarquia visual e foco nas funcionalidades principais
