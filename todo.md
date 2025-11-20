@@ -226,3 +226,27 @@
   - [ ] Salvar versão automaticamente ao otimizar (pendente)
   - [ ] Implementar UI de comparação lado a lado (pendente)
   - [ ] Adicionar restauração de versões anteriores (pendente)
+
+## Sugestões de Melhoria (Implementação em Andamento)
+- [x] Adicionar "Processo Civil" às áreas jurídicas disponíveis
+- [x] Reutilização de Prompts do Histórico
+  - [x] Criar procedure loadPrompt(id) no tRPC
+  - [x] Adicionar navegação com query string na Dashboard
+  - [x] Preencher campos automaticamente ao carregar prompt
+- [x] Gerenciamento de Templates com Edição
+  - [x] Adicionar botão "Editar" na listagem de templates
+  - [x] Criar modal de edição de templates
+  - [x] Implementar procedure de atualização
+- [ ] Atribuição de Tags ao Salvar Prompts
+  - [ ] Adicionar campo de seleção múltipla de tags no dialog
+  - [ ] Integrar atribuição de tags no fluxo de salvamento
+  - [ ] Atualizar UI para mostrar tags selecionadas
+- [ ] Salvamento Automático de Versões
+  - [ ] Chamar saveVersion() antes de otimizar
+  - [ ] Registrar estado anterior e novo
+  - [ ] Testar versionamento automático
+- [ ] UI de Comparação Lado a Lado
+  - [ ] Criar componente de duas colunas
+  - [ ] Exibir promptOriginal vs promptOtimizado
+  - [ ] Destacar diferenças (diff)
+  - [ ] Adicionar botão de restauração

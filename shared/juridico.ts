@@ -13,7 +13,8 @@ export const AREAS_JURIDICAS = [
   "Família",
   "Previdenciário",
   "Ambiental",
-  "Internacional"
+  "Internacional",
+  "Processo Civil"
 ] as const;
 
 export type AreaJuridica = typeof AREAS_JURIDICAS[number];
@@ -33,7 +34,8 @@ export const PALAVRAS_CHAVE_AREAS: Record<string, string[]> = {
   "Família": ["divórcio", "guarda", "alimentos", "pensão", "união estável", "adoção", "filiação"],
   "Previdenciário": ["INSS", "aposentadoria", "benefício", "auxílio", "previdência", "contribuição previdenciária"],
   "Ambiental": ["meio ambiente", "licença ambiental", "dano ambiental", "IBAMA", "poluição", "preservação"],
-  "Internacional": ["tratado", "convenção", "direito internacional", "extradição", "arbitragem internacional"]
+  "Internacional": ["tratado", "convenção", "direito internacional", "extradição", "arbitragem internacional"],
+  "Processo Civil": ["CPC", "petição inicial", "contestação", "sentença", "recurso", "apelação", "agravo", "execução", "prova", "audiência", "citação", "intimação", "prazo processual", "tutela de urgência"]
 };
 
 /**

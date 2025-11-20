@@ -3,7 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play, X, Tag, Plus, CheckCircle2, Share2, Globe } from "lucide-react";
+import { Scale, BookTemplate, Trash2, Copy, Home, History, FileText, Sparkles, Search, Play, X, Tag, Plus, CheckCircle2, Share2, Globe, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { EditTemplateDialog } from "@/components/EditTemplateDialog";
 
 export default function Templates() {
   const { user } = useAuth();
@@ -40,6 +41,7 @@ export default function Templates() {
   const [newTagColor, setNewTagColor] = useState("#3b82f6");
   const [managingTagsFor, setManagingTagsFor] = useState<number | null>(null);
   const [templateTags, setTemplateTags] = useState<Record<number, number[]>>({});
+  const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
   
   const templatesQuery = trpc.templates.meus.useQuery();
   const tagsQuery = trpc.tags.minhas.useQuery();
@@ -458,6 +460,14 @@ export default function Templates() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => setEditingTemplate(template)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setTemplateToDelete(template.id)}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
@@ -619,6 +629,14 @@ export default function Templates() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Edição de Template */}
+      <EditTemplateDialog
+        template={editingTemplate}
+        open={!!editingTemplate}
+        onOpenChange={(open) => !open && setEditingTemplate(null)}
+        onSuccess={() => templatesQuery.refetch()}
+      />
     </div>
   );
 }

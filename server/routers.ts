@@ -364,6 +364,19 @@ Responda em formato JSON com:
         return db.getUserPrompts(ctx.user.id, input.limit);
       }),
 
+    // Carregar um prompt específico para reutilização
+    loadPrompt: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .query(async ({ input, ctx }) => {
+        const prompt = await db.getPromptById(input.id, ctx.user.id);
+        if (!prompt) {
+          throw new Error("Prompt não encontrado ou sem permissão");
+        }
+        return prompt;
+      }),
+
     // Obter estatísticas do usuário
     stats: protectedProcedure.query(async ({ ctx }) => {
       return db.getUserStats(ctx.user.id);
@@ -438,6 +451,25 @@ Responda em formato JSON com:
           isAtivo: true
         });
         return { success: true, templateId: result };
+      }),
+
+    // Atualizar template
+    atualizar: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        areaJuridica: z.string().optional(),
+        nome: z.string().min(3).optional(),
+        descricao: z.string().optional(),
+        template: z.string().min(10).optional(),
+        isPublico: z.boolean().optional()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { id, ...data } = input;
+        const success = await db.atualizarTemplate(id, ctx.user.id, data);
+        if (!success) {
+          throw new Error("Template não encontrado ou sem permissão");
+        }
+        return { success: true };
       }),
 
     // Alternar visibilidade pública

@@ -121,11 +121,16 @@ export async function getUserPrompts(userId: number, limit = 50) {
     .limit(limit);
 }
 
-export async function getPromptById(id: number) {
+export async function getPromptById(id: number, userId?: number) {
   const db = await getDb();
   if (!db) return undefined;
   
-  const result = await db.select().from(prompts).where(eq(prompts.id, id)).limit(1);
+  const conditions = [eq(prompts.id, id)];
+  if (userId !== undefined) {
+    conditions.push(eq(prompts.userId, userId));
+  }
+  
+  const result = await db.select().from(prompts).where(and(...conditions)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -336,6 +341,17 @@ export async function salvarTemplate(data: InsertTemplate) {
   
   const result = await db.insert(templates).values(data);
   return result[0].insertId;
+}
+
+export async function atualizarTemplate(id: number, userId: number, data: Partial<InsertTemplate>) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const result = await db.update(templates)
+    .set(data)
+    .where(and(eq(templates.id, id), eq(templates.userId, userId)));
+  
+  return result[0].affectedRows > 0;
 }
 
 export async function toggleTemplatePublico(templateId: number, userId: number) {

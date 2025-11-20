@@ -31,14 +31,21 @@ export default function Dashboard() {
   const analyticsQuery = trpc.analytics.get.useQuery();
   const usageByDateQuery = trpc.analytics.usageByDate.useQuery({ days: 7 });
   
-  // Detectar template ID da URL
+  // Detectar template ID e prompt ID da URL
   const urlParams = new URLSearchParams(window.location.search);
   const templateIdFromUrl = urlParams.get('template');
+  const promptIdFromUrl = urlParams.get('prompt');
   
   // Buscar template se ID estiver presente
   const templateQuery = trpc.templates.meus.useQuery(undefined, {
     enabled: !!templateIdFromUrl
   });
+  
+  // Buscar prompt se ID estiver presente
+  const promptQuery = trpc.prompts.loadPrompt.useQuery(
+    { id: parseInt(promptIdFromUrl!) },
+    { enabled: !!promptIdFromUrl }
+  );
   
   // Carregar template quando dados estiverem disponíveis
   useEffect(() => {
@@ -53,6 +60,19 @@ export default function Dashboard() {
       }
     }
   }, [templateIdFromUrl, templateQuery.data]);
+  
+  // Carregar prompt quando dados estiverem disponíveis
+  useEffect(() => {
+    if (promptIdFromUrl && promptQuery.data) {
+      const prompt = promptQuery.data;
+      // Preencher campo de otimização com o prompt
+      setPromptOtimizacao(prompt.promptOriginal || prompt.promptOtimizado || "");
+      setActiveTab("otimizar");
+      toast.success(`Prompt #${prompt.id} carregado para reutilização!`);
+      // Limpar URL
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, [promptIdFromUrl, promptQuery.data]);
 
   // Estado para Análise
   const [promptAnalise, setPromptAnalise] = useState("");
