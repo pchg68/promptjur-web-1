@@ -120,6 +120,16 @@ export default function Dashboard() {
     }
   });
 
+  // Estados para Modelos
+  const [filtroTipoModelo, setFiltroTipoModelo] = useState<string>("");
+  const [filtroAreaModelo, setFiltroAreaModelo] = useState<string>("");
+  const [buscaModelo, setBuscaModelo] = useState("");
+  const modelosQuery = trpc.modelos.listar.useQuery({
+    tipo: filtroTipoModelo || undefined as any,
+    area: filtroAreaModelo || undefined,
+    busca: buscaModelo || undefined
+  });
+
   // Estado para Otimização
   const [promptOtimizacao, setPromptOtimizacao] = useState("");
   
@@ -286,6 +296,22 @@ export default function Dashboard() {
     }
   };
 
+  // Função para usar modelo (preencher tab Gerar automaticamente)
+  const usarModelo = (modelo: any) => {
+    // Preencher campos da tab Gerar
+    setTipoDocumento(modelo.tipoDocumento);
+    setContextoJuridico(modelo.contextoJuridico);
+    setObjetivoEspecifico(modelo.objetivoEspecifico);
+    setAreaGeracao(modelo.areaJuridica || "");
+    setPartesEnvolvidas(modelo.partesEnvolvidas || "");
+    setLegislacaoRelevante(modelo.legislacaoRelevante || "");
+    setDetalhesAdicionais(modelo.detalhesAdicionais || "");
+    
+    // Navegar para tab Gerar
+    setActiveTab("gerar");
+    toast.success(`Modelo "${modelo.nome}" carregado! Personalize e gere seu prompt.`);
+  };
+
   const openSaveTemplateDialog = (conteudo: string, area: string) => {
     setTemplateConteudo(conteudo);
     setTemplateArea(area);
@@ -378,6 +404,10 @@ export default function Dashboard() {
             <TabsTrigger value="gerar" className="flex items-center gap-2">
               <Zap className="w-4 h-4" />
               Gerar Prompt Jurídico
+            </TabsTrigger>
+            <TabsTrigger value="modelos" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Modelos
             </TabsTrigger>
           </TabsList>
 
@@ -870,6 +900,117 @@ export default function Dashboard() {
                 {otimizacaoMutation.error && (
                   <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-sm text-destructive text-sm">
                     Erro: {otimizacaoMutation.error.message}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tab: Modelos */}
+          <TabsContent value="modelos" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Biblioteca de Modelos Profissionais
+                </CardTitle>
+                <CardDescription>
+                  Escolha um modelo pré-pronto e personalize para gerar seu prompt profissional
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Filtros */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Buscar</Label>
+                    <Input
+                      placeholder="Nome ou descrição..."
+                      value={buscaModelo}
+                      onChange={(e) => setBuscaModelo(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tipo de Documento</Label>
+                    <Select value={filtroTipoModelo} onValueChange={setFiltroTipoModelo}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todos os tipos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="peticao">Petição</SelectItem>
+                        <SelectItem value="parecer">Parecer</SelectItem>
+                        <SelectItem value="contrato">Contrato</SelectItem>
+                        <SelectItem value="recurso">Recurso</SelectItem>
+                        <SelectItem value="defesa">Defesa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Área Jurídica</Label>
+                    <Select value={filtroAreaModelo} onValueChange={setFiltroAreaModelo}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todas as áreas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AREAS_JURIDICAS.map(area => (
+                          <SelectItem key={area} value={area}>{area}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Grid de Modelos */}
+                {modelosQuery.isLoading && (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                )}
+
+                {modelosQuery.data && modelosQuery.data.length === 0 && (
+                  <div className="text-center py-12">
+                    <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhum modelo encontrado com os filtros aplicados</p>
+                  </div>
+                )}
+
+                {modelosQuery.data && modelosQuery.data.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {modelosQuery.data.map((modelo) => (
+                      <Card key={modelo.id} className="hover:border-primary/50 transition-colors">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <CardTitle className="text-base">{modelo.nome}</CardTitle>
+                            {modelo.isPremium && (
+                              <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                                Premium
+                              </Badge>
+                            )}
+                          </div>
+                          <CardDescription className="text-sm">{modelo.descricao}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {modelo.tipoDocumento === "peticao" && "Petição"}
+                              {modelo.tipoDocumento === "parecer" && "Parecer"}
+                              {modelo.tipoDocumento === "contrato" && "Contrato"}
+                              {modelo.tipoDocumento === "recurso" && "Recurso"}
+                              {modelo.tipoDocumento === "defesa" && "Defesa"}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {modelo.areaJuridica}
+                            </Badge>
+                          </div>
+                          <Button
+                            className="w-full"
+                            onClick={() => usarModelo(modelo)}
+                          >
+                            <Zap className="w-4 h-4 mr-2" />
+                            Usar Este Modelo
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 )}
               </CardContent>

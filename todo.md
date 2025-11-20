@@ -314,3 +314,54 @@
   - [x] Implementar textarea para contexto jurídico
   - [x] Adicionar área de resultado com prompt final formatado
   - [x] Botões de exportação (Markdown, PDF, Salvar, Copiar)
+
+## Nova Aba "Modelos" - Biblioteca de Prompts Profissionais (Sessão Atual) ✅ CONCLUÍDA
+- [x] Criar estrutura de dados para modelos pré-prontos
+  - [x] Definir schema/interface de modelos no backend
+  - [x] Criar arquivo com biblioteca de 22 modelos profissionais
+  - [x] Categorizar por tipo de documento (petição, parecer, contrato, recurso, defesa)
+  - [x] Associar cada modelo a área jurídica específica
+- [x] Implementar procedures tRPC
+  - [x] modelos.listar com filtros (tipo, área, busca, apenasGratuitos)
+  - [x] modelos.obterPorId para buscar modelo específico
+  - [x] modelos.verificarAcesso para preparação de monetização
+- [x] Adicionar nova tab "Modelos" no Dashboard
+  - [x] Criar TabsTrigger e TabsContent
+  - [x] Posicionar após tab "Gerar Prompt Jurídico"
+  - [x] Design consistente com tema Legal Blueprint
+- [x] Implementar UI da galeria de modelos
+  - [x] Cards com preview do modelo (título, descrição)
+  - [x] Exibir tipo de documento e área jurídica em badges
+  - [x] Badge "Premium" em amarelo para modelos pagos
+  - [x] Botão "⚡ Usar Este Modelo" em cada card
+  - [x] Grid responsivo (1/2/3 colunas)
+  - [x] Hover effect nos cards
+- [x] Implementar integração manual com tab "Gerar"
+  - [x] Função usarModelo() preenche campos automaticamente
+  - [x] Navegar para tab "Gerar Prompt Jurídico"
+  - [x] Preencher: tipoDocumento, contextoJuridico, objetivoEspecifico, areaGeracao
+  - [x] Preencher campos opcionais: partesEnvolvidas, legislacaoRelevante, detalhesAdicionais
+  - [x] Toast de confirmação com nome do modelo
+- [x] Adicionar filtros e busca
+  - [x] Filtro por tipo de documento (Select dropdown)
+  - [x] Filtro por área jurídica (Select com todas as 12 áreas)
+  - [x] Campo de busca por nome/descrição (Input com placeholder)
+  - [x] Filtros funcionando em tempo real via tRPC
+- [x] Criar biblioteca inicial de 22 modelos
+  - [x] 8 modelos de Petições (cobrança, indenização, trabalhista, usucapião, divórcio, despejo, mandado segurança, revisional)
+  - [x] 5 modelos de Pareceres (viabilidade, contrato, tributário, responsabilidade civil, LGPD)
+  - [x] 4 modelos de Contratos (compra/venda imóvel, prestação serviços, locação, sociedade)
+  - [x] 3 modelos de Recursos (apelação, agravo, especial)
+  - [x] 2 modelos de Defesas (contestação, defesa penal)
+- [x] Preparar monetização
+  - [x] Adicionar campo isPremium nos modelos (50% marcados)
+  - [x] Exibir badge "Premium" em amarelo nos cards
+  - [x] Implementar procedure verificarAcesso com verificação de subscriptionPlan
+  - [x] Mensagem de upgrade preparada para modelos premium
+- [x] Testar fluxo completo
+  - [x] Navegar para tab Modelos
+  - [x] Visualizar 22 modelos em grid responsivo
+  - [x] Testar filtros (tipo, área, busca)
+  - [x] Clicar em "Usar Este Modelo" (testado com Ação de Cobrança)
+  - [x] Verificar preenchimento automático na tab Gerar (100% funcional)
+  - [x] Validar badges premium e integração completa

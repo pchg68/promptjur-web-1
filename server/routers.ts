@@ -715,6 +715,76 @@ Responda em formato JSON com:
         });
         return { success: true };
       })
+  }),
+
+  // Router de Modelos Profissionais
+  modelos: router({
+    // Listar todos os modelos
+    listar: publicProcedure
+      .input(z.object({
+        tipo: z.enum(["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"]).optional(),
+        area: z.string().optional(),
+        busca: z.string().optional(),
+        apenasGratuitos: z.boolean().optional()
+      }).optional())
+      .query(async ({ input, ctx }) => {
+        const { MODELOS_PROFISSIONAIS, filtrarModelos } = await import("./modelos-profissionais");
+        
+        if (!input) {
+          return MODELOS_PROFISSIONAIS;
+        }
+        
+        return filtrarModelos(
+          input.tipo,
+          input.area,
+          input.busca,
+          input.apenasGratuitos
+        );
+      }),
+
+    // Obter modelo por ID
+    obterPorId: publicProcedure
+      .input(z.object({
+        id: z.string()
+      }))
+      .query(async ({ input }) => {
+        const { MODELOS_PROFISSIONAIS } = await import("./modelos-profissionais");
+        const modelo = MODELOS_PROFISSIONAIS.find(m => m.id === input.id);
+        
+        if (!modelo) {
+          throw new Error("Modelo não encontrado");
+        }
+        
+        return modelo;
+      }),
+
+    // Verificar acesso a modelo premium
+    verificarAcesso: protectedProcedure
+      .input(z.object({
+        modeloId: z.string()
+      }))
+      .query(async ({ input, ctx }) => {
+        const { MODELOS_PROFISSIONAIS } = await import("./modelos-profissionais");
+        const modelo = MODELOS_PROFISSIONAIS.find(m => m.id === input.modeloId);
+        
+        if (!modelo) {
+          return { temAcesso: false, motivo: "Modelo não encontrado" };
+        }
+        
+        // Se não é premium, todos têm acesso
+        if (!modelo.isPremium) {
+          return { temAcesso: true };
+        }
+        
+        // Verificar plano do usuário (preparação para monetização)
+        const plano = ctx.user.subscriptionPlan || "free";
+        const temAcesso = plano === "pro" || plano === "enterprise";
+        
+        return {
+          temAcesso,
+          motivo: temAcesso ? undefined : "Este modelo é exclusivo para assinantes Premium. Faça upgrade para acessar!"
+        };
+      })
   })
 });
 
