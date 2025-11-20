@@ -237,16 +237,17 @@
   - [x] Adicionar botão "Editar" na listagem de templates
   - [x] Criar modal de edição de templates
   - [x] Implementar procedure de atualização
-- [ ] Atribuição de Tags ao Salvar Prompts
-  - [ ] Adicionar campo de seleção múltipla de tags no dialog
-  - [ ] Integrar atribuição de tags no fluxo de salvamento
-  - [ ] Atualizar UI para mostrar tags selecionadas
-- [ ] Salvamento Automático de Versões
-  - [ ] Chamar saveVersion() antes de otimizar
-  - [ ] Registrar estado anterior e novo
-  - [ ] Testar versionamento automático
-- [ ] UI de Comparação Lado a Lado
-  - [ ] Criar componente de duas colunas
-  - [ ] Exibir promptOriginal vs promptOtimizado
-  - [ ] Destacar diferenças (diff)
-  - [ ] Adicionar botão de restauração
+## Implementações Restantes (Em Andamento)
+- [x] Atribuição de Tags ao Salvar Prompts
+  - [x] Adicionar campo de seleção múltipla de tags no dialog de salvamento
+  - [x] Integrar atribuição de tags no fluxo de salvamento de prompts
+  - [x] Atualizar UI para mostrar tags selecionadas
+- [x] Salvamento Automático de Versões
+  - [x] Integrar saveVersion() na mutation de otimizar
+  - [x] Registrar estado anterior antes de otimizar
+  - [x] Testar versionamento automático
+- [x] UI de Comparação Lado a Lado
+  - [x] Criar componente de duas colunas para comparação
+  - [x] Exibir promptOriginal vs promptOtimizado
+  - [x] Destacar diferenças entre versões
+  - [ ] Adicionar botão de restauração de versões (funcionalidade futura)

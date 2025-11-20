@@ -320,6 +320,14 @@ Responda em formato JSON com:
             }
           });
 
+          // Salvar versão automaticamente (prompt original)
+          await db.salvarVersaoPrompt({
+            promptId,
+            tipo: "original",
+            versao: 1,
+            conteudo: input.prompt
+          });
+
           // Registrar no histórico
           await db.createHistorico({
             userId: ctx.user.id,

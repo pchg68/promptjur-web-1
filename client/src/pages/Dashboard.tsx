@@ -18,6 +18,7 @@ import { UsageChart } from "@/components/UsageChart";
 import { DistributionChart } from "@/components/DistributionChart";
 import { FavoritosSection } from "@/components/FavoritosSection";
 import TagsManager from "@/components/TagsManager";
+import { PromptComparison } from "@/components/PromptComparison";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
@@ -108,11 +109,28 @@ export default function Dashboard() {
   const [templateDescricao, setTemplateDescricao] = useState("");
   const [templateConteudo, setTemplateConteudo] = useState("");
   const [templateArea, setTemplateArea] = useState("");
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const tagsQuery = trpc.tags.minhas.useQuery();
+  const atribuirTagMutation = trpc.tags.atribuirTemplate.useMutation();
   const salvarTemplateMutation = trpc.templates.salvar.useMutation({
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      // Atribuir tags selecionadas ao template recém-criado
+      if (selectedTags.length > 0 && data.templateId) {
+        for (const tagId of selectedTags) {
+          try {
+            await atribuirTagMutation.mutateAsync({
+              templateId: data.templateId,
+              tagId
+            });
+          } catch (error) {
+            console.error("Erro ao atribuir tag:", error);
+          }
+        }
+      }
       toast.success("Template salvo com sucesso!");
       setShowSaveTemplate(false);
       setTemplateNome("");
+      setSelectedTags([]);
       setTemplateDescricao("");
       setTemplateConteudo("");
       setTemplateArea("");
@@ -802,79 +820,47 @@ export default function Dashboard() {
 
                 {otimizacaoMutation.data && (
                   <div className="mt-6 space-y-6">
-                    {/* Prompt Original */}
-                    <div className="p-6 bg-card border border-border rounded-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-foreground">Prompt Original</h3>
-                        <Badge variant="outline">Antes</Badge>
-                      </div>
-                      <div className="p-4 bg-muted/30 rounded-sm">
-                        <p className="text-sm font-mono whitespace-pre-wrap text-muted-foreground">
-                          {otimizacaoMutation.data.promptOriginal}
-                        </p>
-                      </div>
-                    </div>
+                    {/* Comparação Lado a Lado */}
+                    <PromptComparison
+                      promptOriginal={otimizacaoMutation.data.promptOriginal}
+                      promptOtimizado={otimizacaoMutation.data.promptOtimizado}
+                      melhorias={otimizacaoMutation.data.melhorias}
+                    />
 
-                    {/* Melhorias Aplicadas */}
-                    {otimizacaoMutation.data.melhorias && otimizacaoMutation.data.melhorias.length > 0 && (
-                      <div className="p-6 bg-card border border-border rounded-sm">
-                        <h3 className="text-lg font-semibold text-foreground mb-4">Melhorias Aplicadas</h3>
-                        <ul className="space-y-2">
-                          {otimizacaoMutation.data.melhorias.map((melhoria: string, idx: number) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                              <span>{melhoria}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Prompt Otimizado */}
-                    <div className="p-6 bg-card border border-primary/20 rounded-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-foreground">Prompt Otimizado</h3>
-                         <div className="flex items-center gap-2">
-                           <Badge variant="default">Depois</Badge>
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             onClick={() => exportAsMarkdown("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
-                           >
-                             <FileText className="w-4 h-4 mr-2" />
-                             Markdown
-                           </Button>
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             onClick={() => exportAsPDF("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
-                           >
-                             <FileDown className="w-4 h-4 mr-2" />
-                             PDF
-                           </Button>
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             onClick={() => openSaveTemplateDialog(otimizacaoMutation.data?.promptOtimizado || "", otimizacaoMutation.data?.area || "Geral")}
-                           >
-                             <BookTemplate className="w-4 h-4 mr-2" />
-                            Salvar Prompt
-                          </Button>
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             onClick={() => copyToClipboard(otimizacaoMutation.data?.promptOtimizado || "")}
-                           >
-                             <Copy className="w-4 h-4 mr-2" />
-                             Copiar
-                           </Button>
-                         </div>
-                      </div>
-                      <div className="p-4 bg-muted/30 rounded-sm">
-                        <Streamdown className="text-sm font-mono whitespace-pre-wrap">
-                          {otimizacaoMutation.data.promptOtimizado}
-                        </Streamdown>
-                      </div>
+                    {/* Botões de Ação */}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => exportAsMarkdown("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Markdown
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => exportAsPDF("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
+                      >
+                        <FileDown className="w-4 h-4 mr-2" />
+                        PDF
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openSaveTemplateDialog(otimizacaoMutation.data?.promptOtimizado || "", otimizacaoMutation.data?.area || "Geral")}
+                      >
+                        <BookTemplate className="w-4 h-4 mr-2" />
+                        Salvar Prompt
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(otimizacaoMutation.data?.promptOtimizado || "")}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copiar
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -931,6 +917,36 @@ export default function Dashboard() {
             <div>
               <Label className="text-muted-foreground">Área Jurídica</Label>
               <Badge variant="secondary" className="mt-1">{templateArea}</Badge>
+            </div>
+            <div>
+              <Label htmlFor="tags-select">Tags (opcional)</Label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {tagsQuery.data && tagsQuery.data.length > 0 ? (
+                  tagsQuery.data.map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant={selectedTags.includes(tag.id) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      style={{
+                        backgroundColor: selectedTags.includes(tag.id) ? (tag.cor || "#3b82f6") : "transparent",
+                        borderColor: tag.cor || "#3b82f6",
+                        color: selectedTags.includes(tag.id) ? "white" : (tag.cor || "#3b82f6")
+                      }}
+                      onClick={() => {
+                        setSelectedTags(prev =>
+                          prev.includes(tag.id)
+                            ? prev.filter(id => id !== tag.id)
+                            : [...prev, tag.id]
+                        );
+                      }}
+                    >
+                      {tag.nome}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Nenhuma tag criada ainda</p>
+                )}
+              </div>
             </div>
           </div>
           <DialogFooter>
