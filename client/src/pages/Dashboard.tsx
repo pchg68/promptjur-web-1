@@ -100,14 +100,20 @@ export default function Dashboard() {
     }
   });
 
-  // Estado para Geração
-  const [areaGeracao, setAreaGeracao] = useState<string>("");
-  const [objetivoGeracao, setObjetivoGeracao] = useState("");
-  const [nivelDetalhe, setNivelDetalhe] = useState([7]);
-  const [incluirReferencias, setIncluirReferencias] = useState(true);
+  // Estado para Geração (Reformulado)
+  const [tipoDocumento, setTipoDocumento] = useState<"peticao" | "parecer" | "contrato" | "recurso" | "defesa" | "memorando" | "outro">("peticao");
+  const [contextoJuridico, setContextoJuridico] = useState("");
+  const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
+  const [areaGeracao, setAreaGeracao] = useState<string>(""); // Opcional - detectado automaticamente
+  const [partesEnvolvidas, setPartesEnvolvidas] = useState("");
+  const [legislacaoRelevante, setLegislacaoRelevante] = useState("");
+  const [detalhesAdicionais, setDetalhesAdicionais] = useState("");
   const geracaoMutation = trpc.prompts.gerar.useMutation({
-    onSuccess: () => {
-      toast.success("Prompt gerado com sucesso!");
+    onSuccess: (data) => {
+      toast.success("Prompt profissional gerado com sucesso!");
+      if (data.areaDetectadaAutomaticamente) {
+        toast.info(`Área jurídica detectada automaticamente: ${data.area}`);
+      }
     },
     onError: (error) => {
       toast.error(`Erro na geração: ${error.message}`);
@@ -183,15 +189,18 @@ export default function Dashboard() {
   };
 
   const handleGerar = async () => {
-    if (!areaGeracao || !objetivoGeracao.trim()) {
-      toast.error("Por favor, preencha todos os campos obrigatórios");
+    if (!contextoJuridico.trim() || !objetivoEspecifico.trim()) {
+      toast.error("Por favor, preencha os campos obrigatórios (Contexto e Objetivo)");
       return;
     }
     geracaoMutation.mutate({
-      area: areaGeracao,
-      objetivo: objetivoGeracao,
-      nivelDetalhe: nivelDetalhe[0],
-      incluirReferencias,
+      tipoDocumento,
+      contextoJuridico,
+      objetivoEspecifico,
+      area: areaGeracao || undefined, // Detectado automaticamente se vazio
+      partesEnvolvidas: partesEnvolvidas || undefined,
+      legislacaoRelevante: legislacaoRelevante || undefined,
+      detalhesAdicionais: detalhesAdicionais || undefined
     });
   };
 
@@ -362,13 +371,13 @@ export default function Dashboard() {
               <Sparkles className="w-4 h-4" />
               Analisar Prompt
             </TabsTrigger>
-            <TabsTrigger value="gerar" className="flex items-center gap-2">
-              <Zap className="w-4 h-4" />
-              Gerar Prompt
-            </TabsTrigger>
             <TabsTrigger value="otimizar" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               Otimizar Prompt
+            </TabsTrigger>
+            <TabsTrigger value="gerar" className="flex items-center gap-2">
+              <Zap className="w-4 h-4" />
+              Gerar Prompt Jurídico
             </TabsTrigger>
           </TabsList>
 
@@ -509,19 +518,17 @@ export default function Dashboard() {
                     <div className="pt-4 border-t border-border">
                       <Button
                         onClick={() => {
-                          // Preencher tab de geração com dados da análise
-                          setAreaGeracao(analiseMutation.data.area);
-                          const objetivo = `Criar prompt para ${analiseMutation.data.area} considerando: ${analiseMutation.data.sugestoes?.join(', ') || 'melhorias sugeridas'}`;
-                          setObjetivoGeracao(objetivo);
-                          // Navegar para tab de geração
-                          setActiveTab('gerar');
-                          toast.success('Dados transferidos para Geração!');
+                          // Preencher tab de otimização com prompt analisado
+                          setPromptOtimizacao(promptAnalise);
+                          // Navegar para tab de otimização
+                          setActiveTab('otimizar');
+                          toast.success('Prompt transferido para Otimização!');
                         }}
                         className="w-full"
                         size="lg"
                       >
-                        <Zap className="w-4 h-4 mr-2" />
-                        Gerar Prompt Baseado nesta Análise
+                        <Shield className="w-4 h-4 mr-2" />
+                        Otimizar Este Prompt
                       </Button>
                     </div>
                   </div>
@@ -542,10 +549,10 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-primary" />
-                  Geração de Prompt Jurídico
+                  Gerar Prompt Jurídico Profissional
                 </CardTitle>
                 <CardDescription>
-                  Configure os parâmetros abaixo para gerar um prompt jurídico otimizado
+                  Crie prompts PRONTOS PARA USO em ferramentas de IA (ChatGPT, Claude, Gemini) para gerar peças jurídicas de excelência
                 </CardDescription>
                 <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-2">
                   <p className="text-sm text-amber-800 dark:text-amber-200">
@@ -555,52 +562,113 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="area-geracao">Área Jurídica *</Label>
-                    <Select value={areaGeracao} onValueChange={setAreaGeracao}>
-                      <SelectTrigger id="area-geracao">
-                        <SelectValue placeholder="Selecione a área jurídica" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AREAS_JURIDICAS.map((area) => (
-                          <SelectItem key={area} value={area}>
-                            {area}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="nivel-detalhe">
-                      Nível de Detalhe: {nivelDetalhe[0]}
-                    </Label>
-                    <Slider
-                      id="nivel-detalhe"
-                      min={1}
-                      max={10}
-                      step={1}
-                      value={nivelDetalhe}
-                      onValueChange={setNivelDetalhe}
-                      className="mt-2"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      1 = Básico | 10 = Muito Detalhado
-                    </p>
-                  </div>
+                {/* Tipo de Documento */}
+                <div className="space-y-2">
+                  <Label htmlFor="tipo-documento">Tipo de Documento Jurídico *</Label>
+                  <Select value={tipoDocumento} onValueChange={(v: any) => setTipoDocumento(v)}>
+                    <SelectTrigger id="tipo-documento">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="peticao">Petição</SelectItem>
+                      <SelectItem value="parecer">Parecer</SelectItem>
+                      <SelectItem value="contrato">Contrato</SelectItem>
+                      <SelectItem value="recurso">Recurso</SelectItem>
+                      <SelectItem value="defesa">Defesa</SelectItem>
+                      <SelectItem value="memorando">Memorando</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
+                {/* Contexto Jurídico */}
                 <div className="space-y-2">
-                  <Label htmlFor="objetivo-geracao">Objetivo do Prompt *</Label>
+                  <Label htmlFor="contexto-juridico">Contexto/Situação Jurídica *</Label>
                   <Textarea
-                    id="objetivo-geracao"
-                    placeholder="Descreva o que você deseja que o prompt faça (ex: redigir petição inicial de ação de cobrança)"
-                    value={objetivoGeracao}
-                    onChange={(e) => setObjetivoGeracao(e.target.value)}
-                    className="min-h-[100px]"
+                    id="contexto-juridico"
+                    placeholder="Descreva a situação jurídica completa (ex: Cliente sofreu acidente de trânsito, réu não pagou indenização acordada, empresa descumpriu contrato de prestação de serviços...)"
+                    value={contextoJuridico}
+                    onChange={(e) => setContextoJuridico(e.target.value)}
+                    className="min-h-[120px]"
                   />
                 </div>
+
+                {/* Objetivo Específico */}
+                <div className="space-y-2">
+                  <Label htmlFor="objetivo-especifico">Objetivo Específico *</Label>
+                  <Textarea
+                    id="objetivo-especifico"
+                    placeholder="O que você quer que a IA gere? (ex: Redigir petição inicial de ação de cobrança com pedido de tutela de urgência)"
+                    value={objetivoEspecifico}
+                    onChange={(e) => setObjetivoEspecifico(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                {/* Área Jurídica (Opcional - Detectada Automaticamente) */}
+                <div className="space-y-2">
+                  <Label htmlFor="area-geracao">Área Jurídica (Opcional - Detectada Automaticamente)</Label>
+                  <Select value={areaGeracao} onValueChange={setAreaGeracao}>
+                    <SelectTrigger id="area-geracao">
+                      <SelectValue placeholder="Deixe vazio para detecção automática" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AREAS_JURIDICAS.map((area) => (
+                        <SelectItem key={area} value={area}>
+                          {area}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Se não especificada, a área será detectada automaticamente pelo contexto
+                  </p>
+                </div>
+
+                {/* Campos Opcionais Avançados */}
+                <details className="space-y-4">
+                  <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
+                    ▶ Campos Opcionais Avançados
+                  </summary>
+                  
+                  <div className="space-y-4 pt-4">
+                    {/* Partes Envolvidas */}
+                    <div className="space-y-2">
+                      <Label htmlFor="partes-envolvidas">Partes Envolvidas (Opcional)</Label>
+                      <Textarea
+                        id="partes-envolvidas"
+                        placeholder="Ex: Autor: João Silva (CPF 123.456.789-00), Réu: Empresa XYZ Ltda (CNPJ 12.345.678/0001-90)"
+                        value={partesEnvolvidas}
+                        onChange={(e) => setPartesEnvolvidas(e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                    </div>
+
+                    {/* Legislação Relevante */}
+                    <div className="space-y-2">
+                      <Label htmlFor="legislacao-relevante">Legislação Relevante (Opcional)</Label>
+                      <Textarea
+                        id="legislacao-relevante"
+                        placeholder="Ex: Art. 927 do CC/02, Art. 186 do CC/02, Súmula 37 do STJ"
+                        value={legislacaoRelevante}
+                        onChange={(e) => setLegislacaoRelevante(e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                    </div>
+
+                    {/* Detalhes Adicionais */}
+                    <div className="space-y-2">
+                      <Label htmlFor="detalhes-adicionais">Detalhes Adicionais (Opcional)</Label>
+                      <Textarea
+                        id="detalhes-adicionais"
+                        placeholder="Qualquer informação adicional relevante"
+                        value={detalhesAdicionais}
+                        onChange={(e) => setDetalhesAdicionais(e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                    </div>
+                  </div>
+                </details>
 
                 <Button 
                   onClick={handleGerar} 
@@ -610,12 +678,12 @@ export default function Dashboard() {
                   {geracaoMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-                      Gerando...
+                      Gerando Prompt Profissional...
                     </>
                   ) : (
                     <>
                       <Zap className="mr-2 w-4 h-4" />
-                      Gerar Prompt
+                      ✨ Gerar Prompt Profissional
                     </>
                   )}
                 </Button>
@@ -623,12 +691,12 @@ export default function Dashboard() {
                 {geracaoMutation.data && (
                   <div className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm">
                      <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-foreground">Prompt Gerado</h3>
+                      <h3 className="text-lg font-semibold text-foreground">✨ Prompt Profissional Pronto para Uso</h3>
                        <div className="flex items-center gap-2">
                          <Button
                            variant="outline"
                            size="sm"
-                           onClick={() => exportAsMarkdown("Prompt Gerado", geracaoMutation.data?.promptGerado || "")}
+                           onClick={() => exportAsMarkdown("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
                          >
                            <FileText className="w-4 h-4 mr-2" />
                            Markdown
@@ -636,7 +704,7 @@ export default function Dashboard() {
                          <Button
                            variant="outline"
                            size="sm"
-                           onClick={() => exportAsPDF("Prompt Gerado", geracaoMutation.data?.promptGerado || "")}
+                           onClick={() => exportAsPDF("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
                          >
                            <FileDown className="w-4 h-4 mr-2" />
                            PDF
@@ -644,7 +712,7 @@ export default function Dashboard() {
                          <Button
                            variant="outline"
                            size="sm"
-                           onClick={() => openSaveTemplateDialog(geracaoMutation.data?.promptGerado || "", areaGeracao)}
+                           onClick={() => openSaveTemplateDialog(geracaoMutation.data?.promptProfissional || "", areaGeracao)}
                          >
                            <BookTemplate className="w-4 h-4 mr-2" />
                            Salvar Prompt
@@ -652,7 +720,7 @@ export default function Dashboard() {
                          <Button
                            variant="outline"
                            size="sm"
-                           onClick={() => copyToClipboard(geracaoMutation.data?.promptGerado || "")}
+                           onClick={() => copyToClipboard(geracaoMutation.data?.promptProfissional || "")}
                          >
                            <Copy className="w-4 h-4 mr-2" />
                            Copiar
@@ -661,26 +729,15 @@ export default function Dashboard() {
                     </div>
                     <div className="p-4 bg-muted/30 rounded-sm">
                       <Streamdown className="text-sm font-mono whitespace-pre-wrap">
-                        {geracaoMutation.data.promptGerado}
+                        {geracaoMutation.data.promptProfissional}
                       </Streamdown>
                     </div>
                     
-                    {/* Botão de Fluxo Automatizado */}
+                    {/* Prompt profissional pronto - sem botão de fluxo (já é o resultado final) */}
                     <div className="pt-4 border-t border-border">
-                      <Button
-                        onClick={() => {
-                          // Preencher tab de otimização com prompt gerado
-                          setPromptOtimizacao(geracaoMutation.data.promptGerado);
-                          // Navegar para tab de otimização
-                          setActiveTab('otimizar');
-                          toast.success('Prompt transferido para Otimização!');
-                        }}
-                        className="w-full"
-                        size="lg"
-                      >
-                        <Shield className="w-4 h-4 mr-2" />
-                        Otimizar Este Prompt
-                      </Button>
+                      <p className="text-sm text-muted-foreground text-center">
+                        ✅ Prompt profissional gerado! Copie e use diretamente em ferramentas de IA.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -794,7 +851,8 @@ export default function Dashboard() {
                           if (otimizacaoMutation.data?.area) {
                             setAreaGeracao(otimizacaoMutation.data.area);
                           }
-                          setObjetivoGeracao(`Iterar sobre o prompt: ${otimizacaoMutation.data?.promptOtimizado?.substring(0, 100)}...`);
+                          setContextoJuridico(`Prompt otimizado: ${otimizacaoMutation.data?.promptOtimizado?.substring(0, 150)}...`);
+                          setObjetivoEspecifico(`Gerar nova versão baseada no prompt otimizado`);
                           // Navegar para tab de geração
                           setActiveTab('gerar');
                           toast.success('Pronto para gerar nova versão!');
@@ -803,7 +861,7 @@ export default function Dashboard() {
                         size="lg"
                       >
                         <Zap className="w-4 h-4 mr-2" />
-                        Gerar Nova Versão
+                        ✨ Gerar Prompt Profissional
                       </Button>
                     </div>
                   </div>

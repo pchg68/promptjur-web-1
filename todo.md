@@ -279,3 +279,38 @@
     - [x] Retornar para tab "Gerar" com prompt otimizado como base
   - [x] Eliminar necessidade de copiar/colar manualmente
   - [x] Criar fluxo circular: Analisar → Gerar → Otimizar → Iterar
+
+## Reformulação Completa da Arquitetura (Sessão Atual) ✅ CONCLUÍDA
+- [x] Reordenar tabs do Dashboard
+  - [x] Nova ordem: Analisar Prompt → Otimizar Prompt → Gerar Prompt Jurídico
+  - [x] Atualizar valores das tabs no código
+  - [x] Ajustar navegação e activeTab
+
+- [x] Reformular Funcionalidade "Gerar Prompt"
+  - [x] Objetivo: Criar prompts profissionais PRONTOS PARA USO em peças jurídicas
+  - [x] Implementar detecção automática de área jurídica (com ajuste manual)
+  - [x] Adicionar campo "Tipo de Documento" (petição, parecer, contrato, etc.)
+  - [x] Adicionar campo "Contexto/Situação Jurídica"
+  - [x] Adicionar campo "Objetivo Específico"
+  - [x] Campos opcionais: Partes envolvidas, Legislação relevante
+  - [x] Remover funcionalidade antiga de "iterar sobre prompts"
+  - [x] Implementar engenharia de prompt avançada no backend
+
+- [x] Atualizar Procedure tRPC de Geração
+  - [x] Reformular lógica para gerar prompts profissionais finais
+  - [x] Usar técnicas de engenharia de prompt de última geração (persona, chain-of-thought, verificação)
+  - [x] Integrar com Manus AI para geração especializada
+  - [x] Formato de saída: Prompt pronto para copiar e usar
+
+- [x] Ajustar Fluxo Automatizado
+  - [x] Atualizar botões de fluxo para nova ordem
+  - [x] "Otimizar Este Prompt" após análise
+  - [x] "Gerar Prompt Profissional" após otimização
+  - [x] Remover botão de fluxo após geração (prompt já é resultado final)
+
+- [x] Atualizar UI da Tab "Gerar"
+  - [x] Redesenhar interface com novos campos especializados
+  - [x] Adicionar seletor de tipo de documento
+  - [x] Implementar textarea para contexto jurídico
+  - [x] Adicionar área de resultado com prompt final formatado
+  - [x] Botões de exportação (Markdown, PDF, Salvar, Copiar)

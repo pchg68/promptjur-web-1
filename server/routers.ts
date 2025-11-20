@@ -150,14 +150,16 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
         }
       }),
 
-    // Gerar prompt jurídico otimizado
+    // Gerar prompt jurídico profissional PRONTO PARA USO
     gerar: protectedProcedure
       .input(z.object({
-        area: z.enum(AREAS_JURIDICAS as any),
-        objetivo: z.string().min(10, "Objetivo muito curto"),
-        nivelDetalhe: z.number().min(1).max(10).default(5),
-        persona: z.string().optional(),
-        incluirReferencias: z.boolean().default(true)
+        tipoDocumento: z.enum(["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"] as const),
+        contextoJuridico: z.string().min(20, "Contexto muito curto - descreva a situação jurídica"),
+        objetivoEspecifico: z.string().min(10, "Objetivo muito curto"),
+        area: z.enum(AREAS_JURIDICAS as any).optional(), // Detectado automaticamente se não fornecido
+        partesEnvolvidas: z.string().optional(),
+        legislacaoRelevante: z.string().optional(),
+        detalhesAdicionais: z.string().optional()
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
@@ -169,46 +171,87 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
         }
         
         try {
-          const templateBase = TEMPLATES_BASE[input.area] || TEMPLATES_BASE["Civil"];
-          const referencias = input.incluirReferencias ? REFERENCIAS_LEGAIS[input.area] || [] : [];
+          // ETAPA 1: Detectar área jurídica automaticamente se não fornecida
+          let areaDetectada = input.area;
           
-          const systemPrompt = `Você é um especialista em direito brasileiro, especializado em ${input.area}.
-Sua tarefa é gerar um prompt jurídico otimizado e detalhado para ${input.objetivo}.
+          if (!areaDetectada) {
+            const deteccaoResponse = await invokeLLM({
+              messages: [
+                {
+                  role: "system",
+                  content: `Você é um especialista em direito brasileiro. Analise o contexto fornecido e identifique APENAS a área jurídica principal. Responda com UMA das seguintes opções: ${AREAS_JURIDICAS.join(", ")}`
+                },
+                {
+                  role: "user",
+                  content: `Tipo de documento: ${input.tipoDocumento}\nContexto: ${input.contextoJuridico}\nObjetivo: ${input.objetivoEspecifico}`
+                }
+              ]
+            });
+            
+            const areaResposta = deteccaoResponse.choices[0].message.content?.toString().trim() || "Civil";
+            areaDetectada = AREAS_JURIDICAS.find(a => areaResposta.includes(a)) || "Civil";
+          }
+          
+          // ETAPA 2: Gerar prompt profissional usando engenharia de prompt avançada
+          const referencias = REFERENCIAS_LEGAIS[areaDetectada] || [];
+          
+          const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.
 
-Nível de detalhe solicitado: ${input.nivelDetalhe}/10
-${input.persona ? `Persona: ${input.persona}` : ""}
-${referencias.length > 0 ? `Referências legais relevantes: ${referencias.join(", ")}` : ""}
+Sua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.
 
-O prompt deve ser:
-- Claro e específico
-- Tecnicamente preciso
-- Estruturado e organizado
-- Adequado para uso com IA jurídica
-- Incluir contexto relevante
-${input.incluirReferencias ? "- Citar legislação aplicável" : ""}`;
+TÉCNICAS DE ENGENHARIA DE PROMPT A USAR:
+1. **Persona Especializada**: Definir claramente o papel da IA (advogado especialista, juiz, etc.)
+2. **Contexto Rico**: Fornecer todos os detalhes relevantes do caso
+3. **Instruções Estruturadas**: Dividir em seções claras (fatos, direito, pedidos)
+4. **Exemplos e Formato**: Especificar estrutura esperada do documento
+5. **Restrições e Requisitos**: Legislação obrigatória, tom formal, etc.
+6. **Chain-of-Thought**: Pedir raciocínio jurídico passo a passo
+7. **Verificação de Qualidade**: Incluir critérios de revisão
+
+REFERÊNCIAS LEGAIS DISPONÍVEIS: ${referencias.join(", ")}
+
+O PROMPT FINAL deve ser:
+- **Autocontido**: Não requer explicações adicionais
+- **Profissional**: Linguagem técnica apropriada
+- **Acionável**: Gera resultado imediato quando usado
+- **Preciso**: Cita legislação e jurisprudência quando aplicável
+- **Formatado**: Pronto para copiar e colar
+
+IMPORTANTE: Retorne APENAS o prompt final, sem explicações ou comentários adicionais.`;
+
+          const userPrompt = `TIPO DE DOCUMENTO: ${input.tipoDocumento.toUpperCase()}
+ÁREA JURÍDICA: ${areaDetectada}
+
+CONTEXTO JURÍDICO:
+${input.contextoJuridico}
+
+OBJETIVO ESPECÍFICO:
+${input.objetivoEspecifico}
+
+${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
 
           const geracaoResponse = await invokeLLM({
             messages: [
               { role: "system", content: systemPrompt },
-              { role: "user", content: `Gere um prompt jurídico otimizado para: ${input.objetivo}` }
+              { role: "user", content: userPrompt }
             ]
           });
 
-          const content2 = geracaoResponse.choices[0].message.content;
-          const promptGerado = typeof content2 === 'string' ? content2 : "";
+          const content = geracaoResponse.choices[0].message.content;
+          const promptProfissional = typeof content === 'string' ? content : "";
 
           // Salvar no banco
           const promptId = await db.createPrompt({
             userId: ctx.user.id,
             tipo: "geracao",
-            areaJuridica: input.area,
-            promptOriginal: input.objetivo,
-            promptOtimizado: promptGerado,
+            areaJuridica: areaDetectada,
+            promptOriginal: input.contextoJuridico,
+            promptOtimizado: promptProfissional,
             qualidade: "excelente",
             metadata: {
-              nivelDetalhe: input.nivelDetalhe,
-              persona: input.persona,
-              incluirReferencias: input.incluirReferencias
+              tipoDocumento: input.tipoDocumento,
+              objetivoEspecifico: input.objetivoEspecifico,
+              areaDetectadaAutomaticamente: !input.area
             }
           });
 
@@ -225,12 +268,14 @@ ${input.incluirReferencias ? "- Citar legislação aplicável" : ""}`;
           await db.incrementUserUsage(ctx.user.id);
 
           // Verificar fontes jurídicas no prompt gerado
-          const avisosFontes = gerarAvisosFontes(promptGerado);
+          const avisosFontes = gerarAvisosFontes(promptProfissional);
 
           return {
             promptId,
-            promptGerado,
-            area: input.area,
+            promptProfissional,
+            area: areaDetectada,
+            areaDetectadaAutomaticamente: !input.area,
+            tipoDocumento: input.tipoDocumento,
             referencias: referencias,
             avisosFontes
           };
