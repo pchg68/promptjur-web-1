@@ -524,6 +524,37 @@ Responda em formato JSON com:
       }))
       .query(async ({ input }) => {
         return db.getTagsTemplate(input.templateId);
+      }),
+
+    // Atribuir tag a prompt
+    atribuirPrompt: protectedProcedure
+      .input(z.object({
+        promptId: z.number(),
+        tagId: z.number()
+      }))
+      .mutation(async ({ input }) => {
+        await db.atribuirTagPrompt(input.promptId, input.tagId);
+        return { success: true };
+      }),
+
+    // Remover tag de prompt
+    removerPrompt: protectedProcedure
+      .input(z.object({
+        promptId: z.number(),
+        tagId: z.number()
+      }))
+      .mutation(async ({ input }) => {
+        await db.removerTagPrompt(input.promptId, input.tagId);
+        return { success: true };
+      }),
+
+    // Obter tags de um prompt
+    getPrompt: protectedProcedure
+      .input(z.object({
+        promptId: z.number()
+      }))
+      .query(async ({ input }) => {
+        return db.getTagsPrompt(input.promptId);
       })
   }),
 

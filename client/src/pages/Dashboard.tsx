@@ -17,6 +17,7 @@ import { Link, useLocation } from "wouter";
 import { UsageChart } from "@/components/UsageChart";
 import { DistributionChart } from "@/components/DistributionChart";
 import { FavoritosSection } from "@/components/FavoritosSection";
+import TagsManager from "@/components/TagsManager";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
@@ -353,6 +354,11 @@ export default function Dashboard() {
         {/* Seção de Favoritos */}
         <div className="mb-8">
           <FavoritosSection />
+        </div>
+        
+        {/* Gerenciamento de Tags */}
+        <div className="mb-8">
+          <TagsManager />
         </div>
 
         {/* Seção de Analytics */}

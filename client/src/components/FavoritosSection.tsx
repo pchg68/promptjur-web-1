@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Copy, Eye, Trash2 } from "lucide-react";
+import { Star, Copy, Eye, Trash2, FileDown } from "lucide-react";
+import { exportToPDF, exportToDOCX } from "@/lib/exportPrompt";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -173,6 +174,19 @@ export function FavoritosSection() {
                         title="Ver detalhes"
                       >
                         <Eye className="w-4 h-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          exportToPDF(prompt);
+                          toast.success("Exportando para PDF...");
+                        }}
+                        title="Exportar PDF"
+                      >
+                        <FileDown className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

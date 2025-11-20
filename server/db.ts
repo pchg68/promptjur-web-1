@@ -599,3 +599,53 @@ export async function getUsageByDate(userId: number, days: number = 7) {
     ...counts
   }));
 }
+
+
+export async function atribuirTagPrompt(promptId: number, tagId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Verificar se já existe
+  const existing = await db.select().from(promptTags)
+    .where(and(
+      eq(promptTags.promptId, promptId),
+      eq(promptTags.tagId, tagId)
+    ))
+    .limit(1);
+    
+  if (existing.length > 0) return existing[0].id;
+  
+  const result = await db.insert(promptTags).values({
+    promptId,
+    tagId
+  });
+  return result[0].insertId;
+}
+
+export async function removerTagPrompt(promptId: number, tagId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  await db.delete(promptTags).where(and(
+    eq(promptTags.promptId, promptId),
+    eq(promptTags.tagId, tagId)
+  ));
+  return true;
+}
+
+export async function getTagsPrompt(promptId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select({
+    id: tags.id,
+    nome: tags.nome,
+    cor: tags.cor
+  })
+  .from(promptTags)
+  .innerJoin(tags, eq(promptTags.tagId, tags.id))
+  .where(eq(promptTags.promptId, promptId));
+  
+  return result;
+}
+

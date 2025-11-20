@@ -208,3 +208,21 @@
   - [x] Criar procedure toggleFavorito (já existia)
   - [x] Adicionar seção de favoritos na UI
   - [x] Criar query listarFavoritos para filtrar apenas favoritos
+
+## Novas Melhorias (Sessão Atual)
+- [x] Sistema de exportação de prompts
+  - [x] Implementar exportação em PDF com formatação profissional
+  - [x] Implementar exportação em DOCX
+  - [x] Adicionar botão de exportação na UI de favoritos
+  - [x] Incluir metadados (área jurídica, data, qualidade)
+- [x] Sistema de tags personalizadas
+  - [x] Criar tabela de tags no schema (já existia)
+  - [x] Criar procedures para CRUD de tags
+  - [x] Implementar UI de gerenciamento de tags
+  - [x] Adicionar procedures para atribuir tags a prompts
+- [ ] Histórico de versões (infraestrutura backend pronta)
+  - [x] Criar tabela de versões no schema (já existia)
+  - [x] Procedures de salvamento e listagem criadas
+  - [ ] Salvar versão automaticamente ao otimizar (pendente)
+  - [ ] Implementar UI de comparação lado a lado (pendente)
+  - [ ] Adicionar restauração de versões anteriores (pendente)
