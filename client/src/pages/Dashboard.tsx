@@ -504,6 +504,26 @@ export default function Dashboard() {
                         </ul>
                       </div>
                     )}
+                    
+                    {/* Botão de Fluxo Automatizado */}
+                    <div className="pt-4 border-t border-border">
+                      <Button
+                        onClick={() => {
+                          // Preencher tab de geração com dados da análise
+                          setAreaGeracao(analiseMutation.data.area);
+                          const objetivo = `Criar prompt para ${analiseMutation.data.area} considerando: ${analiseMutation.data.sugestoes?.join(', ') || 'melhorias sugeridas'}`;
+                          setObjetivoGeracao(objetivo);
+                          // Navegar para tab de geração
+                          setActiveTab('gerar');
+                          toast.success('Dados transferidos para Geração!');
+                        }}
+                        className="w-full"
+                        size="lg"
+                      >
+                        <Zap className="w-4 h-4 mr-2" />
+                        Gerar Prompt Baseado nesta Análise
+                      </Button>
+                    </div>
                   </div>
                 )}
 
@@ -644,6 +664,24 @@ export default function Dashboard() {
                         {geracaoMutation.data.promptGerado}
                       </Streamdown>
                     </div>
+                    
+                    {/* Botão de Fluxo Automatizado */}
+                    <div className="pt-4 border-t border-border">
+                      <Button
+                        onClick={() => {
+                          // Preencher tab de otimização com prompt gerado
+                          setPromptOtimizacao(geracaoMutation.data.promptGerado);
+                          // Navegar para tab de otimização
+                          setActiveTab('otimizar');
+                          toast.success('Prompt transferido para Otimização!');
+                        }}
+                        className="w-full"
+                        size="lg"
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        Otimizar Este Prompt
+                      </Button>
+                    </div>
                   </div>
                 )}
 
@@ -745,6 +783,27 @@ export default function Dashboard() {
                       >
                         <Copy className="w-4 h-4 mr-2" />
                         Copiar
+                      </Button>
+                    </div>
+                    
+                    {/* Botão de Fluxo Automatizado */}
+                    <div className="pt-4 border-t border-border mt-4">
+                      <Button
+                        onClick={() => {
+                          // Preencher tab de geração com prompt otimizado como base
+                          if (otimizacaoMutation.data?.area) {
+                            setAreaGeracao(otimizacaoMutation.data.area);
+                          }
+                          setObjetivoGeracao(`Iterar sobre o prompt: ${otimizacaoMutation.data?.promptOtimizado?.substring(0, 100)}...`);
+                          // Navegar para tab de geração
+                          setActiveTab('gerar');
+                          toast.success('Pronto para gerar nova versão!');
+                        }}
+                        className="w-full"
+                        size="lg"
+                      >
+                        <Zap className="w-4 h-4 mr-2" />
+                        Gerar Nova Versão
                       </Button>
                     </div>
                   </div>

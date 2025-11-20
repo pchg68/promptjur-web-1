@@ -265,3 +265,17 @@
   - [x] Implementar lógica de ocultar/mostrar seções (métricas, favoritos, tags, analytics)
   - [x] Adicionar persistência do estado no localStorage
   - [x] Adicionar ícone e feedback visual adequados
+
+## Fluxo Automatizado entre Tabs (Sessão Atual)
+- [x] Implementar comunicação automática entre Análise, Geração e Otimização
+  - [x] Botão "Gerar Baseado nesta Análise" após resultados de análise
+    - [x] Navegar automaticamente para tab "Gerar"
+    - [x] Preencher campo "Objetivo" com insights da análise
+    - [x] Pré-selecionar área jurídica detectada
+  - [x] Botão "Otimizar Este Prompt" após resultados de geração
+    - [x] Navegar automaticamente para tab "Otimizar"
+    - [x] Preencher campo com prompt gerado
+  - [x] Botão "Gerar Nova Versão" após resultados de otimização
+    - [x] Retornar para tab "Gerar" com prompt otimizado como base
+  - [x] Eliminar necessidade de copiar/colar manualmente
+  - [x] Criar fluxo circular: Analisar → Gerar → Otimizar → Iterar
