@@ -7,6 +7,7 @@ import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
 import { AREAS_JURIDICAS, PALAVRAS_CHAVE_AREAS, TEMPLATES_BASE, REFERENCIAS_LEGAIS } from "@shared/juridico";
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
+import { checkUsageLimit, getUpgradeMessage } from "@shared/usage-limits";
 
 export const appRouter = router({
   system: systemRouter,
@@ -29,6 +30,12 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
+        
+        // Verificar limite de uso
+        const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
+        if (usageCheck.exceeded) {
+          throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
+        }
         
         try {
           // Identificar área jurídica usando LLM
@@ -113,6 +120,9 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
             duracaoMs: Date.now() - startTime,
             sucesso: true
           });
+          
+          // Incrementar contador de uso
+          await db.incrementUserUsage(ctx.user.id);
 
           // Verificar fontes jurídicas no prompt
           const avisosFontes = gerarAvisosFontes(input.prompt);
@@ -151,6 +161,12 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
+        
+        // Verificar limite de uso
+        const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
+        if (usageCheck.exceeded) {
+          throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
+        }
         
         try {
           const templateBase = TEMPLATES_BASE[input.area] || TEMPLATES_BASE["Civil"];
@@ -204,6 +220,9 @@ ${input.incluirReferencias ? "- Citar legislação aplicável" : ""}`;
             duracaoMs: Date.now() - startTime,
             sucesso: true
           });
+          
+          // Incrementar contador de uso
+          await db.incrementUserUsage(ctx.user.id);
 
           // Verificar fontes jurídicas no prompt gerado
           const avisosFontes = gerarAvisosFontes(promptGerado);
@@ -234,6 +253,12 @@ ${input.incluirReferencias ? "- Citar legislação aplicável" : ""}`;
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
+        
+        // Verificar limite de uso
+        const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
+        if (usageCheck.exceeded) {
+          throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
+        }
         
         try {
           const otimizacaoResponse = await invokeLLM({
@@ -303,6 +328,9 @@ Responda em formato JSON com:
             duracaoMs: Date.now() - startTime,
             sucesso: true
           });
+          
+          // Incrementar contador de uso
+          await db.incrementUserUsage(ctx.user.id);
 
           // Verificar fontes jurídicas no prompt otimizado
           const avisosFontes = gerarAvisosFontes(resultado.promptOtimizado);
@@ -350,7 +378,13 @@ Responda em formato JSON com:
       .mutation(async ({ input, ctx }) => {
         await db.toggleFavorito(input.promptId, input.isFavorito);
         return { success: true };
-      })
+      }),
+    
+    // Listar apenas favoritos
+    listarFavoritos: protectedProcedure.query(async ({ ctx }) => {
+      const prompts = await db.getUserPrompts(ctx.user.id, 100);
+      return prompts.filter(p => p.isFavorito);
+    })
   }),
 
   historico: router({
@@ -497,7 +531,16 @@ Responda em formato JSON com:
     // Obter estatísticas de uso
     get: protectedProcedure.query(async ({ ctx }) => {
       return db.getAnalytics(ctx.user.id);
-    })
+    }),
+    
+    // Obter dados para gráfico de uso por data
+    usageByDate: protectedProcedure
+      .input(z.object({
+        days: z.number().min(1).max(30).default(7)
+      }).optional())
+      .query(async ({ input, ctx }) => {
+        return db.getUsageByDate(ctx.user.id, input?.days || 7);
+      })
   }),
 
   versoes: router({

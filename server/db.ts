@@ -530,3 +530,72 @@ export async function getAnalytics(userId: number) {
     recentHistory: recentHistory.slice(0, 10)
   };
 }
+
+// ===== USAGE LIMIT HELPERS =====
+
+export async function incrementUserUsage(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Buscar usuário atual
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) throw new Error("User not found");
+  
+  // Incrementar contador
+  await db.update(users)
+    .set({ usageCount: user.usageCount + 1 })
+    .where(eq(users.id, userId));
+}
+
+export async function resetUserUsage(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(users)
+    .set({ usageCount: 0 })
+    .where(eq(users.id, userId));
+}
+
+export async function getUsageByDate(userId: number, days: number = 7) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Calcular data inicial
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  // Buscar histórico dos últimos N dias
+  const history = await db.select().from(historico)
+    .where(and(
+      eq(historico.userId, userId),
+      eq(historico.sucesso, true)
+    ))
+    .orderBy(historico.createdAt);
+  
+  // Agrupar por data
+  const groupedByDate: Record<string, { analises: number; geracoes: number; otimizacoes: number }> = {};
+  
+  // Inicializar todos os dias com zero
+  for (let i = 0; i < days; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - (days - 1 - i));
+    const dateStr = date.toISOString().split('T')[0];
+    groupedByDate[dateStr] = { analises: 0, geracoes: 0, otimizacoes: 0 };
+  }
+  
+  // Contar operações por dia
+  history.forEach(item => {
+    const dateStr = new Date(item.createdAt).toISOString().split('T')[0];
+    if (groupedByDate[dateStr]) {
+      if (item.acao === 'analise') groupedByDate[dateStr].analises++;
+      else if (item.acao === 'geracao') groupedByDate[dateStr].geracoes++;
+      else if (item.acao === 'otimizacao') groupedByDate[dateStr].otimizacoes++;
+    }
+  });
+  
+  // Converter para array
+  return Object.entries(groupedByDate).map(([date, counts]) => ({
+    date: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+    ...counts
+  }));
+}

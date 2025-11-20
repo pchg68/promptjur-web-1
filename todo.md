@@ -193,3 +193,18 @@
   - [x] Campo isPublico no schema (já existia)
   - [x] Botão de alternar visibilidade (público/privado)
   - [x] Botão de copiar link de compartilhamento
+
+## Próximas Melhorias (Sessão Atual)
+- [x] Middleware de limites de uso
+  - [x] Criar verificação de subscriptionPlan nos routers
+  - [x] Bloquear operações para usuários gratuitos após limite
+  - [x] Exibir modal de upgrade para plano pago
+- [x] Gráficos visuais no Analytics
+  - [x] Integrar Chart.js no projeto
+  - [x] Criar gráfico de linha para evolução de uso
+  - [x] Criar gráfico de barras para distribuição por tipo
+- [x] Sistema de favoritos
+  - [x] Adicionar campo isFavorito no schema de prompts (já existia)
+  - [x] Criar procedure toggleFavorito (já existia)
+  - [x] Adicionar seção de favoritos na UI
+  - [x] Criar query listarFavoritos para filtrar apenas favoritos

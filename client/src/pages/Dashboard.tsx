@@ -14,6 +14,9 @@ import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import { Link, useLocation } from "wouter";
+import { UsageChart } from "@/components/UsageChart";
+import { DistributionChart } from "@/components/DistributionChart";
+import { FavoritosSection } from "@/components/FavoritosSection";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
@@ -25,6 +28,7 @@ export default function Dashboard() {
   // Buscar estatísticas do usuário
   const statsQuery = trpc.prompts.stats.useQuery();
   const analyticsQuery = trpc.analytics.get.useQuery();
+  const usageByDateQuery = trpc.analytics.usageByDate.useQuery({ days: 7 });
   
   // Detectar template ID da URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -346,6 +350,11 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Seção de Favoritos */}
+        <div className="mb-8">
+          <FavoritosSection />
+        </div>
+
         {/* Seção de Analytics */}
         {analyticsQuery.data && (
           <Card className="mb-8">
@@ -393,6 +402,27 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
+              
+              {/* Gráficos */}
+              {usageByDateQuery.data && usageByDateQuery.data.length > 0 && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                  {/* Gráfico de Evolução */}
+                  <div className="p-4 bg-muted/30 rounded-sm">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Evolução de Uso (últimos 7 dias)</h4>
+                    <UsageChart data={usageByDateQuery.data} />
+                  </div>
+                  
+                  {/* Gráfico de Distribuição */}
+                  <div className="p-4 bg-muted/30 rounded-sm">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Distribuição por Tipo</h4>
+                    <DistributionChart data={{
+                      analises: statsQuery.data?.totalAnalises || 0,
+                      geracoes: statsQuery.data?.totalGeracoes || 0,
+                      otimizacoes: statsQuery.data?.totalOtimizacoes || 0
+                    }} />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
