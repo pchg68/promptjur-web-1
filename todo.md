@@ -257,3 +257,11 @@
   - [x] Mover tabs principais (Analisar, Gerar, Otimizar) para o topo da página
   - [x] Reposicionar seções secundárias (métricas, favoritos, tags, analytics) após as tabs
   - [x] Melhorar hierarquia visual e foco nas funcionalidades principais
+
+## Modo de Visualização Compacto (Sessão Atual)
+- [x] Implementar botão de alternância para Modo Compacto
+  - [x] Adicionar estado para controlar visibilidade das seções secundárias
+  - [x] Criar botão toggle no header do Dashboard
+  - [x] Implementar lógica de ocultar/mostrar seções (métricas, favoritos, tags, analytics)
+  - [x] Adicionar persistência do estado no localStorage
+  - [x] Adicionar ícone e feedback visual adequados

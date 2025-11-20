@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -26,6 +26,20 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState("analisar");
+  
+  // Estado para Modo Compacto (persistido no localStorage)
+  const [isCompactMode, setIsCompactMode] = useState(() => {
+    const saved = localStorage.getItem('promptjur-compact-mode');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  // Salvar preferência de modo compacto
+  const toggleCompactMode = () => {
+    const newMode = !isCompactMode;
+    setIsCompactMode(newMode);
+    localStorage.setItem('promptjur-compact-mode', JSON.stringify(newMode));
+    toast.success(newMode ? 'Modo Compacto ativado' : 'Modo Completo ativado');
+  };
   
   // Buscar estatísticas do usuário
   const statsQuery = trpc.prompts.stats.useQuery();
@@ -314,6 +328,25 @@ export default function Dashboard() {
                   Templates
                 </Link>
               </nav>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleCompactMode}
+                className="flex items-center gap-2"
+                title={isCompactMode ? 'Modo Completo' : 'Modo Compacto'}
+              >
+                {isCompactMode ? (
+                  <>
+                    <Maximize2 className="w-4 h-4" />
+                    <span className="text-sm">Expandir</span>
+                  </>
+                ) : (
+                  <>
+                    <Minimize2 className="w-4 h-4" />
+                    <span className="text-sm">Compacto</span>
+                  </>
+                )}
+              </Button>
               <span className="text-sm text-muted-foreground border-l border-border pl-6">Olá, {user?.name}</span>
             </div>
           </div>
@@ -728,9 +761,10 @@ export default function Dashboard() {
         </Tabs>
 
         {/* Seções Secundárias - Após as Tabs Principais */}
-        
-        {/* Cards de Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {!isCompactMode && (
+          <>
+            {/* Cards de Métricas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -794,21 +828,21 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
+            </div>
 
-        {/* Seção de Favoritos */}
-        <div className="mb-8">
-          <FavoritosSection />
-        </div>
-        
-        {/* Gerenciamento de Tags */}
-        <div className="mb-8">
-          <TagsManager />
-        </div>
+            {/* Seção de Favoritos */}
+            <div className="mb-8">
+              <FavoritosSection />
+            </div>
+            
+            {/* Gerenciamento de Tags */}
+            <div className="mb-8">
+              <TagsManager />
+            </div>
 
-        {/* Seção de Analytics */}
-        {analyticsQuery.data && (
-          <Card className="mb-8">
+            {/* Seção de Analytics */}
+            {analyticsQuery.data && (
+              <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5" />
@@ -875,9 +909,10 @@ export default function Dashboard() {
                 </div>
               )}
             </CardContent>
-          </Card>
+              </Card>
+            )}
+          </>
         )}
-
 
       </main>
 
