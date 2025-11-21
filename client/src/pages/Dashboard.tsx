@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, User } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -106,6 +106,7 @@ export default function Dashboard() {
   const [contextoJuridico, setContextoJuridico] = useState("");
   const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
   const [areaGeracao, setAreaGeracao] = useState<string>(""); // Opcional - detectado automaticamente
+  const [aplicarEstiloPessoal, setAplicarEstiloPessoal] = useState(false);
   const [partesEnvolvidas, setPartesEnvolvidas] = useState("");
   const [legislacaoRelevante, setLegislacaoRelevante] = useState("");
   const [detalhesAdicionais, setDetalhesAdicionais] = useState("");
@@ -240,7 +241,8 @@ export default function Dashboard() {
       area: areaGeracao || undefined, // Detectado automaticamente se vazio
       partesEnvolvidas: partesEnvolvidas || undefined,
       legislacaoRelevante: legislacaoRelevante || undefined,
-      detalhesAdicionais: detalhesAdicionais || undefined
+      detalhesAdicionais: detalhesAdicionais || undefined,
+      aplicarEstiloPessoal
     });
   };
 
@@ -411,6 +413,10 @@ export default function Dashboard() {
                 <Link href="/templates" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <BookTemplate className="w-4 h-4" />
                   Templates
+                </Link>
+                <Link href="/meu-estilo" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <User className="w-4 h-4" />
+                  Meu Estilo
                 </Link>
               </nav>
               <Button
@@ -749,6 +755,23 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </details>
+
+                {/* Checkbox Aplicar Estilo Pessoal */}
+                <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-sm">
+                  <input
+                    type="checkbox"
+                    id="aplicarEstiloPessoal"
+                    checked={aplicarEstiloPessoal}
+                    onChange={(e) => setAplicarEstiloPessoal(e.target.checked)}
+                    className="w-4 h-4 text-amber-600 bg-white border-gray-300 rounded focus:ring-amber-500"
+                  />
+                  <label htmlFor="aplicarEstiloPessoal" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <span className="font-medium">Aplicar meu estilo pessoal</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                      (Usa suas petições enviadas como referência de estilo)
+                    </span>
+                  </label>
+                </div>
 
                 <Button 
                   onClick={handleGerar} 

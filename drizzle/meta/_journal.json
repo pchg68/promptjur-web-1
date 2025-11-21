@@ -64,6 +64,13 @@
       "when": 1763677346599,
       "tag": "0008_modern_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1763741053957,
+      "tag": "0009_breezy_lord_hawal",
+      "breakpoints": true
     }
   ]
 }

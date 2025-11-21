@@ -11,7 +11,7 @@ import {
   tags, InsertTag,
   templateTags, InsertTemplateTag,
   promptTags, InsertPromptTag,
-  promptVersoes, InsertPromptVersao,
+  promptVersoes, InsertPromptVersion,
   usoModelos, InsertUsoModelo
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -480,7 +480,7 @@ export async function getTagsTemplate(templateId: number) {
 
 // ===== VERSÃO HELPERS =====
 
-export async function salvarVersaoPrompt(data: InsertPromptVersao) {
+export async function salvarVersaoPrompt(data: InsertPromptVersion) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   

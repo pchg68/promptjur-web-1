@@ -460,3 +460,55 @@
   - [x] Comentar código de verificação mantendo estrutura para reativação futura
   - [x] Manter schema e campos de planos intactos no banco de dados
   - [x] Sistema de planos preparado mas inativo (aguardando ativação Stripe)
+
+## Sistema de Aprendizado de Estilo Pessoal (Sessão Atual)
+- [ ] Arquitetura e Planejamento
+  - [ ] Definir estrutura de dados para petições pessoais
+  - [ ] Planejar fluxo de análise de estilo com LLM
+  - [ ] Definir campos do perfil de estilo do usuário
+  
+- [x] Backend - Banco de Dados
+  - [x] Criar tabela `user_petitions` (upload de petições)
+  - [x] Criar tabela `user_style_profile` (perfil de estilo analisado)
+  - [x] Executar `pnpm db:push` para aplicar schema
+  
+- [x] Backend - Upload e Armazenamento
+  - [x] Implementar router `petitions.upload` (S3 + metadados)
+  - [x] Implementar router `petitions.list` (listar petições do usuário)
+  - [x] Implementar router `petitions.delete` (remover petição)
+  - [x] Adicionar extração de texto de PDF/DOCX
+  - [x] Instalar pandoc para processar DOCX
+  
+- [x] Backend - Análise de Estilo
+  - [x] Criar função `analyzeWritingStyle` com LLM
+  - [x] Implementar router `style.analyze` (analisa petições enviadas)
+  - [x] Implementar router `style.getProfile` (retorna perfil atual)
+  - [x] Implementar router `style.updateProfile` (edição manual)
+  - [x] Integrar routers no appRouter principal
+  
+- [x] Frontend - Interface de Upload
+  - [x] Criar componente `MeuEstilo.tsx` (nova tab no dashboard)
+  - [x] Implementar área de upload de arquivos (PDF/DOCX)
+  - [x] Criar lista de petições enviadas com preview
+  - [x] Adicionar botão "Analisar Estilo" com loading state
+  - [x] Adicionar rota `/meu-estilo` no App.tsx
+  - [x] Adicionar link de navegação no Dashboard
+  
+- [x] Frontend - Visualização de Perfil
+  - [x] Exibir perfil de estilo dentro do MeuEstilo.tsx
+  - [x] Mostrar características detectadas (estrutura, tom, vocabulário)
+  - [x] Exibir expressões recorrentes com badges
+  - [x] Mostrar nível de confiança do perfil
+  
+- [x] Integração com Geração de Prompts
+  - [x] Adicionar checkbox "Aplicar meu estilo pessoal" na tab Gerar
+  - [x] Modificar backend `gerar` para aceitar parâmetro aplicarEstiloPessoal
+  - [x] Buscar perfil de estilo do usuário e injetar instruções no prompt
+  - [x] Aplicar estilo apenas se confiança >= 20%
+  
+- [x] Testes e Validação
+  - [x] Sistema completo implementado e funcional
+  - [x] Backend de upload, extração e análise operacional
+  - [x] Frontend com interface completa de upload e visualização
+  - [x] Integração com geração de prompts ativa
+  - [x] Servidor reiniciado e sem erros TypeScript
