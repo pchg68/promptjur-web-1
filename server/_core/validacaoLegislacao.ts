@@ -12,7 +12,9 @@ export interface CitacaoLegal {
   codigo?: string; // CC, CPC, CLT, CF, etc.
   confiabilidade: "alta" | "media" | "baixa";
   motivo: string; // Explicação da confiabilidade
+  mensagem: string; // Mensagem para exibição na UI (igual a motivo)
   linkOficial?: string; // Link para fonte oficial
+  link?: string; // Alias para linkOficial (compatibilidade UI)
 }
 
 export interface ResultadoValidacao {
@@ -104,7 +106,7 @@ function normalizarCodigo(codigo: string): string {
 /**
  * Valida um artigo de código
  */
-function validarArtigo(numero: string, codigo: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "linkOficial"> {
+function validarArtigo(numero: string, codigo: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "mensagem" | "linkOficial" | "link"> {
   // Base de dados simplificada de artigos conhecidos
   const artigosConhecidos: Record<string, { max: number, link: string }> = {
     "Código Civil": { max: 2046, link: "http://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm" },
@@ -118,26 +120,35 @@ function validarArtigo(numero: string, codigo: string): Pick<CitacaoLegal, "conf
   const info = artigosConhecidos[codigo];
   
   if (!info) {
+    const msg = `Código "${codigo}" não verificado automaticamente`;
     return {
       confiabilidade: "media",
-      motivo: `Código "${codigo}" não verificado automaticamente`,
-      linkOficial: undefined
+      motivo: msg,
+      mensagem: msg,
+      linkOficial: undefined,
+      link: undefined
     };
   }
 
   const numeroArtigo = parseInt(numero);
   
   if (numeroArtigo <= info.max) {
+    const msg = `Artigo ${numero} existe no ${codigo}`;
     return {
       confiabilidade: "alta",
-      motivo: `Artigo ${numero} existe no ${codigo}`,
-      linkOficial: info.link
+      motivo: msg,
+      mensagem: msg,
+      linkOficial: info.link,
+      link: info.link
     };
   } else {
+    const msg = `Artigo ${numero} excede o total de artigos do ${codigo} (máx: ${info.max})`;
     return {
       confiabilidade: "baixa",
-      motivo: `Artigo ${numero} excede o total de artigos do ${codigo} (máx: ${info.max})`,
-      linkOficial: info.link
+      motivo: msg,
+      mensagem: msg,
+      linkOficial: info.link,
+      link: info.link
     };
   }
 }
@@ -145,7 +156,7 @@ function validarArtigo(numero: string, codigo: string): Pick<CitacaoLegal, "conf
 /**
  * Valida uma lei
  */
-function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "linkOficial"> {
+function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "mensagem" | "linkOficial" | "link"> {
   // Leis conhecidas importantes
   const leisConhecidas: Record<string, { nome: string, link: string }> = {
     "8.078/90": { nome: "Código de Defesa do Consumidor", link: "http://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm" },
@@ -160,22 +171,29 @@ function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "m
     return {
       confiabilidade: "alta",
       motivo: `Lei ${numeroLei} - ${info.nome}`,
-      linkOficial: info.link
+      mensagem: `Lei ${numeroLei} - ${info.nome}`,
+      linkOficial: info.link,
+      link: info.link
     };
   }
 
   // Validação básica de formato
   if (/^\d{1,5}\/\d{2,4}$/.test(numeroLei)) {
+    const msg = `Lei ${numeroLei} - formato válido, verificar no Planalto`;
     return {
       confiabilidade: "media",
-      motivo: `Lei ${numeroLei} - formato válido, verificar no Planalto`,
-      linkOficial: `http://www.planalto.gov.br/ccivil_03/leis/`
+      motivo: msg,
+      mensagem: msg,
+      linkOficial: `http://www.planalto.gov.br/ccivil_03/leis/`,
+      link: `http://www.planalto.gov.br/ccivil_03/leis/`
     };
   }
 
+  const msgBaixa = `Lei ${numeroLei} - formato inválido ou não encontrada`;
   return {
     confiabilidade: "baixa",
-    motivo: `Lei ${numeroLei} - formato inválido ou não encontrada`,
+    motivo: msgBaixa,
+    mensagem: msgBaixa,
     linkOficial: undefined
   };
 }
@@ -183,20 +201,26 @@ function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "m
 /**
  * Valida um decreto
  */
-function validarDecreto(numeroDecreto: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "linkOficial"> {
+function validarDecreto(numeroDecreto: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "mensagem" | "linkOficial" | "link"> {
   // Validação básica de formato
   if (/^\d{1,5}\/\d{2,4}$/.test(numeroDecreto)) {
+    const msg = `Decreto ${numeroDecreto} - formato válido, verificar no Planalto`;
     return {
       confiabilidade: "media",
-      motivo: `Decreto ${numeroDecreto} - formato válido, verificar no Planalto`,
-      linkOficial: `http://www.planalto.gov.br/ccivil_03/decreto/`
+      motivo: msg,
+      mensagem: msg,
+      linkOficial: `http://www.planalto.gov.br/ccivil_03/decreto/`,
+      link: `http://www.planalto.gov.br/ccivil_03/decreto/`
     };
   }
 
+  const msgBaixa = `Decreto ${numeroDecreto} - formato inválido`;
   return {
     confiabilidade: "baixa",
-    motivo: `Decreto ${numeroDecreto} - formato inválido`,
-    linkOficial: undefined
+    motivo: msgBaixa,
+    mensagem: msgBaixa,
+    linkOficial: undefined,
+    link: undefined
   };
 }
 

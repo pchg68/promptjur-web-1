@@ -21,6 +21,7 @@ import TagsManager from "@/components/TagsManager";
 import { PromptComparison } from "@/components/PromptComparison";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -829,6 +830,13 @@ export default function Dashboard() {
                         {geracaoMutation.data.promptProfissional}
                       </Streamdown>
                     </div>
+
+                    {/* Validação de Legislação */}
+                    {geracaoMutation.data.validacaoLegislacao && (
+                      <div className="mt-4">
+                        <ValidacaoLegislacao validacao={geracaoMutation.data.validacaoLegislacao} />
+                      </div>
+                    )}
                     
                     {/* Prompt profissional pronto - sem botão de fluxo (já é o resultado final) */}
                     <div className="pt-4 border-t border-border">
@@ -903,6 +911,13 @@ export default function Dashboard() {
                       promptOtimizado={otimizacaoMutation.data.promptOtimizado}
                       melhorias={otimizacaoMutation.data.melhorias}
                     />
+
+                    {/* Validação de Legislação */}
+                    {otimizacaoMutation.data.validacaoLegislacao && (
+                      <div className="mt-4">
+                        <ValidacaoLegislacao validacao={otimizacaoMutation.data.validacaoLegislacao} />
+                      </div>
+                    )}
 
                     {/* Botões de Ação */}
                     <div className="flex flex-wrap gap-2">

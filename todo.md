@@ -215,6 +215,11 @@
   - [x] Implementar exportação em DOCX
   - [x] Adicionar botão de exportação na UI de favoritos
   - [x] Incluir metadados (área jurídica, data, qualidade)
+- [x] Sistema de validação de legislação
+  - [x] Implementar backend de validação (validacaoLegislacao.ts)
+  - [x] Criar componente ValidacaoLegislacao.tsx
+  - [x] Integrar validação na tab Gerar Prompt Jurídico
+  - [x] Integrar validação na tab Otimizar
 - [x] Sistema de tags personalizadas
   - [x] Criar tabela de tags no schema (já existia)
   - [x] Criar procedures para CRUD de tags
@@ -422,3 +427,29 @@
   - [x] Sistema de badges de confiabilidade (alta/media/baixa)
   - [x] Links para fontes oficiais (Planalto)
   - [ ] Integrar validação nos resultados de geração/otimização (UI pendente)
+
+## Implementação Final - Sessão Atual
+- [ ] Sistema Completo de Planos Stripe
+  - [ ] Criar página de gerenciamento de assinatura (/assinatura)
+  - [ ] Implementar middleware protectedPaidProcedure
+  - [ ] Bloquear modelos premium para usuários Free
+  - [ ] Criar modal de upgrade com botão para Stripe Checkout
+  - [ ] Adicionar contador de uso mensal (5 gerações/mês para Free)
+  - [ ] Exibir mensagem de limite atingido com CTA de upgrade
+  - [ ] Implementar webhook Stripe para atualizar subscriptionPlan
+
+- [ ] Integração UI de Validação de Legislação
+  - [ ] Adicionar validação nos resultados de geração
+  - [ ] Adicionar validação nos resultados de otimização
+  - [ ] Exibir badges de confiabilidade (verde/amarelo/vermelho)
+  - [ ] Mostrar lista de citações validadas
+  - [ ] Adicionar links para fontes oficiais (Planalto)
+  - [ ] Tooltip com explicação da confiabilidade
+
+- [ ] Sistema de Notificações em Tempo Real
+  - [ ] Criar componente NotificationCenter
+  - [ ] Implementar notificação de limite de uso atingido
+  - [ ] Notificar sobre novos modelos disponíveis
+  - [ ] Notificar sobre atualizações do sistema
+  - [ ] Badge de contador de notificações não lidas
+  - [ ] Persistir notificações no localStorage

@@ -9,6 +9,7 @@ import { AREAS_JURIDICAS, PALAVRAS_CHAVE_AREAS, TEMPLATES_BASE, REFERENCIAS_LEGA
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
 import { checkUsageLimit, getUpgradeMessage } from "@shared/usage-limits";
 import { gerarDocumentoWord } from "./_core/docxGenerator";
+import { validarLegislacao } from "./_core/validacaoLegislacao";
 
 export const appRouter = router({
   system: systemRouter,
@@ -241,6 +242,9 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
           const content = geracaoResponse.choices[0].message.content;
           const promptProfissional = typeof content === 'string' ? content : "";
 
+          // Validar legislação citada
+          const validacao = validarLegislacao(promptProfissional);
+
           // Salvar no banco
           const promptId = await db.createPrompt({
             userId: ctx.user.id,
@@ -278,7 +282,8 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
             areaDetectadaAutomaticamente: !input.area,
             tipoDocumento: input.tipoDocumento,
             referencias: referencias,
-            avisosFontes
+            avisosFontes,
+            validacaoLegislacao: validacao
           };
         } catch (error) {
           await db.createHistorico({
@@ -389,13 +394,17 @@ Responda em formato JSON com:
           // Verificar fontes jurídicas no prompt otimizado
           const avisosFontes = gerarAvisosFontes(resultado.promptOtimizado);
 
+          // Validar legislação citada
+          const validacao = validarLegislacao(resultado.promptOtimizado);
+
           return {
             promptId,
             promptOriginal: input.prompt,
             promptOtimizado: resultado.promptOtimizado,
             melhorias: resultado.melhorias,
             area: resultado.areaIdentificada,
-            avisosFontes
+            avisosFontes,
+            validacaoLegislacao: validacao
           };
         } catch (error) {
           await db.createHistorico({
