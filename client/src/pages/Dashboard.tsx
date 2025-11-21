@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, User } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, User, Share2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ import { PromptComparison } from "@/components/PromptComparison";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
+import { VersionHistory } from "@/components/VersionHistory";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -107,6 +108,23 @@ export default function Dashboard() {
   const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
   const [areaGeracao, setAreaGeracao] = useState<string>(""); // Opcional - detectado automaticamente
   const [aplicarEstiloPessoal, setAplicarEstiloPessoal] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [currentPromptId, setCurrentPromptId] = useState<number | null>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+  
+  const createShareMutation = trpc.sharing.createShareLink.useMutation({
+    onSuccess: (data) => {
+      const fullUrl = `${window.location.origin}${data.shareUrl}`;
+      setShareUrl(fullUrl);
+      setShowShareDialog(true);
+      navigator.clipboard.writeText(fullUrl);
+      toast.success("Link copiado para área de transferência!");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
   const [partesEnvolvidas, setPartesEnvolvidas] = useState("");
   const [legislacaoRelevante, setLegislacaoRelevante] = useState("");
   const [detalhesAdicionais, setDetalhesAdicionais] = useState("");
@@ -820,14 +838,44 @@ export default function Dashboard() {
                            <BookTemplate className="w-4 h-4 mr-2" />
                            Salvar Prompt
                          </Button>
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => copyToClipboard(geracaoMutation.data?.promptProfissional || "")}
-                         >
-                           <Copy className="w-4 h-4 mr-2" />
-                           Copiar
-                         </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(geracaoMutation.data?.promptProfissional || "")}
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copiar
+                          </Button>
+                          {geracaoMutation.data?.promptId && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setCurrentPromptId(geracaoMutation.data!.promptId!);
+                                  setShowVersionHistory(true);
+                                }}
+                              >
+                                <History className="w-4 h-4 mr-2" />
+                                Versões
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  createShareMutation.mutate({
+                                    promptId: geracaoMutation.data!.promptId!,
+                                    titulo: `Prompt Jurídico - ${areaGeracao || geracaoMutation.data!.area}`,
+                                    descricao: `Prompt profissional para ${tipoDocumento}`,
+                                  });
+                                }}
+                                disabled={createShareMutation.isPending}
+                              >
+                                <Share2 className="w-4 h-4 mr-2" />
+                                Compartilhar
+                              </Button>
+                            </>
+                          )}
                          <Button
                            variant="default"
                            size="sm"
@@ -1559,6 +1607,59 @@ export default function Dashboard() {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Histórico de Versões */}
+      {currentPromptId && (
+        <VersionHistory
+          promptId={currentPromptId}
+          open={showVersionHistory}
+          onOpenChange={setShowVersionHistory}
+          onVersionRestored={() => {
+            // Invalidar queries para atualizar dados
+            // (opcional: adicionar lógica de refresh)
+          }}
+        />
+      )}
+      
+      {/* Dialog de Compartilhamento */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Share2 className="w-5 h-5" />
+              Prompt Compartilhado!
+            </DialogTitle>
+            <DialogDescription>
+              Seu prompt foi compartilhado com sucesso. Qualquer pessoa com este link poderá visualizá-lo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+              <code className="text-sm break-all">{shareUrl}</code>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="default"
+                className="flex-1"
+                onClick={() => {
+                  navigator.clipboard.writeText(shareUrl);
+                  toast.success("Link copiado novamente!");
+                }}
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copiar Link
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => window.open(shareUrl, "_blank")}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Visualizar
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

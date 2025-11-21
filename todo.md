@@ -512,3 +512,51 @@
   - [x] Frontend com interface completa de upload e visualização
   - [x] Integração com geração de prompts ativa
   - [x] Servidor reiniciado e sem erros TypeScript
+
+## Melhorias de Acompanhamento (Sessão Atual)
+
+### 1. Testes do Sistema de Estilo Pessoal
+- [ ] Testar upload de petição PDF
+- [ ] Testar upload de petição DOCX
+- [ ] Verificar extração de texto
+- [ ] Executar análise de estilo
+- [ ] Gerar prompt com estilo pessoal aplicado
+- [ ] Comparar prompts com e sem estilo pessoal
+
+### 2. Sistema de Versionamento de Prompts
+- [x] Backend - Schema e Routers
+  - [x] Tabela prompt_versoes já existente e funcional
+  - [x] Implementar router `versioning.saveVersion` (salvar nova versão)
+  - [x] Implementar router `versioning.getVersions` (listar versões)
+  - [x] Implementar router `versioning.restoreVersion` (rollback)
+  - [x] Implementar router `versioning.compareVersions` (comparar 2 versões)
+  - [x] Implementar router `versioning.deleteVersion` (deletar versão)
+
+- [x] Frontend - Interface de Versionamento
+  - [x] Adicionar botão "Versões" nos resultados de prompts gerados
+  - [x] Criar componente `VersionHistory.tsx` (histórico completo)
+  - [x] Comparação lado a lado integrada no VersionHistory
+  - [x] Badges de versão e tipo (original/otimizado/manual)
+  - [x] Implementar rollback com confirmação
+  - [x] Seleção de 2 versões para comparação
+  - [x] Estatísticas de comparação (tamanho, diferença)
+
+### 3. Compartilhamento Público de Prompts
+- [x] Backend - Compartilhamento
+  - [x] Criar tabela `shared_prompts` (links públicos)
+  - [x] Implementar router `sharing.createShareLink` (gerar link único)
+  - [x] Implementar router `sharing.getSharedPrompt` (acessar por link)
+  - [x] Implementar router `sharing.revokeShareLink` (desativar link)
+  - [x] Implementar router `sharing.importShared` (copiar para biblioteca)
+  - [x] Implementar router `sharing.listMyShares` (listar compartilhamentos)
+  - [x] Contador de visualizações automático
+  - [x] Sistema de expiração opcional de links
+
+- [x] Frontend - Interface de Compartilhamento
+  - [x] Adicionar botão "Compartilhar" nos resultados de geração
+  - [x] Criar dialog de compartilhamento com link copiável
+  - [x] Criar página pública `/shared/:shareId` (SharedPrompt.tsx)
+  - [x] Botão "Importar para Minha Biblioteca" (usuários autenticados)
+  - [x] Mostrar estatísticas de visualizações
+  - [x] Design responsivo e profissional para página pública
+  - [x] Botões de copiar e download TXT

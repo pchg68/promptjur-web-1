@@ -11,11 +11,15 @@ import { checkUsageLimit, getUpgradeMessage } from "@shared/usage-limits";
 import { gerarDocumentoWord } from "./_core/docxGenerator";
 import { validarLegislacao } from "./_core/validacaoLegislacao";
 import { petitionsRouter, styleRouter } from "./routers-petitions";
+import { versioningRouter } from "./routers-versioning";
+import { sharingRouter } from "./routers-sharing";
 
 export const appRouter = router({
   system: systemRouter,
   petitions: petitionsRouter,
   style: styleRouter,
+  versioning: versioningRouter,
+  sharing: sharingRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

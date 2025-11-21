@@ -1,4 +1,5 @@
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json } from "drizzle-orm/mysql-core";
+import { AREAS_JURIDICAS } from "../shared/juridico";
 
 /**
  * Core user table backing auth flow.
@@ -192,6 +193,27 @@ export const promptVersoes = mysqlTable("prompt_versoes", {
 
 export type PromptVersion = typeof promptVersoes.$inferSelect;
 export type InsertPromptVersion = typeof promptVersoes.$inferInsert;
+
+/**
+ * Tabela de prompts compartilhados publicamente
+ */
+export const sharedPrompts = mysqlTable("shared_prompts", {
+  id: int("id").autoincrement().primaryKey(),
+  promptId: int("promptId").notNull(),
+  userId: int("userId").notNull(), // Dono do prompt
+  shareId: varchar("shareId", { length: 32 }).notNull().unique(), // ID único para o link público
+  titulo: varchar("titulo", { length: 255 }).notNull(),
+  descricao: text("descricao"),
+  conteudo: text("conteudo").notNull(),
+  areaJuridica: varchar("areaJuridica", { length: 64 }).notNull(), // Usar varchar em vez de enum para evitar problemas de tipo
+  visualizacoes: int("visualizacoes").default(0).notNull(),
+  ativo: boolean("ativo").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt"), // Opcional: data de expiração
+});
+
+export type SharedPrompt = typeof sharedPrompts.$inferSelect;
+export type InsertSharedPrompt = typeof sharedPrompts.$inferInsert;
 
 /**
  * Tabela de petições pessoais do usuário para aprendizado de estilo
