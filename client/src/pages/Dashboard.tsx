@@ -120,6 +120,32 @@ export default function Dashboard() {
     }
   });
 
+  // Mutation para exportar como DOCX
+  const gerarDocMutation = trpc.prompts.exportarDocx.useMutation({
+    onSuccess: (data) => {
+      // Converter base64 para blob e fazer download
+      const byteCharacters = atob(data.buffer);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("Documento Word gerado com sucesso!");
+    },
+    onError: (error) => {
+      toast.error(`Erro ao gerar documento: ${error.message}`);
+    }
+  });
+
   // Estados para Modelos
   const [filtroTipoModelo, setFiltroTipoModelo] = useState<string | undefined>(undefined);
   const [filtroAreaModelo, setFiltroAreaModelo] = useState<string | undefined>(undefined);
@@ -318,6 +344,21 @@ export default function Dashboard() {
     // Navegar para tab Gerar
     setActiveTab("gerar");
     toast.success(`Modelo "${modelo.nome}" carregado! Personalize e gere seu prompt.`);
+  };
+
+  // Função para gerar documento Word final
+  const gerarDocumentoFinal = () => {
+    if (!geracaoMutation.data?.promptProfissional) {
+      toast.error("Nenhum prompt gerado para exportar");
+      return;
+    }
+
+    gerarDocMutation.mutate({
+      titulo: `Prompt Jurídico - ${tipoDocumento.charAt(0).toUpperCase() + tipoDocumento.slice(1)}`,
+      conteudo: geracaoMutation.data.promptProfissional,
+      area: geracaoMutation.data.area,
+      tipo: tipoDocumento
+    });
   };
 
   const openSaveTemplateDialog = (conteudo: string, area: string) => {
@@ -762,6 +803,24 @@ export default function Dashboard() {
                          >
                            <Copy className="w-4 h-4 mr-2" />
                            Copiar
+                         </Button>
+                         <Button
+                           variant="default"
+                           size="sm"
+                           onClick={() => gerarDocumentoFinal()}
+                           disabled={gerarDocMutation.isPending}
+                         >
+                           {gerarDocMutation.isPending ? (
+                             <>
+                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                               Gerando...
+                             </>
+                           ) : (
+                             <>
+                               <FileText className="w-4 h-4 mr-2" />
+                               Gerar Documento Final
+                             </>
+                           )}
                          </Button>
                        </div>
                     </div>

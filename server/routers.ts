@@ -8,6 +8,7 @@ import * as db from "./db";
 import { AREAS_JURIDICAS, PALAVRAS_CHAVE_AREAS, TEMPLATES_BASE, REFERENCIAS_LEGAIS } from "@shared/juridico";
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
 import { checkUsageLimit, getUpgradeMessage } from "@shared/usage-limits";
+import { gerarDocumentoWord } from "./_core/docxGenerator";
 
 export const appRouter = router({
   system: systemRouter,
@@ -450,7 +451,31 @@ Responda em formato JSON com:
     listarFavoritos: protectedProcedure.query(async ({ ctx }) => {
       const prompts = await db.getUserPrompts(ctx.user.id, 100);
       return prompts.filter(p => p.isFavorito);
-    })
+    }),
+
+    // Exportar prompt como DOCX
+    exportarDocx: protectedProcedure
+      .input(z.object({
+        titulo: z.string(),
+        conteudo: z.string(),
+        area: z.string().optional(),
+        tipo: z.string().optional()
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = await gerarDocumentoWord({
+          titulo: input.titulo,
+          conteudo: input.conteudo,
+          area: input.area,
+          tipo: input.tipo,
+          data: new Date()
+        });
+        
+        // Converter buffer para base64 para enviar ao cliente
+        return {
+          buffer: buffer.toString('base64'),
+          filename: `${input.titulo.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.docx`
+        };
+      })
   }),
 
   historico: router({

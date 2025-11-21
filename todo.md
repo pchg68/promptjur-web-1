@@ -392,3 +392,33 @@
   - [x] Criar seção "Seus Modelos Favoritos" no topo da tab
   - [x] Exibir 5 modelos mais usados pelo usuário com contador (1x, 2x, etc.)
   - [x] Atualizar contador automaticamente ao usar modelo
+
+## Funcionalidades Avançadas Finais (Sessão Atual)
+- [ ] Sistema de Planos e Monetização com Stripe (PENDENTE - Aguardando ativação do sandbox)
+  - [ ] Ativar sandbox de teste do Stripe (link válido até 18/01/2026)
+  - [ ] Configurar planos Free e Pro no Stripe
+  - [ ] Criar página de gerenciamento de assinatura
+  - [ ] Implementar middleware de verificação de plano nos procedures
+  - [ ] Bloquear acesso a modelos premium para usuários Free
+  - [ ] Criar modal de upgrade para plano Pro
+  - [ ] Adicionar contador de uso mensal para plano Free (5 gerações/mês)
+  - [ ] Implementar webhook do Stripe para atualizar subscriptionPlan
+
+- [x] Exportação Direta para Word (DOCX) ✅ CONCLUÍDA
+  - [x] Instalar biblioteca docx
+  - [x] Criar helper gerarDocumentoWord em server/_core/docxGenerator.ts
+  - [x] Criar procedure tRPC prompts.exportarDocx
+  - [x] Implementar conversão de prompt profissional em documento formatado
+  - [x] Adicionar botão "Gerar Documento Final" na tab Gerar
+  - [x] Incluir cabeçalho, rodapé e formatação profissional
+  - [x] Download automático do arquivo gerado (via base64)
+  - [x] Mutation gerarDocMutation com toast de sucesso/erro
+
+- [x] Validação Automática de Legislação ✅ CONCLUÍDA (Backend)
+  - [x] Criar helper validacaoLegislacao.ts com sistema de extração
+  - [x] Implementar extração de artigos citados nos prompts (regex patterns)
+  - [x] Criar função validarArtigo com base de dados de códigos conhecidos
+  - [x] Criar função validarLei e validarDecreto
+  - [x] Sistema de badges de confiabilidade (alta/media/baixa)
+  - [x] Links para fontes oficiais (Planalto)
+  - [ ] Integrar validação nos resultados de geração/otimização (UI pendente)

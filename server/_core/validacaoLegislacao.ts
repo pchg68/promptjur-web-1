@@ -1,0 +1,230 @@
+/**
+ * Sistema de validação de legislação citada em prompts
+ * 
+ * Extrai artigos, leis e códigos mencionados e valida sua existência
+ * Retorna badges de confiabilidade (verde/amarelo/vermelho)
+ */
+
+export interface CitacaoLegal {
+  texto: string; // Texto original da citação
+  tipo: "artigo" | "lei" | "codigo" | "decreto" | "portaria";
+  numero?: string; // Número do artigo, lei, etc.
+  codigo?: string; // CC, CPC, CLT, CF, etc.
+  confiabilidade: "alta" | "media" | "baixa";
+  motivo: string; // Explicação da confiabilidade
+  linkOficial?: string; // Link para fonte oficial
+}
+
+export interface ResultadoValidacao {
+  citacoes: CitacaoLegal[];
+  confiabilidadeGeral: "alta" | "media" | "baixa";
+  totalCitacoes: number;
+  citacoesValidadas: number;
+}
+
+/**
+ * Extrai citações legais de um texto
+ */
+export function extrairCitacoes(texto: string): CitacaoLegal[] {
+  const citacoes: CitacaoLegal[] = [];
+
+  // Padrões de regex para diferentes tipos de citações
+  const padroes = {
+    // Artigos de códigos: "Art. 186 do CC", "artigo 927 do Código Civil"
+    artigos: /(?:art\.?|artigo)\s*(\d+)[^\w]*(?:do|da)?\s*(CC|CPC|CLT|CF|CP|CDC|CTN|ECA|Lei\s*[\d\.\/]+)/gi,
+    
+    // Leis: "Lei 8.078/90", "Lei nº 13.105/2015"
+    leis: /Lei\s*(?:n[º°]?)?\s*([\d\.]+\/\d{2,4})/gi,
+    
+    // Decretos: "Decreto 3.000/99"
+    decretos: /Decreto\s*(?:n[º°]?)?\s*([\d\.]+\/\d{2,4})/gi,
+  };
+
+  // Extrair artigos de códigos
+  let match;
+  while ((match = padroes.artigos.exec(texto)) !== null) {
+    const numero = match[1];
+    const codigo = match[2].toUpperCase();
+    
+    citacoes.push({
+      texto: match[0],
+      tipo: "artigo",
+      numero,
+      codigo: normalizarCodigo(codigo),
+      ...validarArtigo(numero, normalizarCodigo(codigo))
+    });
+  }
+
+  // Extrair leis
+  while ((match = padroes.leis.exec(texto)) !== null) {
+    const numeroLei = match[1];
+    
+    citacoes.push({
+      texto: match[0],
+      tipo: "lei",
+      numero: numeroLei,
+      ...validarLei(numeroLei)
+    });
+  }
+
+  // Extrair decretos
+  while ((match = padroes.decretos.exec(texto)) !== null) {
+    const numeroDecreto = match[1];
+    
+    citacoes.push({
+      texto: match[0],
+      tipo: "decreto",
+      numero: numeroDecreto,
+      ...validarDecreto(numeroDecreto)
+    });
+  }
+
+  return citacoes;
+}
+
+/**
+ * Normaliza abreviações de códigos
+ */
+function normalizarCodigo(codigo: string): string {
+  const mapa: Record<string, string> = {
+    "CC": "Código Civil",
+    "CPC": "Código de Processo Civil",
+    "CLT": "Consolidação das Leis do Trabalho",
+    "CF": "Constituição Federal",
+    "CP": "Código Penal",
+    "CPP": "Código de Processo Penal",
+    "CDC": "Código de Defesa do Consumidor",
+    "CTN": "Código Tributário Nacional",
+    "ECA": "Estatuto da Criança e do Adolescente"
+  };
+
+  return mapa[codigo] || codigo;
+}
+
+/**
+ * Valida um artigo de código
+ */
+function validarArtigo(numero: string, codigo: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "linkOficial"> {
+  // Base de dados simplificada de artigos conhecidos
+  const artigosConhecidos: Record<string, { max: number, link: string }> = {
+    "Código Civil": { max: 2046, link: "http://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm" },
+    "Código de Processo Civil": { max: 1072, link: "http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm" },
+    "Consolidação das Leis do Trabalho": { max: 922, link: "http://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm" },
+    "Constituição Federal": { max: 250, link: "http://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm" },
+    "Código Penal": { max: 361, link: "http://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm" },
+    "Código de Defesa do Consumidor": { max: 119, link: "http://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm" },
+  };
+
+  const info = artigosConhecidos[codigo];
+  
+  if (!info) {
+    return {
+      confiabilidade: "media",
+      motivo: `Código "${codigo}" não verificado automaticamente`,
+      linkOficial: undefined
+    };
+  }
+
+  const numeroArtigo = parseInt(numero);
+  
+  if (numeroArtigo <= info.max) {
+    return {
+      confiabilidade: "alta",
+      motivo: `Artigo ${numero} existe no ${codigo}`,
+      linkOficial: info.link
+    };
+  } else {
+    return {
+      confiabilidade: "baixa",
+      motivo: `Artigo ${numero} excede o total de artigos do ${codigo} (máx: ${info.max})`,
+      linkOficial: info.link
+    };
+  }
+}
+
+/**
+ * Valida uma lei
+ */
+function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "linkOficial"> {
+  // Leis conhecidas importantes
+  const leisConhecidas: Record<string, { nome: string, link: string }> = {
+    "8.078/90": { nome: "Código de Defesa do Consumidor", link: "http://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm" },
+    "13.105/2015": { nome: "Código de Processo Civil", link: "http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm" },
+    "10.406/2002": { nome: "Código Civil", link: "http://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm" },
+    "13.709/2018": { nome: "Lei Geral de Proteção de Dados (LGPD)", link: "http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" },
+  };
+
+  const info = leisConhecidas[numeroLei];
+  
+  if (info) {
+    return {
+      confiabilidade: "alta",
+      motivo: `Lei ${numeroLei} - ${info.nome}`,
+      linkOficial: info.link
+    };
+  }
+
+  // Validação básica de formato
+  if (/^\d{1,5}\/\d{2,4}$/.test(numeroLei)) {
+    return {
+      confiabilidade: "media",
+      motivo: `Lei ${numeroLei} - formato válido, verificar no Planalto`,
+      linkOficial: `http://www.planalto.gov.br/ccivil_03/leis/`
+    };
+  }
+
+  return {
+    confiabilidade: "baixa",
+    motivo: `Lei ${numeroLei} - formato inválido ou não encontrada`,
+    linkOficial: undefined
+  };
+}
+
+/**
+ * Valida um decreto
+ */
+function validarDecreto(numeroDecreto: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "linkOficial"> {
+  // Validação básica de formato
+  if (/^\d{1,5}\/\d{2,4}$/.test(numeroDecreto)) {
+    return {
+      confiabilidade: "media",
+      motivo: `Decreto ${numeroDecreto} - formato válido, verificar no Planalto`,
+      linkOficial: `http://www.planalto.gov.br/ccivil_03/decreto/`
+    };
+  }
+
+  return {
+    confiabilidade: "baixa",
+    motivo: `Decreto ${numeroDecreto} - formato inválido`,
+    linkOficial: undefined
+  };
+}
+
+/**
+ * Valida todas as citações de um texto e retorna resultado consolidado
+ */
+export function validarLegislacao(texto: string): ResultadoValidacao {
+  const citacoes = extrairCitacoes(texto);
+  
+  const totalCitacoes = citacoes.length;
+  const citacoesValidadas = citacoes.filter(c => c.confiabilidade === "alta").length;
+  
+  // Calcular confiabilidade geral
+  let confiabilidadeGeral: "alta" | "media" | "baixa";
+  const percentualValidado = totalCitacoes > 0 ? (citacoesValidadas / totalCitacoes) * 100 : 0;
+  
+  if (percentualValidado >= 80) {
+    confiabilidadeGeral = "alta";
+  } else if (percentualValidado >= 50) {
+    confiabilidadeGeral = "media";
+  } else {
+    confiabilidadeGeral = "baixa";
+  }
+
+  return {
+    citacoes,
+    confiabilidadeGeral,
+    totalCitacoes,
+    citacoesValidadas
+  };
+}
