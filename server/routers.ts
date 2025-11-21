@@ -5,6 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
+import { atualizarTag, atribuirTagPrompt as atribuirTagPromptComValidacao } from "./db-tags-update";
 import { AREAS_JURIDICAS, PALAVRAS_CHAVE_AREAS, TEMPLATES_BASE, REFERENCIAS_LEGAIS } from "@shared/juridico";
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
 import { checkUsageLimit, getUpgradeMessage } from "@shared/usage-limits";
@@ -654,6 +655,53 @@ Responda em formato JSON com:
         return { success: true };
       }),
 
+    // Atualizar tag (nome e/ou cor)
+    atualizar: protectedProcedure
+      .input(z.object({
+        tagId: z.number(),
+        nome: z.string().min(1).max(50).optional(),
+        cor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const success = await atualizarTag(input.tagId, ctx.user.id, {
+          nome: input.nome,
+          cor: input.cor,
+        });
+        if (!success) {
+          throw new Error("Tag não encontrada ou sem permissão");
+        }
+        return { success: true };
+      }),
+
+    // Adicionar tag a prompt
+    atribuirPrompt: protectedProcedure
+      .input(z.object({
+        promptId: z.number(),
+        tagId: z.number()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await atribuirTagPromptComValidacao(input.promptId, input.tagId, ctx.user.id);
+        return { success: true };
+      }),
+
+    // Remover tag de prompt
+    removerPrompt: protectedProcedure
+      .input(z.object({
+        promptId: z.number(),
+        tagId: z.number()
+      }))
+      .mutation(async ({ input }) => {
+        await db.removerTagPrompt(input.promptId, input.tagId);
+        return { success: true };
+      }),
+
+    // Obter tags de um prompt
+    getPrompt: protectedProcedure
+      .input(z.object({ promptId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getTagsPrompt(input.promptId);
+      }),
+
     // Atribuir tag a template
     atribuirTemplate: protectedProcedure
       .input(z.object({
@@ -683,37 +731,6 @@ Responda em formato JSON com:
       }))
       .query(async ({ input }) => {
         return db.getTagsTemplate(input.templateId);
-      }),
-
-    // Atribuir tag a prompt
-    atribuirPrompt: protectedProcedure
-      .input(z.object({
-        promptId: z.number(),
-        tagId: z.number()
-      }))
-      .mutation(async ({ input }) => {
-        await db.atribuirTagPrompt(input.promptId, input.tagId);
-        return { success: true };
-      }),
-
-    // Remover tag de prompt
-    removerPrompt: protectedProcedure
-      .input(z.object({
-        promptId: z.number(),
-        tagId: z.number()
-      }))
-      .mutation(async ({ input }) => {
-        await db.removerTagPrompt(input.promptId, input.tagId);
-        return { success: true };
-      }),
-
-    // Obter tags de um prompt
-    getPrompt: protectedProcedure
-      .input(z.object({
-        promptId: z.number()
-      }))
-      .query(async ({ input }) => {
-        return db.getTagsPrompt(input.promptId);
       })
   }),
 

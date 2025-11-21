@@ -495,3 +495,58 @@
   - [x] Implementar paginação de resultados
   - [ ] Integrar busca avançada na página de Favoritos (opcional)
   - [ ] Salvar preferências de filtros no localStorage (opcional)
+
+## Funcionalidades de Produtividade (Sessão Atual)
+
+### 1. Sistema de Tags Personalizadas
+- [x] Backend - Schema e Routers
+  - [x] Tabela `tags` já existe no schema com campo cor
+  - [x] Router `tags.criar` implementado
+  - [x] Router `tags.atualizar` implementado (nome e cor)
+  - [x] Router `tags.deletar` implementado
+  - [x] Router `tags.minhas` implementado (listar tags)
+  - [x] Router `tags.atribuirPrompt` implementado
+  - [x] Router `tags.removerPrompt` implementado
+  - [x] Router `tags.getPrompt` implementado
+  - [x] Funções auxiliares em db-tags-update.ts
+
+- [x] Frontend - Interface de Tags
+  - [x] Criar componente `TagManager.tsx` (gerenciar tags)
+  - [x] Modal de criação/edição de tag com color picker
+  - [x] Lista de tags com edição inline (hover para editar/deletar)
+  - [x] Preview de badge colorido no modal
+  - [ ] Badges coloridos nas listagens de prompts (pendente)
+  - [ ] Dropdown de tags ao visualizar prompt (pendente)
+  - [ ] Integrar tags no AdvancedSearch (pendente)
+
+### 2. Exportação em Lote
+- [ ] Backend - Exportação Múltipla
+  - [ ] Implementar router `prompts.exportBatch` (recebe array de IDs)
+  - [ ] Gerar ZIP com múltiplos arquivos DOCX
+  - [ ] Gerar PDF consolidado com todos os prompts
+  - [ ] Incluir índice/sumário no PDF consolidado
+  - [ ] Limitar exportação em lote (máx 50 prompts)
+
+- [ ] Frontend - Seleção Múltipla
+  - [ ] Adicionar checkboxes na tabela de resultados
+  - [ ] Botão "Selecionar Todos" / "Desmarcar Todos"
+  - [ ] Contador de prompts selecionados
+  - [ ] Botão "Exportar Selecionados" com dropdown (ZIP/PDF)
+  - [ ] Loading state durante exportação
+  - [ ] Download automático do arquivo gerado
+
+### 3. Filtros Salvos (Queries Salvas)
+- [ ] Backend - Queries Salvas
+  - [ ] Criar tabela `saved_searches` (userId, nome, filtros JSON)
+  - [ ] Implementar router `searches.save` (salvar filtros atuais)
+  - [ ] Implementar router `searches.list` (listar queries salvas)
+  - [ ] Implementar router `searches.delete` (remover query)
+  - [ ] Implementar router `searches.update` (renomear query)
+
+- [ ] Frontend - Interface de Queries
+  - [ ] Botão "Salvar Busca Atual" no AdvancedSearch
+  - [ ] Modal para nomear a busca salva
+  - [ ] Dropdown "Buscas Favoritas" no AdvancedSearch
+  - [ ] Aplicar filtros salvos com um clique
+  - [ ] Ícone de estrela para queries favoritas
+  - [ ] Gerenciar buscas salvas (renomear/deletar)
