@@ -1,1 +1,0 @@
-ALTER TABLE `shared_prompts` MODIFY COLUMN `areaJuridica` varchar(64) NOT NULL;

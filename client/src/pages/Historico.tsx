@@ -12,39 +12,34 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { AREAS_JURIDICAS } from "@/const";
+import { AdvancedSearch, type SearchFilters } from "@/components/AdvancedSearch";
 
 export default function Historico() {
   const { user } = useAuth();
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedPrompt, setSelectedPrompt] = useState<any | null>(null);
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
+  const [page, setPage] = useState(0);
+  const limite = 20;
 
-  // Query de histórico
+  // Query de busca avançada
+  const searchQuery = trpc.prompts.search.useQuery({
+    ...searchFilters,
+    limite,
+    offset: page * limite,
+  });
+
+  // Query de histórico (fallback)
   const historicoQuery = trpc.historico.listar.useQuery({ limit: 100 });
 
-  // Filtrar histórico
-  const filteredHistorico = historicoQuery.data?.filter((item) => {
-    const matchesTipo = filtroTipo === "todos" || item.acao === filtroTipo;
-    
-    // Filtro de busca
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const detalhes = item.detalhes as any;
-      const matchesSearch = 
-        (detalhes?.prompt && String(detalhes.prompt).toLowerCase().includes(query)) ||
-        (detalhes?.area && String(detalhes.area).toLowerCase().includes(query)) ||
-        (detalhes?.areaJuridica && String(detalhes.areaJuridica).toLowerCase().includes(query));
-      
-      return matchesTipo && matchesSearch;
-    }
-    
-    return matchesTipo;
-  }) || [];
-
-  const clearFilters = () => {
-    setFiltroTipo("todos");
-    setSearchQuery("");
+  const handleSearch = (filters: SearchFilters) => {
+    setSearchFilters(filters);
+    setPage(0); // Reset para primeira página
   };
+
+  const prompts = searchQuery.data?.results || [];
+  const totalResults = searchQuery.data?.total || 0;
+  const totalPages = Math.ceil(totalResults / limite);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -134,80 +129,35 @@ export default function Historico() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Campo de busca */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por conteúdo ou área jurídica..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="flex-1 space-y-2">
-                  <label className="text-sm font-medium">Tipo de Ação</label>
-                  <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="analise">Análise</SelectItem>
-                    <SelectItem value="geracao">Geração</SelectItem>
-                    <SelectItem value="otimizacao">Otimização</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-                {(filtroTipo !== "todos" || searchQuery) && (
-                  <div className="flex items-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={clearFilters}
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Limpar Filtros
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Busca Avançada */}
+            <AdvancedSearch onSearch={handleSearch} />
           </CardContent>
         </Card>
 
         {/* Tabela de Histórico */}
         <Card>
           <CardHeader>
-            <CardTitle>Registros ({filteredHistorico.length})</CardTitle>
+            <CardTitle>Prompts Encontrados ({totalResults})</CardTitle>
             <CardDescription>
-              {filteredHistorico.length === 0 
-                ? "Nenhum registro encontrado com os filtros selecionados" 
-                : "Clique em um registro para ver detalhes"}
+              {searchQuery.isLoading
+                ? "Carregando..."
+                : prompts.length === 0
+                ? "Nenhum prompt encontrado com os filtros selecionados"
+                : `Exibindo ${prompts.length} de ${totalResults} resultados`}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {historicoQuery.isLoading ? (
+            {searchQuery.isLoading ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">Carregando histórico...</p>
+                <p className="text-muted-foreground">Carregando prompts...</p>
               </div>
-            ) : filteredHistorico.length === 0 ? (
+            ) : prompts.length === 0 ? (
               <div className="text-center py-12">
                 <HistoryIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum registro encontrado</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum prompt encontrado</h3>
                 <p className="text-muted-foreground mb-6">
-                  {historicoQuery.data && historicoQuery.data.length > 0
-                    ? "Tente ajustar os filtros para ver mais resultados."
-                    : "Comece usando o dashboard para criar seu primeiro prompt."}
+                  Tente ajustar os filtros para ver mais resultados.
                 </p>
-                {filtroTipo !== "todos" && (
-                  <Button variant="outline" onClick={clearFilters}>
-                    Limpar Filtros
-                  </Button>
-                )}
               </div>
             ) : (
               <div className="border rounded-lg">
@@ -222,23 +172,30 @@ export default function Historico() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredHistorico.map((item) => (
-                      <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
+                    {prompts.map((prompt) => (
+                      <TableRow key={prompt.id} className="cursor-pointer hover:bg-muted/50">
                         <TableCell className="font-medium">
-                          {formatDate(item.createdAt)}
+                          {formatDate(prompt.createdAt)}
                         </TableCell>
                         <TableCell>
-                          {getTipoBadge(item.acao)}
+                          <Badge variant="outline">{prompt.tipo}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{prompt.areaJuridica || "N/A"}</Badge>
                         </TableCell>
 
                         <TableCell>
-                          {item.sucesso ? (
+                          {prompt.qualidade === "excelente" ? (
                             <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
-                              Sucesso
+                              Excelente
+                            </Badge>
+                          ) : prompt.qualidade === "bom" ? (
+                            <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
+                              Bom
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
-                              Erro
+                              Ruim
                             </Badge>
                           )}
                         </TableCell>
@@ -246,7 +203,7 @@ export default function Historico() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setSelectedPrompt(item)}
+                            onClick={() => setSelectedPrompt(prompt)}
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Detalhes

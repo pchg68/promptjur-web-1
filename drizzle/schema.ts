@@ -1,5 +1,4 @@
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json } from "drizzle-orm/mysql-core";
-import { AREAS_JURIDICAS } from "../shared/juridico";
 
 /**
  * Core user table backing auth flow.
@@ -191,93 +190,8 @@ export const promptVersoes = mysqlTable("prompt_versoes", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export type PromptVersion = typeof promptVersoes.$inferSelect;
-export type InsertPromptVersion = typeof promptVersoes.$inferInsert;
-
-/**
- * Tabela de prompts compartilhados publicamente
- */
-export const sharedPrompts = mysqlTable("shared_prompts", {
-  id: int("id").autoincrement().primaryKey(),
-  promptId: int("promptId").notNull(),
-  userId: int("userId").notNull(), // Dono do prompt
-  shareId: varchar("shareId", { length: 32 }).notNull().unique(), // ID único para o link público
-  titulo: varchar("titulo", { length: 255 }).notNull(),
-  descricao: text("descricao"),
-  conteudo: text("conteudo").notNull(),
-  areaJuridica: varchar("areaJuridica", { length: 64 }).notNull(), // Usar varchar em vez de enum para evitar problemas de tipo
-  visualizacoes: int("visualizacoes").default(0).notNull(),
-  ativo: boolean("ativo").default(true).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  expiresAt: timestamp("expiresAt"), // Opcional: data de expiração
-});
-
-export type SharedPrompt = typeof sharedPrompts.$inferSelect;
-export type InsertSharedPrompt = typeof sharedPrompts.$inferInsert;
-
-/**
- * Tabela de petições pessoais do usuário para aprendizado de estilo
- */
-export const userPetitions = mysqlTable("user_petitions", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  titulo: varchar("titulo", { length: 255 }).notNull(),
-  tipoDocumento: varchar("tipoDocumento", { length: 100 }).notNull(), // petição, parecer, contrato, etc.
-  areaJuridica: varchar("areaJuridica", { length: 100 }),
-  fileUrl: text("fileUrl").notNull(), // URL do arquivo no S3
-  fileKey: varchar("fileKey", { length: 500 }).notNull(), // Chave S3 para deleção
-  fileName: varchar("fileName", { length: 255 }).notNull(),
-  fileSize: int("fileSize").notNull(), // Tamanho em bytes
-  mimeType: varchar("mimeType", { length: 100 }).notNull(), // application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document
-  textoExtraido: text("textoExtraido"), // Texto extraído do PDF/DOCX
-  analisado: boolean("analisado").default(false), // Se já foi analisado para perfil de estilo
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type UserPetition = typeof userPetitions.$inferSelect;
-export type InsertUserPetition = typeof userPetitions.$inferInsert;
-
-/**
- * Tabela de perfil de estilo de escrita do usuário
- */
-export const userStyleProfiles = mysqlTable("user_style_profiles", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(), // Um perfil por usuário
-  
-  // Características de estrutura
-  estruturaArgumentativa: text("estruturaArgumentativa"), // Como organiza fatos → direito → pedidos
-  padraoOrganizacao: text("padraoOrganizacao"), // Uso de tópicos, numeração, parágrafos longos, etc.
-  
-  // Características de estilo
-  tomEscrita: varchar("tomEscrita", { length: 100 }), // formal clássico, persuasivo moderno, técnico objetivo
-  nivelFormalidade: varchar("nivelFormalidade", { length: 50 }), // alto, médio, moderado
-  
-  // Características de fundamentação
-  tipoFundamentacao: varchar("tipoFundamentacao", { length: 100 }), // jurisprudencial, doutrinária, legalista, mista
-  preferenciaCitacoes: text("preferenciaCitacoes"), // Como cita (ementas completas, trechos, apenas referência)
-  
-  // Vocabulário e expressões
-  expressõesRecorrentes: json("expressõesRecorrentes"), // Array de strings com expressões favoritas
-  vocabularioPreferido: json("vocabularioPreferido"), // Objeto com substituições preferidas
-  
-  // Padrões de pedidos
-  estiloPedidos: text("estiloPedidos"), // Como formula pedidos (numerados, específicos, valores exatos, etc.)
-  
-  // Exemplos extraídos
-  trechosExemplo: json("trechosExemplo"), // Array de objetos {tipo, trecho, fonte}
-  
-  // Metadados da análise
-  peticoesAnalisadas: int("peticoesAnalisadas").default(0), // Quantas petições foram usadas
-  ultimaAnalise: timestamp("ultimaAnalise"),
-  confiancaPerfil: int("confiancaPerfil").default(0), // 0-100, aumenta com mais petições
-  
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type UserStyleProfile = typeof userStyleProfiles.$inferSelect;
-export type InsertUserStyleProfile = typeof userStyleProfiles.$inferInsert;
+export type PromptVersao = typeof promptVersoes.$inferSelect;
+export type InsertPromptVersao = typeof promptVersoes.$inferInsert;
 
 /**
  * Tabela de rastreamento de uso de modelos profissionais

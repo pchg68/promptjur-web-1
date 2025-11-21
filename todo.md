@@ -461,102 +461,37 @@
   - [x] Manter schema e campos de planos intactos no banco de dados
   - [x] Sistema de planos preparado mas inativo (aguardando ativação Stripe)
 
-## Sistema de Aprendizado de Estilo Pessoal (Sessão Atual)
-- [ ] Arquitetura e Planejamento
-  - [ ] Definir estrutura de dados para petições pessoais
-  - [ ] Planejar fluxo de análise de estilo com LLM
-  - [ ] Definir campos do perfil de estilo do usuário
-  
-- [x] Backend - Banco de Dados
-  - [x] Criar tabela `user_petitions` (upload de petições)
-  - [x] Criar tabela `user_style_profile` (perfil de estilo analisado)
-  - [x] Executar `pnpm db:push` para aplicar schema
-  
-- [x] Backend - Upload e Armazenamento
-  - [x] Implementar router `petitions.upload` (S3 + metadados)
-  - [x] Implementar router `petitions.list` (listar petições do usuário)
-  - [x] Implementar router `petitions.delete` (remover petição)
-  - [x] Adicionar extração de texto de PDF/DOCX
-  - [x] Instalar pandoc para processar DOCX
-  
-- [x] Backend - Análise de Estilo
-  - [x] Criar função `analyzeWritingStyle` com LLM
-  - [x] Implementar router `style.analyze` (analisa petições enviadas)
-  - [x] Implementar router `style.getProfile` (retorna perfil atual)
-  - [x] Implementar router `style.updateProfile` (edição manual)
-  - [x] Integrar routers no appRouter principal
-  
-- [x] Frontend - Interface de Upload
-  - [x] Criar componente `MeuEstilo.tsx` (nova tab no dashboard)
-  - [x] Implementar área de upload de arquivos (PDF/DOCX)
-  - [x] Criar lista de petições enviadas com preview
-  - [x] Adicionar botão "Analisar Estilo" com loading state
-  - [x] Adicionar rota `/meu-estilo` no App.tsx
-  - [x] Adicionar link de navegação no Dashboard
-  
-- [x] Frontend - Visualização de Perfil
-  - [x] Exibir perfil de estilo dentro do MeuEstilo.tsx
-  - [x] Mostrar características detectadas (estrutura, tom, vocabulário)
-  - [x] Exibir expressões recorrentes com badges
-  - [x] Mostrar nível de confiança do perfil
-  
-- [x] Integração com Geração de Prompts
-  - [x] Adicionar checkbox "Aplicar meu estilo pessoal" na tab Gerar
-  - [x] Modificar backend `gerar` para aceitar parâmetro aplicarEstiloPessoal
-  - [x] Buscar perfil de estilo do usuário e injetar instruções no prompt
-  - [x] Aplicar estilo apenas se confiança >= 20%
-  
-- [x] Testes e Validação
-  - [x] Sistema completo implementado e funcional
-  - [x] Backend de upload, extração e análise operacional
-  - [x] Frontend com interface completa de upload e visualização
-  - [x] Integração com geração de prompts ativa
-  - [x] Servidor reiniciado e sem erros TypeScript
+## Sistema de Busca Avançada de Prompts (Sessão Atual)
+- [x] Backend - API de Busca
+  - [x] Implementar router `prompts.search` com filtros avançados
+  - [x] Filtro por área jurídica (múltipla seleção)
+  - [x] Filtro por intervalo de datas (dataInicio, dataFim)
+  - [x] Filtro por tags (múltipla seleção)
+  - [x] Filtro por qualidade (excelente, bom, ruim)
+  - [x] Busca por texto livre (título, conteúdo)
+  - [x] Ordenação (data_desc, data_asc, qualidade, relevância)
+  - [x] Paginação de resultados com limite e offset
+  - [x] Contador total de resultados para paginação
+  - [x] Criar helper searchPrompts em db-search.ts
+  - [x] Criar helper countSearchResults em db-search.ts
 
-## Melhorias de Acompanhamento (Sessão Atual)
+- [x] Frontend - Interface de Busca
+  - [x] Criar componente `AdvancedSearch.tsx` (filtros expansíveis)
+  - [x] Campo de busca por texto com debounce (500ms)
+  - [x] Multi-select para áreas jurídicas (badges clicáveis)
+  - [x] Date range picker para intervalo de datas (input type=date)
+  - [x] Multi-select para tags (badges clicáveis)
+  - [x] Multi-select de qualidade (excelente/bom/ruim)
+  - [x] Dropdown de ordenação (mais recentes, antigos, qualidade, relevância)
+  - [x] Badges de filtros ativos com remoção rápida (botão X)
+  - [x] Botão "Limpar Filtros" e "Limpar Tudo"
+  - [x] Contador de filtros ativos no botão Filtros
+  - [x] Interface expansível com chevron up/down
 
-### 1. Testes do Sistema de Estilo Pessoal
-- [ ] Testar upload de petição PDF
-- [ ] Testar upload de petição DOCX
-- [ ] Verificar extração de texto
-- [ ] Executar análise de estilo
-- [ ] Gerar prompt com estilo pessoal aplicado
-- [ ] Comparar prompts com e sem estilo pessoal
-
-### 2. Sistema de Versionamento de Prompts
-- [x] Backend - Schema e Routers
-  - [x] Tabela prompt_versoes já existente e funcional
-  - [x] Implementar router `versioning.saveVersion` (salvar nova versão)
-  - [x] Implementar router `versioning.getVersions` (listar versões)
-  - [x] Implementar router `versioning.restoreVersion` (rollback)
-  - [x] Implementar router `versioning.compareVersions` (comparar 2 versões)
-  - [x] Implementar router `versioning.deleteVersion` (deletar versão)
-
-- [x] Frontend - Interface de Versionamento
-  - [x] Adicionar botão "Versões" nos resultados de prompts gerados
-  - [x] Criar componente `VersionHistory.tsx` (histórico completo)
-  - [x] Comparação lado a lado integrada no VersionHistory
-  - [x] Badges de versão e tipo (original/otimizado/manual)
-  - [x] Implementar rollback com confirmação
-  - [x] Seleção de 2 versões para comparação
-  - [x] Estatísticas de comparação (tamanho, diferença)
-
-### 3. Compartilhamento Público de Prompts
-- [x] Backend - Compartilhamento
-  - [x] Criar tabela `shared_prompts` (links públicos)
-  - [x] Implementar router `sharing.createShareLink` (gerar link único)
-  - [x] Implementar router `sharing.getSharedPrompt` (acessar por link)
-  - [x] Implementar router `sharing.revokeShareLink` (desativar link)
-  - [x] Implementar router `sharing.importShared` (copiar para biblioteca)
-  - [x] Implementar router `sharing.listMyShares` (listar compartilhamentos)
-  - [x] Contador de visualizações automático
-  - [x] Sistema de expiração opcional de links
-
-- [x] Frontend - Interface de Compartilhamento
-  - [x] Adicionar botão "Compartilhar" nos resultados de geração
-  - [x] Criar dialog de compartilhamento com link copiável
-  - [x] Criar página pública `/shared/:shareId` (SharedPrompt.tsx)
-  - [x] Botão "Importar para Minha Biblioteca" (usuários autenticados)
-  - [x] Mostrar estatísticas de visualizações
-  - [x] Design responsivo e profissional para página pública
-  - [x] Botões de copiar e download TXT
+- [x] Integração
+  - [x] Integrar busca avançada na página Histórico
+  - [x] Substituir busca simples por AdvancedSearch component
+  - [x] Exibir contador de resultados encontrados
+  - [x] Implementar paginação de resultados
+  - [ ] Integrar busca avançada na página de Favoritos (opcional)
+  - [ ] Salvar preferências de filtros no localStorage (opcional)

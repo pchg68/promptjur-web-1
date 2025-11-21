@@ -10,16 +10,10 @@ import { gerarAvisosFontes } from "@shared/verificacao-fontes";
 import { checkUsageLimit, getUpgradeMessage } from "@shared/usage-limits";
 import { gerarDocumentoWord } from "./_core/docxGenerator";
 import { validarLegislacao } from "./_core/validacaoLegislacao";
-import { petitionsRouter, styleRouter } from "./routers-petitions";
-import { versioningRouter } from "./routers-versioning";
-import { sharingRouter } from "./routers-sharing";
+import { searchPrompts, countSearchResults } from "./db-search";
 
 export const appRouter = router({
   system: systemRouter,
-  petitions: petitionsRouter,
-  style: styleRouter,
-  versioning: versioningRouter,
-  sharing: sharingRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -32,6 +26,45 @@ export const appRouter = router({
   }),
 
   prompts: router({
+    // Busca avançada de prompts
+    search: protectedProcedure
+      .input(
+        z.object({
+          texto: z.string().optional(),
+          areasJuridicas: z.array(z.string()).optional(),
+          dataInicio: z.date().optional(),
+          dataFim: z.date().optional(),
+          tagIds: z.array(z.number()).optional(),
+          qualidade: z.array(z.enum(["excelente", "bom", "ruim"])).optional(),
+          ordenacao: z.enum(["data_desc", "data_asc", "qualidade", "relevancia"]).optional(),
+          limite: z.number().min(1).max(100).optional(),
+          offset: z.number().min(0).optional(),
+        })
+      )
+      .query(async ({ input, ctx }) => {
+        const results = await searchPrompts({
+          userId: ctx.user.id,
+          ...input,
+        });
+
+        const total = await countSearchResults({
+          userId: ctx.user.id,
+          texto: input.texto,
+          areasJuridicas: input.areasJuridicas,
+          dataInicio: input.dataInicio,
+          dataFim: input.dataFim,
+          tagIds: input.tagIds,
+          qualidade: input.qualidade,
+        });
+
+        return {
+          results,
+          total,
+          limite: input.limite || 20,
+          offset: input.offset || 0,
+        };
+      }),
+
     // Analisar prompt jurídico
     analisar: protectedProcedure
       .input(z.object({
@@ -168,8 +201,7 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
         area: z.enum(AREAS_JURIDICAS as any).optional(), // Detectado automaticamente se não fornecido
         partesEnvolvidas: z.string().optional(),
         legislacaoRelevante: z.string().optional(),
-        detalhesAdicionais: z.string().optional(),
-        aplicarEstiloPessoal: z.boolean().optional() // Aplicar estilo de escrita do usuário
+        detalhesAdicionais: z.string().optional()
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
@@ -202,33 +234,7 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
             areaDetectada = AREAS_JURIDICAS.find(a => areaResposta.includes(a)) || "Civil";
           }
           
-          // ETAPA 2: Buscar perfil de estilo do usuário (se solicitado)
-          let estiloInstrucoes = "";
-          if (input.aplicarEstiloPessoal) {
-            const { getUserStyleProfile } = await import("./db-petitions");
-            const perfil = await getUserStyleProfile(ctx.user.id);
-            
-            if (perfil && perfil.confiancaPerfil && perfil.confiancaPerfil >= 20) {
-              estiloInstrucoes = `
-
-APLICAR ESTILO PESSOAL DO USUÁRIO:
-O prompt deve refletir o estilo de escrita jurídica do advogado ${ctx.user.name || "usuário"}:
-
-- **Estrutura Argumentativa**: ${perfil.estruturaArgumentativa}
-- **Padrão de Organização**: ${perfil.padraoOrganizacao}
-- **Tom de Escrita**: ${perfil.tomEscrita}
-- **Nível de Formalidade**: ${perfil.nivelFormalidade}
-- **Tipo de Fundamentação**: ${perfil.tipoFundamentacao}
-- **Preferência de Citações**: ${perfil.preferenciaCitacoes}
-- **Estilo de Pedidos**: ${perfil.estiloPedidos}
-${perfil.expressõesRecorrentes && Array.isArray(perfil.expressõesRecorrentes) && perfil.expressõesRecorrentes.length > 0 ? `
-- **Expressões Recorrentes**: ${perfil.expressõesRecorrentes.join(", ")}` : ""}
-
-O prompt gerado deve instruir a IA a adotar essas características de estilo ao redigir o documento.`;
-            }
-          }
-          
-          // ETAPA 3: Gerar prompt profissional usando engenharia de prompt avançada
+          // ETAPA 2: Gerar prompt profissional usando engenharia de prompt avançada
           const referencias = REFERENCIAS_LEGAIS[areaDetectada] || [];
           
           const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.
@@ -253,7 +259,7 @@ O PROMPT FINAL deve ser:
 - **Preciso**: Cita legislação e jurisprudência quando aplicável
 - **Formatado**: Pronto para copiar e colar
 
-IMPORTANTE: Retorne APENAS o prompt final, sem explicações ou comentários adicionais.${estiloInstrucoes}`;
+IMPORTANTE: Retorne APENAS o prompt final, sem explicações ou comentários adicionais.`;
 
           const userPrompt = `TIPO DE DOCUMENTO: ${input.tipoDocumento.toUpperCase()}
 ÁREA JURÍDICA: ${areaDetectada}

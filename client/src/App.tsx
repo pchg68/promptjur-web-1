@@ -9,8 +9,6 @@ import Dashboard from "./pages/Dashboard";
 import Historico from "./pages/Historico";
 import Templates from "./pages/Templates";
 import TemplatePublico from "./pages/TemplatePublico";
-import MeuEstilo from "./pages/MeuEstilo";
-import SharedPrompt from "./pages/SharedPrompt";
 
 function Router() {
   return (
@@ -20,8 +18,6 @@ function Router() {
       <Route path={"/historico"} component={Historico} />
       <Route path={"/templates"} component={Templates} />
       <Route path="/template/:id" component={TemplatePublico} />
-      <Route path={"/meu-estilo"} component={MeuEstilo} />
-      <Route path="/shared/:shareId" component={SharedPrompt} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
