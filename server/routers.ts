@@ -33,11 +33,11 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
         
-        // Verificar limite de uso
-        const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
-        if (usageCheck.exceeded) {
-          throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
-        }
+        // TEMPORARIAMENTE DESATIVADO: Verificar limite de uso (para fase de testes)
+        // const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
+        // if (usageCheck.exceeded) {
+        //   throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
+        // }
         
         try {
           // Identificar área jurídica usando LLM
@@ -166,11 +166,11 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
         
-        // Verificar limite de uso
-        const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
-        if (usageCheck.exceeded) {
-          throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
-        }
+        // TEMPORARIAMENTE DESATIVADO: Verificar limite de uso (para fase de testes)
+        // const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
+        // if (usageCheck.exceeded) {
+        //   throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
+        // }
         
         try {
           // ETAPA 1: Detectar área jurídica automaticamente se não fornecida
@@ -305,11 +305,11 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
         
-        // Verificar limite de uso
-        const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
-        if (usageCheck.exceeded) {
-          throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
-        }
+        // TEMPORARIAMENTE DESATIVADO: Verificar limite de uso (para fase de testes)
+        // const usageCheck = checkUsageLimit(ctx.user.subscriptionPlan, ctx.user.usageCount);
+        // if (usageCheck.exceeded) {
+        //   throw new Error(getUpgradeMessage(ctx.user.subscriptionPlan));
+        // }
         
         try {
           const otimizacaoResponse = await invokeLLM({

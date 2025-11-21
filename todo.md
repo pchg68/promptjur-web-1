@@ -453,3 +453,10 @@
   - [ ] Notificar sobre atualizações do sistema
   - [ ] Badge de contador de notificações não lidas
   - [ ] Persistir notificações no localStorage
+
+## Ajustes para Fase de Testes (Sessão Atual)
+- [x] Suspender verificação de limites de uso temporariamente
+  - [x] Remover checkUsageLimit dos routers de análise, geração e otimização
+  - [x] Comentar código de verificação mantendo estrutura para reativação futura
+  - [x] Manter schema e campos de planos intactos no banco de dados
+  - [x] Sistema de planos preparado mas inativo (aguardando ativação Stripe)
