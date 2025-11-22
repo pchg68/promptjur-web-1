@@ -567,13 +567,19 @@
 - [x] Implementar router `notificationPreferences.update` (atualizar preferências)
 - [x] Criar helpers de banco em db-notifications.ts
 - [x] Criar routers em routers-notifications.ts
+- [x] Integrar routers no appRouter (server/routers.ts)
 
 ### Frontend - Componentes de UI
-- [ ] Criar componente `NotificationBell.tsx` (ícone de sino com badge)
-- [ ] Criar componente `NotificationCenter.tsx` (painel lateral de notificações)
-- [ ] Criar componente `NotificationItem.tsx` (item individual de notificação)
-- [ ] Criar componente `NotificationPreferences.tsx` (configurações de notificações)
-- [ ] Adicionar NotificationBell no header do Dashboard
+- [x] Criar componente `NotificationBell.tsx` (ícone de sino com badge)
+- [x] Criar componente `NotificationCenter.tsx` (painel lateral de notificações)
+- [x] Criar componente `NotificationItem.tsx` (item individual de notificação)
+- [x] Atalho de teclado ESC para fechar painel
+- [x] Ícones por tipo (sucesso/alerta/erro/info/sistema)
+- [x] Botão "Marcar todas como lidas"
+- [x] Botão deletar individual (visível no hover)
+- [x] Timestamp relativo (agora, 5m atrás, 2h atrás)
+- [x] Indicador visual de não lidas (ponto azul)
+- [x] Integrar `NotificationBell` no header do Dashboard
 - [ ] Implementar animação de entrada de novas notificações
 - [ ] Adicionar sons opcionais para notificações (toggle nas preferências)
 
@@ -590,3 +596,17 @@
 - [ ] Notificar quando novo modelo profissional é adicionado
 - [ ] Notificar quando template compartilhado recebe visualizações
 - [ ] Notificar quando análise de estilo é concluída
+
+### Gatilhos Automáticos de Notificações
+- [x] Criar helper notification-triggers.ts com funções de notificação
+- [x] Notificação ao gerar prompt com sucesso
+- [x] Notificação ao otimizar prompt
+- [ ] Notificação ao concluir análise de estilo
+- [ ] Notificação quando prompt compartilhado é visualizado
+
+### Tipos de Notificações Implementadas
+- [x] Sucesso (verde) - Prompt gerado, otimizado
+- [x] Info (azul) - Análise concluída, visualizações
+- [x] Alerta (amarelo) - Avisos gerais
+- [x] Erro (vermelho) - Erros de operação
+- [x] Sistema (roxo) - Atualizações do sistema

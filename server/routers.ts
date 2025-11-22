@@ -12,9 +12,13 @@ import { checkUsageLimit, getUpgradeMessage } from "@shared/usage-limits";
 import { gerarDocumentoWord } from "./_core/docxGenerator";
 import { validarLegislacao } from "./_core/validacaoLegislacao";
 import { searchPrompts, countSearchResults } from "./db-search";
+import { notificationsRouter, notificationPreferencesRouter } from "./routers-notifications";
+import { notifyPromptGenerated, notifyPromptOptimized, notifyAnalysisComplete } from "./notification-triggers";
 
 export const appRouter = router({
   system: systemRouter,
+  notifications: notificationsRouter,
+  notificationPreferences: notificationPreferencesRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -313,6 +317,11 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
           // Incrementar contador de uso
           await db.incrementUserUsage(ctx.user.id);
 
+          // Enviar notificação de sucesso
+          await notifyPromptGenerated(ctx.user.id, input.tipoDocumento).catch(err => {
+            console.error('Erro ao enviar notificação:', err);
+          });
+
           // Verificar fontes jurídicas no prompt gerado
           const avisosFontes = gerarAvisosFontes(promptProfissional);
 
@@ -431,6 +440,11 @@ Responda em formato JSON com:
           
           // Incrementar contador de uso
           await db.incrementUserUsage(ctx.user.id);
+
+          // Enviar notificação de sucesso
+          await notifyPromptOptimized(ctx.user.id).catch(err => {
+            console.error('Erro ao enviar notificação:', err);
+          });
 
           // Verificar fontes jurídicas no prompt otimizado
           const avisosFontes = gerarAvisosFontes(resultado.promptOtimizado);

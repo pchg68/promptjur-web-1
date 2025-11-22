@@ -22,6 +22,7 @@ import { PromptComparison } from "@/components/PromptComparison";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -413,6 +414,7 @@ export default function Dashboard() {
                   Templates
                 </Link>
               </nav>
+              <NotificationBell />
               <Button
                 variant="ghost"
                 size="sm"
