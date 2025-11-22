@@ -550,3 +550,43 @@
   - [ ] Aplicar filtros salvos com um clique
   - [ ] Ícone de estrela para queries favoritas
   - [ ] Gerenciar buscas salvas (renomear/deletar)
+
+## Sistema de Notificações Personalizadas (Sessão Atual)
+
+### Backend - Schema e Routers
+- [x] Criar tabela `notifications` (userId, tipo, titulo, mensagem, lida, link, createdAt)
+- [x] Criar tabela `notification_preferences` (userId, emailEnabled, soundEnabled, tipos habilitados)
+- [x] Executar `pnpm db:push` para aplicar schema
+- [x] Implementar router `notifications.list` (listar notificações do usuário)
+- [x] Implementar router `notifications.markAsRead` (marcar como lida)
+- [x] Implementar router `notifications.markAllAsRead` (marcar todas como lidas)
+- [x] Implementar router `notifications.delete` (deletar notificação)
+- [x] Implementar router `notifications.unreadCount` (contador de não lidas)
+- [x] Implementar router `notifications.create` (criar notificação - admin/sistema)
+- [x] Implementar router `notificationPreferences.get` (obter preferências)
+- [x] Implementar router `notificationPreferences.update` (atualizar preferências)
+- [x] Criar helpers de banco em db-notifications.ts
+- [x] Criar routers em routers-notifications.ts
+
+### Frontend - Componentes de UI
+- [ ] Criar componente `NotificationBell.tsx` (ícone de sino com badge)
+- [ ] Criar componente `NotificationCenter.tsx` (painel lateral de notificações)
+- [ ] Criar componente `NotificationItem.tsx` (item individual de notificação)
+- [ ] Criar componente `NotificationPreferences.tsx` (configurações de notificações)
+- [ ] Adicionar NotificationBell no header do Dashboard
+- [ ] Implementar animação de entrada de novas notificações
+- [ ] Adicionar sons opcionais para notificações (toggle nas preferências)
+
+### Tipos de Notificações
+- [ ] Tipo "sucesso" (verde) - Ações concluídas com sucesso
+- [ ] Tipo "alerta" (amarelo) - Avisos importantes
+- [ ] Tipo "erro" (vermelho) - Erros que requerem atenção
+- [ ] Tipo "info" (azul) - Informações gerais
+- [ ] Tipo "sistema" (roxo) - Atualizações do sistema
+
+### Gatilhos Automáticos de Notificações
+- [ ] Notificar quando prompt é gerado com sucesso
+- [ ] Notificar quando limite de uso está próximo (plano free)
+- [ ] Notificar quando novo modelo profissional é adicionado
+- [ ] Notificar quando template compartilhado recebe visualizações
+- [ ] Notificar quando análise de estilo é concluída

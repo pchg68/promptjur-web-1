@@ -41,6 +41,43 @@ export type Prompt = typeof prompts.$inferSelect;
 export type InsertPrompt = typeof prompts.$inferInsert;
 
 /**
+ * Tabela de notificações do usuário
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  tipo: mysqlEnum("tipo", ["sucesso", "alerta", "erro", "info", "sistema"]).notNull(),
+  titulo: varchar("titulo", { length: 200 }).notNull(),
+  mensagem: text("mensagem").notNull(),
+  lida: boolean("lida").default(false).notNull(),
+  link: varchar("link", { length: 500 }), // Link opcional para ação
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Tabela de preferências de notificações
+ */
+export const notificationPreferences = mysqlTable("notification_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  emailEnabled: boolean("emailEnabled").default(true).notNull(),
+  soundEnabled: boolean("soundEnabled").default(true).notNull(),
+  tiposSucesso: boolean("tiposSucesso").default(true).notNull(),
+  tiposAlerta: boolean("tiposAlerta").default(true).notNull(),
+  tiposErro: boolean("tiposErro").default(true).notNull(),
+  tiposInfo: boolean("tiposInfo").default(true).notNull(),
+  tiposSistema: boolean("tiposSistema").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+
+/**
  * Tabela de análises detalhadas de prompts
  */
 export const analises = mysqlTable("analises", {
