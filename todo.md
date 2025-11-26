@@ -797,3 +797,11 @@
 - [ ] Adicionar onboarding interativo (tour guiado)
 - [ ] Implementar painel lateral de insights (opcional)
 - [ ] Melhorar componente PromptComparison com diff highlighting
+
+
+## Bug Reportado - Modo Assistido
+
+- [x] Corrigir erro "setAreaJuridica is not defined" ao completar wizard
+  - [x] Erro corrigido: setAreaJuridica substituído por setAreaGeracao (nome correto da variável)
+  - [x] setContextoJuridico substituído por setContextoJuridico (campo correto da aba Gerar)
+  - [x] Wizard agora preenche campos corretamente após conclusão

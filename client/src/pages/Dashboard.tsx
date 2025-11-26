@@ -484,8 +484,8 @@ export default function Dashboard() {
                   handleAnalisar();
                 }, 100);
               } else if (data.objetivo === 'gerar') {
-                setAreaJuridica(data.areaJuridica === 'auto' ? '' : data.areaJuridica);
-                setDescricaoCaso(data.descricaoCaso);
+                setAreaGeracao(data.areaJuridica === 'auto' ? '' : data.areaJuridica);
+                setContextoJuridico(data.descricaoCaso);
                 setActiveTab('gerar');
                 setModoWizard(false);
                 // Executar geração automaticamente
