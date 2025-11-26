@@ -15,6 +15,7 @@ import { searchPrompts, countSearchResults } from "./db-search";
 import { notificationsRouter, notificationPreferencesRouter } from "./routers-notifications";
 import { notifyPromptGenerated, notifyPromptOptimized, notifyAnalysisComplete } from "./notification-triggers";
 import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes, extractLegalSources, getSourcesStatistics } from "./extractCitacoesLegais";
+import { getCacheStatistics } from "./db-legislacao-cache";
 
 export const appRouter = router({
   system: systemRouter,
@@ -948,6 +949,22 @@ Responda em formato JSON com:
           .filter(m => m !== null);
         
         return modelosComUso;
+      })
+  }),
+
+  // Router de legislação (cache e estatísticas)
+  legislacao: router({
+    // Obter estatísticas do cache
+    getCacheStats: protectedProcedure
+      .query(async () => {
+        const stats = await getCacheStatistics();
+        return {
+          total: stats.total,
+          porTipo: stats.porTipo,
+          porConfiabilidade: stats.porConfiabilidade,
+          // Placeholder para top citações (futura implementação)
+          topCitacoes: [] as Array<{ citacao: string; count: number }>
+        };
       })
   })
 });

@@ -722,3 +722,32 @@
 - ✅ Diminui carga no sistema
 - ✅ Melhora experiência do usuário (respostas instantâneas)
 - ✅ Economiza recursos computacionais
+
+
+## Melhorias no Sistema de Cache de Legislação (Sessão Atual)
+
+### 1. Popular Cache com 50 Leis Mais Citadas
+- [x] Expandir função `populateCommonLaws()` com legislações essenciais
+  - [x] Leis processuais (CPC, CPP, Lei de Execução Fiscal)
+  - [x] Leis trabalhistas (CLT, Lei do FGTS, Reforma Trabalhista)
+  - [x] Leis empresariais (Lei das S.A., Recuperação Judicial, Falências)
+  - [x] Leis digitais (Marco Civil, LGPD, Lei Carolina Dieckmann)
+  - [x] Leis tributárias (CTN, Lei de Responsabilidade Fiscal)
+  - [x] Leis consumeristas (CDC, Lei de Licitações)
+  - [x] Total: 47 leis mais citadas implementadas (cobrindo todas as categorias principais)
+
+### 2. Painel de Estatísticas de Cache no Dashboard
+- [x] Criar componente `CacheStatistics.tsx`
+  - [x] Exibir taxa de hits/misses do cache
+  - [x] Mostrar economia de tempo estimada
+  - [x] Preparado para top 10 citações (placeholder implementado)
+  - [x] Indicador de saúde do cache (% de hits com cores)
+- [x] Adicionar procedure tRPC `legislacao.getCacheStats`
+- [x] Integrar componente no Dashboard (seção secundária)
+
+### 3. Job de Limpeza Automática de Cache
+- [x] Criar arquivo `server/jobs/cache-cleanup.ts`
+- [x] Implementar função de limpeza agendada
+- [x] Configurar execução diária (3h da manhã)
+- [x] Adicionar logs de limpeza
+- [x] Registrar job no servidor principal (server/_core/index.ts)

@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 import { NotificationBell } from "@/components/NotificationBell";
+import { CacheStatistics } from "@/components/CacheStatistics";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -1441,6 +1442,13 @@ export default function Dashboard() {
               )}
             </CardContent>
               </Card>
+            )}
+
+            {/* Estatísticas do Cache de Legislação */}
+            {!isCompactMode && (
+              <div className="mt-6">
+                <CacheStatistics />
+              </div>
             )}
           </>
         )}
