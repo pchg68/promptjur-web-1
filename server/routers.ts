@@ -14,6 +14,7 @@ import { validarLegislacao } from "./_core/validacaoLegislacao";
 import { searchPrompts, countSearchResults } from "./db-search";
 import { notificationsRouter, notificationPreferencesRouter } from "./routers-notifications";
 import { notifyPromptGenerated, notifyPromptOptimized, notifyAnalysisComplete } from "./notification-triggers";
+import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes } from "./extractCitacoesLegais";
 
 export const appRouter = router({
   system: systemRouter,
@@ -85,6 +86,11 @@ export const appRouter = router({
         // }
         
         try {
+          // OTIMIZAÇÃO GEMINI: Extrair citações legais com regex (rápido e barato)
+          const citacoesExtraidas = extractCitacoesLegais(input.prompt);
+          const contagemCitacoes = contarCitacoesPorTipo(citacoesExtraidas);
+          const citacoesFormatadas = formatarCitacoes(citacoesExtraidas);
+          
           // Identificar área jurídica usando LLM
           const analiseResponse = await invokeLLM({
             messages: [
@@ -183,7 +189,14 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
             qualidade: qualidadeTexto,
             pontuacaoQualidade: analise.qualidade,
             sugestoes: analise.sugestoes,
-            avisosFontes
+            avisosFontes,
+            // OTIMIZAÇÃO GEMINI: Citações extraídas com regex
+            citacoesLegais: {
+              total: citacoesExtraidas.length,
+              porTipo: contagemCitacoes,
+              lista: citacoesFormatadas,
+              detalhes: citacoesExtraidas
+            }
           };
         } catch (error) {
           await db.createHistorico({

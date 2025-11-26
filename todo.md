@@ -610,3 +610,28 @@
 - [x] Alerta (amarelo) - Avisos gerais
 - [x] Erro (vermelho) - Erros de operação
 - [x] Sistema (roxo) - Atualizações do sistema
+
+
+## Otimizações Sugeridas pela Gemini AI (Sessão Atual)
+- [x] Extração de Citações Legais com Regex (performance + custo)
+  - [x] Criar módulo `extractCitacoesLegais.ts` com regex poderosos
+  - [x] Extrair: Lei nº X/YYYY, Art. X do CC/CPC/CLT/CF, Decretos, MPs, Resoluções
+  - [x] Suporte a múltiplos artigos (ex: "arts. 186 e 927 do CC")
+  - [x] Extração de incisos e parágrafos
+  - [x] Funções auxiliares (contar por tipo, formatar, filtrar)
+  - [x] Integrar no router de análise (extração rápida com regex)
+  - [x] Retornar citações extraídas no response (total, porTipo, lista, detalhes)
+  - [ ] Integrar no router de geração (pré-processar antes de validar)
+  - [ ] Manter validação de legislação (validarLegislacao) para conferência
+  - [ ] Benchmark: comparar velocidade e custo vs LLM
+
+### Análise da Gemini sobre Implementação Atual
+✅ **Identificação de Área**: Já usa LLM (TypeScript) - CORRETO
+✅ **Avaliação de Qualidade**: Já usa LLM (TypeScript) - CORRETO
+⚠️ **Extração de Citações**: Não implementado com regex - IMPLEMENTAR
+
+**Benefícios Esperados:**
+- ⚡ Redução de 50-70% no tempo de processamento
+- 💰 Redução de custos de API do LLM
+- 🎯 Maior precisão na extração de citações estruturadas
+- 🔄 LLM focado apenas em análise semântica (não parsing)
