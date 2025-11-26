@@ -813,3 +813,12 @@
   - [x] Erro corrigido: inconsistência de acentuação na variável (padrões vs padroes)
   - [x] Linha 66 de validacaoLegislacao.ts usava "padrões" em vez de "padroes"
   - [x] Geração de prompts agora funciona corretamente
+
+
+## Nova Funcionalidade - Botão Testar Prompt
+
+- [x] Criar função helper para copiar e abrir ChatGPT
+- [x] Adicionar botão "Testar Prompt" nos resultados de Análise
+- [x] Adicionar botão "Testar Prompt" nos resultados de Geração
+- [x] Adicionar botão "Testar Prompt" nos resultados de Otimização
+- [x] Adicionar toast de confirmação ao copiar (com descrição)

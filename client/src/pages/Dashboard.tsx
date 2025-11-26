@@ -262,6 +262,18 @@ export default function Dashboard() {
     toast.success("Copiado para a área de transferência!");
   };
 
+  const testarNoChatGPT = (prompt: string) => {
+    // Copiar para clipboard
+    navigator.clipboard.writeText(prompt);
+    
+    // Abrir ChatGPT em nova aba
+    window.open('https://chatgpt.com/', '_blank');
+    
+    toast.success("Prompt copiado! ChatGPT aberto em nova aba.", {
+      description: "Cole o prompt (Ctrl+V) para testar"
+    });
+  };
+
   // Funções de exportação
   const exportAsMarkdown = (title: string, content: any) => {
     let markdown = `# ${title}\n\n`;
@@ -610,6 +622,14 @@ export default function Dashboard() {
                           <Copy className="w-4 h-4 mr-2" />
                           Copiar
                         </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => testarNoChatGPT(promptAnalise)}
+                        >
+                          <Zap className="w-4 h-4 mr-2" />
+                          Testar Prompt
+                        </Button>
                       </div>
                     </div>
 
@@ -873,6 +893,14 @@ export default function Dashboard() {
                          <Button
                            variant="default"
                            size="sm"
+                           onClick={() => testarNoChatGPT(geracaoMutation.data?.promptProfissional || "")}
+                         >
+                           <Zap className="w-4 h-4 mr-2" />
+                           Testar Prompt
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
                            onClick={() => gerarDocumentoFinal()}
                            disabled={gerarDocMutation.isPending}
                          >
@@ -1017,6 +1045,14 @@ export default function Dashboard() {
                       >
                         <Copy className="w-4 h-4 mr-2" />
                         Copiar
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => testarNoChatGPT(otimizacaoMutation.data?.promptOtimizado || "")}
+                      >
+                        <Zap className="w-4 h-4 mr-2" />
+                        Testar Prompt
                       </Button>
                     </div>
                     
