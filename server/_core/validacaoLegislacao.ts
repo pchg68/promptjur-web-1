@@ -3,7 +3,11 @@
  * 
  * Extrai artigos, leis e códigos mencionados e valida sua existência
  * Retorna badges de confiabilidade (verde/amarelo/vermelho)
+ * 
+ * Usa cache de banco de dados para otimizar performance
  */
+
+import { getCachedValidation, setCachedValidation } from "../db-legislacao-cache";
 
 export interface CitacaoLegal {
   texto: string; // Texto original da citação
@@ -25,9 +29,9 @@ export interface ResultadoValidacao {
 }
 
 /**
- * Extrai citações legais de um texto
+ * Extrai citações legais de um texto (com cache)
  */
-export function extrairCitacoes(texto: string): CitacaoLegal[] {
+export async function extrairCitacoes(texto: string): Promise<CitacaoLegal[]> {
   const citacoes: CitacaoLegal[] = [];
 
   // Padrões de regex para diferentes tipos de citações
@@ -58,14 +62,17 @@ export function extrairCitacoes(texto: string): CitacaoLegal[] {
   }
 
   // Extrair leis
-  while ((match = padroes.leis.exec(texto)) !== null) {
-    const numeroLei = match[1];
-    
+  const leisMatches: Array<{ match: RegExpExecArray, numeroLei: string }> = [];
+  while ((match = padrões.leis.exec(texto)) !== null) {
+    leisMatches.push({ match, numeroLei: match[1] });
+  }
+  
+  for (const { match, numeroLei } of leisMatches) {
     citacoes.push({
       texto: match[0],
       tipo: "lei",
       numero: numeroLei,
-      ...validarLei(numeroLei)
+      ...(await validarLei(numeroLei))
     });
   }
 
@@ -154,9 +161,20 @@ function validarArtigo(numero: string, codigo: string): Pick<CitacaoLegal, "conf
 }
 
 /**
- * Valida uma lei
+ * Valida uma lei (com cache)
  */
-function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "motivo" | "mensagem" | "linkOficial" | "link"> {
+async function validarLei(numeroLei: string): Promise<Pick<CitacaoLegal, "confiabilidade" | "motivo" | "mensagem" | "linkOficial" | "link">> {
+  // Verificar cache primeiro
+  const cached = await getCachedValidation(`Lei ${numeroLei}`);
+  if (cached) {
+    return {
+      confiabilidade: cached.confiabilidade,
+      motivo: cached.motivo,
+      mensagem: cached.motivo,
+      linkOficial: cached.linkOficial || undefined,
+      link: cached.linkOficial || undefined
+    };
+  }
   // Leis conhecidas importantes
   const leisConhecidas: Record<string, { nome: string, link: string }> = {
     "8.078/90": { nome: "Código de Defesa do Consumidor", link: "http://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm" },
@@ -169,25 +187,31 @@ function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "m
   const info = leisConhecidas[numeroLei];
   
   if (info) {
-    return {
-      confiabilidade: "alta",
+    const result = {
+      confiabilidade: "alta" as const,
       motivo: `Lei ${numeroLei} - ${info.nome}`,
       mensagem: `Lei ${numeroLei} - ${info.nome}`,
       linkOficial: info.link,
       link: info.link
     };
+    // Salvar no cache
+    await setCachedValidation(`Lei ${numeroLei}`, "lei", "alta", result.motivo, info.link);
+    return result;
   }
 
   // Validação básica de formato (aceita pontos opcionais: 11.101/2005 ou 11101/2005)
   if (/^[\d\.]{1,8}\/\d{2,4}$/.test(numeroLei)) {
     const msg = `Lei ${numeroLei} - formato válido, verificar no Planalto`;
-    return {
-      confiabilidade: "media",
+    const result = {
+      confiabilidade: "media" as const,
       motivo: msg,
       mensagem: msg,
       linkOficial: `http://www.planalto.gov.br/ccivil_03/leis/`,
       link: `http://www.planalto.gov.br/ccivil_03/leis/`
     };
+    // Salvar no cache
+    await setCachedValidation(`Lei ${numeroLei}`, "lei", "media", msg, result.linkOficial);
+    return result;
   }
 
   const msgBaixa = `Lei ${numeroLei} - formato inválido ou não encontrada`;
@@ -226,10 +250,10 @@ function validarDecreto(numeroDecreto: string): Pick<CitacaoLegal, "confiabilida
 }
 
 /**
- * Valida todas as citações de um texto e retorna resultado consolidado
+ * Valida todas as citações de um texto e retorna resultado consolidado (com cache)
  */
-export function validarLegislacao(texto: string): ResultadoValidacao {
-  const citacoes = extrairCitacoes(texto);
+export async function validarLegislacao(texto: string): Promise<ResultadoValidacao> {
+  const citacoes = await extrairCitacoes(texto);
   
   const totalCitacoes = citacoes.length;
   const citacoesValidadas = citacoes.filter(c => c.confiabilidade === "alta").length;

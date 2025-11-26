@@ -242,3 +242,21 @@ export const usoModelos = mysqlTable("uso_modelos", {
 
 export type UsoModelo = typeof usoModelos.$inferSelect;
 export type InsertUsoModelo = typeof usoModelos.$inferInsert;
+
+/**
+ * Tabela de cache de validação de legislação
+ * Armazena resultados de validações para otimizar performance
+ */
+export const legislacaoCache = mysqlTable("legislacao_cache", {
+  id: int("id").autoincrement().primaryKey(),
+  citacao: varchar("citacao", { length: 500 }).notNull().unique(), // Texto da citação (ex: "Lei 11.101/2005")
+  tipo: mysqlEnum("tipo", ["artigo", "lei", "codigo", "decreto", "portaria"]).notNull(),
+  confiabilidade: mysqlEnum("confiabilidade", ["alta", "media", "baixa"]).notNull(),
+  motivo: text("motivo").notNull(), // Explicação da confiabilidade
+  linkOficial: text("linkOficial"), // Link para fonte oficial
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt").notNull(), // Data de expiração do cache (30 dias)
+});
+
+export type LegislacaoCache = typeof legislacaoCache.$inferSelect;
+export type InsertLegislacaoCache = typeof legislacaoCache.$inferInsert;

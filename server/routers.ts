@@ -311,7 +311,7 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
           const promptProfissional = typeof content === 'string' ? content : "";
 
           // Validar legislação citada
-          const validacao = validarLegislacao(promptProfissional);
+          const validacao = await validarLegislacao(promptProfissional);
 
           // Salvar no banco
           const promptId = await db.createPrompt({
@@ -473,7 +473,7 @@ Responda em formato JSON com:
           const avisosFontes = gerarAvisosFontes(resultado.promptOtimizado);
 
           // Validar legislação citada
-          const validacao = validarLegislacao(resultado.promptOtimizado);
+          const validacao = await validarLegislacao(resultado.promptOtimizado);
 
           return {
             promptId,
