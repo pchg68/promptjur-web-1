@@ -656,3 +656,35 @@
 - ✅ Regex JavaScript é extremamente rápido
 - ✅ Não usa LLM para parsing básico (economia)
 - ✅ Complementa validação de legislação existente
+
+
+## Sistema de Validação Externa de Leis e Súmulas (Sessão Atual)
+- [ ] Pesquisar APIs jurídicas públicas disponíveis
+  - [ ] API do Planalto (leis federais)
+  - [ ] API do STF (súmulas e jurisprudência)
+  - [ ] API do STJ (súmulas e jurisprudência)
+  - [ ] Avaliar necessidade de scraping se APIs não existirem
+
+- [ ] Criar módulo de validação externa
+  - [ ] Criar `validateLegalSources.ts` com validadores
+  - [ ] Implementar `validateLei()` - verifica se lei existe e está vigente
+  - [ ] Implementar `validateSumula()` - verifica súmula por tribunal
+  - [ ] Implementar `validateArtigo()` - verifica artigo de código
+  - [ ] Adicionar timeout e retry para APIs externas
+  - [ ] Retornar status: válido, inválido, revogado, não encontrado
+
+- [ ] Sistema de cache de validações
+  - [ ] Criar tabela `validation_cache` no banco
+  - [ ] Cachear validações por 30 dias
+  - [ ] Invalidar cache automaticamente
+
+- [ ] Integração com routers
+  - [ ] Integrar validação no router de análise
+  - [ ] Adicionar campo `validacao` nas citações extraídas
+  - [ ] Exibir badges de status (válido/inválido/revogado)
+
+**Benefícios:**
+- ✅ Garante precisão jurídica das citações
+- ✅ Detecta leis revogadas automaticamente
+- ✅ Valida súmulas por tribunal correto
+- ✅ Aumenta confiabilidade profissional do sistema

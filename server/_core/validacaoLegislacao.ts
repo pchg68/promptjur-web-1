@@ -163,6 +163,7 @@ function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "m
     "13.105/2015": { nome: "Código de Processo Civil", link: "http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm" },
     "10.406/2002": { nome: "Código Civil", link: "http://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm" },
     "13.709/2018": { nome: "Lei Geral de Proteção de Dados (LGPD)", link: "http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" },
+    "11.101/2005": { nome: "Lei de Recuperação Judicial e Falência", link: "http://www.planalto.gov.br/ccivil_03/_ato2004-2006/2005/lei/l11101.htm" },
   };
 
   const info = leisConhecidas[numeroLei];
@@ -177,8 +178,8 @@ function validarLei(numeroLei: string): Pick<CitacaoLegal, "confiabilidade" | "m
     };
   }
 
-  // Validação básica de formato
-  if (/^\d{1,5}\/\d{2,4}$/.test(numeroLei)) {
+  // Validação básica de formato (aceita pontos opcionais: 11.101/2005 ou 11101/2005)
+  if (/^[\d\.]{1,8}\/\d{2,4}$/.test(numeroLei)) {
     const msg = `Lei ${numeroLei} - formato válido, verificar no Planalto`;
     return {
       confiabilidade: "media",
