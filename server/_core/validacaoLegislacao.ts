@@ -63,7 +63,7 @@ export async function extrairCitacoes(texto: string): Promise<CitacaoLegal[]> {
 
   // Extrair leis
   const leisMatches: Array<{ match: RegExpExecArray, numeroLei: string }> = [];
-  while ((match = padrões.leis.exec(texto)) !== null) {
+  while ((match = padroes.leis.exec(texto)) !== null) {
     leisMatches.push({ match, numeroLei: match[1] });
   }
   

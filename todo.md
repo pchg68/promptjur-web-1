@@ -805,3 +805,11 @@
   - [x] Erro corrigido: setAreaJuridica substituído por setAreaGeracao (nome correto da variável)
   - [x] setContextoJuridico substituído por setContextoJuridico (campo correto da aba Gerar)
   - [x] Wizard agora preenche campos corretamente após conclusão
+
+
+## Bug Reportado - Geração de Prompt
+
+- [x] Corrigir erro "padrões is not defined" na geração de prompt jurídico
+  - [x] Erro corrigido: inconsistência de acentuação na variável (padrões vs padroes)
+  - [x] Linha 66 de validacaoLegislacao.ts usava "padrões" em vez de "padroes"
+  - [x] Geração de prompts agora funciona corretamente
