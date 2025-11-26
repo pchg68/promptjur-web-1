@@ -777,8 +777,8 @@
 - [x] Adicionar legenda de cores
 - [x] Criar módulo extractCitacoes.ts (frontend)
 - [x] Integrar no componente de Análise
-- [ ] Integrar no componente de Otimização
-- [ ] Integrar no componente de Geração
+- [x] Integrar no componente de Otimização
+- [x] Integrar no componente de Geração
 
 ### 3. Assistente Passo-a-Passo (Wizard Mode)
 - [x] Criar componente WizardPromptGenerator

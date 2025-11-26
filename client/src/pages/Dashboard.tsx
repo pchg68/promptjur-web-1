@@ -729,12 +729,12 @@ export default function Dashboard() {
                 {/* Contexto Jurídico */}
                 <div className="space-y-2">
                   <Label htmlFor="contexto-juridico">Contexto/Situação Jurídica *</Label>
-                  <Textarea
-                    id="contexto-juridico"
-                    placeholder="Descreva a situação jurídica completa (ex: Cliente sofreu acidente de trânsito, réu não pagou indenização acordada, empresa descumpriu contrato de prestação de serviços...)"
+                  <HighlightedTextarea
                     value={contextoJuridico}
-                    onChange={(e) => setContextoJuridico(e.target.value)}
-                    className="min-h-[120px]"
+                    onChange={setContextoJuridico}
+                    placeholder="Descreva a situação jurídica completa (ex: Cliente sofreu acidente de trânsito, réu não pagou indenização acordada, empresa descumpriu contrato de prestação de serviços...)"
+                    showValidation={true}
+                    minHeight="120px"
                   />
                 </div>
 
@@ -792,12 +792,12 @@ export default function Dashboard() {
                     {/* Legislação Relevante */}
                     <div className="space-y-2">
                       <Label htmlFor="legislacao-relevante">Legislação Relevante (Opcional)</Label>
-                      <Textarea
-                        id="legislacao-relevante"
-                        placeholder="Ex: Art. 927 do CC/02, Art. 186 do CC/02, Súmula 37 do STJ"
+                      <HighlightedTextarea
                         value={legislacaoRelevante}
-                        onChange={(e) => setLegislacaoRelevante(e.target.value)}
-                        className="min-h-[60px]"
+                        onChange={setLegislacaoRelevante}
+                        placeholder="Ex: Art. 927 do CC/02, Art. 186 do CC/02, Súmula 37 do STJ"
+                        showValidation={true}
+                        minHeight="60px"
                       />
                     </div>
 
@@ -942,12 +942,12 @@ export default function Dashboard() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="prompt-otimizacao">Prompt para Otimizar</Label>
-                  <Textarea
-                    id="prompt-otimizacao"
-                    placeholder="Cole aqui o prompt que deseja otimizar..."
+                  <HighlightedTextarea
                     value={promptOtimizacao}
-                    onChange={(e) => setPromptOtimizacao(e.target.value)}
-                    className="min-h-[200px] font-mono text-sm"
+                    onChange={setPromptOtimizacao}
+                    placeholder="Cole aqui o prompt que deseja otimizar..."
+                    showValidation={true}
+                    minHeight="200px"
                   />
                 </div>
                 <Button 
