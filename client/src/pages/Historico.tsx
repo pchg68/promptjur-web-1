@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search } from "lucide-react";
+import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -67,6 +67,43 @@ export default function Historico() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Prompt copiado para a área de transferência!");
+  };
+
+  // Mutation para favoritar
+  const favoritarMutation = trpc.prompts.favoritar.useMutation({
+    onSuccess: () => {
+      searchQuery.refetch();
+      toast.success("Favorito atualizado!");
+    },
+    onError: () => {
+      toast.error("Erro ao atualizar favorito");
+    }
+  });
+
+  // Mutation para excluir
+  const excluirMutation = trpc.prompts.excluir.useMutation({
+    onSuccess: () => {
+      searchQuery.refetch();
+      toast.success("Prompt excluído com sucesso!");
+    },
+    onError: () => {
+      toast.error("Erro ao excluir prompt");
+    }
+  });
+
+  const handleFavoritar = (id: number, isFavorito: boolean) => {
+    favoritarMutation.mutate({ id, favorito: !isFavorito });
+  };
+
+  const handleReutilizar = (prompt: any) => {
+    // Redirecionar para dashboard com prompt carregado
+    window.location.href = `/dashboard?prompt=${prompt.id}`;
+  };
+
+  const handleExcluir = (id: number) => {
+    if (confirm("Tem certeza que deseja excluir este prompt?")) {
+      excluirMutation.mutate({ id });
+    }
   };
 
   return (
@@ -200,14 +237,59 @@ export default function Historico() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedPrompt(prompt)}
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalhes
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            {/* Ver Detalhes */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedPrompt(prompt)}
+                              title="Ver detalhes completos"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            
+                            {/* Copiar */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(prompt.promptOtimizado || prompt.promptOriginal || '')}
+                              title="Copiar prompt"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            
+                            {/* Favoritar */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleFavoritar(prompt.id, prompt.favorito)}
+                              title={prompt.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                              className={prompt.favorito ? "text-yellow-500" : ""}
+                            >
+                              <Star className={`w-4 h-4 ${prompt.favorito ? 'fill-current' : ''}`} />
+                            </Button>
+                            
+                            {/* Reutilizar */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleReutilizar(prompt)}
+                              title="Reutilizar no Dashboard"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </Button>
+                            
+                            {/* Excluir */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleExcluir(prompt.id)}
+                              title="Excluir prompt"
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

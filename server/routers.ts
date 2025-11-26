@@ -534,6 +534,28 @@ Responda em formato JSON com:
         await db.toggleFavorito(input.promptId, input.isFavorito);
         return { success: true };
       }),
+
+    // Favoritar/Desfavoritar (novo endpoint simplificado)
+    favoritar: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        favorito: z.boolean()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await db.toggleFavorito(input.id, input.favorito);
+        return { success: true };
+      }),
+
+    // Excluir prompt
+    excluir: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { excluirPrompt } = await import("./db");
+        await excluirPrompt(input.id, ctx.user.id);
+        return { success: true };
+      }),
     
     // Listar apenas favoritos
     listarFavoritos: protectedProcedure.query(async ({ ctx }) => {

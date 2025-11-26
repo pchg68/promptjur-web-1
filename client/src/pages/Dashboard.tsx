@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { HighlightedTextarea } from "@/components/HighlightedTextarea";
+import { WizardPromptGenerator, type WizardData } from "@/components/WizardPromptGenerator";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -29,6 +31,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState("analisar");
+  const [modoWizard, setModoWizard] = useState(false);
   
   // Estado para Modo Compacto (persistido no localStorage)
   const [isCompactMode, setIsCompactMode] = useState(() => {
@@ -443,8 +446,67 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* Tabs Principais - Prioridade Máxima */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Toggle Modo Wizard */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Ferramentas de Engenharia de Prompts</h2>
+            <p className="text-sm text-muted-foreground">Escolha entre modo avançado ou assistente guiado</p>
+          </div>
+          <Button
+            variant={modoWizard ? "default" : "outline"}
+            onClick={() => setModoWizard(!modoWizard)}
+            className="flex items-center gap-2"
+          >
+            {modoWizard ? (
+              <>
+                <Maximize2 className="w-4 h-4" />
+                Modo Avançado
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                Modo Assistido
+              </>
+            )}
+          </Button>
+        </div>
+        {/* Modo Wizard */}
+        {modoWizard ? (
+          <WizardPromptGenerator
+            onComplete={(data: WizardData) => {
+              // Processar dados do wizard
+              if (data.objetivo === 'analisar') {
+                setPromptAnalise(data.descricaoCaso);
+                setActiveTab('analisar');
+                setModoWizard(false);
+                // Executar análise automaticamente
+                setTimeout(() => {
+                  handleAnalisar();
+                }, 100);
+              } else if (data.objetivo === 'gerar') {
+                setAreaJuridica(data.areaJuridica === 'auto' ? '' : data.areaJuridica);
+                setDescricaoCaso(data.descricaoCaso);
+                setActiveTab('gerar');
+                setModoWizard(false);
+                // Executar geração automaticamente
+                setTimeout(() => {
+                  handleGerar();
+                }, 100);
+              } else if (data.objetivo === 'otimizar') {
+                setPromptOtimizar(data.descricaoCaso);
+                setActiveTab('otimizar');
+                setModoWizard(false);
+                // Executar otimização automaticamente
+                setTimeout(() => {
+                  handleOtimizar();
+                }, 100);
+              }
+            }}
+            onCancel={() => setModoWizard(false)}
+          />
+        ) : (
+          /* Tabs Principais - Prioridade Máxima */
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="analisar" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
@@ -485,12 +547,12 @@ export default function Dashboard() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="prompt-analise">Prompt para Análise</Label>
-                  <Textarea
-                    id="prompt-analise"
-                    placeholder="Cole aqui o prompt que deseja analisar..."
+                  <HighlightedTextarea
                     value={promptAnalise}
-                    onChange={(e) => setPromptAnalise(e.target.value)}
-                    className="min-h-[200px] font-mono text-sm"
+                    onChange={setPromptAnalise}
+                    placeholder="Cole aqui o prompt que deseja analisar..."
+                    showValidation={true}
+                    minHeight="200px"
                   />
                 </div>
                 <Button 
@@ -1185,6 +1247,7 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+        )}
 
         {/* Modal de Preview de Modelo */}
         <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>

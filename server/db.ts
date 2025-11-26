@@ -149,6 +149,23 @@ export async function toggleFavorito(id: number, isFavorito: boolean) {
   await db.update(prompts).set({ isFavorito }).where(eq(prompts.id, id));
 }
 
+export async function excluirPrompt(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Verificar se o prompt pertence ao usuário
+  const prompt = await db.select().from(prompts).where(eq(prompts.id, id)).limit(1);
+  if (!prompt || prompt.length === 0) {
+    throw new Error("Prompt não encontrado");
+  }
+  if (prompt[0].userId !== userId) {
+    throw new Error("Sem permissão para excluir este prompt");
+  }
+  
+  // Excluir prompt (cascade irá excluir relacionamentos)
+  await db.delete(prompts).where(eq(prompts.id, id));
+}
+
 // ===== ANALISE HELPERS =====
 
 export async function createAnalise(data: InsertAnalise) {

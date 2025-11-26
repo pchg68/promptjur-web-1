@@ -751,3 +751,49 @@
 - [x] Configurar execução diária (3h da manhã)
 - [x] Adicionar logs de limpeza
 - [x] Registrar job no servidor principal (server/_core/index.ts)
+
+
+## Melhorias de Usabilidade (Sessão Atual - Baseadas em Análise Gemini AI 3)
+
+### 1. Quick Actions no Histórico
+- [x] Adicionar botões de ação rápida inline na tabela
+  - [x] Botão "Copiar" (copia prompt para clipboard)
+  - [x] Botão "Favoritar" (toggle estrela)
+  - [x] Botão "Reutilizar" (carrega no Dashboard)
+  - [x] Botão "Excluir" (com confirmação)
+- [x] Implementar tooltips explicativos
+- [x] Adicionar toast notifications para feedback
+- [x] Criar procedures tRPC (favoritar, excluir)
+- [x] Criar função excluirPrompt no db.ts
+- [x] Testar fluxo completo de ações (servidor iniciado com sucesso)
+
+### 2. Sistema de Validação Visual em Tempo Real
+- [x] Criar componente HighlightedTextarea
+  - [x] Implementar syntax highlighting para citações
+  - [x] Adicionar badges de confiabilidade (✓ Alta, ⚠️ Média, ✗ Baixa)
+  - [x] Integrar com sistema de validação existente
+- [x] Implementar validação debounced (500ms)
+- [x] Criar tooltips com informações da fonte
+- [x] Adicionar legenda de cores
+- [x] Criar módulo extractCitacoes.ts (frontend)
+- [x] Integrar no componente de Análise
+- [ ] Integrar no componente de Otimização
+- [ ] Integrar no componente de Geração
+
+### 3. Assistente Passo-a-Passo (Wizard Mode)
+- [x] Criar componente WizardPromptGenerator
+  - [x] Passo 1: Escolha do objetivo (analisar/gerar/otimizar)
+  - [x] Passo 2: Seleção de área jurídica
+  - [x] Passo 3: Descrição do caso
+  - [x] Passo 4: Geração/Análise automática
+- [x] Implementar navegação entre passos (Stepper)
+- [x] Adicionar validação em cada passo
+- [x] Integrar com procedures tRPC existentes
+- [x] Adicionar opção "Modo Avançado" para usuários experientes
+- [x] Criar toggle no Dashboard para alternar entre modos
+- [ ] Persistir preferência do usuário (localStorage)
+
+### 4. Melhorias Complementares
+- [ ] Adicionar onboarding interativo (tour guiado)
+- [ ] Implementar painel lateral de insights (opcional)
+- [ ] Melhorar componente PromptComparison com diff highlighting
