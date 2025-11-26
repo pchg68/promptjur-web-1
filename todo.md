@@ -635,3 +635,24 @@
 - 💰 Redução de custos de API do LLM
 - 🎯 Maior precisão na extração de citações estruturadas
 - 🔄 LLM focado apenas em análise semântica (não parsing)
+
+
+## Extração de Fontes Legais em TypeScript (Sessão Atual)
+- [x] Expandir módulo extractCitacoesLegais.ts
+  - [x] Adicionar extração de Súmulas (STF, STJ, TST, TSE, STM, TRF, TJs)
+  - [x] Adicionar extração de Jurisprudência (Acórdãos, REsp, AgInt, AREsp, RE, AI, HC, MS, RMS)
+  - [x] Adicionar extração de datas (DD/MM/AAAA, DD/MM/AA, DD-MM-AAAA)
+  - [x] Adicionar extração de valores monetários (R$ X.XXX,XX com parsing de valor numérico)
+  - [x] Criar função unificada extractLegalSources() (interface ExtractedSource)
+  - [x] Criar funções auxiliares (hasLegalSources, extractSourcesByType, getSourcesStatistics)
+  - [x] Remover duplicatas automaticamente
+  - [x] Integrar no router de análise (extração completa de todas as fontes)
+  - [x] Retornar fontesLegais no response (total, porTipo, fontes com metadata)
+  - [ ] Integrar no router de geração (opcional)
+
+**Benefícios:**
+- ✅ Elimina dependência do Python
+- ✅ Código 100% TypeScript nativo
+- ✅ Regex JavaScript é extremamente rápido
+- ✅ Não usa LLM para parsing básico (economia)
+- ✅ Complementa validação de legislação existente

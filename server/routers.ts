@@ -14,7 +14,7 @@ import { validarLegislacao } from "./_core/validacaoLegislacao";
 import { searchPrompts, countSearchResults } from "./db-search";
 import { notificationsRouter, notificationPreferencesRouter } from "./routers-notifications";
 import { notifyPromptGenerated, notifyPromptOptimized, notifyAnalysisComplete } from "./notification-triggers";
-import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes } from "./extractCitacoesLegais";
+import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes, extractLegalSources, getSourcesStatistics } from "./extractCitacoesLegais";
 
 export const appRouter = router({
   system: systemRouter,
@@ -90,6 +90,10 @@ export const appRouter = router({
           const citacoesExtraidas = extractCitacoesLegais(input.prompt);
           const contagemCitacoes = contarCitacoesPorTipo(citacoesExtraidas);
           const citacoesFormatadas = formatarCitacoes(citacoesExtraidas);
+          
+          // EXTRAÇÃO UNIFICADA: Fontes legais (súmulas, jurisprudência, datas, valores)
+          const fontesLegais = extractLegalSources(input.prompt);
+          const estatisticasFontes = getSourcesStatistics(input.prompt);
           
           // Identificar área jurídica usando LLM
           const analiseResponse = await invokeLLM({
@@ -196,6 +200,12 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
               porTipo: contagemCitacoes,
               lista: citacoesFormatadas,
               detalhes: citacoesExtraidas
+            },
+            // EXTRAÇÃO UNIFICADA: Fontes legais (súmulas, jurisprudência, datas, valores)
+            fontesLegais: {
+              total: estatisticasFontes.total,
+              porTipo: estatisticasFontes.byType,
+              fontes: fontesLegais
             }
           };
         } catch (error) {
