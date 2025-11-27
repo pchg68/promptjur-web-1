@@ -822,3 +822,13 @@
 - [x] Adicionar botão "Testar Prompt" nos resultados de Geração
 - [x] Adicionar botão "Testar Prompt" nos resultados de Otimização
 - [x] Adicionar toast de confirmação ao copiar (com descrição)
+
+
+## Melhoria - Dropdown de Plataformas de IA
+
+- [x] Criar função testarPromptNaPlataforma(prompt, plataforma)
+- [x] Adicionar URLs das plataformas (ChatGPT, Claude, Gemini)
+- [x] Substituir botão simples por DropdownMenu nos resultados de Análise
+- [x] Substituir botão simples por DropdownMenu nos resultados de Geração
+- [x] Substituir botão simples por DropdownMenu nos resultados de Otimização
+- [x] Adicionar ícones específicos para cada plataforma (Bot, MessageSquare, Sparkle)

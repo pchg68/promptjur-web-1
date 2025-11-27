@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 import { NotificationBell } from "@/components/NotificationBell";
 import { CacheStatistics } from "@/components/CacheStatistics";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -262,14 +263,27 @@ export default function Dashboard() {
     toast.success("Copiado para a área de transferência!");
   };
 
-  const testarNoChatGPT = (prompt: string) => {
+  const testarPromptNaPlataforma = (prompt: string, plataforma: 'chatgpt' | 'claude' | 'gemini') => {
     // Copiar para clipboard
     navigator.clipboard.writeText(prompt);
     
-    // Abrir ChatGPT em nova aba
-    window.open('https://chatgpt.com/', '_blank');
+    // URLs das plataformas
+    const urls = {
+      chatgpt: 'https://chatgpt.com/',
+      claude: 'https://claude.ai/new',
+      gemini: 'https://gemini.google.com/app'
+    };
     
-    toast.success("Prompt copiado! ChatGPT aberto em nova aba.", {
+    const nomes = {
+      chatgpt: 'ChatGPT',
+      claude: 'Claude',
+      gemini: 'Gemini'
+    };
+    
+    // Abrir plataforma em nova aba
+    window.open(urls[plataforma], '_blank');
+    
+    toast.success(`Prompt copiado! ${nomes[plataforma]} aberto em nova aba.`, {
       description: "Cole o prompt (Ctrl+V) para testar"
     });
   };
@@ -622,14 +636,29 @@ export default function Dashboard() {
                           <Copy className="w-4 h-4 mr-2" />
                           Copiar
                         </Button>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => testarNoChatGPT(promptAnalise)}
-                        >
-                          <Zap className="w-4 h-4 mr-2" />
-                          Testar Prompt
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="default" size="sm">
+                              <Zap className="w-4 h-4 mr-2" />
+                              Testar Prompt
+                              <ChevronDown className="w-3 h-3 ml-1" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'chatgpt')}>
+                              <Bot className="w-4 h-4 mr-2" />
+                              ChatGPT
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'claude')}>
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Claude
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'gemini')}>
+                              <Sparkle className="w-4 h-4 mr-2" />
+                              Gemini
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
 
@@ -890,14 +919,29 @@ export default function Dashboard() {
                            <Copy className="w-4 h-4 mr-2" />
                            Copiar
                          </Button>
-                         <Button
-                           variant="default"
-                           size="sm"
-                           onClick={() => testarNoChatGPT(geracaoMutation.data?.promptProfissional || "")}
-                         >
-                           <Zap className="w-4 h-4 mr-2" />
-                           Testar Prompt
-                         </Button>
+                         <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                             <Button variant="default" size="sm">
+                               <Zap className="w-4 h-4 mr-2" />
+                               Testar Prompt
+                               <ChevronDown className="w-3 h-3 ml-1" />
+                             </Button>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent align="end">
+                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'chatgpt')}>
+                               <Bot className="w-4 h-4 mr-2" />
+                               ChatGPT
+                             </DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'claude')}>
+                               <MessageSquare className="w-4 h-4 mr-2" />
+                               Claude
+                             </DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'gemini')}>
+                               <Sparkle className="w-4 h-4 mr-2" />
+                               Gemini
+                             </DropdownMenuItem>
+                           </DropdownMenuContent>
+                         </DropdownMenu>
                          <Button
                            variant="outline"
                            size="sm"
@@ -1046,14 +1090,29 @@ export default function Dashboard() {
                         <Copy className="w-4 h-4 mr-2" />
                         Copiar
                       </Button>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => testarNoChatGPT(otimizacaoMutation.data?.promptOtimizado || "")}
-                      >
-                        <Zap className="w-4 h-4 mr-2" />
-                        Testar Prompt
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="default" size="sm">
+                            <Zap className="w-4 h-4 mr-2" />
+                            Testar Prompt
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'chatgpt')}>
+                            <Bot className="w-4 h-4 mr-2" />
+                            ChatGPT
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'claude')}>
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            Claude
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'gemini')}>
+                            <Sparkle className="w-4 h-4 mr-2" />
+                            Gemini
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     
                     {/* Botão de Fluxo Automatizado */}
