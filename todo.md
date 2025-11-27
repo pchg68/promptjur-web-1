@@ -832,3 +832,11 @@
 - [x] Substituir botão simples por DropdownMenu nos resultados de Geração
 - [x] Substituir botão simples por DropdownMenu nos resultados de Otimização
 - [x] Adicionar ícones específicos para cada plataforma (Bot, MessageSquare, Sparkle)
+
+
+## Adicionar Perplexity ao Dropdown
+
+- [x] Adicionar Perplexity à função testarPromptNaPlataforma
+- [x] Adicionar opção Perplexity no dropdown de Análise
+- [x] Adicionar opção Perplexity no dropdown de Geração
+- [x] Adicionar opção Perplexity no dropdown de Otimização
