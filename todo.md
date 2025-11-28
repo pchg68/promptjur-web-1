@@ -848,3 +848,10 @@
 - [x] Adicionar opção Manus no dropdown de Análise
 - [x] Adicionar opção Manus no dropdown de Geração
 - [x] Adicionar opção Manus no dropdown de Otimização
+
+
+## Destacar Manus com Selo "Recomendado"
+
+- [x] Adicionar Badge "Recomendado" à opção Manus no dropdown de Análise
+- [x] Adicionar Badge "Recomendado" à opção Manus no dropdown de Geração
+- [x] Adicionar Badge "Recomendado" à opção Manus no dropdown de Otimização

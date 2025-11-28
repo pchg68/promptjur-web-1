@@ -668,6 +668,7 @@ export default function Dashboard() {
                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'manus')}>
                               <Cpu className="w-4 h-4 mr-2" />
                               Manus
+                              <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -959,6 +960,7 @@ export default function Dashboard() {
                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'manus')}>
                                <Cpu className="w-4 h-4 mr-2" />
                                Manus
+                               <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
                              </DropdownMenuItem>
                            </DropdownMenuContent>
                          </DropdownMenu>
@@ -1138,6 +1140,7 @@ export default function Dashboard() {
                           <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'manus')}>
                             <Cpu className="w-4 h-4 mr-2" />
                             Manus
+                            <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
