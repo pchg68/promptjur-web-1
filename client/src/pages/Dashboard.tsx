@@ -287,9 +287,17 @@ export default function Dashboard() {
     // Abrir plataforma em nova aba
     window.open(urls[plataforma], '_blank');
     
-    toast.success(`Prompt copiado! ${nomes[plataforma]} aberto em nova aba.`, {
-      description: "Cole o prompt (Ctrl+V) para testar"
-    });
+    toast.success(
+      <div className="flex items-center gap-2">
+        <CheckCircle2 className="w-5 h-5 text-green-500 animate-in zoom-in duration-300" />
+        <span className="font-semibold">Prompt copiado com sucesso!</span>
+      </div>, 
+      {
+        description: `${nomes[plataforma]} aberto em nova aba. Cole o prompt com Ctrl+V (ou Cmd+V no Mac) para começar a testar.`,
+        duration: 4000,
+        className: "border-green-500/50 bg-green-500/10"
+      }
+    );
   };
 
   // Funções de exportação

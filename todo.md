@@ -862,3 +862,11 @@
 - [x] Mover opção Manus para primeira posição no dropdown de Análise
 - [x] Mover opção Manus para primeira posição no dropdown de Geração
 - [x] Mover opção Manus para primeira posição no dropdown de Otimização
+
+
+## Melhorar Feedback Visual de Cópia de Prompt
+
+- [x] Adicionar ícone CheckCircle2 animado ao toast de sucesso
+- [x] Aumentar duração do toast para 4 segundos (mais visível)
+- [x] Adicionar descrição detalhada no toast com instruções (Ctrl+V/Cmd+V)
+- [x] Melhorar estilo do toast com cores de sucesso mais destacadas (verde com borda)
