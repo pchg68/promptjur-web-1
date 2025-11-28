@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -263,7 +263,7 @@ export default function Dashboard() {
     toast.success("Copiado para a área de transferência!");
   };
 
-  const testarPromptNaPlataforma = (prompt: string, plataforma: 'chatgpt' | 'claude' | 'gemini' | 'perplexity') => {
+  const testarPromptNaPlataforma = (prompt: string, plataforma: 'chatgpt' | 'claude' | 'gemini' | 'perplexity' | 'manus') => {
     // Copiar para clipboard
     navigator.clipboard.writeText(prompt);
     
@@ -272,14 +272,16 @@ export default function Dashboard() {
       chatgpt: 'https://chatgpt.com/',
       claude: 'https://claude.ai/new',
       gemini: 'https://gemini.google.com/app',
-      perplexity: 'https://www.perplexity.ai/'
+      perplexity: 'https://www.perplexity.ai/',
+      manus: 'https://manus.im/'
     };
     
     const nomes = {
       chatgpt: 'ChatGPT',
       claude: 'Claude',
       gemini: 'Gemini',
-      perplexity: 'Perplexity'
+      perplexity: 'Perplexity',
+      manus: 'Manus'
     };
     
     // Abrir plataforma em nova aba
@@ -663,6 +665,10 @@ export default function Dashboard() {
                               <Search className="w-4 h-4 mr-2" />
                               Perplexity
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'manus')}>
+                              <Cpu className="w-4 h-4 mr-2" />
+                              Manus
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -950,6 +956,10 @@ export default function Dashboard() {
                                <Search className="w-4 h-4 mr-2" />
                                Perplexity
                              </DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'manus')}>
+                               <Cpu className="w-4 h-4 mr-2" />
+                               Manus
+                             </DropdownMenuItem>
                            </DropdownMenuContent>
                          </DropdownMenu>
                          <Button
@@ -1124,6 +1134,10 @@ export default function Dashboard() {
                           <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'perplexity')}>
                             <Search className="w-4 h-4 mr-2" />
                             Perplexity
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'manus')}>
+                            <Cpu className="w-4 h-4 mr-2" />
+                            Manus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

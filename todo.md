@@ -840,3 +840,11 @@
 - [x] Adicionar opção Perplexity no dropdown de Análise
 - [x] Adicionar opção Perplexity no dropdown de Geração
 - [x] Adicionar opção Perplexity no dropdown de Otimização
+
+
+## Adicionar Manus ao Dropdown
+
+- [x] Adicionar Manus à função testarPromptNaPlataforma
+- [x] Adicionar opção Manus no dropdown de Análise
+- [x] Adicionar opção Manus no dropdown de Geração
+- [x] Adicionar opção Manus no dropdown de Otimização
