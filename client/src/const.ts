@@ -34,7 +34,10 @@ export const AREAS_JURIDICAS = [
   "Previdenciário",
   "Ambiental",
   "Internacional",
-  "Processo Civil"
+  "Processo Civil",
+  "Direito Médico",
+  "Direito Digital",
+  "Direito Internacional"
 ] as const;
 
 export type AreaJuridica = typeof AREAS_JURIDICAS[number];

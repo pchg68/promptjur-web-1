@@ -870,3 +870,13 @@
 - [x] Aumentar duração do toast para 4 segundos (mais visível)
 - [x] Adicionar descrição detalhada no toast com instruções (Ctrl+V/Cmd+V)
 - [x] Melhorar estilo do toast com cores de sucesso mais destacadas (verde com borda)
+
+
+## Adicionar Novas Áreas Jurídicas
+
+- [x] Adicionar "Direito Médico" ao array AREAS_JURIDICAS
+- [x] Adicionar "Direito Digital" ao array AREAS_JURIDICAS
+- [x] Adicionar "Direito Internacional" ao array AREAS_JURIDICAS
+- [x] Adicionar palavras-chave para as novas áreas em PALAVRAS_CHAVE_AREAS
+- [x] Atualizar client/src/const.ts e shared/juridico.ts
+- [x] Verificar se aparecem em todos os dropdowns (Dashboard, Wizard, etc) - Servidor reiniciado com sucesso

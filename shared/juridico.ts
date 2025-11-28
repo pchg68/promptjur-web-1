@@ -14,7 +14,10 @@ export const AREAS_JURIDICAS = [
   "Previdenciário",
   "Ambiental",
   "Internacional",
-  "Processo Civil"
+  "Processo Civil",
+  "Direito Médico",
+  "Direito Digital",
+  "Direito Internacional"
 ] as const;
 
 export type AreaJuridica = typeof AREAS_JURIDICAS[number];
@@ -35,7 +38,10 @@ export const PALAVRAS_CHAVE_AREAS: Record<string, string[]> = {
   "Previdenciário": ["INSS", "aposentadoria", "benefício", "auxílio", "previdência", "contribuição previdenciária"],
   "Ambiental": ["meio ambiente", "licença ambiental", "dano ambiental", "IBAMA", "poluição", "preservação"],
   "Internacional": ["tratado", "convenção", "direito internacional", "extradição", "arbitragem internacional"],
-  "Processo Civil": ["CPC", "petição inicial", "contestação", "sentença", "recurso", "apelação", "agravo", "execução", "prova", "audiência", "citação", "intimação", "prazo processual", "tutela de urgência"]
+  "Processo Civil": ["CPC", "petição inicial", "contestação", "sentença", "recurso", "apelação", "agravo", "execução", "prova", "audiência", "citação", "intimação", "prazo processual", "tutela de urgência"],
+  "Direito Médico": ["erro médico", "prontuário", "CRM", "responsabilidade médica", "hospital", "cirurgia", "diagnóstico", "tratamento", "conselho de medicina", "ética médica"],
+  "Direito Digital": ["LGPD", "dados pessoais", "privacidade", "Marco Civil da Internet", "crimes cibernéticos", "proteção de dados", "internet", "e-commerce", "assinatura digital", "blockchain"],
+  "Direito Internacional": ["tratado internacional", "convenção internacional", "soberania", "organização internacional", "ONU", "corte internacional", "direito humanitário", "refugiados", "comércio internacional"]
 };
 
 /**
