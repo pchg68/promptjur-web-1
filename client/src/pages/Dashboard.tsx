@@ -649,6 +649,11 @@ export default function Dashboard() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'manus')}>
+                              <Cpu className="w-4 h-4 mr-2" />
+                              Manus
+                              <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'chatgpt')}>
                               <Bot className="w-4 h-4 mr-2" />
                               ChatGPT
@@ -664,11 +669,6 @@ export default function Dashboard() {
                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'perplexity')}>
                               <Search className="w-4 h-4 mr-2" />
                               Perplexity
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'manus')}>
-                              <Cpu className="w-4 h-4 mr-2" />
-                              Manus
-                              <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -941,6 +941,11 @@ export default function Dashboard() {
                              </Button>
                            </DropdownMenuTrigger>
                            <DropdownMenuContent align="end">
+                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'manus')}>
+                               <Cpu className="w-4 h-4 mr-2" />
+                               Manus
+                               <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
+                             </DropdownMenuItem>
                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'chatgpt')}>
                                <Bot className="w-4 h-4 mr-2" />
                                ChatGPT
@@ -956,11 +961,6 @@ export default function Dashboard() {
                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'perplexity')}>
                                <Search className="w-4 h-4 mr-2" />
                                Perplexity
-                             </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'manus')}>
-                               <Cpu className="w-4 h-4 mr-2" />
-                               Manus
-                               <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
                              </DropdownMenuItem>
                            </DropdownMenuContent>
                          </DropdownMenu>
@@ -1121,6 +1121,11 @@ export default function Dashboard() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'manus')}>
+                            <Cpu className="w-4 h-4 mr-2" />
+                            Manus
+                            <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'chatgpt')}>
                             <Bot className="w-4 h-4 mr-2" />
                             ChatGPT
@@ -1136,11 +1141,6 @@ export default function Dashboard() {
                           <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'perplexity')}>
                             <Search className="w-4 h-4 mr-2" />
                             Perplexity
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'manus')}>
-                            <Cpu className="w-4 h-4 mr-2" />
-                            Manus
-                            <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

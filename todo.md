@@ -855,3 +855,10 @@
 - [x] Adicionar Badge "Recomendado" à opção Manus no dropdown de Análise
 - [x] Adicionar Badge "Recomendado" à opção Manus no dropdown de Geração
 - [x] Adicionar Badge "Recomendado" à opção Manus no dropdown de Otimização
+
+
+## Reordenar Dropdown - Manus em Primeiro
+
+- [x] Mover opção Manus para primeira posição no dropdown de Análise
+- [x] Mover opção Manus para primeira posição no dropdown de Geração
+- [x] Mover opção Manus para primeira posição no dropdown de Otimização
