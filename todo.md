@@ -880,3 +880,31 @@
 - [x] Adicionar palavras-chave para as novas áreas em PALAVRAS_CHAVE_AREAS
 - [x] Atualizar client/src/const.ts e shared/juridico.ts
 - [x] Verificar se aparecem em todos os dropdowns (Dashboard, Wizard, etc) - Servidor reiniciado com sucesso
+
+
+## Completar Implementação das Novas Áreas Jurídicas
+
+### 1. Templates Específicos
+- [x] Criar template para Direito Médico em TEMPLATES_BASE
+- [x] Criar template para Direito Digital em TEMPLATES_BASE
+- [x] Criar template para Direito Internacional em TEMPLATES_BASE
+
+### 2. Referências Legais
+- [x] Adicionar referências para Direito Médico (Código de Ética Médica, CDC, Lei do Exercício da Medicina)
+- [x] Adicionar referências para Direito Digital (LGPD, Marco Civil, Lei Carolina Dieckmann, Crimes Cibernéticos)
+- [x] Adicionar referências para Direito Internacional (Convenção de Viena, Pacto de San José, Estatuto de Roma)
+
+### 3. Cache de Legislação
+- [x] Adicionar LGPD (Lei 13.709/2018) ao populateCommonLaws (já existia)
+- [x] Adicionar Marco Civil (Lei 12.965/2014) ao populateCommonLaws (já existia)
+- [x] Adicionar Lei Carolina Dieckmann (Lei 12.737/2012) ao populateCommonLaws (já existia)
+- [x] Adicionar Lei de Crimes Cibernéticos (Lei 14.155/2021) ao cache
+- [x] Adicionar Lei de Assinaturas Eletrônicas (Lei 14.063/2020) ao cache
+- [x] Adicionar Decreto de Regulamentação da LGPD (Decreto 10.046/2019) ao cache
+- [x] Adicionar Código de Ética Médica (Resolução CFM 2.217/2018) ao cache
+- [x] Adicionar Lei do Exercício da Medicina (Lei 12.842/2013) ao cache
+- [x] Adicionar Lei do Prontuário Eletrônico (Lei 13.787/2018) ao cache
+- [x] Adicionar Pacto de San José (Decreto 678/1992) ao cache
+- [x] Adicionar Estatuto de Roma (Decreto 4.388/2002) ao cache
+- [x] Adicionar tipo 'resolucao' ao schema de legislacao_cache
+- [x] Executar db:push para atualizar banco de dados

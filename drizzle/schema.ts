@@ -250,7 +250,7 @@ export type InsertUsoModelo = typeof usoModelos.$inferInsert;
 export const legislacaoCache = mysqlTable("legislacao_cache", {
   id: int("id").autoincrement().primaryKey(),
   citacao: varchar("citacao", { length: 500 }).notNull().unique(), // Texto da citação (ex: "Lei 11.101/2005")
-  tipo: mysqlEnum("tipo", ["artigo", "lei", "codigo", "decreto", "portaria"]).notNull(),
+  tipo: mysqlEnum("tipo", ["artigo", "lei", "codigo", "decreto", "portaria", "resolucao"]).notNull(),
   confiabilidade: mysqlEnum("confiabilidade", ["alta", "media", "baixa"]).notNull(),
   motivo: text("motivo").notNull(), // Explicação da confiabilidade
   linkOficial: text("linkOficial"), // Link para fonte oficial

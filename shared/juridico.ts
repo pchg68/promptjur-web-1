@@ -78,7 +78,35 @@ Cite jurisprudência do TST e súmulas aplicáveis ao caso.`,
 3) Análise da legislação tributária aplicável
 4) Fundamentação jurídica
 5) Pedidos e requerimentos
-Considere jurisprudência do STJ e STF sobre a matéria tributária.`
+Considere jurisprudência do STJ e STF sobre a matéria tributária.`,
+
+  "Direito Médico": `Elabore [TIPO_PECA] fundamentada no Código de Ética Médica (Resolução CFM 2.217/2018), Código Civil e artigos [ARTIGOS], contemplando:
+1) Qualificação das partes (paciente/autor e profissional/instituição de saúde)
+2) Histórico médico detalhado com cronologia do tratamento
+3) Descrição do erro médico ou falha no atendimento
+4) Nexo causal entre conduta e dano
+5) Fundamentação em responsabilidade civil médica
+6) Laudo pericial e documentação médica
+7) Pedidos de indenização (danos materiais, morais e estéticos)
+Cite jurisprudência do STJ sobre responsabilidade médica e hospitalar.`,
+
+  "Direito Digital": `Elabore [TIPO_PECA] com base na LGPD (Lei 13.709/2018), Marco Civil da Internet (Lei 12.965/2014) e artigos [ARTIGOS], incluindo:
+1) Qualificação das partes
+2) Descrição dos fatos envolvendo violação digital
+3) Identificação da violação (dados pessoais, privacidade, crimes cibernéticos)
+4) Fundamentação legal específica (LGPD, Marco Civil, Código Penal)
+5) Provas digitais e perícia técnica
+6) Pedidos (remoção de conteúdo, indenização, medidas cautelares)
+Considere princípios de proteção de dados e jurisprudência sobre crimes digitais.`,
+
+  "Direito Internacional": `Elabore [TIPO_PECA] fundamentada em tratados internacionais, convenções e artigos [ARTIGOS], contemplando:
+1) Qualificação das partes (Estados, organizações, pessoas físicas/jurídicas)
+2) Descrição dos fatos com contexto internacional
+3) Identificação da jurisdição aplicável
+4) Fundamentação em tratados, convenções e costume internacional
+5) Análise de conflito de leis no espaço
+6) Pedidos e requerimentos
+Cite jurisprudência de cortes internacionais (CIJ, CIDH, tribunais arbitrais) quando aplicável.`
 };
 
 /**
@@ -105,5 +133,28 @@ export const REFERENCIAS_LEGAIS: Record<string, string[]> = {
     "Lei 5.172/1966 (Código Tributário Nacional)",
     "Constituição Federal/1988 (arts. 145 a 162)",
     "Lei Complementar 123/2006 (Simples Nacional)"
+  ],
+  "Direito Médico": [
+    "Resolução CFM 2.217/2018 (Código de Ética Médica)",
+    "Lei 10.406/2002 (Código Civil - Responsabilidade Civil)",
+    "Lei 8.078/1990 (Código de Defesa do Consumidor)",
+    "Lei 12.842/2013 (Exercício da Medicina)",
+    "Lei 13.787/2018 (Prontuário Eletrônico)"
+  ],
+  "Direito Digital": [
+    "Lei 13.709/2018 (LGPD - Lei Geral de Proteção de Dados)",
+    "Lei 12.965/2014 (Marco Civil da Internet)",
+    "Lei 12.737/2012 (Lei Carolina Dieckmann - Crimes Informáticos)",
+    "Lei 14.155/2021 (Crimes Cibernéticos)",
+    "Decreto 10.046/2019 (Regulamentação da LGPD)",
+    "Lei 14.063/2020 (Assinaturas Eletrônicas)"
+  ],
+  "Direito Internacional": [
+    "Convenção de Viena sobre Direito dos Tratados (1969)",
+    "Pacto de San José da Costa Rica (Convenção Americana de Direitos Humanos)",
+    "Estatuto de Roma (Tribunal Penal Internacional)",
+    "Convenção de Nova Iorque sobre Arbitragem (1958)",
+    "Convenção de Genebra (Direito Humanitário)",
+    "Constituição Federal/1988 (arts. 4º e 5º, §§ 2º e 3º)"
   ]
 };
