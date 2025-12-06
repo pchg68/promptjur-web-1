@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2 } from "lucide-react";
+import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2, FileDown } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -104,6 +104,41 @@ export default function Historico() {
     if (confirm("Tem certeza que deseja excluir este prompt?")) {
       excluirMutation.mutate({ id });
     }
+  };
+
+  const exportarPDFMutation = trpc.prompts.exportarPDF.useMutation({
+    onSuccess: (data) => {
+      // Converter base64 para blob e fazer download
+      const byteCharacters = atob(data.buffer);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = data.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('PDF exportado com sucesso!', {
+        description: `Arquivo ${data.filename} baixado`
+      });
+    },
+    onError: (error) => {
+      toast.error('Erro ao exportar PDF', {
+        description: error.message
+      });
+    }
+  });
+
+  const handleExportarPDF = (promptId: number) => {
+    exportarPDFMutation.mutate({ promptId });
   };
 
   return (
@@ -277,6 +312,17 @@ export default function Historico() {
                               title="Reutilizar no Dashboard"
                             >
                               <RotateCcw className="w-4 h-4" />
+                            </Button>
+                            
+                            {/* Exportar PDF */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleExportarPDF(prompt.id)}
+                              title="Exportar como PDF"
+                              className="text-blue-500 hover:text-blue-600"
+                            >
+                              <FileDown className="w-4 h-4" />
                             </Button>
                             
                             {/* Excluir */}

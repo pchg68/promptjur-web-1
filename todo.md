@@ -962,3 +962,40 @@
 - [ ] Adicionar botão "Exportar" nos detalhes do prompt
 - [ ] Adicionar opção de exportação em lote no Histórico
 - [ ] Incluir metadados: área, qualidade, citações validadas, data, tags
+
+
+## Novas Funcionalidades Finais
+
+### 1. Exportação de Prompts em PDF/DOCX
+- [x] Instalar bibliotecas jspdf e jspdf-autotable para PDF
+- [x] Instalar biblioteca docx para DOCX
+- [x] Criar helper de exportação em server/export-prompt.ts
+- [x] Adicionar procedure tRPC prompts.exportarPDF
+- [ ] Adicionar botão "Exportar" no modal de detalhes do histórico (opcional)
+- [x] Adicionar botão "Exportar PDF" nas quick actions do histórico
+- [x] Implementar geração de PDF com metadados (área, qualidade, citações, data)
+- [x] Implementar download automático de PDF
+- [ ] Implementar geração de DOCX com metadados (DOCX já existe via exportarDocx)
+- [ ] Adicionar dropdown para escolher formato (PDF/DOCX) - Opcional
+
+### 2. Persistência de Preferências do Usuário
+- [ ] Criar hook useUserPreferences para gerenciar localStorage
+- [ ] Salvar última plataforma de IA escolhida
+- [ ] Destacar plataforma preferida no dropdown com checkmark
+- [ ] Salvar preferência modo wizard/avançado
+- [ ] Restaurar modo preferido ao carregar Dashboard
+- [ ] Adicionar toggle de tema (dark/light) se ainda não existir
+- [ ] Salvar preferência de tema
+- [ ] Criar seção "Preferências" no Dashboard
+
+### 3. Dashboard Administrativo
+- [ ] Criar página AdminDashboard.tsx
+- [ ] Adicionar rota /admin protegida por role
+- [ ] Criar procedure tRPC admin.getMetrics
+- [ ] Implementar métricas: prompts mais gerados por área
+- [ ] Implementar métricas: áreas jurídicas mais utilizadas
+- [ ] Implementar métricas: taxa de adoção Manus vs outras IAs
+- [ ] Implementar métricas: usuários ativos (últimos 7/30 dias)
+- [ ] Implementar métricas: crescimento de uso (gráfico temporal)
+- [ ] Adicionar link "Admin" no menu para usuários admin
+- [ ] Criar visualizações com gráficos (Chart.js)
