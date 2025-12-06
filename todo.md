@@ -935,3 +935,30 @@
 - [x] Identificar fontes alternativas (Planalto, Jusbrasil, LexML)
 - [x] Recomendar manutenção de abordagem de cache local
 - [ ] Monitorar futuras iniciativas de dados abertos governamentais
+
+
+## Novas Funcionalidades de UX
+
+### 1. Onboarding Interativo com Driver.js
+- [x] Instalar pacote driver.js via pnpm
+- [x] Criar componente OnboardingTour.tsx
+- [x] Definir passos do tour (modo assistido, exemplos práticos, validação visual, dropdown de plataformas, quick actions, cache stats)
+- [x] Implementar detecção de primeira visita (localStorage)
+- [x] Adicionar botão "Iniciar Tour" no Dashboard (header)
+- [x] Integrar tour no Dashboard principal com hook useOnboardingTour
+- [x] Adicionar atributos data-tour nos elementos-chave
+### 2. Filtros por Área no Histórico
+- [x] Filtro por área jurídica JÁ IMPLEMENTADO no componente AdvancedSearch
+- [x] Lógica de filtragem via tRPC procedure prompts.search
+- [x] Badges de filtros ativos com remoção individual
+- [x] Múltipla seleção de áreas com toggle
+- [x] Todas as 16 áreas disponíveis (incluindo Médico, Digital, Internacional)no localStorage
+- [ ] Adicionar botão "Limpar Filtros"
+
+### 3. Exportação de Prompts
+- [ ] Criar procedure tRPC para exportação (prompts.export)
+- [ ] Implementar geração de PDF com metadados
+- [ ] Implementar geração de DOCX com metadados
+- [ ] Adicionar botão "Exportar" nos detalhes do prompt
+- [ ] Adicionar opção de exportação em lote no Histórico
+- [ ] Incluir metadados: área, qualidade, citações validadas, data, tags

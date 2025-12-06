@@ -27,12 +27,14 @@ import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 import { NotificationBell } from "@/components/NotificationBell";
 import { CacheStatistics } from "@/components/CacheStatistics";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { OnboardingTour, useOnboardingTour } from "@/components/OnboardingTour";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState("analisar");
   const [modoWizard, setModoWizard] = useState(false);
+  const { startTour } = useOnboardingTour();
   
   // Estado para Modo Compacto (persistido no localStorage)
   const [isCompactMode, setIsCompactMode] = useState(() => {
@@ -457,25 +459,37 @@ export default function Dashboard() {
                 </Link>
               </nav>
               <NotificationBell />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleCompactMode}
-                className="flex items-center gap-2"
-                title={isCompactMode ? 'Modo Completo' : 'Modo Compacto'}
-              >
-                {isCompactMode ? (
-                  <>
-                    <Maximize2 className="w-4 h-4" />
-                    <span className="text-sm">Expandir</span>
-                  </>
-                ) : (
-                  <>
-                    <Minimize2 className="w-4 h-4" />
-                    <span className="text-sm">Compacto</span>
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={startTour}
+                  className="flex items-center gap-2"
+                  title="Iniciar tour guiado"
+                >
+                  <Eye className="w-4 h-4" />
+                  Tour
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleCompactMode}
+                  className="flex items-center gap-2"
+                  title={isCompactMode ? 'Modo Completo' : 'Modo Compacto'}
+                >
+                  {isCompactMode ? (
+                    <>
+                      <Maximize2 className="w-4 h-4" />
+                      Modo Completo
+                    </>
+                  ) : (
+                    <>
+                      <Minimize2 className="w-4 h-4" />
+                      Modo Compacto
+                    </>
+                  )}
+                </Button>
+              </div>
               <span className="text-sm text-muted-foreground border-l border-border pl-6">Olá, {user?.name}</span>
             </div>
           </div>
@@ -491,6 +505,7 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground">Escolha entre modo avançado ou assistente guiado</p>
           </div>
           <Button
+            data-tour="modo-assistido"
             variant={modoWizard ? "default" : "outline"}
             onClick={() => setModoWizard(!modoWizard)}
             className="flex items-center gap-2"
@@ -583,7 +598,7 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-2" data-tour="validacao-visual">
                   <Label htmlFor="prompt-analise">Prompt para Análise</Label>
                   <HighlightedTextarea
                     value={promptAnalise}
@@ -650,7 +665,7 @@ export default function Dashboard() {
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="default" size="sm">
+                            <Button variant="default" size="sm" data-tour="testar-prompt">
                               <Zap className="w-4 h-4 mr-2" />
                               Testar Prompt
                               <ChevronDown className="w-3 h-3 ml-1" />
