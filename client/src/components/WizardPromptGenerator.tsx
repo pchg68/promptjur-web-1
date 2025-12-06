@@ -10,6 +10,7 @@ import {
   Scale, Briefcase, Users, Building2, TreePine, Shield, Landmark, Coins
 } from "lucide-react";
 import { AREAS_JURIDICAS } from "@/const";
+import { EXEMPLOS_POR_AREA, type ExemploArea } from "@shared/exemplos-areas";
 
 interface WizardPromptGeneratorProps {
   onComplete: (data: WizardData) => void;
@@ -62,6 +63,7 @@ export function WizardPromptGenerator({ onComplete, onCancel }: WizardPromptGene
   const [objetivo, setObjetivo] = useState<'analisar' | 'gerar' | 'otimizar' | null>(null);
   const [areaJuridica, setAreaJuridica] = useState<string>('');
   const [descricaoCaso, setDescricaoCaso] = useState('');
+  const [mostrarExemplos, setMostrarExemplos] = useState(false);
 
   const handleProximo = () => {
     if (passo < 3) {
@@ -254,9 +256,41 @@ export function WizardPromptGenerator({ onComplete, onCancel }: WizardPromptGene
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="descricao">
-                {objetivo === 'gerar' ? 'Descrição do Caso' : 'Prompt'}
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="descricao">
+                  {objetivo === 'gerar' ? 'Descrição do Caso' : 'Prompt'}
+                </Label>
+                {areaJuridica && EXEMPLOS_POR_AREA[areaJuridica] && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setMostrarExemplos(!mostrarExemplos)}
+                    className="text-xs"
+                  >
+                    {mostrarExemplos ? 'Ocultar' : 'Ver'} Exemplos
+                  </Button>
+                )}
+              </div>
+              {mostrarExemplos && areaJuridica && EXEMPLOS_POR_AREA[areaJuridica] && (
+                <div className="mb-3 p-4 bg-muted/50 rounded-lg border space-y-3">
+                  <p className="text-sm font-semibold">Exemplos de {areaJuridica}:</p>
+                  {EXEMPLOS_POR_AREA[areaJuridica].map((exemplo, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setDescricaoCaso(exemplo.prompt);
+                        setMostrarExemplos(false);
+                      }}
+                      className="w-full text-left p-3 rounded-md border border-border hover:border-primary hover:bg-primary/5 transition-all"
+                    >
+                      <p className="font-medium text-sm mb-1">{exemplo.titulo}</p>
+                      <p className="text-xs text-muted-foreground">{exemplo.descricao}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
               <Textarea
                 id="descricao"
                 placeholder={

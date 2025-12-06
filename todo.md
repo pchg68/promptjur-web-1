@@ -908,3 +908,30 @@
 - [x] Adicionar Estatuto de Roma (Decreto 4.388/2002) ao cache
 - [x] Adicionar tipo 'resolucao' ao schema de legislacao_cache
 - [x] Executar db:push para atualizar banco de dados
+
+
+## Melhorias para Novas Áreas Jurídicas
+
+### 1. Exemplos Práticos no Wizard Mode
+- [x] Criar exemplos para Direito Médico (erro médico, prontuário, responsabilidade hospitalar)
+- [x] Criar exemplos para Direito Digital (vazamento de dados, crimes cibernéticos, LGPD)
+- [x] Criar exemplos para Direito Internacional (arbitragem, tratados, jurisdição)
+- [x] Criar arquivo shared/exemplos-areas.ts com 9 exemplos (3 por área)
+- [x] Adicionar botão "Ver Exemplos" no passo 3 do WizardPromptGenerator
+- [x] Implementar modal de exemplos com preenchimento automático
+
+### 2. Expandir Palavras-Chave Técnicas
+- [x] Adicionar termos de Direito Médico (telemedicina, prontuário eletrônico, iatrogenia, + 18 termos)
+- [x] Adicionar termos de Direito Digital (blockchain, phishing, ransomware, cookies, + 19 termos)
+- [x] Adicionar termos de Direito Internacional (arbitragem, extradicção, imunidade diplomática, + 21 termos)
+- [x] Atualizar PALAVRAS_CHAVE_AREAS em shared/juridico.ts
+- [x] Total de 58 novos termos técnicos adicionados
+
+### 3. Integração com APIs Especializadas
+- [x] Pesquisar disponibilidade de API do CFM (Conselho Federal de Medicina) - Não disponível
+- [x] Pesquisar disponibilidade de API da ANPD (Autoridade Nacional de Proteção de Dados) - Não disponível
+- [x] Pesquisar disponibilidade de API da CIJ (Corte Internacional de Justiça) - Não disponível
+- [x] Documentar pesquisa em docs/apis-especializadas.md
+- [x] Identificar fontes alternativas (Planalto, Jusbrasil, LexML)
+- [x] Recomendar manutenção de abordagem de cache local
+- [ ] Monitorar futuras iniciativas de dados abertos governamentais
