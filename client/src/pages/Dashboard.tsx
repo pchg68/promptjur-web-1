@@ -457,6 +457,12 @@ export default function Dashboard() {
                   <BookTemplate className="w-4 h-4" />
                   Templates
                 </Link>
+                {user?.role === 'admin' && (
+                  <Link href="/admin" className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors">
+                    <Shield className="w-4 h-4" />
+                    Admin
+                  </Link>
+                )}
               </nav>
               <NotificationBell />
               <div className="flex items-center gap-2">

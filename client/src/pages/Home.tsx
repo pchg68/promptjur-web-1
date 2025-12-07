@@ -21,6 +21,14 @@ export default function Home() {
               {isAuthenticated ? (
                 <>
                   <span className="text-sm text-muted-foreground">Olá, {user?.name}</span>
+                  {user?.role === 'admin' && (
+                    <Link href="/admin">
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        Admin
+                      </Button>
+                    </Link>
+                  )}
                   <Link href="/dashboard">
                     <Button variant="default">Dashboard</Button>
                   </Link>

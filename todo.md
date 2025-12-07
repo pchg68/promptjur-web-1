@@ -999,3 +999,21 @@
 - [ ] Implementar métricas: crescimento de uso (gráfico temporal)
 - [ ] Adicionar link "Admin" no menu para usuários admin
 - [ ] Criar visualizações com gráficos (Chart.js)
+
+## Dashboard Administrativo (Concluído)
+- [x] Criar procedures backend para métricas administrativas
+  - [x] Prompts mais gerados por área jurídica
+  - [x] Taxa de adoção de plataformas de IA (Manus vs outras)
+  - [x] Usuários ativos (total e por período)
+  - [x] Estatísticas de cache de legislação
+  - [x] Distribuição de uso por funcionalidade
+- [x] Implementar funções de banco de dados para estatísticas
+- [x] Criar página AdminDashboard.tsx com gráficos
+  - [x] Gráfico de barras: Top 10 áreas jurídicas mais usadas
+  - [x] Gráfico de pizza: Distribuição de plataformas de IA
+  - [x] Cards de métricas: Usuários ativos, prompts totais, cache hits
+  - [x] Lista: Prompts mais recentes
+  - [x] Gráfico de linha: Evolução de uso (30 dias)
+  - [x] Gráfico de barras: Distribuição por tipo (análise/geração/otimização)
+- [x] Adicionar proteção de rota (apenas admin)
+- [x] Adicionar link de navegação no header para admins (Home e Dashboard)
