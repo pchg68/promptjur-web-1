@@ -1017,3 +1017,22 @@
   - [x] Gráfico de barras: Distribuição por tipo (análise/geração/otimização)
 - [x] Adicionar proteção de rota (apenas admin)
 - [x] Adicionar link de navegação no header para admins (Home e Dashboard)
+
+## Persistência de Preferências do Usuário (Concluído)
+- [x] Criar hook customizado useUserPreferences
+  - [x] Gerenciar localStorage de forma centralizada
+  - [x] Tipos TypeScript para preferências
+  - [x] Funções get/set para cada preferência
+- [x] Implementar persistência da plataforma de IA
+  - [x] Salvar última plataforma escolhida no dropdown "Testar Prompt"
+  - [x] Restaurar plataforma ao carregar página
+  - [x] Badge "Última" em todos os dropdowns (3 tabs)
+- [x] Implementar persistência do modo wizard/avançado
+  - [x] Salvar preferência de modo (wizard ou avançado)
+  - [x] Restaurar modo ao carregar Dashboard
+  - [x] Manter estado entre sessões
+  - [x] Toast de confirmação ao salvar preferência
+- [x] Implementar persistência do tema de cores
+  - [x] Integrar com ThemeContext existente
+  - [x] Salvar preferência dark/light
+  - [x] Restaurar tema ao carregar aplicação
