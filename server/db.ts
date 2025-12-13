@@ -110,9 +110,6 @@ export async function createPrompt(data: InsertPrompt) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(prompts).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert prompt: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -223,9 +220,6 @@ export async function createAnalise(data: InsertAnalise) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(analises).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert analise: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -266,9 +260,6 @@ export async function createTemplate(data: InsertTemplate) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(templates).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert template: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -289,9 +280,6 @@ export async function createFonteJuridica(data: InsertFonteJuridica) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(fontesJuridicas).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert fonte juridica: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -312,9 +300,6 @@ export async function createHistorico(data: InsertHistorico) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(historico).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert historico: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -330,14 +315,7 @@ export async function getUserHistorico(userId: number, limit = 100) {
 
 export async function getUserStats(userId: number) {
   const db = await getDb();
-  if (!db) return { 
-    totalAnalises: 0, 
-    totalGeracoes: 0, 
-    totalOtimizacoes: 0, 
-    totalTemplates: 0, 
-    totalFavoritos: 0,
-    areasMaisUsadas: [] as { area: string; count: number }[]
-  };
+  if (!db) return { totalAnalises: 0, totalGeracoes: 0, totalOtimizacoes: 0, totalTemplates: 0 };
   
   const hist = await db.select().from(historico)
     .where(and(
@@ -357,32 +335,7 @@ export async function getUserStats(userId: number) {
     ));
   const totalTemplates = userTemplates.length;
   
-  // Contar favoritos
-  const userPrompts = await db.select().from(prompts)
-    .where(eq(prompts.userId, userId));
-  const totalFavoritos = userPrompts.filter(p => p.isFavorito).length;
-  
-  // Calcular áreas mais usadas
-  const areaCount = new Map<string, number>();
-  userPrompts.forEach(p => {
-    if (p.areaJuridica) {
-      areaCount.set(p.areaJuridica, (areaCount.get(p.areaJuridica) || 0) + 1);
-    }
-  });
-  
-  const areasMaisUsadas = Array.from(areaCount.entries())
-    .map(([area, count]) => ({ area, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5); // Top 5 áreas
-  
-  return { 
-    totalAnalises, 
-    totalGeracoes, 
-    totalOtimizacoes, 
-    totalTemplates, 
-    totalFavoritos,
-    areasMaisUsadas
-  };
+  return { totalAnalises, totalGeracoes, totalOtimizacoes, totalTemplates };
 }
 
 // ===== CONFIGURACAO HELPERS =====
@@ -452,9 +405,6 @@ export async function salvarTemplate(data: InsertTemplate) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(templates).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert template: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -522,9 +472,6 @@ export async function criarTag(data: InsertTag) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(tags).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert tag: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -565,9 +512,6 @@ export async function atribuirTagTemplate(templateId: number, tagId: number) {
     templateId,
     tagId
   });
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert template tag: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -605,9 +549,6 @@ export async function salvarVersaoPrompt(data: InsertPromptVersao) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(promptVersoes).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert prompt versao: no insertId returned");
-  }
   return result[0].insertId;
 }
 
@@ -759,9 +700,6 @@ export async function atribuirTagPrompt(promptId: number, tagId: number) {
     promptId,
     tagId
   });
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert prompt tag: no insertId returned");
-  }
   return result[0].insertId;
 }
 

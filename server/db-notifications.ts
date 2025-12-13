@@ -9,9 +9,6 @@ export async function createNotification(data: InsertNotification) {
   if (!db) throw new Error("Database not available");
 
   const result = await db.insert(notifications).values(data);
-  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
-    throw new Error("Failed to insert notification: no insertId returned");
-  }
   return result[0].insertId;
 }
 

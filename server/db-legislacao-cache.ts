@@ -102,9 +102,8 @@ export async function cleanExpiredCache(): Promise<number> {
       .delete(legislacaoCache)
       .where(lt(legislacaoCache.expiresAt, now));
 
-    // Drizzle retorna um array vazio para deletes, não tem rowsAffected
-    console.log(`[Cache] Registros expirados removidos com sucesso`);
-    return 0; // Não é possível obter o número exato com Drizzle MySQL
+    console.log(`[Cache] ${result.rowsAffected || 0} registros expirados removidos`);
+    return result.rowsAffected || 0;
   } catch (error) {
     console.error("[Cache] Erro ao limpar cache expirado:", error);
     return 0;
@@ -116,15 +115,12 @@ export async function cleanExpiredCache(): Promise<number> {
  */
 export async function getCacheStatistics(): Promise<{
   total: number;
-  totalEntradas: number;
-  taxaHits: number;
-  economiaTempoEstimada: number;
   porTipo: Record<string, number>;
   porConfiabilidade: Record<string, number>;
 }> {
   const db = await getDb();
   if (!db) {
-    return { total: 0, totalEntradas: 0, taxaHits: 0, economiaTempoEstimada: 0, porTipo: {}, porConfiabilidade: {} };
+    return { total: 0, porTipo: {}, porConfiabilidade: {} };
   }
 
   try {
@@ -138,25 +134,14 @@ export async function getCacheStatistics(): Promise<{
       porConfiabilidade[entry.confiabilidade] = (porConfiabilidade[entry.confiabilidade] || 0) + 1;
     });
 
-    const totalEntradas = allEntries.length;
-    // Estimar taxa de hits (assumindo que cada entrada no cache evitou 1 consulta externa)
-    // Taxa de hits = (entradas no cache / total de consultas estimadas) * 100
-    // Para simplificar, assumimos que o cache tem 80% de eficácia
-    const taxaHits = totalEntradas > 0 ? 80 : 0;
-    // Economia de tempo: cada hit economiza ~2 segundos de consulta externa
-    const economiaTempoEstimada = totalEntradas * 2;
-
     return {
       total: allEntries.length,
-      totalEntradas,
-      taxaHits,
-      economiaTempoEstimada,
       porTipo,
       porConfiabilidade,
     };
   } catch (error) {
     console.error("[Cache] Erro ao obter estatísticas:", error);
-    return { total: 0, totalEntradas: 0, taxaHits: 0, economiaTempoEstimada: 0, porTipo: {}, porConfiabilidade: {} };
+    return { total: 0, porTipo: {}, porConfiabilidade: {} };
   }
 }
 
@@ -251,7 +236,7 @@ export async function populateCommonLaws(): Promise<number> {
     // Direito Médico
     { citacao: "Lei 12.842/2013", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei do Exercício da Medicina", linkOficial: "http://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/l12842.htm" },
     { citacao: "Lei 13.787/2018", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei do Prontuário Eletrônico", linkOficial: "http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13787.htm" },
-    { citacao: "Resolução CFM 2.217/2018", tipo: "portaria" as const, confiabilidade: "alta" as const, motivo: "Código de Ética Médica", linkOficial: "https://portal.cfm.org.br/images/PDF/cem2019.pdf" },
+    { citacao: "Resolução CFM 2.217/2018", tipo: "resolucao" as const, confiabilidade: "alta" as const, motivo: "Código de Ética Médica", linkOficial: "https://portal.cfm.org.br/images/PDF/cem2019.pdf" },
     
     // Direito Digital (já inclusos: LGPD, Marco Civil, Lei Carolina Dieckmann)
     { citacao: "Lei 14.155/2021", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei de Crimes Cibernéticos", linkOficial: "http://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14155.htm" },

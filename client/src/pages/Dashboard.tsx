@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu, Settings } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -49,9 +49,6 @@ export default function Dashboard() {
     const saved = localStorage.getItem('promptjur-compact-mode');
     return saved ? JSON.parse(saved) : false;
   });
-  
-  // Mutation para registrar teste de plataforma
-  const registrarTesteMutation = trpc.prompts.registrarTestePlataforma.useMutation();
   
   // Estado para Modal de Avaliação
   const [avaliacaoModal, setAvaliacaoModal] = useState<{
@@ -295,7 +292,7 @@ export default function Dashboard() {
     
     // Registrar no banco de dados se promptId foi fornecido
     if (promptId) {
-      registrarTesteMutation.mutate({ promptId, plataforma });
+      trpc.prompts.registrarTestePlataforma.mutate({ promptId, plataforma });
     }
     
     // Copiar para clipboard
@@ -609,7 +606,7 @@ export default function Dashboard() {
                   handleGerar();
                 }, 100);
               } else if (data.objetivo === 'otimizar') {
-                setPromptOtimizacao(data.descricaoCaso);
+                setPromptOtimizar(data.descricaoCaso);
                 setActiveTab('otimizar');
                 setModoWizard(false);
                 // Executar otimização automaticamente

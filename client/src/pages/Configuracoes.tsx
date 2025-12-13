@@ -164,7 +164,7 @@ export default function Configuracoes() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Total de Prompts</p>
-                  <p className="text-2xl font-bold text-foreground">{(stats?.totalAnalises || 0) + (stats?.totalGeracoes || 0) + (stats?.totalOtimizacoes || 0)}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats?.totalPrompts || 0}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Favoritos</p>
