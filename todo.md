@@ -1036,3 +1036,25 @@
   - [x] Integrar com ThemeContext existente
   - [x] Salvar preferência dark/light
   - [x] Restaurar tema ao carregar aplicação
+
+## Rastreamento Real de Plataforma de IA (Concluído)
+- [x] Adicionar campo plataformaTeste na tabela prompts (enum com 5 plataformas)
+- [x] Atualizar procedures para salvar plataforma ao testar prompt (registrarTestePlataforma)
+- [x] Modificar função testarPromptNaPlataforma para registrar no banco (promptId passado)
+- [x] Atualizar dashboard administrativo com dados reais de distribuição (getDistribuicaoPlataformas)
+- [x] Adicionar promptId em todas as 15 chamadas de testarPromptNaPlataforma (3 tabs x 5 plataformas)
+
+## Página de Configurações do Usuário (Concluído)
+- [x] Criar página Configuracoes.tsx em /configuracoes
+- [x] Seção de preferências (plataforma padrão, modo wizard/avançado)
+- [x] Seção de aparência (tema dark/light)
+- [x] Botão para resetar todas as preferências (zona de perigo)
+- [x] Estatísticas pessoais de uso (4 cards + áreas mais usadas)
+- [x] Link no header do Dashboard
+- [x] Adicionar rota /configuracoes no App.tsx
+
+## Histórico de Plataformas Testadas (Concluído)
+- [x] Adicionar coluna "Plataforma" na tabela do Histórico
+- [x] Mostrar qual plataforma foi usada para testar cada prompt (texto colorido)
+- [x] Tooltip com nome da plataforma ao passar mouse (title attribute)
+- [x] Texto visual com cor específica por plataforma (5 cores diferentes)

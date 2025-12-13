@@ -235,13 +235,11 @@ export default function Historico() {
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Data/Hora</TableHead>
-                      <TableHead>Tipo</TableHead>
-
+                    <TableRow>                      <TableHead>Tipo</TableHead>
+                      <TableHead>Área Jurídica</TableHead>
+                      <TableHead>Plataforma</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
+                      <TableHead className="text-right">Ações</TableHead>                   </TableRow>
                   </TableHeader>
                   <TableBody>
                     {prompts.map((prompt) => (
@@ -255,7 +253,19 @@ export default function Historico() {
                         <TableCell>
                           <Badge variant="outline">{prompt.areaJuridica || "N/A"}</Badge>
                         </TableCell>
-
+                        <TableCell>
+                          {prompt.plataformaTeste ? (
+                            <div className="flex items-center gap-1.5" title={`Testado em ${prompt.plataformaTeste}`}>
+                              {prompt.plataformaTeste === 'manus' && <span className="text-blue-400 text-xs font-semibold">Manus</span>}
+                              {prompt.plataformaTeste === 'chatgpt' && <span className="text-green-400 text-xs font-semibold">ChatGPT</span>}
+                              {prompt.plataformaTeste === 'claude' && <span className="text-purple-400 text-xs font-semibold">Claude</span>}
+                              {prompt.plataformaTeste === 'gemini' && <span className="text-orange-400 text-xs font-semibold">Gemini</span>}
+                              {prompt.plataformaTeste === 'perplexity' && <span className="text-cyan-400 text-xs font-semibold">Perplexity</span>}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           {prompt.qualidade === "excelente" ? (
                             <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">

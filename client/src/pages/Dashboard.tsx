@@ -272,9 +272,14 @@ export default function Dashboard() {
     toast.success("Copiado para a área de transferência!");
   };
 
-  const testarPromptNaPlataforma = (prompt: string, plataforma: 'chatgpt' | 'claude' | 'gemini' | 'perplexity' | 'manus') => {
+  const testarPromptNaPlataforma = (prompt: string, plataforma: 'chatgpt' | 'claude' | 'gemini' | 'perplexity' | 'manus', promptId?: number) => {
     // Salvar plataforma escolhida nas preferências
     setLastAIPlatform(plataforma);
+    
+    // Registrar no banco de dados se promptId foi fornecido
+    if (promptId) {
+      trpc.prompts.registrarTestePlataforma.mutate({ promptId, plataforma });
+    }
     
     // Copiar para clipboard
     navigator.clipboard.writeText(prompt);
@@ -466,6 +471,10 @@ export default function Dashboard() {
                 <Link href="/templates" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <BookTemplate className="w-4 h-4" />
                   Templates
+                </Link>
+                <Link href="/configuracoes" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Settings className="w-4 h-4" />
+                  Configurações
                 </Link>
                 {user?.role === 'admin' && (
                   <Link href="/admin" className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors">
@@ -693,7 +702,7 @@ export default function Dashboard() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'manus')}>
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'manus', analiseMutation.data?.promptId)}>
                               <Cpu className="w-4 h-4 mr-2" />
                               Manus
                               <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
@@ -701,28 +710,28 @@ export default function Dashboard() {
                                 <Badge variant="outline" className="ml-2 text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                               )}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'chatgpt')}>
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'chatgpt', analiseMutation.data?.promptId)}>
                               <Bot className="w-4 h-4 mr-2" />
                               ChatGPT
                               {preferences.lastAIPlatform === 'chatgpt' && (
                                 <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                               )}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'claude')}>
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'claude', analiseMutation.data?.promptId)}>
                               <MessageSquare className="w-4 h-4 mr-2" />
                               Claude
                               {preferences.lastAIPlatform === 'claude' && (
                                 <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                               )}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'gemini')}>
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'gemini', analiseMutation.data?.promptId)}>
                               <Sparkle className="w-4 h-4 mr-2" />
                               Gemini
                               {preferences.lastAIPlatform === 'gemini' && (
                                 <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                               )}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'perplexity')}>
+                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'perplexity', analiseMutation.data?.promptId)}>
                               <Search className="w-4 h-4 mr-2" />
                               Perplexity
                               {preferences.lastAIPlatform === 'perplexity' && (
@@ -1000,7 +1009,7 @@ export default function Dashboard() {
                              </Button>
                            </DropdownMenuTrigger>
                            <DropdownMenuContent align="end">
-                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'manus')}>
+                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'manus', geracaoMutation.data?.promptId)}>
                                <Cpu className="w-4 h-4 mr-2" />
                                Manus
                                <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
@@ -1008,28 +1017,28 @@ export default function Dashboard() {
                                  <Badge variant="outline" className="ml-2 text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                                )}
                              </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'chatgpt')}>
+                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'chatgpt', geracaoMutation.data?.promptId)}>
                                <Bot className="w-4 h-4 mr-2" />
                                ChatGPT
                                {preferences.lastAIPlatform === 'chatgpt' && (
                                  <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                                )}
                              </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'claude')}>
+                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'claude', geracaoMutation.data?.promptId)}>
                                <MessageSquare className="w-4 h-4 mr-2" />
                                Claude
                                {preferences.lastAIPlatform === 'claude' && (
                                  <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                                )}
                              </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'gemini')}>
+                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'gemini', geracaoMutation.data?.promptId)}>
                                <Sparkle className="w-4 h-4 mr-2" />
                                Gemini
                                {preferences.lastAIPlatform === 'gemini' && (
                                  <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                                )}
                              </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'perplexity')}>
+                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'perplexity', geracaoMutation.data?.promptId)}>
                                <Search className="w-4 h-4 mr-2" />
                                Perplexity
                                {preferences.lastAIPlatform === 'perplexity' && (
@@ -1195,7 +1204,7 @@ export default function Dashboard() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'manus')}>
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'manus', otimizacaoMutation.data?.promptId)}>
                             <Cpu className="w-4 h-4 mr-2" />
                             Manus
                             <Badge variant="secondary" className="ml-auto text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">Recomendado</Badge>
@@ -1203,28 +1212,28 @@ export default function Dashboard() {
                               <Badge variant="outline" className="ml-2 text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                             )}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'chatgpt')}>
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'chatgpt', otimizacaoMutation.data?.promptId)}>
                             <Bot className="w-4 h-4 mr-2" />
                             ChatGPT
                             {preferences.lastAIPlatform === 'chatgpt' && (
                               <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                             )}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'claude')}>
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'claude', otimizacaoMutation.data?.promptId)}>
                             <MessageSquare className="w-4 h-4 mr-2" />
                             Claude
                             {preferences.lastAIPlatform === 'claude' && (
                               <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                             )}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'gemini')}>
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'gemini', otimizacaoMutation.data?.promptId)}>
                             <Sparkle className="w-4 h-4 mr-2" />
                             Gemini
                             {preferences.lastAIPlatform === 'gemini' && (
                               <Badge variant="outline" className="ml-auto text-xs bg-green-500/10 text-green-400 border-green-500/30">Última</Badge>
                             )}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'perplexity')}>
+                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'perplexity', otimizacaoMutation.data?.promptId)}>
                             <Search className="w-4 h-4 mr-2" />
                             Perplexity
                             {preferences.lastAIPlatform === 'perplexity' && (

@@ -619,6 +619,17 @@ Responda em formato JSON com:
           buffer: buffer.toString('base64'),
           filename: `prompt_${prompt.id}_${prompt.tipo}.pdf`
         };
+      }),
+
+    // Registrar teste de prompt em plataforma
+    registrarTestePlataforma: protectedProcedure
+      .input(z.object({
+        promptId: z.number(),
+        plataforma: z.enum(["manus", "chatgpt", "claude", "gemini", "perplexity"])
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await db.atualizarPlataformaTeste(input.promptId, input.plataforma, ctx.user.id);
+        return { success: true };
       })
   }),
 

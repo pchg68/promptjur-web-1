@@ -32,6 +32,7 @@ export const prompts = mysqlTable("prompts", {
   promptOtimizado: text("promptOtimizado"),
   qualidade: mysqlEnum("qualidade", ["excelente", "bom", "ruim"]),
   isFavorito: boolean("isFavorito").default(false),
+  plataformaTeste: mysqlEnum("plataformaTeste", ["manus", "chatgpt", "claude", "gemini", "perplexity"]), // Plataforma usada para testar o prompt
   metadata: json("metadata"), // Para armazenar dados adicionais como palavras-chave, entidades, etc.
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

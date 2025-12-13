@@ -10,6 +10,7 @@ import Historico from "./pages/Historico";
 import Templates from "./pages/Templates";
 import TemplatePublico from "./pages/TemplatePublico";
 import AdminDashboard from "./pages/AdminDashboard";
+import Configuracoes from "./pages/Configuracoes";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/configuracoes"} component={Configuracoes} />
       <Route path={"/historico"} component={Historico} />
       <Route path={"/templates"} component={Templates} />
       <Route path="/template/:id" component={TemplatePublico} />

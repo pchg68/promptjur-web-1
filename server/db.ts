@@ -149,6 +149,25 @@ export async function toggleFavorito(id: number, isFavorito: boolean) {
   await db.update(prompts).set({ isFavorito }).where(eq(prompts.id, id));
 }
 
+export async function atualizarPlataformaTeste(
+  promptId: number,
+  plataforma: "manus" | "chatgpt" | "claude" | "gemini" | "perplexity",
+  userId: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Verificar se o prompt pertence ao usuário
+  const prompt = await getPromptById(promptId, userId);
+  if (!prompt) {
+    throw new Error("Prompt não encontrado ou sem permissão");
+  }
+  
+  await db.update(prompts)
+    .set({ plataformaTeste: plataforma })
+    .where(eq(prompts.id, promptId));
+}
+
 export async function excluirPrompt(id: number, userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

@@ -33,30 +33,37 @@ export async function getTopAreasJuridicas() {
 
 /**
  * Retorna a distribuição de uso por plataforma de IA
- * Nota: Como não temos campo específico para rastrear qual plataforma foi usada,
- * esta função retorna dados simulados baseados em padrões de uso
+ * Usa dados reais do campo plataformaTeste
  */
 export async function getDistribuicaoPlataformas() {
   const db = await getDb();
   if (!db) return [];
 
   try {
-    // Por enquanto, retornamos estimativa baseada no total de prompts
-    // Em produção, adicionar campo 'plataformaTeste' na tabela prompts
-    const totalPrompts = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(prompts);
+    // Buscar distribuição real de plataformas testadas
+    const result = await db
+      .select({
+        plataforma: prompts.plataformaTeste,
+        total: sql<number>`count(*)`.as("total"),
+      })
+      .from(prompts)
+      .where(sql`${prompts.plataformaTeste} IS NOT NULL`)
+      .groupBy(prompts.plataformaTeste)
+      .orderBy(desc(sql`count(*)`));
 
-    const total = totalPrompts[0]?.count || 0;
+    // Mapear nomes das plataformas para exibição
+    const plataformaNomes: Record<string, string> = {
+      manus: "Manus",
+      chatgpt: "ChatGPT",
+      claude: "Claude",
+      gemini: "Gemini",
+      perplexity: "Perplexity",
+    };
 
-    // Estimativa baseada em padrões de uso (pode ser ajustada)
-    return [
-      { plataforma: "Manus", total: Math.floor(total * 0.45) },
-      { plataforma: "ChatGPT", total: Math.floor(total * 0.25) },
-      { plataforma: "Claude", total: Math.floor(total * 0.15) },
-      { plataforma: "Gemini", total: Math.floor(total * 0.10) },
-      { plataforma: "Perplexity", total: Math.floor(total * 0.05) },
-    ];
+    return result.map((r) => ({
+      plataforma: plataformaNomes[r.plataforma || ""] || r.plataforma || "Desconhecida",
+      total: Number(r.total),
+    }));
   } catch (error) {
     console.error("[Admin] Erro ao buscar distribuição de plataformas:", error);
     return [];
