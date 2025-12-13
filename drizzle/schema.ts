@@ -261,3 +261,37 @@ export const legislacaoCache = mysqlTable("legislacao_cache", {
 
 export type LegislacaoCache = typeof legislacaoCache.$inferSelect;
 export type InsertLegislacaoCache = typeof legislacaoCache.$inferInsert;
+
+/**
+ * Tabela de comparações de plataformas de IA
+ * Armazena resultados de testes do mesmo prompt em múltiplas plataformas
+ */
+export const comparacoes = mysqlTable("comparacoes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  promptId: int("promptId").notNull(),
+  plataformas: json("plataformas").notNull(), // Array de plataformas testadas: ["manus", "chatgpt", ...]
+  melhorPlataforma: mysqlEnum("melhorPlataforma", ["manus", "chatgpt", "claude", "gemini", "perplexity"]), // Plataforma escolhida como melhor
+  observacoes: text("observacoes"), // Observações do usuário sobre a comparação
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Comparacao = typeof comparacoes.$inferSelect;
+export type InsertComparacao = typeof comparacoes.$inferInsert;
+
+/**
+ * Tabela de avaliações de testes de plataformas
+ * Armazena feedback do usuário sobre qualidade das respostas
+ */
+export const avaliacoes = mysqlTable("avaliacoes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  promptId: int("promptId").notNull(),
+  plataforma: mysqlEnum("plataforma", ["manus", "chatgpt", "claude", "gemini", "perplexity"]).notNull(),
+  rating: int("rating").notNull(), // 1-5 estrelas
+  comentario: text("comentario"), // Comentário opcional do usuário
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Avaliacao = typeof avaliacoes.$inferSelect;
+export type InsertAvaliacao = typeof avaliacoes.$inferInsert;

@@ -41,6 +41,7 @@ export const appRouter = router({
         z.object({
           texto: z.string().optional(),
           areasJuridicas: z.array(z.string()).optional(),
+          plataformas: z.array(z.enum(["manus", "chatgpt", "claude", "gemini", "perplexity"])).optional(),
           dataInicio: z.date().optional(),
           dataFim: z.date().optional(),
           tagIds: z.array(z.number()).optional(),
@@ -60,6 +61,7 @@ export const appRouter = router({
           userId: ctx.user.id,
           texto: input.texto,
           areasJuridicas: input.areasJuridicas,
+          plataformas: input.plataformas,
           dataInicio: input.dataInicio,
           dataFim: input.dataFim,
           tagIds: input.tagIds,
@@ -630,6 +632,25 @@ Responda em formato JSON com:
       .mutation(async ({ input, ctx }) => {
         await db.atualizarPlataformaTeste(input.promptId, input.plataforma, ctx.user.id);
         return { success: true };
+      }),
+
+    // Salvar avaliação de teste de plataforma
+    salvarAvaliacao: protectedProcedure
+      .input(z.object({
+        promptId: z.number(),
+        plataforma: z.enum(["manus", "chatgpt", "claude", "gemini", "perplexity"]),
+        rating: z.number().min(1).max(5),
+        comentario: z.string().optional()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const avaliacaoId = await db.salvarAvaliacao(
+          ctx.user.id,
+          input.promptId,
+          input.plataforma,
+          input.rating,
+          input.comentario
+        );
+        return { success: true, avaliacaoId };
       })
   }),
 

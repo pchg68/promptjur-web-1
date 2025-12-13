@@ -1058,3 +1058,30 @@
 - [x] Mostrar qual plataforma foi usada para testar cada prompt (texto colorido)
 - [x] Tooltip com nome da plataforma ao passar mouse (title attribute)
 - [x] Texto visual com cor específica por plataforma (5 cores diferentes)
+
+## Filtro por Plataforma no Histórico (Concluído)
+- [x] Adicionar dropdown de filtro por plataforma na página Histórico
+- [x] Integrar filtro com AdvancedSearch existente (campo plataformas no SearchFilters)
+- [x] Atualizar procedure de busca para suportar filtro por plataforma (db-search.ts)
+- [x] Adicionar badge visual indicando filtro ativo (badges com 🤖 emoji)
+- [x] Seção de filtro expandido com 5 plataformas (Manus, ChatGPT, Claude, Gemini, Perplexity)
+
+## Comparador de Plataformas (Concluído)
+- [x] Criar página Comparador.tsx em /comparador
+- [x] Interface para testar mesmo prompt em múltiplas plataformas
+- [x] Seleção de plataformas com checkboxes (mínimo 1)
+- [x] Botão que copia prompt e abre todas as plataformas selecionadas
+- [x] Schema: tabela comparacoes com campos (userId, promptId, plataformas, melhorPlataforma, observacoes)
+- [x] Adicionar link "Comparador" no header do Dashboard
+- [x] Adicionar rota /comparador no App.tsx
+- [x] Dicas de uso e instruções para comparação eficaz
+
+## Sistema de Avaliação Pós-Teste (Concluído)
+- [x] Modal de feedback após testar prompt em plataforma (AvaliacaoModal.tsx)
+- [x] Sistema de avaliação 1-5 estrelas (componente Star interativo)
+- [x] Campo opcional para comentário (Textarea com limite de 500 caracteres)
+- [x] Schema: tabela avaliacoes com campos (userId, promptId, plataforma, rating, comentario)
+- [x] Procedure salvarAvaliacao no backend (routers.ts)
+- [x] Função salvarAvaliacao no db.ts
+- [x] Integração com testarPromptNaPlataforma (modal abre 3s após teste)
+- [x] Botões "Pular" e "Enviar Avaliação" no modal
