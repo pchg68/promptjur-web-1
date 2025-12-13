@@ -110,6 +110,9 @@ export async function createPrompt(data: InsertPrompt) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(prompts).values(data);
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert prompt: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -220,6 +223,9 @@ export async function createAnalise(data: InsertAnalise) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(analises).values(data);
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert analise: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -260,6 +266,9 @@ export async function createTemplate(data: InsertTemplate) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(templates).values(data);
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert template: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -280,6 +289,9 @@ export async function createFonteJuridica(data: InsertFonteJuridica) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(fontesJuridicas).values(data);
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert fonte juridica: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -300,6 +312,9 @@ export async function createHistorico(data: InsertHistorico) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(historico).values(data);
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert historico: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -437,6 +452,9 @@ export async function salvarTemplate(data: InsertTemplate) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(templates).values(data);
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert template: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -504,6 +522,9 @@ export async function criarTag(data: InsertTag) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(tags).values(data);
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert tag: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -544,6 +565,9 @@ export async function atribuirTagTemplate(templateId: number, tagId: number) {
     templateId,
     tagId
   });
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert template tag: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -581,6 +605,9 @@ export async function salvarVersaoPrompt(data: InsertPromptVersao) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(promptVersoes).values(data);
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert prompt versao: no insertId returned");
+  }
   return result[0].insertId;
 }
 
@@ -732,6 +759,9 @@ export async function atribuirTagPrompt(promptId: number, tagId: number) {
     promptId,
     tagId
   });
+  if (!result || !result[0] || typeof result[0].insertId === 'undefined') {
+    throw new Error("Failed to insert prompt tag: no insertId returned");
+  }
   return result[0].insertId;
 }
 

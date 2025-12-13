@@ -1096,3 +1096,10 @@
 - [x] Corrigir nome de variável setPromptOtimizar para setPromptOtimizacao
 - [x] Criar useMutation para registrarTestePlataforma no Dashboard
 - [x] Adicionar campos totalFavoritos e areasMaisUsadas na função getUserStats
+
+## Correção de Erro "Cannot read properties of undefined (reading '0')" (Concluído)
+- [x] Investigar logs do servidor para identificar origem do erro
+- [x] Identificar qual função/procedure está causando o erro (createPrompt e outras funções de insert)
+- [x] Corrigir acesso a propriedade '0' de objeto undefined em 11 funções
+- [x] Adicionar validações de segurança para evitar erros similares (verificação de result[0].insertId)
+- [x] Funções corrigidas: createPrompt, createAnalise, createHistorico, createTemplate, createFonteJuridica, salvarTemplate, criarTag, adicionarTagTemplate, salvarVersaoPrompt, adicionarTagPrompt, createNotification
