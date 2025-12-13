@@ -35,7 +35,7 @@ export function OnboardingTour({ autoStart = false }: OnboardingTourProps) {
           popover: {
             title: '👋 Bem-vindo ao PromptJur!',
             description: 'Vamos fazer um tour rápido pelas principais funcionalidades do sistema de engenharia de prompts jurídicos.',
-            side: 'center',
+            side: 'bottom',
             align: 'center'
           }
         },
@@ -98,7 +98,7 @@ export function OnboardingTour({ autoStart = false }: OnboardingTourProps) {
           popover: {
             title: '🎉 Pronto para começar!',
             description: 'Você agora conhece os principais recursos do PromptJur. Experimente o Modo Assistido para criar seu primeiro prompt jurídico profissional!',
-            side: 'center',
+            side: 'bottom',
             align: 'center'
           }
         }
@@ -127,7 +127,7 @@ export function useOnboardingTour() {
           popover: {
             title: '👋 Tour do PromptJur',
             description: 'Vamos revisar as principais funcionalidades do sistema.',
-            side: 'center',
+            side: 'bottom',
             align: 'center'
           }
         },

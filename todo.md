@@ -1085,3 +1085,14 @@
 - [x] Função salvarAvaliacao no db.ts
 - [x] Integração com testarPromptNaPlataforma (modal abre 3s após teste)
 - [x] Botões "Pular" e "Enviar Avaliação" no modal
+
+## Correção de Erros TypeScript (Concluído)
+- [x] Corrigir erro de propriedade 'rowsAffected' inexistente em MySqlRawQueryResult (removido uso de rowsAffected)
+- [x] Corrigir tipo incompatível "resolucao" para "portaria" no enum de tipos de legislação
+- [x] Corrigir erro de propriedade 'favorito' inexistente (trocado para 'isFavorito' no Historico.tsx)
+- [x] Adicionar campo isFavorito no SELECT do db-search.ts
+- [x] Corrigir propriedade 'conteudo' inexistente (trocado para 'promptOriginal' no db-admin.ts)
+- [x] Adicionar import do ícone Settings no Dashboard.tsx
+- [x] Corrigir nome de variável setPromptOtimizar para setPromptOtimizacao
+- [x] Criar useMutation para registrarTestePlataforma no Dashboard
+- [x] Adicionar campos totalFavoritos e areasMaisUsadas na função getUserStats

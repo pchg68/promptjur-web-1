@@ -175,7 +175,7 @@ export async function getPromptsRecentes() {
         id: prompts.id,
         tipo: prompts.tipo,
         areaJuridica: prompts.areaJuridica,
-        conteudo: prompts.conteudo,
+        conteudo: prompts.promptOriginal,
         createdAt: prompts.createdAt,
         userName: users.name,
         userEmail: users.email,

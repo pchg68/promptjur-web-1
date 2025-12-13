@@ -307,11 +307,11 @@ export default function Historico() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleFavoritar(prompt.id, prompt.favorito)}
-                              title={prompt.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                              className={prompt.favorito ? "text-yellow-500" : ""}
+                              onClick={() => handleFavoritar(prompt.id, prompt.isFavorito || false)}
+                              title={prompt.isFavorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                              className={prompt.isFavorito ? "text-yellow-500" : ""}
                             >
-                              <Star className={`w-4 h-4 ${prompt.favorito ? 'fill-current' : ''}`} />
+                              <Star className={`w-4 h-4 ${prompt.isFavorito ? 'fill-current' : ''}`} />
                             </Button>
                             
                             {/* Reutilizar */}
