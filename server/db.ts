@@ -12,8 +12,7 @@ import {
   templateTags, InsertTemplateTag,
   promptTags, InsertPromptTag,
   promptVersoes, InsertPromptVersao,
-  usoModelos, InsertUsoModelo,
-  avaliacoes, InsertAvaliacao
+  usoModelos, InsertUsoModelo
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -167,33 +166,6 @@ export async function atualizarPlataformaTeste(
   await db.update(prompts)
     .set({ plataformaTeste: plataforma })
     .where(eq(prompts.id, promptId));
-}
-
-export async function salvarAvaliacao(
-  userId: number,
-  promptId: number,
-  plataforma: "manus" | "chatgpt" | "claude" | "gemini" | "perplexity",
-  rating: number,
-  comentario?: string
-) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  // Verificar se o prompt pertence ao usuário
-  const prompt = await getPromptById(promptId, userId);
-  if (!prompt) {
-    throw new Error("Prompt não encontrado ou sem permissão");
-  }
-  
-  const [result] = await db.insert(avaliacoes).values({
-    userId,
-    promptId,
-    plataforma,
-    rating,
-    comentario: comentario || null,
-  });
-  
-  return result.insertId;
 }
 
 export async function excluirPrompt(id: number, userId: number) {

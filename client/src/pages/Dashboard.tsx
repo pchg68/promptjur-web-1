@@ -29,7 +29,6 @@ import { CacheStatistics } from "@/components/CacheStatistics";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { OnboardingTour, useOnboardingTour } from "@/components/OnboardingTour";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
-import { AvaliacaoModal } from "@/components/AvaliacaoModal";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -48,19 +47,6 @@ export default function Dashboard() {
   const [isCompactMode, setIsCompactMode] = useState(() => {
     const saved = localStorage.getItem('promptjur-compact-mode');
     return saved ? JSON.parse(saved) : false;
-  });
-  
-  // Estado para Modal de Avaliação
-  const [avaliacaoModal, setAvaliacaoModal] = useState<{
-    isOpen: boolean;
-    promptId: number | null;
-    plataforma: "manus" | "chatgpt" | "claude" | "gemini" | "perplexity" | null;
-    plataformaNome: string;
-  }>({
-    isOpen: false,
-    promptId: null,
-    plataforma: null,
-    plataformaNome: "",
   });
   
   // Salvar preferência de modo compacto
@@ -318,18 +304,6 @@ export default function Dashboard() {
     // Abrir plataforma em nova aba
     window.open(urls[plataforma], '_blank');
     
-    // Abrir modal de avaliação após alguns segundos (dar tempo para o usuário testar)
-    if (promptId) {
-      setTimeout(() => {
-        setAvaliacaoModal({
-          isOpen: true,
-          promptId,
-          plataforma,
-          plataformaNome: nomes[plataforma],
-        });
-      }, 3000); // 3 segundos de delay
-    }
-    
     toast.success(
       <div className="flex items-center gap-2">
         <CheckCircle2 className="w-5 h-5 text-green-500 animate-in zoom-in duration-300" />
@@ -497,10 +471,6 @@ export default function Dashboard() {
                 <Link href="/templates" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <BookTemplate className="w-4 h-4" />
                   Templates
-                </Link>
-                <Link href="/comparador" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <Scale className="w-4 h-4" />
-                  Comparador
                 </Link>
                 <Link href="/configuracoes" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <Settings className="w-4 h-4" />
@@ -1865,17 +1835,6 @@ export default function Dashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Modal de Avaliação */}
-      {avaliacaoModal.promptId && avaliacaoModal.plataforma && (
-        <AvaliacaoModal
-          isOpen={avaliacaoModal.isOpen}
-          onClose={() => setAvaliacaoModal({ isOpen: false, promptId: null, plataforma: null, plataformaNome: "" })}
-          promptId={avaliacaoModal.promptId}
-          plataforma={avaliacaoModal.plataforma}
-          plataformaNome={avaliacaoModal.plataformaNome}
-        />
-      )}
     </div>
   );
 }
