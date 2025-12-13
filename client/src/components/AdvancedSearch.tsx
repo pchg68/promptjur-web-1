@@ -17,6 +17,7 @@ import { AREAS_JURIDICAS } from "@/const";
 export interface SearchFilters {
   texto?: string;
   areasJuridicas?: string[];
+  plataformas?: ("manus" | "chatgpt" | "claude" | "gemini" | "perplexity")[];
   dataInicio?: Date;
   dataFim?: Date;
   tagIds?: number[];
@@ -33,6 +34,7 @@ export function AdvancedSearch({ onSearch, availableTags = [] }: AdvancedSearchP
   const [expanded, setExpanded] = useState(false);
   const [texto, setTexto] = useState("");
   const [areasJuridicas, setAreasJuridicas] = useState<string[]>([]);
+  const [plataformas, setPlataformas] = useState<("manus" | "chatgpt" | "claude" | "gemini" | "perplexity")[]>([]);
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [tagIds, setTagIds] = useState<number[]>([]);
@@ -55,6 +57,7 @@ export function AdvancedSearch({ onSearch, availableTags = [] }: AdvancedSearchP
 
     if (texto.trim()) filters.texto = texto.trim();
     if (areasJuridicas.length > 0) filters.areasJuridicas = areasJuridicas;
+    if (plataformas.length > 0) filters.plataformas = plataformas;
     if (dataInicio) filters.dataInicio = new Date(dataInicio);
     if (dataFim) filters.dataFim = new Date(dataFim);
     if (tagIds.length > 0) filters.tagIds = tagIds;
@@ -66,6 +69,7 @@ export function AdvancedSearch({ onSearch, availableTags = [] }: AdvancedSearchP
   const clearFilters = () => {
     setTexto("");
     setAreasJuridicas([]);
+    setPlataformas([]);
     setDataInicio("");
     setDataFim("");
     setTagIds([]);
@@ -98,9 +102,18 @@ export function AdvancedSearch({ onSearch, availableTags = [] }: AdvancedSearchP
     }
   };
 
+  const togglePlataforma = (plat: "manus" | "chatgpt" | "claude" | "gemini" | "perplexity") => {
+    if (plataformas.includes(plat)) {
+      setPlataformas(plataformas.filter((p) => p !== plat));
+    } else {
+      setPlataformas([...plataformas, plat]);
+    }
+  };
+
   const activeFiltersCount =
     (texto ? 1 : 0) +
     areasJuridicas.length +
+    plataformas.length +
     (dataInicio || dataFim ? 1 : 0) +
     tagIds.length +
     qualidade.length;
@@ -158,6 +171,24 @@ export function AdvancedSearch({ onSearch, availableTags = [] }: AdvancedSearchP
                 />
               </Badge>
             ))}
+            {plataformas.map((plat) => {
+              const platNomes = {
+                manus: "Manus",
+                chatgpt: "ChatGPT",
+                claude: "Claude",
+                gemini: "Gemini",
+                perplexity: "Perplexity",
+              };
+              return (
+                <Badge key={plat} variant="secondary" className="flex items-center gap-1">
+                  🤖 {platNomes[plat]}
+                  <X
+                    className="w-3 h-3 cursor-pointer"
+                    onClick={() => togglePlataforma(plat)}
+                  />
+                </Badge>
+              );
+            })}
             {(dataInicio || dataFim) && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
@@ -225,6 +256,31 @@ export function AdvancedSearch({ onSearch, availableTags = [] }: AdvancedSearchP
                     onClick={() => toggleArea(area)}
                   >
                     {area}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Plataformas de IA */}
+            <div>
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
+                🤖 Plataformas de IA
+              </Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { id: "manus" as const, nome: "Manus", cor: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
+                  { id: "chatgpt" as const, nome: "ChatGPT", cor: "bg-green-500/10 text-green-400 border-green-500/30" },
+                  { id: "claude" as const, nome: "Claude", cor: "bg-purple-500/10 text-purple-400 border-purple-500/30" },
+                  { id: "gemini" as const, nome: "Gemini", cor: "bg-orange-500/10 text-orange-400 border-orange-500/30" },
+                  { id: "perplexity" as const, nome: "Perplexity", cor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30" },
+                ].map((plat) => (
+                  <Badge
+                    key={plat.id}
+                    variant={plataformas.includes(plat.id) ? "default" : "outline"}
+                    className={`cursor-pointer ${plataformas.includes(plat.id) ? plat.cor : ""}`}
+                    onClick={() => togglePlataforma(plat.id)}
+                  >
+                    {plat.nome}
                   </Badge>
                 ))}
               </div>
