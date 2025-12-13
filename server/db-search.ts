@@ -6,7 +6,6 @@ export interface SearchFilters {
   userId: number;
   texto?: string; // Busca em título/conteúdo
   areasJuridicas?: string[]; // Filtro por múltiplas áreas
-  plataformas?: ("manus" | "chatgpt" | "claude" | "gemini" | "perplexity")[]; // Filtro por plataformas de IA
   dataInicio?: Date; // Data de criação >= dataInicio
   dataFim?: Date; // Data de criação <= dataFim
   tagIds?: number[]; // Filtro por tags
@@ -37,11 +36,6 @@ export async function searchPrompts(filters: SearchFilters) {
   // Filtro por áreas jurídicas
   if (filters.areasJuridicas && filters.areasJuridicas.length > 0) {
     conditions.push(inArray(prompts.areaJuridica, filters.areasJuridicas));
-  }
-
-  // Filtro por plataformas de IA
-  if (filters.plataformas && filters.plataformas.length > 0) {
-    conditions.push(inArray(prompts.plataformaTeste, filters.plataformas));
   }
 
   // Filtro por intervalo de datas
@@ -85,7 +79,6 @@ export async function searchPrompts(filters: SearchFilters) {
       userId: prompts.userId,
       tipo: prompts.tipo,
       areaJuridica: prompts.areaJuridica,
-      plataformaTeste: prompts.plataformaTeste,
       promptOriginal: prompts.promptOriginal,
       promptOtimizado: prompts.promptOtimizado,
       qualidade: prompts.qualidade,
@@ -145,10 +138,6 @@ export async function countSearchResults(filters: SearchFilters): Promise<number
 
   if (filters.areasJuridicas && filters.areasJuridicas.length > 0) {
     conditions.push(inArray(prompts.areaJuridica, filters.areasJuridicas));
-  }
-
-  if (filters.plataformas && filters.plataformas.length > 0) {
-    conditions.push(inArray(prompts.plataformaTeste, filters.plataformas));
   }
 
   if (filters.dataInicio) {

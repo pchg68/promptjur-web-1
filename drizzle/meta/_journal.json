@@ -92,20 +92,6 @@
       "when": 1765652200512,
       "tag": "0012_cuddly_dreadnoughts",
       "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "5",
-      "when": 1765653002964,
-      "tag": "0013_cloudy_captain_midlands",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "5",
-      "when": 1765653108345,
-      "tag": "0014_complex_klaw",
-      "breakpoints": true
     }
   ]
 }
