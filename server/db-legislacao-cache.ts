@@ -232,20 +232,6 @@ export async function populateCommonLaws(): Promise<number> {
     // Leis de saúde
     { citacao: "Lei 9.656/98", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei dos Planos de Saúde", linkOficial: "http://www.planalto.gov.br/ccivil_03/leis/l9656.htm" },
     { citacao: "Lei 8.080/90", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei do Sistema Único de Saúde (SUS)", linkOficial: "http://www.planalto.gov.br/ccivil_03/leis/l8080.htm" },
-    
-    // Direito Médico
-    { citacao: "Lei 12.842/2013", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei do Exercício da Medicina", linkOficial: "http://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/l12842.htm" },
-    { citacao: "Lei 13.787/2018", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei do Prontuário Eletrônico", linkOficial: "http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13787.htm" },
-    { citacao: "Resolução CFM 2.217/2018", tipo: "resolucao" as const, confiabilidade: "alta" as const, motivo: "Código de Ética Médica", linkOficial: "https://portal.cfm.org.br/images/PDF/cem2019.pdf" },
-    
-    // Direito Digital (já inclusos: LGPD, Marco Civil, Lei Carolina Dieckmann)
-    { citacao: "Lei 14.155/2021", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei de Crimes Cibernéticos", linkOficial: "http://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14155.htm" },
-    { citacao: "Lei 14.063/2020", tipo: "lei" as const, confiabilidade: "alta" as const, motivo: "Lei de Assinaturas Eletrônicas", linkOficial: "http://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14063.htm" },
-    { citacao: "Decreto 10.046/2019", tipo: "decreto" as const, confiabilidade: "alta" as const, motivo: "Regulamentação da LGPD", linkOficial: "http://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/decreto/D10046.htm" },
-    
-    // Direito Internacional
-    { citacao: "Decreto 678/1992", tipo: "decreto" as const, confiabilidade: "alta" as const, motivo: "Pacto de San José da Costa Rica (Convenção Americana de Direitos Humanos)", linkOficial: "http://www.planalto.gov.br/ccivil_03/decreto/d0678.htm" },
-    { citacao: "Decreto 4.388/2002", tipo: "decreto" as const, confiabilidade: "alta" as const, motivo: "Estatuto de Roma (Tribunal Penal Internacional)", linkOficial: "http://www.planalto.gov.br/ccivil_03/decreto/2002/d4388.htm" },
   ];
 
   let count = 0;

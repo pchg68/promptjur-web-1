@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2, FileDown } from "lucide-react";
+import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -106,41 +106,6 @@ export default function Historico() {
     }
   };
 
-  const exportarPDFMutation = trpc.prompts.exportarPDF.useMutation({
-    onSuccess: (data) => {
-      // Converter base64 para blob e fazer download
-      const byteCharacters = atob(data.buffer);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = data.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      toast.success('PDF exportado com sucesso!', {
-        description: `Arquivo ${data.filename} baixado`
-      });
-    },
-    onError: (error) => {
-      toast.error('Erro ao exportar PDF', {
-        description: error.message
-      });
-    }
-  });
-
-  const handleExportarPDF = (promptId: number) => {
-    exportarPDFMutation.mutate({ promptId });
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -235,11 +200,13 @@ export default function Historico() {
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
-                    <TableRow>                      <TableHead>Tipo</TableHead>
-                      <TableHead>Área Jurídica</TableHead>
-                      <TableHead>Plataforma</TableHead>
+                    <TableRow>
+                      <TableHead>Data/Hora</TableHead>
+                      <TableHead>Tipo</TableHead>
+
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>                   </TableRow>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
                   </TableHeader>
                   <TableBody>
                     {prompts.map((prompt) => (
@@ -253,19 +220,7 @@ export default function Historico() {
                         <TableCell>
                           <Badge variant="outline">{prompt.areaJuridica || "N/A"}</Badge>
                         </TableCell>
-                        <TableCell>
-                          {prompt.plataformaTeste ? (
-                            <div className="flex items-center gap-1.5" title={`Testado em ${prompt.plataformaTeste}`}>
-                              {prompt.plataformaTeste === 'manus' && <span className="text-blue-400 text-xs font-semibold">Manus</span>}
-                              {prompt.plataformaTeste === 'chatgpt' && <span className="text-green-400 text-xs font-semibold">ChatGPT</span>}
-                              {prompt.plataformaTeste === 'claude' && <span className="text-purple-400 text-xs font-semibold">Claude</span>}
-                              {prompt.plataformaTeste === 'gemini' && <span className="text-orange-400 text-xs font-semibold">Gemini</span>}
-                              {prompt.plataformaTeste === 'perplexity' && <span className="text-cyan-400 text-xs font-semibold">Perplexity</span>}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
+
                         <TableCell>
                           {prompt.qualidade === "excelente" ? (
                             <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
@@ -322,17 +277,6 @@ export default function Historico() {
                               title="Reutilizar no Dashboard"
                             >
                               <RotateCcw className="w-4 h-4" />
-                            </Button>
-                            
-                            {/* Exportar PDF */}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleExportarPDF(prompt.id)}
-                              title="Exportar como PDF"
-                              className="text-blue-500 hover:text-blue-600"
-                            >
-                              <FileDown className="w-4 h-4" />
                             </Button>
                             
                             {/* Excluir */}

@@ -16,13 +16,11 @@ import { notificationsRouter, notificationPreferencesRouter } from "./routers-no
 import { notifyPromptGenerated, notifyPromptOptimized, notifyAnalysisComplete } from "./notification-triggers";
 import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes, extractLegalSources, getSourcesStatistics } from "./extractCitacoesLegais";
 import { getCacheStatistics } from "./db-legislacao-cache";
-import { adminRouter } from "./routers-admin";
 
 export const appRouter = router({
   system: systemRouter,
   notifications: notificationsRouter,
   notificationPreferences: notificationPreferencesRouter,
-  admin: adminRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -587,49 +585,6 @@ Responda em formato JSON com:
           buffer: buffer.toString('base64'),
           filename: `${input.titulo.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.docx`
         };
-      }),
-
-    // Exportar prompt como PDF
-    exportarPDF: protectedProcedure
-      .input(z.object({ promptId: z.number() }))
-      .mutation(async ({ input, ctx }) => {
-        const prompt = await db.getPromptById(input.promptId);
-        if (!prompt || prompt.userId !== ctx.user.id) {
-          throw new Error('Prompt não encontrado');
-        }
-
-        // Extrair dados do metadata
-        const metadata = prompt.metadata as any || {};
-        
-        const { exportPromptToPDF } = await import('./export-prompt');
-        const buffer = exportPromptToPDF({
-          id: prompt.id,
-          tipo: prompt.tipo,
-          areaJuridica: prompt.areaJuridica || undefined,
-          qualidade: prompt.qualidade || undefined,
-          promptOriginal: prompt.promptOriginal,
-          promptOtimizado: prompt.promptOtimizado || undefined,
-          analise: metadata.analise,
-          citacoesValidadas: metadata.citacoesValidadas || [],
-          createdAt: prompt.createdAt,
-          userId: prompt.userId
-        });
-
-        return {
-          buffer: buffer.toString('base64'),
-          filename: `prompt_${prompt.id}_${prompt.tipo}.pdf`
-        };
-      }),
-
-    // Registrar teste de prompt em plataforma
-    registrarTestePlataforma: protectedProcedure
-      .input(z.object({
-        promptId: z.number(),
-        plataforma: z.enum(["manus", "chatgpt", "claude", "gemini", "perplexity"])
-      }))
-      .mutation(async ({ input, ctx }) => {
-        await db.atualizarPlataformaTeste(input.promptId, input.plataforma, ctx.user.id);
-        return { success: true };
       })
   }),
 

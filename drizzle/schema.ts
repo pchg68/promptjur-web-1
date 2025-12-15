@@ -32,7 +32,6 @@ export const prompts = mysqlTable("prompts", {
   promptOtimizado: text("promptOtimizado"),
   qualidade: mysqlEnum("qualidade", ["excelente", "bom", "ruim"]),
   isFavorito: boolean("isFavorito").default(false),
-  plataformaTeste: mysqlEnum("plataformaTeste", ["manus", "chatgpt", "claude", "gemini", "perplexity"]), // Plataforma usada para testar o prompt
   metadata: json("metadata"), // Para armazenar dados adicionais como palavras-chave, entidades, etc.
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -251,7 +250,7 @@ export type InsertUsoModelo = typeof usoModelos.$inferInsert;
 export const legislacaoCache = mysqlTable("legislacao_cache", {
   id: int("id").autoincrement().primaryKey(),
   citacao: varchar("citacao", { length: 500 }).notNull().unique(), // Texto da citação (ex: "Lei 11.101/2005")
-  tipo: mysqlEnum("tipo", ["artigo", "lei", "codigo", "decreto", "portaria", "resolucao"]).notNull(),
+  tipo: mysqlEnum("tipo", ["artigo", "lei", "codigo", "decreto", "portaria"]).notNull(),
   confiabilidade: mysqlEnum("confiabilidade", ["alta", "media", "baixa"]).notNull(),
   motivo: text("motivo").notNull(), // Explicação da confiabilidade
   linkOficial: text("linkOficial"), // Link para fonte oficial

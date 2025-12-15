@@ -39,9 +39,9 @@ export const PALAVRAS_CHAVE_AREAS: Record<string, string[]> = {
   "Ambiental": ["meio ambiente", "licença ambiental", "dano ambiental", "IBAMA", "poluição", "preservação"],
   "Internacional": ["tratado", "convenção", "direito internacional", "extradição", "arbitragem internacional"],
   "Processo Civil": ["CPC", "petição inicial", "contestação", "sentença", "recurso", "apelação", "agravo", "execução", "prova", "audiência", "citação", "intimação", "prazo processual", "tutela de urgência"],
-  "Direito Médico": ["erro médico", "prontuário", "CRM", "responsabilidade médica", "hospital", "cirurgia", "diagnóstico", "tratamento", "conselho de medicina", "ética médica", "telemedicina", "prontuário eletrônico", "iatrogenia", "infecção hospitalar", "negligencia médica", "imperícia", "imprudência", "consentimento informado", "laudo médico", "perícia médica", "CFM", "CID", "prescrição médica", "atestado médico", "clínica", "UTI", "pronto-socorro", "plano de saúde", "ANS"],
-  "Direito Digital": ["LGPD", "dados pessoais", "privacidade", "Marco Civil da Internet", "crimes cibernéticos", "proteção de dados", "internet", "e-commerce", "assinatura digital", "blockchain", "phishing", "ransomware", "cookies", "ANPD", "vazamento de dados", "criptografia", "cloud computing", "big data", "inteligência artificial", "deep fake", "direito ao esquecimento", "neutralidade da rede", "responsabilidade de provedores", "segurança da informação", "hacker", "malware", "spam", "certificado digital", "ICP-Brasil"],
-  "Direito Internacional": ["tratado internacional", "convenção internacional", "soberania", "organização internacional", "ONU", "corte internacional", "direito humanitário", "refugiados", "comércio internacional", "arbitragem internacional", "extradicção", "imunidade diplomática", "jurisdição internacional", "Corte Internacional de Justiça", "CIJ", "Tribunal Penal Internacional", "TPI", "Pacto de San José", "Convenção de Viena", "Estatuto de Roma", "direitos humanos", "CIDH", "OMC", "Mercosul", "conflito de leis", "homologação de sentença estrangeira", "carta rogatória", "cooperação jurídica internacional", "direito internacional público", "direito internacional privado"]
+  "Direito Médico": ["erro médico", "prontuário", "CRM", "responsabilidade médica", "hospital", "cirurgia", "diagnóstico", "tratamento", "conselho de medicina", "ética médica"],
+  "Direito Digital": ["LGPD", "dados pessoais", "privacidade", "Marco Civil da Internet", "crimes cibernéticos", "proteção de dados", "internet", "e-commerce", "assinatura digital", "blockchain"],
+  "Direito Internacional": ["tratado internacional", "convenção internacional", "soberania", "organização internacional", "ONU", "corte internacional", "direito humanitário", "refugiados", "comércio internacional"]
 };
 
 /**
@@ -78,35 +78,7 @@ Cite jurisprudência do TST e súmulas aplicáveis ao caso.`,
 3) Análise da legislação tributária aplicável
 4) Fundamentação jurídica
 5) Pedidos e requerimentos
-Considere jurisprudência do STJ e STF sobre a matéria tributária.`,
-
-  "Direito Médico": `Elabore [TIPO_PECA] fundamentada no Código de Ética Médica (Resolução CFM 2.217/2018), Código Civil e artigos [ARTIGOS], contemplando:
-1) Qualificação das partes (paciente/autor e profissional/instituição de saúde)
-2) Histórico médico detalhado com cronologia do tratamento
-3) Descrição do erro médico ou falha no atendimento
-4) Nexo causal entre conduta e dano
-5) Fundamentação em responsabilidade civil médica
-6) Laudo pericial e documentação médica
-7) Pedidos de indenização (danos materiais, morais e estéticos)
-Cite jurisprudência do STJ sobre responsabilidade médica e hospitalar.`,
-
-  "Direito Digital": `Elabore [TIPO_PECA] com base na LGPD (Lei 13.709/2018), Marco Civil da Internet (Lei 12.965/2014) e artigos [ARTIGOS], incluindo:
-1) Qualificação das partes
-2) Descrição dos fatos envolvendo violação digital
-3) Identificação da violação (dados pessoais, privacidade, crimes cibernéticos)
-4) Fundamentação legal específica (LGPD, Marco Civil, Código Penal)
-5) Provas digitais e perícia técnica
-6) Pedidos (remoção de conteúdo, indenização, medidas cautelares)
-Considere princípios de proteção de dados e jurisprudência sobre crimes digitais.`,
-
-  "Direito Internacional": `Elabore [TIPO_PECA] fundamentada em tratados internacionais, convenções e artigos [ARTIGOS], contemplando:
-1) Qualificação das partes (Estados, organizações, pessoas físicas/jurídicas)
-2) Descrição dos fatos com contexto internacional
-3) Identificação da jurisdição aplicável
-4) Fundamentação em tratados, convenções e costume internacional
-5) Análise de conflito de leis no espaço
-6) Pedidos e requerimentos
-Cite jurisprudência de cortes internacionais (CIJ, CIDH, tribunais arbitrais) quando aplicável.`
+Considere jurisprudência do STJ e STF sobre a matéria tributária.`
 };
 
 /**
@@ -133,28 +105,5 @@ export const REFERENCIAS_LEGAIS: Record<string, string[]> = {
     "Lei 5.172/1966 (Código Tributário Nacional)",
     "Constituição Federal/1988 (arts. 145 a 162)",
     "Lei Complementar 123/2006 (Simples Nacional)"
-  ],
-  "Direito Médico": [
-    "Resolução CFM 2.217/2018 (Código de Ética Médica)",
-    "Lei 10.406/2002 (Código Civil - Responsabilidade Civil)",
-    "Lei 8.078/1990 (Código de Defesa do Consumidor)",
-    "Lei 12.842/2013 (Exercício da Medicina)",
-    "Lei 13.787/2018 (Prontuário Eletrônico)"
-  ],
-  "Direito Digital": [
-    "Lei 13.709/2018 (LGPD - Lei Geral de Proteção de Dados)",
-    "Lei 12.965/2014 (Marco Civil da Internet)",
-    "Lei 12.737/2012 (Lei Carolina Dieckmann - Crimes Informáticos)",
-    "Lei 14.155/2021 (Crimes Cibernéticos)",
-    "Decreto 10.046/2019 (Regulamentação da LGPD)",
-    "Lei 14.063/2020 (Assinaturas Eletrônicas)"
-  ],
-  "Direito Internacional": [
-    "Convenção de Viena sobre Direito dos Tratados (1969)",
-    "Pacto de San José da Costa Rica (Convenção Americana de Direitos Humanos)",
-    "Estatuto de Roma (Tribunal Penal Internacional)",
-    "Convenção de Nova Iorque sobre Arbitragem (1958)",
-    "Convenção de Genebra (Direito Humanitário)",
-    "Constituição Federal/1988 (arts. 4º e 5º, §§ 2º e 3º)"
   ]
 };

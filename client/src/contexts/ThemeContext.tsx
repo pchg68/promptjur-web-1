@@ -23,16 +23,6 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (switchable) {
-      // Tentar carregar do sistema de preferências unificado primeiro
-      try {
-        const prefs = localStorage.getItem("promptjur-user-preferences");
-        if (prefs) {
-          const parsed = JSON.parse(prefs);
-          if (parsed.theme) return parsed.theme;
-        }
-      } catch (e) {
-        // Fallback para localStorage antigo
-      }
       const stored = localStorage.getItem("theme");
       return (stored as Theme) || defaultTheme;
     }
