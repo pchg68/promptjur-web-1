@@ -102,8 +102,9 @@ export async function cleanExpiredCache(): Promise<number> {
       .delete(legislacaoCache)
       .where(lt(legislacaoCache.expiresAt, now));
 
-    console.log(`[Cache] ${result.rowsAffected || 0} registros expirados removidos`);
-    return result.rowsAffected || 0;
+    const rowsAffected = (result as any)[0]?.affectedRows || 0;
+    console.log(`[Cache] ${rowsAffected} registros expirados removidos`);
+    return rowsAffected;
   } catch (error) {
     console.error("[Cache] Erro ao limpar cache expirado:", error);
     return 0;
