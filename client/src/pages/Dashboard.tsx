@@ -531,7 +531,7 @@ export default function Dashboard() {
                   handleGerar();
                 }, 100);
               } else if (data.objetivo === 'otimizar') {
-                setPromptOtimizacao(data.descricaoCaso);
+                setPromptOtimizar(data.descricaoCaso);
                 setActiveTab('otimizar');
                 setModoWizard(false);
                 // Executar otimização automaticamente
@@ -1587,8 +1587,8 @@ export default function Dashboard() {
                 <div className="p-4 bg-muted/30 rounded-sm">
                   <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Análise</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {analyticsQuery.data.tempoMedioAnalise > 0 
-                      ? `${(analyticsQuery.data.tempoMedioAnalise / 1000).toFixed(1)}s`
+                    {analyticsQuery.data.avgTimes.analise > 0 
+                      ? `${(analyticsQuery.data.avgTimes.analise / 1000).toFixed(1)}s`
                       : "N/A"
                     }
                   </p>
@@ -1598,8 +1598,8 @@ export default function Dashboard() {
                 <div className="p-4 bg-muted/30 rounded-sm">
                   <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Geração</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {analyticsQuery.data.tempoMedioGeracao > 0 
-                      ? `${(analyticsQuery.data.tempoMedioGeracao / 1000).toFixed(1)}s`
+                    {analyticsQuery.data.avgTimes.geracao > 0 
+                      ? `${(analyticsQuery.data.avgTimes.geracao / 1000).toFixed(1)}s`
                       : "N/A"
                     }
                   </p>
@@ -1609,8 +1609,8 @@ export default function Dashboard() {
                 <div className="p-4 bg-muted/30 rounded-sm">
                   <p className="text-sm font-medium text-muted-foreground mb-2">Tempo Médio - Otimização</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {analyticsQuery.data.tempoMedioOtimizacao > 0 
-                      ? `${(analyticsQuery.data.tempoMedioOtimizacao / 1000).toFixed(1)}s`
+                    {analyticsQuery.data.avgTimes.otimizacao > 0 
+                      ? `${(analyticsQuery.data.avgTimes.otimizacao / 1000).toFixed(1)}s`
                       : "N/A"
                     }
                   </p>

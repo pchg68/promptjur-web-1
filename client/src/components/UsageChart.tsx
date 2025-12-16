@@ -25,7 +25,9 @@ ChartJS.register(
 
 interface UsageDataPoint {
   date: string;
-  count: number;
+  analises: number;
+  geracoes: number;
+  otimizacoes: number;
 }
 
 interface UsageChartProps {
@@ -37,14 +39,29 @@ export function UsageChart({ data }: UsageChartProps) {
     labels: data.map(d => d.date),
     datasets: [
       {
-        label: 'Uso',
-        data: data.map(d => d.count),
+        label: 'Análises',
+        data: data.map(d => d.analises),
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
         tension: 0.4,
       },
-
+      {
+        label: 'Gerações',
+        data: data.map(d => d.geracoes),
+        borderColor: 'rgb(168, 85, 247)',
+        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+        fill: true,
+        tension: 0.4,
+      },
+      {
+        label: 'Otimizações',
+        data: data.map(d => d.otimizacoes),
+        borderColor: 'rgb(34, 197, 94)',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        fill: true,
+        tension: 0.4,
+      },
     ],
   };
 
