@@ -885,4 +885,5 @@
 ## Bugs Críticos (Sessão Atual)
 - [x] Corrigir erro de GROUP BY incompatível com sql_mode=only_full_group_by no getUsageByDate
 - [x] Corrigir erros de API retornando HTML ao invés de JSON (resolvido após reinicialização do servidor)
+- [x] Corrigir referência a historico.createdAt no GROUP BY (usar apenas DATE(createdAt))
 - [ ] Testar funcionalidade de análise de prompts após correções

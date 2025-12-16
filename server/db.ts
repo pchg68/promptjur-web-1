@@ -825,9 +825,10 @@ export async function getUsageByDateRange(userId: number, startDate: Date, endDa
     return [];
   }
 
+  // Usar apenas DATE(createdAt) sem referência à tabela para evitar erro de GROUP BY
   const result = await db
     .select({
-      date: sql<string>`DATE(${historico.createdAt})`.as('date'),
+      date: sql<string>`DATE(createdAt)`.as('date'),
       count: sql<number>`COUNT(*)`.as('count'),
     })
     .from(historico)
@@ -838,8 +839,8 @@ export async function getUsageByDateRange(userId: number, startDate: Date, endDa
         lte(historico.createdAt, endDate)
       )
     )
-    .groupBy(sql`DATE(${historico.createdAt})`)
-    .orderBy(desc(sql`DATE(${historico.createdAt})`));
+    .groupBy(sql`DATE(createdAt)`)
+    .orderBy(desc(sql`DATE(createdAt)`));
 
   return result;
 }
@@ -969,28 +970,7 @@ export async function getUsageByDateDays(userId: number, days: number = 7) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   
-  const db = await getDb();
-  if (!db) {
-    return [];
-  }
-
-  const result = await db
-    .select({
-      date: sql<string>`DATE(${historico.createdAt})`.as('date'),
-      count: sql<number>`COUNT(*)`.as('count'),
-    })
-    .from(historico)
-    .where(
-      and(
-        eq(historico.userId, userId),
-        gte(historico.createdAt, startDate),
-        lte(historico.createdAt, endDate)
-      )
-    )
-    .groupBy(sql`DATE(${historico.createdAt})`)
-    .orderBy(desc(sql`DATE(${historico.createdAt})`));
-
-  return result;
+  return getUsageByDateRange(userId, startDate, endDate);
 }
 
 // Nota: registrarUsoModelo foi modificada para aceitar ambos os formatos
