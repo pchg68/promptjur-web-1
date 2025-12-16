@@ -880,3 +880,9 @@
 - [x] Adicionar palavras-chave para as novas áreas em PALAVRAS_CHAVE_AREAS
 - [x] Atualizar client/src/const.ts e shared/juridico.ts
 - [x] Verificar se aparecem em todos os dropdowns (Dashboard, Wizard, etc) - Servidor reiniciado com sucesso
+
+
+## Bugs Críticos (Sessão Atual)
+- [x] Corrigir erro de GROUP BY incompatível com sql_mode=only_full_group_by no getUsageByDate
+- [x] Corrigir erros de API retornando HTML ao invés de JSON (resolvido após reinicialização do servidor)
+- [ ] Testar funcionalidade de análise de prompts após correções

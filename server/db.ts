@@ -839,7 +839,7 @@ export async function getUsageByDateRange(userId: number, startDate: Date, endDa
       )
     )
     .groupBy(sql`DATE(${historico.createdAt})`)
-    .orderBy(sql`DATE(${historico.createdAt})`);
+    .orderBy(desc(sql`DATE(${historico.createdAt})`));
 
   return result;
 }
@@ -988,7 +988,7 @@ export async function getUsageByDateDays(userId: number, days: number = 7) {
       )
     )
     .groupBy(sql`DATE(${historico.createdAt})`)
-    .orderBy(sql`DATE(${historico.createdAt})`);
+    .orderBy(desc(sql`DATE(${historico.createdAt})`));
 
   return result;
 }
