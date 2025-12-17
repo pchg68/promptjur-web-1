@@ -880,3 +880,10 @@
 - [x] Adicionar palavras-chave para as novas áreas em PALAVRAS_CHAVE_AREAS
 - [x] Atualizar client/src/const.ts e shared/juridico.ts
 - [x] Verificar se aparecem em todos os dropdowns (Dashboard, Wizard, etc) - Servidor reiniciado com sucesso
+
+
+## Nova Funcionalidade - Exportação ABNT (Sessão Atual)
+- [ ] Implementar botões de salvar/exportar após otimização de prompt
+- [ ] Aplicar formatação ABNT: Arial 12, espaçamento 1.0
+- [ ] Permitir exportação em formato .txt e .docx
+- [ ] Facilitar cópia para uso em outras AIs
