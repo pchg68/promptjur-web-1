@@ -887,3 +887,12 @@
 - [ ] Aplicar formatação ABNT: Arial 12, espaçamento 1.0
 - [ ] Permitir exportação em formato .txt e .docx
 - [ ] Facilitar cópia para uso em outras AIs
+
+
+## Nova Funcionalidade - Exportação ABNT (Sessão Atual)
+- [x] Implementar botões de salvar/exportar após otimização de prompt
+- [x] Aplicar formatação ABNT: Arial 12, espaçamento 1.0
+- [x] Permitir exportação em formato .txt com formatação ABNT
+- [x] Atualizar PDF para usar formatação ABNT
+- [x] Adicionar botões em todas as seções (Análise, Geração, Otimização)
+- [x] Facilitar cópia para uso em outras AIs

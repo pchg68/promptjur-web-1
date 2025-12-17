@@ -15,6 +15,7 @@ import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
+import { exportAsTextABNT } from "@/utils/exportABNT";
 import { Link, useLocation } from "wouter";
 import { UsageChart } from "@/components/UsageChart";
 import { DistributionChart } from "@/components/DistributionChart";
@@ -324,7 +325,7 @@ export default function Dashboard() {
   };
 
   const exportAsPDF = (title: string, content: any) => {
-    // Criar HTML para PDF
+    // Criar HTML para PDF com formatação ABNT
     let html = `
       <!DOCTYPE html>
       <html>
@@ -332,11 +333,45 @@ export default function Dashboard() {
         <meta charset="UTF-8">
         <title>${title}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-          h1 { color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; }
-          .metadata { color: #666; font-size: 14px; margin-bottom: 20px; }
-          pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
-          .content { line-height: 1.6; }
+          @page {
+            margin: 3cm 3cm 2cm 3cm;
+          }
+          body { 
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.0;
+            text-align: justify;
+            margin: 0;
+            padding: 0;
+          }
+          h1 { 
+            font-family: Arial, sans-serif;
+            font-size: 14pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.0em;
+            margin-top: 0;
+          }
+          .metadata { 
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 2.0em;
+            text-align: center;
+          }
+          .content { 
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.0;
+            text-align: justify;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+          }
+          p {
+            margin: 0;
+            text-indent: 0;
+            line-height: 1.0;
+          }
         </style>
       </head>
       <body>
@@ -348,7 +383,7 @@ export default function Dashboard() {
     if (typeof content === 'string') {
       html += `<p>${content.replace(/\n/g, '<br>')}</p>`;
     } else {
-      html += `<pre>${JSON.stringify(content, null, 2)}</pre>`;
+      html += `<pre style="font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.0; white-space: pre-wrap;">${JSON.stringify(content, null, 2)}</pre>`;
     }
     
     html += `
@@ -365,7 +400,7 @@ export default function Dashboard() {
       printWindow.onload = () => {
         printWindow.print();
       };
-      toast.success("Abrindo janela de impressão...");
+      toast.success("Abrindo janela de impressão com formatação ABNT (Arial 12, espaçamento 1.0)...");
     }
   };
 
@@ -617,12 +652,15 @@ export default function Dashboard() {
                       <h3 className="text-lg font-semibold text-foreground">Resultado da Análise</h3>
                       <div className="flex items-center gap-2">
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
-                          onClick={() => exportAsMarkdown("Análise de Prompt", analiseMutation.data)}
+                          onClick={() => {
+                            exportAsTextABNT("Análise de Prompt", JSON.stringify(analiseMutation.data, null, 2));
+                            toast.success("Arquivo .TXT salvo com formatação ABNT (Arial 12, espaçamento 1.0)!");
+                          }}
                         >
                           <FileText className="w-4 h-4 mr-2" />
-                          Markdown
+                          Salvar .TXT (ABNT)
                         </Button>
                         <Button
                           variant="outline"
@@ -630,7 +668,15 @@ export default function Dashboard() {
                           onClick={() => exportAsPDF("Análise de Prompt", analiseMutation.data)}
                         >
                           <FileDown className="w-4 h-4 mr-2" />
-                          PDF
+                          PDF (ABNT)
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportAsMarkdown("Análise de Prompt", analiseMutation.data)}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Markdown
                         </Button>
                         <Button
                           variant="outline"
@@ -909,12 +955,15 @@ export default function Dashboard() {
                       <h3 className="text-lg font-semibold text-foreground">✨ Prompt Profissional Pronto para Uso</h3>
                        <div className="flex items-center gap-2">
                          <Button
-                           variant="outline"
+                           variant="default"
                            size="sm"
-                           onClick={() => exportAsMarkdown("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
+                           onClick={() => {
+                             exportAsTextABNT("Prompt Gerado", geracaoMutation.data?.promptProfissional || "");
+                             toast.success("Arquivo .TXT salvo com formatação ABNT (Arial 12, espaçamento 1.0)!");
+                           }}
                          >
                            <FileText className="w-4 h-4 mr-2" />
-                           Markdown
+                           Salvar .TXT (ABNT)
                          </Button>
                          <Button
                            variant="outline"
@@ -922,7 +971,15 @@ export default function Dashboard() {
                            onClick={() => exportAsPDF("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
                          >
                            <FileDown className="w-4 h-4 mr-2" />
-                           PDF
+                           PDF (ABNT)
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => exportAsMarkdown("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
+                         >
+                           <FileText className="w-4 h-4 mr-2" />
+                           Markdown
                          </Button>
                          <Button
                            variant="outline"
@@ -1089,12 +1146,15 @@ export default function Dashboard() {
                     {/* Botões de Ação */}
                     <div className="flex flex-wrap gap-2">
                       <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
-                        onClick={() => exportAsMarkdown("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
+                        onClick={() => {
+                          exportAsTextABNT("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "");
+                          toast.success("Arquivo .TXT salvo com formatação ABNT (Arial 12, espaçamento 1.0)!");
+                        }}
                       >
                         <FileText className="w-4 h-4 mr-2" />
-                        Markdown
+                        Salvar .TXT (ABNT)
                       </Button>
                       <Button
                         variant="outline"
@@ -1102,7 +1162,15 @@ export default function Dashboard() {
                         onClick={() => exportAsPDF("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
                       >
                         <FileDown className="w-4 h-4 mr-2" />
-                        PDF
+                        PDF (ABNT)
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => exportAsMarkdown("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Markdown
                       </Button>
                       <Button
                         variant="outline"
