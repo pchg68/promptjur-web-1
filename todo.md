@@ -896,3 +896,9 @@
 - [x] Atualizar PDF para usar formatação ABNT
 - [x] Adicionar botões em todas as seções (Análise, Geração, Otimização)
 - [x] Facilitar cópia para uso em outras AIs
+
+
+## Bug Reportado - Validação de Área Jurídica
+- [x] Corrigir erro de validação de área jurídica na geração de prompt profissional
+- [x] Verificar schema no backend (routers.ts ou shared/juridico.ts)
+- [x] Testar geração de prompt após correção
