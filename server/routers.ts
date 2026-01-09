@@ -16,11 +16,13 @@ import { notificationsRouter, notificationPreferencesRouter } from "./routers-no
 import { notifyPromptGenerated, notifyPromptOptimized, notifyAnalysisComplete } from "./notification-triggers";
 import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes, extractLegalSources, getSourcesStatistics } from "./extractCitacoesLegais";
 import { getCacheStatistics } from "./db-legislacao-cache";
+import { modelosPersonalizadosRouter } from "./routers-modelos-personalizados";
 
 export const appRouter = router({
   system: systemRouter,
   notifications: notificationsRouter,
   notificationPreferences: notificationPreferencesRouter,
+  modelosPersonalizados: modelosPersonalizadosRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

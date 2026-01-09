@@ -908,3 +908,11 @@
 - [x] Implementar exportação .DOCX com formatação ABNT
 - [x] Adicionar mais tipos de documentos ao dropdown (15 tipos agora: petição, parecer, contrato, recurso, defesa, memorando, agravo, apelação, contestação, embargos, mandado de segurança, habeas corpus, notificação, procuração, outro)
 - [x] Criar modal de preview antes de exportar documentos
+
+
+## Nova Funcionalidade - Modelos Personalizados (Sessão Atual)
+- [x] Criar schema de modelos personalizados no banco de dados (já existia)
+- [x] Implementar backend tRPC para CRUD de modelos personalizados
+- [x] Criar interface de customização de modelos no Dashboard (ModeloPersonalizadoForm)
+- [x] Adicionar página de gerenciamento de modelos personalizados (MeusModelos)
+- [x] Permitir edição, duplicação e exclusão de modelos
