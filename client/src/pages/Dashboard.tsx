@@ -16,6 +16,7 @@ import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import { exportAsTextABNT } from "@/utils/exportABNT";
+import { exportAsDOCXABNT } from "@/utils/exportDOCX";
 import { Link, useLocation } from "wouter";
 import { UsageChart } from "@/components/UsageChart";
 import { DistributionChart } from "@/components/DistributionChart";
@@ -25,6 +26,7 @@ import { PromptComparison } from "@/components/PromptComparison";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
+import { PreviewDocumentoModal } from "@/components/PreviewDocumentoModal";
 import { NotificationBell } from "@/components/NotificationBell";
 import { CacheStatistics } from "@/components/CacheStatistics";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -96,6 +98,16 @@ export default function Dashboard() {
       window.history.replaceState({}, '', '/dashboard');
     }
   }, [promptIdFromUrl, promptQuery.data]);
+
+  // Estado para Preview Modal
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<{
+    titulo: string;
+    conteudo: string;
+    areaJuridica?: string;
+    tipoDocumento?: string;
+    onExportPDF: () => void;
+  } | null>(null);
 
   // Estado para Análise
   const [promptAnalise, setPromptAnalise] = useState("");
@@ -655,20 +667,18 @@ export default function Dashboard() {
                           variant="default"
                           size="sm"
                           onClick={() => {
-                            exportAsTextABNT("Análise de Prompt", JSON.stringify(analiseMutation.data, null, 2));
-                            toast.success("Arquivo .TXT salvo com formatação ABNT (Arial 12, espaçamento 1.0)!");
+                            setPreviewData({
+                              titulo: "Análise de Prompt",
+                              conteudo: JSON.stringify(analiseMutation.data, null, 2),
+                              areaJuridica: analiseMutation.data?.areaJuridica,
+                              tipoDocumento: "Análise",
+                              onExportPDF: () => exportAsPDF("Análise de Prompt", analiseMutation.data)
+                            });
+                            setPreviewOpen(true);
                           }}
                         >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Salvar .TXT (ABNT)
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => exportAsPDF("Análise de Prompt", analiseMutation.data)}
-                        >
-                          <FileDown className="w-4 h-4 mr-2" />
-                          PDF (ABNT)
+                          <Eye className="w-4 h-4 mr-2" />
+                          Preview e Exportar
                         </Button>
                         <Button
                           variant="outline"
@@ -837,6 +847,14 @@ export default function Dashboard() {
                       <SelectItem value="recurso">Recurso</SelectItem>
                       <SelectItem value="defesa">Defesa</SelectItem>
                       <SelectItem value="memorando">Memorando</SelectItem>
+                      <SelectItem value="agravo">Agravo</SelectItem>
+                      <SelectItem value="apelacao">Apelação</SelectItem>
+                      <SelectItem value="contestacao">Contestação</SelectItem>
+                      <SelectItem value="embargos">Embargos</SelectItem>
+                      <SelectItem value="mandado_seguranca">Mandado de Segurança</SelectItem>
+                      <SelectItem value="habeas_corpus">Habeas Corpus</SelectItem>
+                      <SelectItem value="notificacao">Notificação Extrajudicial</SelectItem>
+                      <SelectItem value="procuracao">Procuração</SelectItem>
                       <SelectItem value="outro">Outro</SelectItem>
                     </SelectContent>
                   </Select>
@@ -972,6 +990,22 @@ export default function Dashboard() {
                          >
                            <FileDown className="w-4 h-4 mr-2" />
                            PDF (ABNT)
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={async () => {
+                             await exportAsDOCXABNT({
+                               titulo: "Prompt Jurídico Profissional",
+                               conteudo: geracaoMutation.data?.promptProfissional || "",
+                               areaJuridica: areaGeracao,
+                               tipoDocumento: tipoDocumento
+                             });
+                             toast.success("Arquivo .DOCX salvo com formatação ABNT!");
+                           }}
+                         >
+                           <FileDown className="w-4 h-4 mr-2" />
+                           DOCX (ABNT)
                          </Button>
                          <Button
                            variant="outline"
@@ -1167,6 +1201,22 @@ export default function Dashboard() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={async () => {
+                          await exportAsDOCXABNT({
+                            titulo: "Prompt Otimizado",
+                            conteudo: otimizacaoMutation.data?.promptOtimizado || "",
+                            areaJuridica: otimizacaoMutation.data?.areaJuridica,
+                            tipoDocumento: "Otimização"
+                          });
+                          toast.success("Arquivo .DOCX salvo com formatação ABNT!");
+                        }}
+                      >
+                        <FileDown className="w-4 h-4 mr-2" />
+                        DOCX (ABNT)
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => exportAsMarkdown("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
                       >
                         <FileText className="w-4 h-4 mr-2" />
@@ -1290,6 +1340,15 @@ export default function Dashboard() {
                         <SelectItem value="contrato">Contrato</SelectItem>
                         <SelectItem value="recurso">Recurso</SelectItem>
                         <SelectItem value="defesa">Defesa</SelectItem>
+                        <SelectItem value="memorando">Memorando</SelectItem>
+                        <SelectItem value="agravo">Agravo</SelectItem>
+                        <SelectItem value="apelacao">Apelação</SelectItem>
+                        <SelectItem value="contestacao">Contestação</SelectItem>
+                        <SelectItem value="embargos">Embargos</SelectItem>
+                        <SelectItem value="mandado_seguranca">Mandado de Segurança</SelectItem>
+                        <SelectItem value="habeas_corpus">Habeas Corpus</SelectItem>
+                        <SelectItem value="notificacao">Notificação Extrajudicial</SelectItem>
+                        <SelectItem value="procuracao">Procuração</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1813,6 +1872,19 @@ export default function Dashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Preview de Documento */}
+      {previewData && (
+        <PreviewDocumentoModal
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          titulo={previewData.titulo}
+          conteudo={previewData.conteudo}
+          areaJuridica={previewData.areaJuridica}
+          tipoDocumento={previewData.tipoDocumento}
+          onExportPDF={previewData.onExportPDF}
+        />
+      )}
     </div>
   );
 }

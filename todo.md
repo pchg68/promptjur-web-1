@@ -905,6 +905,6 @@
 
 
 ## Novas Melhorias - Exportação e Preview (Sessão Atual)
-- [ ] Implementar exportação .DOCX com formatação ABNT
-- [ ] Adicionar mais tipos de documentos ao dropdown (além dos 6 atuais)
-- [ ] Criar modal de preview antes de exportar documentos
+- [x] Implementar exportação .DOCX com formatação ABNT
+- [x] Adicionar mais tipos de documentos ao dropdown (15 tipos agora: petição, parecer, contrato, recurso, defesa, memorando, agravo, apelação, contestação, embargos, mandado de segurança, habeas corpus, notificação, procuração, outro)
+- [x] Criar modal de preview antes de exportar documentos

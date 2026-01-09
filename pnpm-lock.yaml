@@ -112,9 +112,6 @@ importers:
       '@trpc/server':
         specifier: ^11.6.0
         version: 11.6.0(typescript@5.9.3)
-      '@types/file-saver':
-        specifier: ^2.0.7
-        version: 2.0.7
       axios:
         specifier: ^1.12.0
         version: 1.12.2
@@ -239,6 +236,9 @@ importers:
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
+      '@types/file-saver':
+        specifier: ^2.0.7
+        version: 2.0.7
       '@types/google.maps':
         specifier: ^3.58.1
         version: 3.58.1
