@@ -902,3 +902,9 @@
 - [x] Corrigir erro de validação de área jurídica na geração de prompt profissional
 - [x] Verificar schema no backend (routers.ts ou shared/juridico.ts)
 - [x] Testar geração de prompt após correção
+
+
+## Novas Melhorias - Exportação e Preview (Sessão Atual)
+- [ ] Implementar exportação .DOCX com formatação ABNT
+- [ ] Adicionar mais tipos de documentos ao dropdown (além dos 6 atuais)
+- [ ] Criar modal de preview antes de exportar documentos
