@@ -9,15 +9,18 @@ import Dashboard from "./pages/Dashboard";
 import Historico from "./pages/Historico";
 import Templates from "./pages/Templates";
 import TemplatePublico from "./pages/TemplatePublico";
+import MeusModelos from "./pages/MeusModelos";
+import BibliotecaPublica from "./pages/BibliotecaPublica";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/historico"} component={Historico} />
-      <Route path={"/templates"} component={Templates} />
+      <Route path={"/historico"} component={Historico} />      <Route path={"/ templates"} component={Templates} />
       <Route path="/template/:id" component={TemplatePublico} />
+      <Route path={"/meus-modelos"} component={MeusModelos} />
+      <Route path={"/biblioteca-publica"} component={BibliotecaPublica} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

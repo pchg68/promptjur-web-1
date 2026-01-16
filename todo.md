@@ -919,9 +919,9 @@
 
 
 ## Melhorias Sistema Modelos - Sessão Atual
-- [ ] Adicionar link "Meus Modelos" no menu de navegação (header ou sidebar)
-- [ ] Implementar seleção de modelo personalizado na tab "Gerar Prompt"
-- [ ] Criar interface para preencher variáveis {{nome}} dos modelos
-- [ ] Criar página "Biblioteca Pública" para explorar modelos públicos
-- [ ] Adicionar filtros por área jurídica e tipo de documento na biblioteca
-- [ ] Permitir "clonar" modelos públicos para uso próprio
+- [x] Adicionar link "Meus Modelos" no menu de navegação (header ou sidebar)
+- [x] Implementar seleção de modelo personalizado na tab "Gerar Prompt"
+- [x] Criar interface para preencher variáveis {{nome}} dos modelos
+- [x] Criar página "Biblioteca Pública" para explorar modelos públicos
+- [x] Adicionar filtros por área jurídica e tipo de documento na biblioteca
+- [x] Permitir "clonar" modelos públicos para uso próprio

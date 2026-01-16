@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 import { PreviewDocumentoModal } from "@/components/PreviewDocumentoModal";
+import { SeletorModeloPersonalizado } from "@/components/SeletorModeloPersonalizado";
 import { NotificationBell } from "@/components/NotificationBell";
 import { CacheStatistics } from "@/components/CacheStatistics";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -502,6 +503,14 @@ export default function Dashboard() {
                   <BookTemplate className="w-4 h-4" />
                   Templates
                 </Link>
+                <Link href="/meus-modelos" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <FileText className="w-4 h-4" />
+                  Meus Modelos
+                </Link>
+                <Link href="/biblioteca-publica" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <BookTemplate className="w-4 h-4" />
+                  Biblioteca
+                </Link>
               </nav>
               <NotificationBell />
               <Button
@@ -833,6 +842,15 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Seletor de Modelo Personalizado */}
+                <SeletorModeloPersonalizado 
+                  onModeloPreenchido={(promptGerado) => {
+                    setContextoJuridico(promptGerado);
+                    toast.success("Modelo aplicado! Revise e ajuste se necessário.");
+                  }}
+                  areaJuridica={areaJuridica}
+                />
+                
                 {/* Tipo de Documento */}
                 <div className="space-y-2">
                   <Label htmlFor="tipo-documento">Tipo de Documento Jurídico *</Label>
