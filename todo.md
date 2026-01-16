@@ -925,3 +925,9 @@
 - [x] Criar página "Biblioteca Pública" para explorar modelos públicos
 - [x] Adicionar filtros por área jurídica e tipo de documento na biblioteca
 - [x] Permitir "clonar" modelos públicos para uso próprio
+
+
+## Bug Crítico - Dashboard Não Abre
+- [x] Diagnosticar erro que impede Dashboard de abrir (ReferenceError: areaJuridica is not defined)
+- [x] Verificar console do navegador para erro JavaScript
+- [x] Corrigir erro e testar funcionamento (removido prop areaJuridica do SeletorModeloPersonalizado)

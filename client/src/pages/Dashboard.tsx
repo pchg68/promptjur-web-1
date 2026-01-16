@@ -848,7 +848,6 @@ export default function Dashboard() {
                     setContextoJuridico(promptGerado);
                     toast.success("Modelo aplicado! Revise e ajuste se necessário.");
                   }}
-                  areaJuridica={areaJuridica}
                 />
                 
                 {/* Tipo de Documento */}
