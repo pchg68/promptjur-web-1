@@ -916,3 +916,12 @@
 - [x] Criar interface de customização de modelos no Dashboard (ModeloPersonalizadoForm)
 - [x] Adicionar página de gerenciamento de modelos personalizados (MeusModelos)
 - [x] Permitir edição, duplicação e exclusão de modelos
+
+
+## Melhorias Sistema Modelos - Sessão Atual
+- [ ] Adicionar link "Meus Modelos" no menu de navegação (header ou sidebar)
+- [ ] Implementar seleção de modelo personalizado na tab "Gerar Prompt"
+- [ ] Criar interface para preencher variáveis {{nome}} dos modelos
+- [ ] Criar página "Biblioteca Pública" para explorar modelos públicos
+- [ ] Adicionar filtros por área jurídica e tipo de documento na biblioteca
+- [ ] Permitir "clonar" modelos públicos para uso próprio
