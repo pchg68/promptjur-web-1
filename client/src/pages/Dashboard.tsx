@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu, PlayCircle } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu, PlayCircle, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -129,12 +130,18 @@ export default function Dashboard() {
   const [partesEnvolvidas, setPartesEnvolvidas] = useState("");
   const [legislacaoRelevante, setLegislacaoRelevante] = useState("");
   const [detalhesAdicionais, setDetalhesAdicionais] = useState("");
+  const [mostrarDadosAnaliticos, setMostrarDadosAnaliticos] = useState(false);
+  const resultadoGeracaoRef = useRef<HTMLDivElement>(null);
   const geracaoMutation = trpc.prompts.gerar.useMutation({
     onSuccess: (data) => {
       toast.success("Prompt profissional gerado com sucesso!");
       if (data.areaDetectadaAutomaticamente) {
         toast.info(`Área jurídica detectada automaticamente: ${data.area}`);
       }
+      // Scroll suave para o resultado
+      setTimeout(() => {
+        resultadoGeracaoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     },
     onError: (error) => {
       toast.error(`Erro na geração: ${error.message}`);
@@ -989,7 +996,7 @@ export default function Dashboard() {
                 </Button>
 
                 {geracaoMutation.data && (
-                  <div className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm">
+                  <div ref={resultadoGeracaoRef} className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm">
                      <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-foreground">✨ Prompt Profissional Pronto para Uso</h3>
                        <div className="flex items-center gap-2">
@@ -1116,6 +1123,41 @@ export default function Dashboard() {
                         <ValidacaoLegislacao validacao={geracaoMutation.data.validacaoLegislacao} />
                       </div>
                     )}
+                    
+                    {/* Dados Analíticos (Colapsável) */}
+                    <Collapsible open={mostrarDadosAnaliticos} onOpenChange={setMostrarDadosAnaliticos} className="mt-4">
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-full flex items-center justify-between p-3 hover:bg-muted/50">
+                          <span className="text-sm font-medium flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4" />
+                            Dados Analíticos e Métricas
+                          </span>
+                          <ChevronRight className={`w-4 h-4 transition-transform ${mostrarDadosAnaliticos ? 'rotate-90' : ''}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2">
+                        <div className="p-4 bg-muted/30 rounded-sm space-y-3 text-sm">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-muted-foreground">Tipo de Documento:</p>
+                              <p className="font-medium">{tipoDocumento}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Área Jurídica:</p>
+                              <p className="font-medium">{geracaoMutation.data.area}</p>
+                            </div>
+                            {geracaoMutation.data.areaDetectadaAutomaticamente && (
+                              <div className="col-span-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  Área detectada automaticamente
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                     
                     {/* Prompt profissional pronto - sem botão de fluxo (já é o resultado final) */}
                     <div className="pt-4 border-t border-border">

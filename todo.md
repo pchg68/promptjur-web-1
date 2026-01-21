@@ -989,3 +989,12 @@
 - [x] Corrigir validação no frontend (Dashboard.tsx)
 - [x] Converter string vazia para undefined antes de enviar
 - [x] Testar geração de prompt após correção
+
+
+## 🎨 Melhorias de UX Solicitadas
+
+### Geração de Prompt - Scroll e Visibilidade
+- [x] Corrigir scroll automático após geração - rolar para o prompt gerado, não para o fim da página
+- [x] Ocultar dados analíticos em accordion/collapse expansível
+- [x] Adicionar botão "Dados Analíticos e Métricas" para expandir dados
+- [x] Melhorar hierarquia visual - destaque para o prompt gerado
