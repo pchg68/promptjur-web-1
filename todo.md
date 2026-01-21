@@ -963,3 +963,20 @@
 - [ ] Adicionar badges de status no README (build, tests, coverage)
 - [ ] Configurar notificações de falha
 - [ ] Integrar com Codecov
+
+
+## 🎥 Videoaulas e Tutoriais
+
+### Criação de Conteúdo
+- [x] Roteiros detalhados dos 5 vídeos (3 min cada)
+- [x] Guia de configuração do OBS Studio
+- [x] Guia de gravação e edição
+- [x] Guia de publicação no YouTube
+
+### Integração no Aplicativo
+- [x] Criar página de Tutoriais no PromptJur
+- [x] Adicionar player de vídeo do YouTube embarcado
+- [x] Listar os 5 vídeos da série
+- [x] Adicionar link no menu principal (Home e Dashboard)
+- [x] Modal de visualização de vídeos
+- [ ] Atualizar IDs dos vídeos após upload no YouTube

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu, PlayCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -510,6 +510,10 @@ export default function Dashboard() {
                 <Link href="/biblioteca-publica" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <BookTemplate className="w-4 h-4" />
                   Biblioteca
+                </Link>
+                <Link href="/tutoriais" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <PlayCircle className="w-4 h-4" />
+                  Tutoriais
                 </Link>
               </nav>
               <NotificationBell />

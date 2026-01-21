@@ -18,6 +18,9 @@ export default function Home() {
               <h1 className="text-2xl font-bold text-foreground">{APP_TITLE}</h1>
             </div>
             <nav className="flex items-center gap-4">
+              <Link href="/tutoriais">
+                <Button variant="ghost">Tutoriais</Button>
+              </Link>
               {isAuthenticated ? (
                 <>
                   <span className="text-sm text-muted-foreground">Olá, {user?.name}</span>

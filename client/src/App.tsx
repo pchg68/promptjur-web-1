@@ -11,6 +11,7 @@ import Templates from "./pages/Templates";
 import TemplatePublico from "./pages/TemplatePublico";
 import MeusModelos from "./pages/MeusModelos";
 import BibliotecaPublica from "./pages/BibliotecaPublica";
+import Tutoriais from "./pages/Tutoriais";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/template/:id" component={TemplatePublico} />
       <Route path={"/meus-modelos"} component={MeusModelos} />
       <Route path={"/biblioteca-publica"} component={BibliotecaPublica} />
+      <Route path={"/tutoriais"} component={Tutoriais} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
