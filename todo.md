@@ -1006,3 +1006,11 @@
 - [x] Adicionar type="button" aos botões
 - [x] Adicionar preventDefault e stopPropagation
 - [x] Testar após correção
+
+
+### Bug: Botões de Ação Ultrapassando Margem
+- [x] Localizar seção de botões de ação no resultado da geração
+- [x] Adicionar flex-wrap para quebrar linha automaticamente
+- [x] Reorganizar layout de flex para coluna com gap
+- [x] Testar responsividade em diferentes tamanhos de tela
+- [x] Verificar alinhamento e espaçamento

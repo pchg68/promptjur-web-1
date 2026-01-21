@@ -1002,9 +1002,9 @@ export default function Dashboard() {
 
                 {geracaoMutation.data && (
                   <div ref={resultadoGeracaoRef} className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm">
-                     <div className="flex items-center justify-between">
+                     <div className="flex flex-col gap-3">
                       <h3 className="text-lg font-semibold text-foreground">✨ Prompt Profissional Pronto para Uso</h3>
-                       <div className="flex items-center gap-2">
+                       <div className="flex items-center gap-2 flex-wrap">
                          <Button
                            variant="default"
                            size="sm"
