@@ -587,7 +587,7 @@ export default function Dashboard() {
                   handleGerar();
                 }, 100);
               } else if (data.objetivo === 'otimizar') {
-                setPromptOtimizar(data.descricaoCaso);
+                setPromptOtimizacao(data.descricaoCaso);
                 setActiveTab('otimizar');
                 setModoWizard(false);
                 // Executar otimização automaticamente
@@ -679,7 +679,7 @@ export default function Dashboard() {
                             setPreviewData({
                               titulo: "Análise de Prompt",
                               conteudo: JSON.stringify(analiseMutation.data, null, 2),
-                              areaJuridica: analiseMutation.data?.areaJuridica,
+                              areaJuridica: analiseMutation.data?.area,
                               tipoDocumento: "Análise",
                               onExportPDF: () => exportAsPDF("Análise de Prompt", analiseMutation.data)
                             });
@@ -1222,7 +1222,7 @@ export default function Dashboard() {
                           await exportAsDOCXABNT({
                             titulo: "Prompt Otimizado",
                             conteudo: otimizacaoMutation.data?.promptOtimizado || "",
-                            areaJuridica: otimizacaoMutation.data?.areaJuridica,
+                            areaJuridica: otimizacaoMutation.data?.area,
                             tipoDocumento: "Otimização"
                           });
                           toast.success("Arquivo .DOCX salvo com formatação ABNT!");

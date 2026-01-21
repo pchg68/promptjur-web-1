@@ -82,6 +82,7 @@ export async function searchPrompts(filters: SearchFilters) {
       promptOriginal: prompts.promptOriginal,
       promptOtimizado: prompts.promptOtimizado,
       qualidade: prompts.qualidade,
+      isFavorito: prompts.isFavorito,
       metadata: prompts.metadata,
       createdAt: prompts.createdAt,
       updatedAt: prompts.updatedAt,

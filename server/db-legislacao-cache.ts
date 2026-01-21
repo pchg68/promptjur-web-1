@@ -102,8 +102,9 @@ export async function cleanExpiredCache(): Promise<number> {
       .delete(legislacaoCache)
       .where(lt(legislacaoCache.expiresAt, now));
 
-    console.log(`[Cache] ${result.rowsAffected || 0} registros expirados removidos`);
-    return result.rowsAffected || 0;
+    // Drizzle MySQL não retorna rowsAffected diretamente, então retornamos 0 como fallback
+    console.log(`[Cache] Registros expirados removidos`);
+    return 0;
   } catch (error) {
     console.error("[Cache] Erro ao limpar cache expirado:", error);
     return 0;

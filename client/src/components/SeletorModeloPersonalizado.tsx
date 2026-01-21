@@ -20,22 +20,22 @@ export function SeletorModeloPersonalizado({ onModeloPreenchido, areaJuridica }:
   const [variaveisExtraidas, setVariaveisExtraidas] = useState<string[]>([]);
   
   // Buscar modelos personalizados do usuário
-  const modelosQuery = trpc.modelosPersonalizados.meus.useQuery();
+  const modelosQuery = trpc.modelosPersonalizados.listar.useQuery({});
   
   // Filtrar modelos por área jurídica se fornecida
-  const modelosFiltrados = modelosQuery.data?.filter(modelo => 
+  const modelosFiltrados = modelosQuery.data?.filter((modelo: any) => 
     !areaJuridica || modelo.areaJuridica === areaJuridica
   ) || [];
   
   // Extrair variáveis do template quando modelo é selecionado
   useEffect(() => {
     if (modeloSelecionado) {
-      const modelo = modelosQuery.data?.find(m => m.id.toString() === modeloSelecionado);
+      const modelo = modelosQuery.data?.find((m: any) => m.id.toString() === modeloSelecionado);
       if (modelo) {
         // Extrair variáveis no formato {{nome}}
         const regex = /\{\{(\w+)\}\}/g;
         const matches = modelo.template.matchAll(regex);
-        const vars = Array.from(matches, m => m[1]);
+        const vars = Array.from(matches, (m: any) => m[1]);
         const uniqueVars = Array.from(new Set(vars));
         setVariaveisExtraidas(uniqueVars);
         
@@ -53,7 +53,7 @@ export function SeletorModeloPersonalizado({ onModeloPreenchido, areaJuridica }:
   }, [modeloSelecionado, modelosQuery.data]);
   
   const preencherModelo = () => {
-    const modelo = modelosQuery.data?.find(m => m.id.toString() === modeloSelecionado);
+    const modelo = modelosQuery.data?.find((m: any) => m.id.toString() === modeloSelecionado);
     if (!modelo) {
       toast.error("Modelo não encontrado");
       return;
