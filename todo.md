@@ -1014,3 +1014,13 @@
 - [x] Reorganizar layout de flex para coluna com gap
 - [x] Testar responsividade em diferentes tamanhos de tela
 - [x] Verificar alinhamento e espaçamento
+
+
+### Remover Detecção Automática de Área Jurídica
+- [x] Localizar campo de área jurídica no formulário de geração
+- [x] Remover opção vazia "Detectar automaticamente"
+- [x] Tornar campo obrigatório com valor padrão "Civil"
+- [x] Atualizar label com asterisco de obrigatório
+- [x] Remover lógica de detecção automática
+- [x] Tornar campo obrigatório no backend (routers.ts)
+- [x] Testar geração de prompt após modificação

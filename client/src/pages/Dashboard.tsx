@@ -126,7 +126,7 @@ export default function Dashboard() {
   const [tipoDocumento, setTipoDocumento] = useState<"peticao" | "parecer" | "contrato" | "recurso" | "defesa" | "memorando" | "outro">("peticao");
   const [contextoJuridico, setContextoJuridico] = useState("");
   const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
-  const [areaGeracao, setAreaGeracao] = useState<string>(""); // Opcional - detectado automaticamente
+  const [areaGeracao, setAreaGeracao] = useState<string>("Civil"); // Obrigatório - valor padrão Civil
   const [partesEnvolvidas, setPartesEnvolvidas] = useState("");
   const [legislacaoRelevante, setLegislacaoRelevante] = useState("");
   const [detalhesAdicionais, setDetalhesAdicionais] = useState("");
@@ -266,7 +266,7 @@ export default function Dashboard() {
       tipoDocumento,
       contextoJuridico,
       objetivoEspecifico,
-      area: areaGeracao && areaGeracao.trim() !== "" ? areaGeracao : undefined, // Detectado automaticamente se vazio
+      area: areaGeracao, // Campo obrigatório
       partesEnvolvidas: partesEnvolvidas || undefined,
       legislacaoRelevante: legislacaoRelevante || undefined,
       detalhesAdicionais: detalhesAdicionais || undefined
@@ -916,12 +916,12 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Área Jurídica (Opcional - Detectada Automaticamente) */}
+                {/* Área Jurídica (Obrigatório) */}
                 <div className="space-y-2">
-                  <Label htmlFor="area-geracao">Área Jurídica (Opcional - Detectada Automaticamente)</Label>
+                  <Label htmlFor="area-geracao">Área Jurídica <span className="text-destructive">*</span></Label>
                   <Select value={areaGeracao} onValueChange={setAreaGeracao}>
                     <SelectTrigger id="area-geracao">
-                      <SelectValue placeholder="Deixe vazio para detecção automática" />
+                      <SelectValue placeholder="Selecione a área jurídica" />
                     </SelectTrigger>
                     <SelectContent>
                       {AREAS_JURIDICAS.map((area) => (
