@@ -1058,3 +1058,12 @@
 - [x] Adicionar botões com ícones ChevronRight para expandir cada seção
 - [x] Deixar seções ocultas por padrão (collapsed=false)
 - [x] Testar responsividade e usabilidade
+
+
+### Ocultar Estatísticas do Cache de Legislação
+- [x] Adicionar estado para controlar visibilidade
+- [x] Implementar botão com ícone expansível (Database + ChevronRight)
+- [x] Aplicar sistema de collapse consistente
+- [x] Deixar seção oculta por padrão
+- [x] Adicionar persistência no localStorage
+- [x] Testar funcionalidade

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu, PlayCircle, ChevronRight } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu, PlayCircle, ChevronRight, Database } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -69,6 +69,10 @@ export default function Dashboard() {
     const saved = localStorage.getItem('promptjur-mostrar-analytics');
     return saved ? JSON.parse(saved) : false;
   });
+  const [mostrarCacheLegislacao, setMostrarCacheLegislacao] = useState(() => {
+    const saved = localStorage.getItem('promptjur-mostrar-cache-legislacao');
+    return saved ? JSON.parse(saved) : false;
+  });
   
   // Funções para toggle com persistência
   const toggleFavoritos = () => {
@@ -85,6 +89,11 @@ export default function Dashboard() {
     const newValue = !mostrarAnalytics;
     setMostrarAnalytics(newValue);
     localStorage.setItem('promptjur-mostrar-analytics', JSON.stringify(newValue));
+  };
+  const toggleCacheLegislacao = () => {
+    const newValue = !mostrarCacheLegislacao;
+    setMostrarCacheLegislacao(newValue);
+    localStorage.setItem('promptjur-mostrar-cache-legislacao', JSON.stringify(newValue));
   };
   
   // Buscar estatísticas do usuário
@@ -1931,8 +1940,20 @@ export default function Dashboard() {
 
             {/* Estatísticas do Cache de Legislação */}
             {!isCompactMode && (
-              <div className="mt-6">
-                <CacheStatistics />
+              <div className="mb-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleCacheLegislacao}
+                  className="mb-4 w-full justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    <Database className="w-4 h-4" />
+                    Estatísticas do Cache de Legislação
+                  </span>
+                  <ChevronRight className={`w-4 h-4 transition-transform ${mostrarCacheLegislacao ? 'rotate-90' : ''}`} />
+                </Button>
+                {mostrarCacheLegislacao && <CacheStatistics />}
               </div>
             )}
           </>
