@@ -31,7 +31,10 @@ import { PreviewDocumentoModal } from "@/components/PreviewDocumentoModal";
 import { SeletorModeloPersonalizado } from "@/components/SeletorModeloPersonalizado";
 import { NotificationBell } from "@/components/NotificationBell";
 import { CacheStatistics } from "@/components/CacheStatistics";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { GerenciadorPerfis } from "@/components/GerenciadorPerfis";
+import { SugestaoArea } from "@/components/SugestaoArea";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Bookmark, Lightbulb, Save, Trash2 } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -132,6 +135,8 @@ export default function Dashboard() {
   const [detalhesAdicionais, setDetalhesAdicionais] = useState("");
   const [mostrarDadosAnaliticos, setMostrarDadosAnaliticos] = useState(false);
   const resultadoGeracaoRef = useRef<HTMLDivElement>(null);
+  
+  
   const geracaoMutation = trpc.prompts.gerar.useMutation({
     onSuccess: (data) => {
       toast.success("Prompt profissional gerado com sucesso!");
@@ -931,9 +936,25 @@ export default function Dashboard() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Se não especificada, a área será detectada automaticamente pelo contexto
-                  </p>
+                  
+                  {/* Sugestão Inteligente de Área */}
+                  <SugestaoArea
+                    contexto={contextoJuridico}
+                    objetivo={objetivoEspecifico}
+                    onAplicarSugestao={setAreaGeracao}
+                  />
+                </div>
+                
+                {/* Gerenciador de Perfis */}
+                <div className="flex justify-end">
+                  <GerenciadorPerfis
+                    tipoDocumento={tipoDocumento}
+                    areaJuridica={areaGeracao}
+                    onCarregarPerfil={(perfil) => {
+                      setTipoDocumento(perfil.tipoDocumento as any);
+                      setAreaGeracao(perfil.areaJuridica);
+                    }}
+                  />
                 </div>
 
                 {/* Campos Opcionais Avançados */}

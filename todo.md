@@ -1024,3 +1024,27 @@
 - [x] Remover lógica de detecção automática
 - [x] Tornar campo obrigatório no backend (routers.ts)
 - [x] Testar geração de prompt após modificação
+
+
+## 🚀 Novas Funcionalidades
+
+### Perfis de Uso
+- [x] Criar tabela `perfis_uso` no schema
+- [x] Executar migração do banco
+- [x] Criar rotas backend (criar, listar, deletar perfil)
+- [x] Implementar UI de gerenciamento de perfis (componente GerenciadorPerfis)
+- [x] Adicionar botão "Salvar como Perfil" no formulário
+- [x] Adicionar dropdown de perfis salvos
+- [x] Implementar preenchimento automático ao selecionar perfil
+- [x] Criar testes unitários (8 testes passando)
+- [x] Testar funcionalidade completa
+
+### Sugestão Inteligente de Área
+- [x] Criar função de análise de contexto para sugerir área
+- [x] Implementar rota backend para sugestão
+- [x] Adicionar botão "Sugerir Área" no formulário (componente SugestaoArea)
+- [x] Mostrar sugestão com botão "Usar sugerida: [Área]"
+- [x] Implementar aplicação da sugestão
+- [x] Exibir confiança e motivo da sugestão
+- [x] Criar testes unitários (13 testes passando)
+- [x] Testar com diferentes contextos

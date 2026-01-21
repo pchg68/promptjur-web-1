@@ -16,6 +16,8 @@ import { notificationsRouter, notificationPreferencesRouter } from "./routers-no
 import { notifyPromptGenerated, notifyPromptOptimized, notifyAnalysisComplete } from "./notification-triggers";
 import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes, extractLegalSources, getSourcesStatistics } from "./extractCitacoesLegais";
 import { getCacheStatistics } from "./db-legislacao-cache";
+import { criarPerfil, listarPerfis, deletarPerfil, buscarPerfilPorId } from "./db-perfis";
+import { sugerirArea } from "./sugestao-area";
 import { modelosPersonalizadosRouter } from "./routers-modelos-personalizados";
 
 export const appRouter = router({
@@ -989,6 +991,63 @@ Responda em formato JSON com:
           // Placeholder para top citações (futura implementação)
           topCitacoes: [] as Array<{ citacao: string; count: number }>
         };
+      })
+  }),
+
+  // Router de perfis de uso
+  perfis: router({
+    // Criar novo perfil
+    criar: protectedProcedure
+      .input(z.object({
+        nome: z.string().min(3, "Nome muito curto"),
+        tipoDocumento: z.enum(["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"]),
+        areaJuridica: z.string(),
+        modeloId: z.string().optional(),
+        descricao: z.string().optional()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const perfil = await criarPerfil({
+          userId: ctx.user.id,
+          ...input
+        });
+        return perfil;
+      }),
+
+    // Listar perfis do usuário
+    listar: protectedProcedure
+      .query(async ({ ctx }) => {
+        return await listarPerfis(ctx.user.id);
+      }),
+
+    // Deletar perfil
+    deletar: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return await deletarPerfil(input.id, ctx.user.id);
+      }),
+
+    // Buscar perfil por ID
+    buscar: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .query(async ({ input, ctx }) => {
+        return await buscarPerfilPorId(input.id, ctx.user.id);
+      })
+  }),
+
+  // Router de sugestão inteligente
+  sugestao: router({
+    // Sugerir área jurídica baseada no contexto
+    area: protectedProcedure
+      .input(z.object({
+        contexto: z.string().min(10, "Contexto muito curto"),
+        objetivo: z.string().optional()
+      }))
+      .query(async ({ input }) => {
+        return sugerirArea(input.contexto, input.objetivo);
       })
   })
 });

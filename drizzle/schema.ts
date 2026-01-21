@@ -260,3 +260,21 @@ export const legislacaoCache = mysqlTable("legislacao_cache", {
 
 export type LegislacaoCache = typeof legislacaoCache.$inferSelect;
 export type InsertLegislacaoCache = typeof legislacaoCache.$inferInsert;
+
+/**
+ * Tabela de perfis de uso para salvar combinações frequentes
+ */
+export const perfisUso = mysqlTable("perfis_uso", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  nome: varchar("nome", { length: 100 }).notNull(), // Nome do perfil (ex: "Trabalhista Padrão")
+  tipoDocumento: mysqlEnum("tipoDocumento", ["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"]).notNull(),
+  areaJuridica: varchar("areaJuridica", { length: 100 }).notNull(),
+  modeloId: varchar("modeloId", { length: 50 }), // ID do modelo profissional (opcional)
+  descricao: text("descricao"), // Descrição opcional do perfil
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PerfilUso = typeof perfisUso.$inferSelect;
+export type InsertPerfilUso = typeof perfisUso.$inferInsert;
