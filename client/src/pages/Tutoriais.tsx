@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, Clock, BookOpen, ExternalLink } from "lucide-react";
+import { PlayCircle, Clock, BookOpen, ExternalLink, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
 interface Video {
@@ -103,6 +103,17 @@ export default function Tutoriais() {
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container py-8">
+          <div className="mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.history.back()}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </Button>
+          </div>
           <div className="flex items-center gap-3 mb-3">
             <BookOpen className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">Tutoriais em Vídeo</h1>

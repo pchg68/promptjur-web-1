@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2 } from "lucide-react";
+import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2, ArrowLeft } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { AREAS_JURIDICAS } from "@/const";
 import { AdvancedSearch, type SearchFilters } from "@/components/AdvancedSearch";
 
@@ -145,6 +145,17 @@ export default function Historico() {
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.history.back()}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </Button>
+          </div>
           <div className="flex items-center gap-3 mb-2">
             <HistoryIcon className="w-6 h-6 text-primary" />
             <h2 className="text-3xl font-bold text-foreground">Histórico de Atividades</h2>

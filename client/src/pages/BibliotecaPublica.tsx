@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Library, Copy, Eye, Home, History, BookTemplate, FileText, Search, Filter } from "lucide-react";
+import { Scale, Library, Copy, Eye, Home, History, BookTemplate, FileText, Search, Filter, ArrowLeft } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -93,6 +93,17 @@ export default function BibliotecaPublica() {
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="mb-8">
+          <div className="mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.history.back()}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </Button>
+          </div>
           <div className="flex items-center gap-3 mb-2">
             <Library className="w-8 h-8 text-primary" />
             <h2 className="text-3xl font-bold text-foreground">Biblioteca Pública de Modelos</h2>

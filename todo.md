@@ -1067,3 +1067,15 @@
 - [x] Deixar seção oculta por padrão
 - [x] Adicionar persistência no localStorage
 - [x] Testar funcionalidade
+
+
+## 🔙 Navegação - Botões Voltar
+
+### Implementar Botões Voltar em Todas as Páginas
+- [x] Identificar todas as páginas de análise/detalhes
+- [x] Adicionar botão Voltar no Histórico
+- [x] Adicionar botão Voltar em Modelos Personalizados (MeusModelos)
+- [x] Adicionar botão Voltar em Biblioteca Pública
+- [x] Adicionar botão Voltar em Tutoriais
+- [x] Usar ícone ArrowLeft consistente
+- [x] Testar navegação em todas as páginas
