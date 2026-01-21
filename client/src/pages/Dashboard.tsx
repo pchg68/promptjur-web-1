@@ -56,6 +56,37 @@ export default function Dashboard() {
     toast.success(newMode ? 'Modo Compacto ativado' : 'Modo Completo ativado');
   };
   
+  // Estados para controlar visibilidade das seções laterais (persistidos)
+  const [mostrarFavoritos, setMostrarFavoritos] = useState(() => {
+    const saved = localStorage.getItem('promptjur-mostrar-favoritos');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [mostrarTags, setMostrarTags] = useState(() => {
+    const saved = localStorage.getItem('promptjur-mostrar-tags');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [mostrarAnalytics, setMostrarAnalytics] = useState(() => {
+    const saved = localStorage.getItem('promptjur-mostrar-analytics');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  // Funções para toggle com persistência
+  const toggleFavoritos = () => {
+    const newValue = !mostrarFavoritos;
+    setMostrarFavoritos(newValue);
+    localStorage.setItem('promptjur-mostrar-favoritos', JSON.stringify(newValue));
+  };
+  const toggleTags = () => {
+    const newValue = !mostrarTags;
+    setMostrarTags(newValue);
+    localStorage.setItem('promptjur-mostrar-tags', JSON.stringify(newValue));
+  };
+  const toggleAnalytics = () => {
+    const newValue = !mostrarAnalytics;
+    setMostrarAnalytics(newValue);
+    localStorage.setItem('promptjur-mostrar-analytics', JSON.stringify(newValue));
+  };
+  
   // Buscar estatísticas do usuário
   const statsQuery = trpc.prompts.stats.useQuery();
   const analyticsQuery = trpc.analytics.get.useQuery();
@@ -1778,26 +1809,64 @@ export default function Dashboard() {
 
             {/* Seção de Favoritos */}
             <div className="mb-8">
-              <FavoritosSection />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleFavoritos}
+                className="mb-4 w-full justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <Bookmark className="w-4 h-4" />
+                  Prompts Favoritos
+                </span>
+                <ChevronRight className={`w-4 h-4 transition-transform ${mostrarFavoritos ? 'rotate-90' : ''}`} />
+              </Button>
+              {mostrarFavoritos && <FavoritosSection />}
             </div>
             
             {/* Gerenciamento de Tags */}
             <div className="mb-8">
-              <TagsManager />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleTags}
+                className="mb-4 w-full justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <Search className="w-4 h-4" />
+                  Gerenciar Tags
+                </span>
+                <ChevronRight className={`w-4 h-4 transition-transform ${mostrarTags ? 'rotate-90' : ''}`} />
+              </Button>
+              {mostrarTags && <TagsManager />}
             </div>
 
             {/* Seção de Analytics */}
             {analyticsQuery.data && (
-              <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Analytics de Uso
-              </CardTitle>
-              <CardDescription>
-                Estatísticas e métricas de desempenho
-              </CardDescription>
-            </CardHeader>
+              <div className="mb-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleAnalytics}
+                  className="mb-4 w-full justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    Analytics de Uso
+                  </span>
+                  <ChevronRight className={`w-4 h-4 transition-transform ${mostrarAnalytics ? 'rotate-90' : ''}`} />
+                </Button>
+                {mostrarAnalytics && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        Analytics de Uso
+                      </CardTitle>
+                      <CardDescription>
+                        Estatísticas e métricas de desempenho
+                      </CardDescription>
+                    </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Tempo Médio de Análise */}
@@ -1855,8 +1924,10 @@ export default function Dashboard() {
                 </div>
               )}
             </CardContent>
-              </Card>
-            )}
+          </Card>
+        )}
+      </div>
+    )}
 
             {/* Estatísticas do Cache de Legislação */}
             {!isCompactMode && (

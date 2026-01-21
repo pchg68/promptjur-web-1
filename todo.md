@@ -1048,3 +1048,13 @@
 - [x] Exibir confiança e motivo da sugestão
 - [x] Criar testes unitários (13 testes passando)
 - [x] Testar com diferentes contextos
+
+
+## 🎨 Melhorias de Layout
+
+### Ocultar Seções Laterais no Dashboard
+- [x] Identificar seções laterais (Favoritos, Tags, Analytics)
+- [x] Implementar sistema de collapse com Collapsible do shadcn/ui
+- [x] Adicionar botões com ícones ChevronRight para expandir cada seção
+- [x] Deixar seções ocultas por padrão (collapsed=false)
+- [x] Testar responsividade e usabilidade
