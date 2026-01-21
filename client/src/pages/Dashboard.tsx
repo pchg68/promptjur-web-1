@@ -257,7 +257,7 @@ export default function Dashboard() {
       tipoDocumento,
       contextoJuridico,
       objetivoEspecifico,
-      area: areaGeracao || undefined, // Detectado automaticamente se vazio
+      area: areaGeracao && areaGeracao.trim() !== "" ? areaGeracao : undefined, // Detectado automaticamente se vazio
       partesEnvolvidas: partesEnvolvidas || undefined,
       legislacaoRelevante: legislacaoRelevante || undefined,
       detalhesAdicionais: detalhesAdicionais || undefined

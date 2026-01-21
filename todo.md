@@ -980,3 +980,12 @@
 - [x] Adicionar link no menu principal (Home e Dashboard)
 - [x] Modal de visualização de vídeos
 - [ ] Atualizar IDs dos vídeos após upload no YouTube
+
+
+## 🐛 Bugs Reportados
+
+### Erro de Validação na Geração de Prompt
+- [x] Investigar erro de validação no campo "área jurídica"
+- [x] Corrigir validação no frontend (Dashboard.tsx)
+- [x] Converter string vazia para undefined antes de enviar
+- [x] Testar geração de prompt após correção
