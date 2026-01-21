@@ -255,7 +255,9 @@ export default function Dashboard() {
     }
   };
 
-  const handleGerar = async () => {
+  const handleGerar = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     if (!contextoJuridico.trim() || !objetivoEspecifico.trim()) {
       toast.error("Por favor, preencha os campos obrigatórios (Contexto e Objetivo)");
       return;
@@ -271,7 +273,9 @@ export default function Dashboard() {
     });
   };
 
-  const handleOtimizar = async () => {
+  const handleOtimizar = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     if (!promptOtimizacao.trim()) {
       toast.error("Por favor, insira um prompt para otimizar");
       return;
@@ -978,6 +982,7 @@ export default function Dashboard() {
                 </details>
 
                 <Button 
+                  type="button"
                   onClick={handleGerar} 
                   disabled={geracaoMutation.isPending}
                   className="w-full"
@@ -1207,6 +1212,7 @@ export default function Dashboard() {
                   />
                 </div>
                 <Button 
+                  type="button"
                   onClick={handleOtimizar} 
                   disabled={otimizacaoMutation.isPending}
                   className="w-full"

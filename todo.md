@@ -998,3 +998,11 @@
 - [x] Ocultar dados analíticos em accordion/collapse expansível
 - [x] Adicionar botão "Dados Analíticos e Métricas" para expandir dados
 - [x] Melhorar hierarquia visual - destaque para o prompt gerado
+
+
+### Bug: Duplo Clique nos Botões de Geração
+- [x] Investigar causa do duplo clique em "Gerar Prompt Profissional"
+- [x] Investigar causa do duplo clique em "Otimizar Prompt"
+- [x] Adicionar type="button" aos botões
+- [x] Adicionar preventDefault e stopPropagation
+- [x] Testar após correção
