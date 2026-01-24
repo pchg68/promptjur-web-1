@@ -9,7 +9,7 @@ import { toast } from "sonner";
 interface SugestaoAreaProps {
   contexto: string;
   objetivo?: string;
-  onAplicarSugestao: (area: string) => void;
+  onAplicarSugestao: (area: "Civil" | "Penal" | "Trabalhista" | "Tributário" | "Administrativo" | "Constitucional" | "Empresarial" | "Consumidor" | "Família" | "Previdenciário" | "Ambiental" | "Internacional" | "Processo Civil" | "Direito Médico" | "Direito Digital" | "Direito Internacional") => void;
 }
 
 export function SugestaoArea({ contexto, objetivo, onAplicarSugestao }: SugestaoAreaProps) {
@@ -36,7 +36,7 @@ export function SugestaoArea({ contexto, objetivo, onAplicarSugestao }: Sugestao
 
   const handleAplicar = () => {
     if (sugestaoQuery.data) {
-      onAplicarSugestao(sugestaoQuery.data.area);
+      onAplicarSugestao(sugestaoQuery.data.area as Parameters<typeof onAplicarSugestao>[0]);
       toast.success(`Área "${sugestaoQuery.data.area}" aplicada!`);
       setMostrarSugestao(false);
     }

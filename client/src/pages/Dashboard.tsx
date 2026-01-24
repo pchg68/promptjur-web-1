@@ -169,7 +169,7 @@ export default function Dashboard() {
   const [tipoDocumento, setTipoDocumento] = useState<"peticao" | "parecer" | "contrato" | "recurso" | "defesa" | "memorando" | "outro">("peticao");
   const [contextoJuridico, setContextoJuridico] = useState("");
   const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
-  const [areaGeracao, setAreaGeracao] = useState<string>("Civil"); // Obrigatório - valor padrão Civil
+  const [areaGeracao, setAreaGeracao] = useState<"Civil" | "Penal" | "Trabalhista" | "Tributário" | "Administrativo" | "Constitucional" | "Empresarial" | "Consumidor" | "Família" | "Previdenciário" | "Ambiental" | "Internacional" | "Processo Civil" | "Direito Médico" | "Direito Digital" | "Direito Internacional">("Civil"); // Obrigatório - valor padrão Civil
   const [partesEnvolvidas, setPartesEnvolvidas] = useState("");
   const [legislacaoRelevante, setLegislacaoRelevante] = useState("");
   const [detalhesAdicionais, setDetalhesAdicionais] = useState("");
@@ -638,7 +638,7 @@ export default function Dashboard() {
                   handleAnalisar();
                 }, 100);
               } else if (data.objetivo === 'gerar') {
-                setAreaGeracao(data.areaJuridica === 'auto' ? '' : data.areaJuridica);
+                setAreaGeracao((data.areaJuridica === 'auto' ? 'Civil' : data.areaJuridica) as typeof areaGeracao);
                 setContextoJuridico(data.descricaoCaso);
                 setActiveTab('gerar');
                 setModoWizard(false);
@@ -964,7 +964,7 @@ export default function Dashboard() {
                 {/* Área Jurídica (Obrigatório) */}
                 <div className="space-y-2">
                   <Label htmlFor="area-geracao">Área Jurídica <span className="text-destructive">*</span></Label>
-                  <Select value={areaGeracao} onValueChange={setAreaGeracao}>
+                  <Select value={areaGeracao} onValueChange={(value) => setAreaGeracao(value as typeof areaGeracao)}>
                     <SelectTrigger id="area-geracao">
                       <SelectValue placeholder="Selecione a área jurídica" />
                     </SelectTrigger>
@@ -992,7 +992,7 @@ export default function Dashboard() {
                     areaJuridica={areaGeracao}
                     onCarregarPerfil={(perfil) => {
                       setTipoDocumento(perfil.tipoDocumento as any);
-                      setAreaGeracao(perfil.areaJuridica);
+                      setAreaGeracao(perfil.areaJuridica as typeof areaGeracao);
                     }}
                   />
                 </div>

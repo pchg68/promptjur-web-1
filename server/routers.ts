@@ -231,7 +231,7 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
         tipoDocumento: z.enum(["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"] as const),
         contextoJuridico: z.string().min(20, "Contexto muito curto - descreva a situação jurídica"),
         objetivoEspecifico: z.string().min(10, "Objetivo muito curto"),
-        area: z.enum(AREAS_JURIDICAS as any), // Campo obrigatório
+        area: z.enum(["Civil", "Penal", "Trabalhista", "Tributário", "Administrativo", "Constitucional", "Empresarial", "Consumidor", "Família", "Previdenciário", "Ambiental", "Internacional", "Processo Civil", "Direito Médico", "Direito Digital", "Direito Internacional"] as const), // Campo obrigatório
         partesEnvolvidas: z.string().optional(),
         legislacaoRelevante: z.string().optional(),
         detalhesAdicionais: z.string().optional()
