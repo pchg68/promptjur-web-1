@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -14,11 +14,34 @@ interface SugestaoAreaProps {
 
 export function SugestaoArea({ contexto, objetivo, onAplicarSugestao }: SugestaoAreaProps) {
   const [mostrarSugestao, setMostrarSugestao] = useState(false);
+  const [autoSuggestEnabled, setAutoSuggestEnabled] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const sugestaoQuery = trpc.sugestao.area.useQuery(
     { contexto, objetivo },
     { enabled: false }
   );
+  
+  // Debounce automático: sugerir área quando usuário parar de digitar por 500ms
+  useEffect(() => {
+    // Limpar timer anterior
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Se o contexto for suficiente e a sugestão automática estiver habilitada
+    if (autoSuggestEnabled && contexto && contexto.length >= 30) {
+      debounceTimerRef.current = setTimeout(() => {
+        sugestaoQuery.refetch();
+      }, 500); // 500ms de debounce
+    }
+    
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [contexto, objetivo, autoSuggestEnabled]);
   
   // Mostrar sugestão quando dados estiverem disponíveis
   if (sugestaoQuery.data && !mostrarSugestao && !sugestaoQuery.isFetching) {
@@ -44,25 +67,37 @@ export function SugestaoArea({ contexto, objetivo, onAplicarSugestao }: Sugestao
 
   return (
     <div className="space-y-2">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={handleSugerir}
-        disabled={sugestaoQuery.isFetching || !contexto || contexto.length < 10}
-      >
-        {sugestaoQuery.isFetching ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Analisando...
-          </>
-        ) : (
-          <>
-            <Lightbulb className="w-4 h-4 mr-2" />
-            Sugerir Área
-          </>
-        )}
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleSugerir}
+          disabled={sugestaoQuery.isFetching || !contexto || contexto.length < 10}
+        >
+          {sugestaoQuery.isFetching ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Analisando...
+            </>
+          ) : (
+            <>
+              <Lightbulb className="w-4 h-4 mr-2" />
+              Sugerir Área
+            </>
+          )}
+        </Button>
+        
+        <Button
+          type="button"
+          variant={autoSuggestEnabled ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setAutoSuggestEnabled(!autoSuggestEnabled)}
+          title={autoSuggestEnabled ? "Desativar sugestão automática" : "Ativar sugestão automática"}
+        >
+          {autoSuggestEnabled ? "⚡ Auto" : "⚡"}
+        </Button>
+      </div>
 
       {mostrarSugestao && sugestaoQuery.data && (
         <Card className="p-4 space-y-3 border-primary/20 bg-primary/5">

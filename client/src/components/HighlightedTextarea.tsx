@@ -13,6 +13,7 @@ interface HighlightedTextareaProps {
   className?: string;
   showValidation?: boolean;
   minHeight?: string;
+  onBlur?: () => void;
 }
 
 export function HighlightedTextarea({
@@ -21,7 +22,8 @@ export function HighlightedTextarea({
   placeholder,
   className = "",
   showValidation = true,
-  minHeight = "200px"
+  minHeight = "200px",
+  onBlur
 }: HighlightedTextareaProps) {
   const [citacoes, setCitacoes] = useState<CitacaoLegal[]>([]);
   const [isValidating, setIsValidating] = useState(false);
@@ -142,6 +144,7 @@ export function HighlightedTextarea({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onScroll={handleScroll}
+          onBlur={onBlur}
           placeholder={placeholder}
           className={`relative font-mono text-sm leading-relaxed ${className}`}
           style={{

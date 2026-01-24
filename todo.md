@@ -1079,3 +1079,19 @@
 - [x] Adicionar botão Voltar em Tutoriais
 - [x] Usar ícone ArrowLeft consistente
 - [x] Testar navegação em todas as páginas
+
+## Melhorias de UX e Qualidade (Sessão Atual)
+- [x] Validação em tempo real no formulário de geração
+  - [x] Adicionar feedback visual para campos obrigatórios vazios
+  - [x] Mostrar mensagens de erro inline antes da submissão
+  - [x] Implementar validação progressiva conforme usuário preenche
+- [x] Debounce na sugestão de área jurídica
+  - [x] Implementar debounce de 500ms no componente SugestaoArea
+  - [x] Evitar chamadas excessivas à API durante digitação
+  - [x] Adicionar botão de sugestão automática
+- [x] Testes automatizados com Vitest
+  - [x] Criar testes para validação de formulário (18 testes)
+  - [x] Criar testes para áreas jurídicas e palavras-chave (18 testes)
+  - [x] Atualizar configuração do Vitest para incluir testes do client e shared
+  - [x] Garantir cobertura de casos de erro e extremos
+  - [x] Total de 108 testes passando com sucesso

@@ -176,6 +176,16 @@ export default function Dashboard() {
   const [mostrarDadosAnaliticos, setMostrarDadosAnaliticos] = useState(false);
   const resultadoGeracaoRef = useRef<HTMLDivElement>(null);
   
+  // Estados de validação em tempo real
+  const [validationErrors, setValidationErrors] = useState<{
+    contextoJuridico?: string;
+    objetivoEspecifico?: string;
+  }>({});
+  const [touchedFields, setTouchedFields] = useState<{
+    contextoJuridico?: boolean;
+    objetivoEspecifico?: boolean;
+  }>({});
+  
   
   const geracaoMutation = trpc.prompts.gerar.useMutation({
     onSuccess: (data) => {
@@ -194,6 +204,53 @@ export default function Dashboard() {
   });
 
   // Mutation para exportar como DOCX
+  // Função de validação em tempo real
+  const validateField = (field: 'contextoJuridico' | 'objetivoEspecifico', value: string) => {
+    const errors: typeof validationErrors = { ...validationErrors };
+    
+    if (field === 'contextoJuridico') {
+      if (!value.trim()) {
+        errors.contextoJuridico = 'O contexto jurídico é obrigatório';
+      } else if (value.trim().length < 20) {
+        errors.contextoJuridico = 'O contexto deve ter pelo menos 20 caracteres para gerar um prompt de qualidade';
+      } else {
+        delete errors.contextoJuridico;
+      }
+    }
+    
+    if (field === 'objetivoEspecifico') {
+      if (!value.trim()) {
+        errors.objetivoEspecifico = 'O objetivo específico é obrigatório';
+      } else if (value.trim().length < 10) {
+        errors.objetivoEspecifico = 'O objetivo deve ter pelo menos 10 caracteres';
+      } else {
+        delete errors.objetivoEspecifico;
+      }
+    }
+    
+    setValidationErrors(errors);
+  };
+  
+  // Validar quando o usuário sai do campo (onBlur)
+  const handleFieldBlur = (field: 'contextoJuridico' | 'objetivoEspecifico') => {
+    setTouchedFields(prev => ({ ...prev, [field]: true }));
+    const value = field === 'contextoJuridico' ? contextoJuridico : objetivoEspecifico;
+    validateField(field, value);
+  };
+  
+  // Validar conforme o usuário digita (apenas se o campo já foi tocado)
+  useEffect(() => {
+    if (touchedFields.contextoJuridico) {
+      validateField('contextoJuridico', contextoJuridico);
+    }
+  }, [contextoJuridico]);
+  
+  useEffect(() => {
+    if (touchedFields.objetivoEspecifico) {
+      validateField('objetivoEspecifico', objetivoEspecifico);
+    }
+  }, [objetivoEspecifico]);
+
   const gerarDocMutation = trpc.prompts.exportarDocx.useMutation({
     onSuccess: (data) => {
       // Converter base64 para blob e fazer download
@@ -946,7 +1003,15 @@ export default function Dashboard() {
                     placeholder="Descreva a situação jurídica completa (ex: Cliente sofreu acidente de trânsito, réu não pagou indenização acordada, empresa descumpriu contrato de prestação de serviços...)"
                     showValidation={true}
                     minHeight="120px"
+                    onBlur={() => handleFieldBlur('contextoJuridico')}
+                    className={touchedFields.contextoJuridico && validationErrors.contextoJuridico ? 'border-destructive' : ''}
                   />
+                  {touchedFields.contextoJuridico && validationErrors.contextoJuridico && (
+                    <p className="text-sm text-destructive flex items-center gap-1">
+                      <span className="text-lg">⚠️</span>
+                      {validationErrors.contextoJuridico}
+                    </p>
+                  )}
                 </div>
 
                 {/* Objetivo Específico */}
@@ -957,8 +1022,15 @@ export default function Dashboard() {
                     placeholder="O que você quer que a IA gere? (ex: Redigir petição inicial de ação de cobrança com pedido de tutela de urgência)"
                     value={objetivoEspecifico}
                     onChange={(e) => setObjetivoEspecifico(e.target.value)}
-                    className="min-h-[80px]"
+                    onBlur={() => handleFieldBlur('objetivoEspecifico')}
+                    className={`min-h-[80px] ${touchedFields.objetivoEspecifico && validationErrors.objetivoEspecifico ? 'border-destructive' : ''}`}
                   />
+                  {touchedFields.objetivoEspecifico && validationErrors.objetivoEspecifico && (
+                    <p className="text-sm text-destructive flex items-center gap-1">
+                      <span className="text-lg">⚠️</span>
+                      {validationErrors.objetivoEspecifico}
+                    </p>
+                  )}
                 </div>
 
                 {/* Área Jurídica (Obrigatório) */}
