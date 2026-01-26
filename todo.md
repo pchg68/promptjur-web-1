@@ -1126,3 +1126,9 @@
   - [x] Aplicar rate limiting nas rotas tRPC
   - [ ] Exibir limite restante no dashboard (opcional)
   - [ ] Criar testes para rate limiting
+
+## Melhorias de UX - Simplificação de Interface
+- [x] Remover botão "Salvar.TXT" após geração de prompt profissional
+- [x] Ocultar botão "Markdown" após geração de prompt profissional
+- [x] Reorganizar botões: Copiar (principal), DOCX ABNT, PDF ABNT, Salvar Template
+- [x] Verificado: remoção não afeta funcionalidades - usuário tem opções mais claras

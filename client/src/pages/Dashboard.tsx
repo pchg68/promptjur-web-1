@@ -1129,64 +1129,45 @@ export default function Dashboard() {
                      <div className="flex flex-col gap-3">
                       <h3 className="text-lg font-semibold text-foreground">✨ Prompt Profissional Pronto para Uso</h3>
                        <div className="flex items-center gap-2 flex-wrap">
-                         <Button
-                           variant="default"
-                           size="sm"
-                           onClick={() => {
-                             exportAsTextABNT("Prompt Gerado", geracaoMutation.data?.promptProfissional || "");
-                             toast.success("Arquivo .TXT salvo com formatação ABNT (Arial 12, espaçamento 1.0)!");
-                           }}
-                         >
-                           <FileText className="w-4 h-4 mr-2" />
-                           Salvar .TXT (ABNT)
-                         </Button>
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => exportAsPDF("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
-                         >
-                           <FileDown className="w-4 h-4 mr-2" />
-                           PDF (ABNT)
-                         </Button>
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={async () => {
-                             await exportAsDOCXABNT({
-                               titulo: "Prompt Jurídico Profissional",
-                               conteudo: geracaoMutation.data?.promptProfissional || "",
-                               areaJuridica: areaGeracao,
-                               tipoDocumento: tipoDocumento
-                             });
-                             toast.success("Arquivo .DOCX salvo com formatação ABNT!");
-                           }}
-                         >
-                           <FileDown className="w-4 h-4 mr-2" />
-                           DOCX (ABNT)
-                         </Button>
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => exportAsMarkdown("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
-                         >
-                           <FileText className="w-4 h-4 mr-2" />
-                           Markdown
-                         </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => copyToClipboard(geracaoMutation.data?.promptProfissional || "")}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copiar Prompt
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            await exportAsDOCXABNT({
+                              titulo: "Prompt Jurídico Profissional",
+                              conteudo: geracaoMutation.data?.promptProfissional || "",
+                              areaJuridica: areaGeracao,
+                              tipoDocumento: tipoDocumento
+                            });
+                            toast.success("Arquivo .DOCX salvo com formatação ABNT!");
+                          }}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" />
+                          DOCX (ABNT)
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportAsPDF("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" />
+                          PDF (ABNT)
+                        </Button>
                          <Button
                            variant="outline"
                            size="sm"
                            onClick={() => openSaveTemplateDialog(geracaoMutation.data?.promptProfissional || "", areaGeracao)}
                          >
                            <BookTemplate className="w-4 h-4 mr-2" />
-                           Salvar Prompt
-                         </Button>
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => copyToClipboard(geracaoMutation.data?.promptProfissional || "")}
-                         >
-                           <Copy className="w-4 h-4 mr-2" />
-                           Copiar
+                           Salvar como Template
                          </Button>
                          <DropdownMenu>
                            <DropdownMenuTrigger asChild>
