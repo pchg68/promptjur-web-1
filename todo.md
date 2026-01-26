@@ -1185,3 +1185,9 @@
   - [x] Botão "Voltar" para refazer análise atual
   - [x] Botão "Nova Análise" para limpar campos e iniciar do zero
   - [x] Aplicar em todas as tabs (Analisar, Gerar, Otimizar)
+
+## Ajustes de Navegação - Botão Voltar (Sessão Atual)
+- [x] Modificar botão "Voltar" nas tabs Gerar e Otimizar para navegar à tab "Analisar Prompt"
+- [x] Remover botões "Nova Análise", "Nova Geração" e "Nova Otimização" de todas as tabs
+- [x] Manter apenas botão "Voltar" na tab Analisar para limpar resultado
+- [x] Garantir que dados preenchidos sejam mantidos ao voltar
