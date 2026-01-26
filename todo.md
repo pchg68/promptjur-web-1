@@ -1157,3 +1157,7 @@
 - [x] Adicionar rota /biblioteca-templates no App.tsx
 - [x] Adicionar link "Meus Templates" no header do dashboard
 - [x] Testar todos os filtros e funcionalidades - servidor compilando sem erros
+
+## Bug: Erro de Serialização no Dashboard
+- [x] Corrigir função atualizarTemplate que retorna affectedRows sem conversão
+- [x] Testar dashboard após correção - servidor compilando sem erros

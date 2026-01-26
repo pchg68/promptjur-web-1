@@ -369,7 +369,7 @@ export async function atualizarTemplate(id: number, userId: number, data: Partia
     .set(data)
     .where(and(eq(templates.id, id), eq(templates.userId, userId)));
   
-  return result[0].affectedRows > 0;
+  return Number(result[0].affectedRows) > 0;
 }
 
 export async function toggleTemplatePublico(templateId: number, userId: number) {
