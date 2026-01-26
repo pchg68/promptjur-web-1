@@ -109,7 +109,7 @@ export async function createPrompt(data: InsertPrompt) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(prompts).values(data);
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function getUserPrompts(userId: number, limit = 50) {
@@ -173,7 +173,7 @@ export async function createAnalise(data: InsertAnalise) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(analises).values(data);
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function getAnaliseByPromptId(promptId: number) {
@@ -213,7 +213,7 @@ export async function createTemplate(data: InsertTemplate) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(templates).values(data);
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 // ===== FONTE JURIDICA HELPERS =====
@@ -233,7 +233,7 @@ export async function createFonteJuridica(data: InsertFonteJuridica) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(fontesJuridicas).values(data);
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function searchFontes(query: string, tipo?: string) {
@@ -253,7 +253,7 @@ export async function createHistorico(data: InsertHistorico) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(historico).values(data);
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function getUserHistorico(userId: number, limit = 100) {
@@ -358,7 +358,7 @@ export async function salvarTemplate(data: InsertTemplate) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(templates).values(data);
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function atualizarTemplate(id: number, userId: number, data: Partial<InsertTemplate>) {
@@ -425,7 +425,7 @@ export async function criarTag(data: InsertTag) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(tags).values(data);
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function deletarTag(tagId: number, userId: number) {
@@ -465,7 +465,7 @@ export async function atribuirTagTemplate(templateId: number, tagId: number) {
     templateId,
     tagId
   });
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function removerTagTemplate(templateId: number, tagId: number) {
@@ -502,7 +502,7 @@ export async function salvarVersaoPrompt(data: InsertPromptVersao) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(promptVersoes).values(data);
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function getVersoesPrompt(promptId: number) {
@@ -653,7 +653,7 @@ export async function atribuirTagPrompt(promptId: number, tagId: number) {
     promptId,
     tagId
   });
-  return result[0].insertId;
+  return Number(result[0].insertId);
 }
 
 export async function removerTagPrompt(promptId: number, tagId: number) {

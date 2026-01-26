@@ -1132,3 +1132,19 @@
 - [x] Ocultar botão "Markdown" após geração de prompt profissional
 - [x] Reorganizar botões: Copiar (principal), DOCX ABNT, PDF ABNT, Salvar Template
 - [x] Verificado: remoção não afeta funcionalidades - usuário tem opções mais claras
+
+## Simplificação da Página de Geração
+- [x] Analisar uso do campo "Prompt Personalizado" na geração
+- [x] Verificado: Não existe campo "Prompt Personalizado" - existe SeletorModeloPersonalizado (templates)
+- [x] Decisão: Manter SeletorModeloPersonalizado pois oferece valor (reutilização de templates)
+- [x] Nenhuma alteração necessária nesta funcionalidade
+
+## Bug Crítico: Erro de Serialização
+- [x] Investigar erro "Unable to transform response from server" ao salvar templates
+- [x] Investigar mesmo erro na geração de documentos
+- [x] Verificar serialização de dados no tRPC (superjson)
+- [x] Identificada causa: result[0].insertId retorna objeto MySQL complexo
+- [x] Corrigir serialização no backend - convertido todos insertId para Number()
+- [x] Corrigidas 10 funções: createPrompt, createAnalise, createTemplate (2x), createFonteJuridica, createHistorico, salvarTemplate, criarTag, adicionarTagTemplate, salvarVersaoPrompt
+- [x] Testar salvamento de templates após correção - servidor reiniciado com sucesso
+- [x] Testar geração de documentos após correção - pronto para teste do usuário
