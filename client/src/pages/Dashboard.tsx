@@ -762,23 +762,59 @@ export default function Dashboard() {
                     minHeight="200px"
                   />
                 </div>
-                <Button 
-                  onClick={handleAnalisar} 
-                  disabled={analiseMutation.isPending}
-                  className="w-full"
-                >
-                  {analiseMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-                      Analisando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 w-4 h-4" />
-                      Analisar Prompt
-                    </>
-                  )}
-                </Button>
+                <div className="grid grid-cols-[1fr_auto] gap-3">
+                  <Button 
+                    onClick={handleAnalisar} 
+                    disabled={analiseMutation.isPending}
+                  >
+                    {analiseMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                        Analisando...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 w-4 h-4" />
+                        Analisar Prompt
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      // Confirmar antes de limpar
+                      if (promptAnalise || analiseMutation.data) {
+                        if (!confirm('Deseja realmente limpar todos os campos de todas as abas? Esta ação não pode ser desfeita.')) {
+                          return;
+                        }
+                      }
+                      
+                      // Limpar tab Analisar
+                      setPromptAnalise('');
+                      analiseMutation.reset();
+                      
+                      // Limpar tab Gerar
+                      setContextoJuridico('');
+                      setObjetivoEspecifico('');
+                      setPartesEnvolvidas('');
+                      setLegislacaoRelevante('');
+                      setDetalhesAdicionais('');
+                      setTipoDocumento('peticao');
+                      setAreaGeracao('Civil');
+                      geracaoMutation.reset();
+                      
+                      // Limpar tab Otimizar
+                      setPromptOtimizacao('');
+                      otimizacaoMutation.reset();
+                      
+                      toast.success('Todos os campos foram limpos!');
+                    }}
+                    variant="outline"
+                    disabled={analiseMutation.isPending}
+                  >
+                    <Trash2 className="mr-2 w-4 h-4" />
+                    Limpar Tudo
+                  </Button>
+                </div>
 
                 {analiseMutation.data && (
                   <div className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm">

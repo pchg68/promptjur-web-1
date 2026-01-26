@@ -1191,3 +1191,11 @@
 - [x] Remover botões "Nova Análise", "Nova Geração" e "Nova Otimização" de todas as tabs
 - [x] Manter apenas botão "Voltar" na tab Analisar para limpar resultado
 - [x] Garantir que dados preenchidos sejam mantidos ao voltar
+
+## Botão Limpar Tudo (Sessão Atual)
+- [x] Adicionar botão "Limpar Tudo" na tab Analisar
+- [x] Resetar todos os campos da tab Analisar (promptAnalise)
+- [x] Resetar todos os campos da tab Gerar (contexto, objetivo, partes, legislação, detalhes, área, tipo)
+- [x] Resetar todos os campos da tab Otimizar (promptOtimizacao)
+- [x] Limpar todos os resultados (mutations reset)
+- [x] Adicionar confirmação antes de limpar para evitar perda acidental
