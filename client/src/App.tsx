@@ -12,6 +12,7 @@ import TemplatePublico from "./pages/TemplatePublico";
 import MeusModelos from "./pages/MeusModelos";
 import BibliotecaPublica from "./pages/BibliotecaPublica";
 import Tutoriais from "./pages/Tutoriais";
+import BibliotecaTemplates from "./pages/BibliotecaTemplates";
 
 function Router() {
   return (
@@ -21,8 +22,8 @@ function Router() {
       <Route path={"/historico"} component={Historico} />      <Route path={"/ templates"} component={Templates} />
       <Route path="/template/:id" component={TemplatePublico} />
       <Route path={"/meus-modelos"} component={MeusModelos} />
-      <Route path={"/biblioteca-publica"} component={BibliotecaPublica} />
-      <Route path={"/tutoriais"} component={Tutoriais} />
+      <Route path={"/biblioteca-publica"} component={BibliotecaPublica} />      <Route path={" /tutoriais"} component={Tutoriais} />
+      <Route path={"/biblioteca-templates"} component={BibliotecaTemplates} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -1148,3 +1148,12 @@
 - [x] Corrigidas 10 funções: createPrompt, createAnalise, createTemplate (2x), createFonteJuridica, createHistorico, salvarTemplate, criarTag, adicionarTagTemplate, salvarVersaoPrompt
 - [x] Testar salvamento de templates após correção - servidor reiniciado com sucesso
 - [x] Testar geração de documentos após correção - pronto para teste do usuário
+
+## Biblioteca de Templates
+- [x] Criar procedures tRPC para listar templates do usuário (já existiam)
+- [x] Implementar filtros: área jurídica, busca por nome
+- [x] Criar página BibliotecaTemplates.tsx com interface completa
+- [x] Adicionar funcionalidades: visualizar, editar, excluir, copiar, aplicar template
+- [x] Adicionar rota /biblioteca-templates no App.tsx
+- [x] Adicionar link "Meus Templates" no header do dashboard
+- [x] Testar todos os filtros e funcionalidades - servidor compilando sem erros
