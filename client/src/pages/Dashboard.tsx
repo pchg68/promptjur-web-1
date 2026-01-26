@@ -28,7 +28,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 import { PreviewDocumentoModal } from "@/components/PreviewDocumentoModal";
-import { SeletorModeloPersonalizado } from "@/components/SeletorModeloPersonalizado";
+
 import { NotificationBell } from "@/components/NotificationBell";
 import { CacheStatistics } from "@/components/CacheStatistics";
 import { GerenciadorPerfis } from "@/components/GerenciadorPerfis";
@@ -950,14 +950,7 @@ export default function Dashboard() {
                 <DisclaimerLegal className="mt-4" />
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Seletor de Modelo Personalizado */}
-                <SeletorModeloPersonalizado 
-                  onModeloPreenchido={(promptGerado) => {
-                    setContextoJuridico(promptGerado);
-                    toast.success("Modelo aplicado! Revise e ajuste se necessário.");
-                  }}
-                />
-                
+
                 {/* Tipo de Documento */}
                 <div className="space-y-2">
                   <Label htmlFor="tipo-documento">Tipo de Documento Jurídico *</Label>

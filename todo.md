@@ -1167,3 +1167,8 @@
 - [x] Adicionar cast seguro em todas as atribuições de areaGeracao
 - [x] Corrigido em 3 locais: usarModelo, wizard, otimização
 - [x] Testar geração de prompts após correção - servidor compilando sem erros
+
+## Melhoria de UX: Remover Seletor de Modelo Personalizado
+- [x] Analisar se remoção do SeletorModeloPersonalizado prejudica funcionalidade - Não prejudica
+- [x] Remover componente da página de geração - Import e uso removidos
+- [x] Testar página após remoção - servidor compilando sem erros, interface mais limpa
