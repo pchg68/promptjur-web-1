@@ -1161,3 +1161,9 @@
 ## Bug: Erro de Serialização no Dashboard
 - [x] Corrigir função atualizarTemplate que retorna affectedRows sem conversão
 - [x] Testar dashboard após correção - servidor compilando sem erros
+
+## Bug: Erro de Validação do Campo Area
+- [x] Corrigir valores padrão inválidos de areaGeracao (string vazia)
+- [x] Adicionar cast seguro em todas as atribuições de areaGeracao
+- [x] Corrigido em 3 locais: usarModelo, wizard, otimização
+- [x] Testar geração de prompts após correção - servidor compilando sem erros

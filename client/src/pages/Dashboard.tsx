@@ -542,7 +542,7 @@ export default function Dashboard() {
     setTipoDocumento(modelo.tipoDocumento);
     setContextoJuridico(modelo.contextoJuridico);
     setObjetivoEspecifico(modelo.objetivoEspecifico);
-    setAreaGeracao(modelo.areaJuridica || "");
+    setAreaGeracao((modelo.areaJuridica || "Civil") as typeof areaGeracao);
     setPartesEnvolvidas(modelo.partesEnvolvidas || "");
     setLegislacaoRelevante(modelo.legislacaoRelevante || "");
     setDetalhesAdicionais(modelo.detalhesAdicionais || "");
@@ -1447,7 +1447,7 @@ export default function Dashboard() {
                         onClick={() => {
                           // Preencher tab de geração com prompt otimizado como base
                           if (otimizacaoMutation.data?.area) {
-                            setAreaGeracao(otimizacaoMutation.data.area);
+                            setAreaGeracao(otimizacaoMutation.data.area as typeof areaGeracao);
                           }
                           setContextoJuridico(`Prompt otimizado: ${otimizacaoMutation.data?.promptOtimizado?.substring(0, 150)}...`);
                           setObjetivoEspecifico(`Gerar nova versão baseada no prompt otimizado`);
