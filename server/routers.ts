@@ -153,7 +153,7 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
           const promptId = await db.createPrompt({
             userId: ctx.user.id,
             tipo: "analise",
-            areaJuridica: analise.area,
+            areaJuridica: analise.area?.substring(0, 100) || null,
             promptOriginal: input.prompt,
             qualidade: qualidadeTexto,
             metadata: {
@@ -339,7 +339,7 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
           const promptId = await db.createPrompt({
             userId: ctx.user.id,
             tipo: "geracao",
-            areaJuridica: areaDetectada,
+            areaJuridica: areaDetectada?.substring(0, 100) || null,
             promptOriginal: input.contextoJuridico,
             promptOtimizado: promptProfissional,
             qualidade: "excelente",
@@ -457,7 +457,7 @@ Responda em formato JSON com:
           const promptId = await db.createPrompt({
             userId: ctx.user.id,
             tipo: "otimizacao",
-            areaJuridica: resultado.areaIdentificada,
+            areaJuridica: resultado.areaIdentificada?.substring(0, 100) || null,
             promptOriginal: input.prompt,
             promptOtimizado: resultado.promptOtimizado,
             qualidade: "excelente",

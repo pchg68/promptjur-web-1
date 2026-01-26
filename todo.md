@@ -1230,3 +1230,9 @@
 - [x] Permitir salvar documento gerado diretamente como modelo
 - [x] Adicionar metadados de estratégia usada nos modelos salvos
 - [ ] Criar histórico de documentos gerados na tab - TODO futuro
+
+## Bug: Erro ao Otimizar Prompt (Sessão Atual)
+- [x] Corrigir erro SQL na inserção de prompt otimizado: "Failed query: insert into `prompts`"
+- [x] Verificar se campo `tipoDocumento` está faltando no INSERT
+- [x] Analisar schema da tabela prompts vs dados sendo inseridos
+- [x] Truncar campo areaJuridica para 100 caracteres em todas as rotas (analise, geração, otimização)
