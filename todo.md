@@ -1172,3 +1172,10 @@
 - [x] Analisar se remoção do SeletorModeloPersonalizado prejudica funcionalidade - Não prejudica
 - [x] Remover componente da página de geração - Import e uso removidos
 - [x] Testar página após remoção - servidor compilando sem erros, interface mais limpa
+
+## Bug: Erro de Serialização na Geração de Prompt
+- [x] Investigar erro "Unable to transform response from server" ao gerar prompt
+- [x] Identificar função com problema de serialização - promptId já estava correto
+- [x] Verificar serialização de todos os campos do retorno
+- [x] Confirmar que Number(promptId) está sendo usado corretamente
+- [x] Testar geração de prompts após correção - servidor rodando sem erros TypeScript

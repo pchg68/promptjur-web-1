@@ -354,12 +354,12 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
           const avisosFontes = gerarAvisosFontes(promptProfissional);
 
           return {
-            promptId,
+            promptId: Number(promptId),
             promptProfissional,
             area: areaDetectada,
             areaDetectadaAutomaticamente: !input.area,
             tipoDocumento: input.tipoDocumento,
-            referencias: referencias,
+            referencias,
             avisosFontes,
             validacaoLegislacao: validacao
           };
