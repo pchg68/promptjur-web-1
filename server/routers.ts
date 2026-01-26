@@ -316,7 +316,24 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
           const promptProfissional = typeof content === 'string' ? content : "";
 
           // Validar legislação citada
-          const validacao = await validarLegislacao(promptProfissional);
+          const validacaoRaw = await validarLegislacao(promptProfissional);
+          // Converter para objeto simples serializável
+          const validacao = {
+            citacoes: validacaoRaw.citacoes.map(c => ({
+              texto: String(c.texto),
+              tipo: c.tipo,
+              numero: c.numero ? String(c.numero) : undefined,
+              codigo: c.codigo ? String(c.codigo) : undefined,
+              confiabilidade: c.confiabilidade,
+              motivo: String(c.motivo),
+              mensagem: String(c.mensagem),
+              linkOficial: c.linkOficial ? String(c.linkOficial) : undefined,
+              link: c.link ? String(c.link) : undefined
+            })),
+            confiabilidadeGeral: validacaoRaw.confiabilidadeGeral,
+            totalCitacoes: Number(validacaoRaw.totalCitacoes),
+            citacoesValidadas: Number(validacaoRaw.citacoesValidadas)
+          };
 
           // Salvar no banco
           const promptId = await db.createPrompt({
@@ -478,7 +495,24 @@ Responda em formato JSON com:
           const avisosFontes = gerarAvisosFontes(resultado.promptOtimizado);
 
           // Validar legislação citada
-          const validacao = await validarLegislacao(resultado.promptOtimizado);
+          const validacaoRaw = await validarLegislacao(resultado.promptOtimizado);
+          // Converter para objeto simples serializável
+          const validacao = {
+            citacoes: validacaoRaw.citacoes.map(c => ({
+              texto: String(c.texto),
+              tipo: c.tipo,
+              numero: c.numero ? String(c.numero) : undefined,
+              codigo: c.codigo ? String(c.codigo) : undefined,
+              confiabilidade: c.confiabilidade,
+              motivo: String(c.motivo),
+              mensagem: String(c.mensagem),
+              linkOficial: c.linkOficial ? String(c.linkOficial) : undefined,
+              link: c.link ? String(c.link) : undefined
+            })),
+            confiabilidadeGeral: validacaoRaw.confiabilidadeGeral,
+            totalCitacoes: Number(validacaoRaw.totalCitacoes),
+            citacoesValidadas: Number(validacaoRaw.citacoesValidadas)
+          };
 
           return {
             promptId,

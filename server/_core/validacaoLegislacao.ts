@@ -167,12 +167,13 @@ async function validarLei(numeroLei: string): Promise<Pick<CitacaoLegal, "confia
   // Verificar cache primeiro
   const cached = await getCachedValidation(`Lei ${numeroLei}`);
   if (cached) {
+    // Converter para objeto simples serializável (sem campos Date do Drizzle)
     return {
-      confiabilidade: cached.confiabilidade,
-      motivo: cached.motivo,
-      mensagem: cached.motivo,
-      linkOficial: cached.linkOficial || undefined,
-      link: cached.linkOficial || undefined
+      confiabilidade: cached.confiabilidade as "alta" | "media" | "baixa",
+      motivo: String(cached.motivo),
+      mensagem: String(cached.motivo),
+      linkOficial: cached.linkOficial ? String(cached.linkOficial) : undefined,
+      link: cached.linkOficial ? String(cached.linkOficial) : undefined
     };
   }
   // Leis conhecidas importantes
