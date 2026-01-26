@@ -15,7 +15,8 @@ import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, Boo
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
-import { Streamdown } from "streamdown";
+import { Streamdown } from 'streamdown';
+import TabDocumentos from '@/components/TabDocumentos';
 import { exportAsTextABNT } from "@/utils/exportABNT";
 import { exportAsDOCXABNT } from "@/utils/exportDOCX";
 import { Link, useLocation } from "wouter";
@@ -719,7 +720,7 @@ export default function Dashboard() {
         ) : (
           /* Tabs Principais - Prioridade Máxima */
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="analisar" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               Analisar Prompt
@@ -731,6 +732,10 @@ export default function Dashboard() {
             <TabsTrigger value="gerar" className="flex items-center gap-2">
               <Zap className="w-4 h-4" />
               Gerar Prompt Jurídico
+            </TabsTrigger>
+            <TabsTrigger value="documentos" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Documentos
             </TabsTrigger>
             <TabsTrigger value="modelos" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
@@ -1540,6 +1545,11 @@ export default function Dashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Tab: Documentos */}
+          <TabsContent value="documentos" className="space-y-6">
+            <TabDocumentos />
           </TabsContent>
 
           {/* Tab: Modelos */}

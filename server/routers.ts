@@ -1083,6 +1083,63 @@ Responda em formato JSON com:
       .query(async ({ input }) => {
         return sugerirArea(input.contexto, input.objetivo);
       })
+  }),
+
+  // Router de documentos com estratégias avançadas de IA
+  documentos: router({
+    // Gerar documento jurídico completo usando estratégias de IA
+    gerar: protectedProcedure
+      .input(z.object({
+        tipoDocumento: z.string().min(1, "Tipo de documento é obrigatório"),
+        areaJuridica: z.string().min(1, "Área jurídica é obrigatória"),
+        contexto: z.string().min(20, "Contexto muito curto (mínimo 20 caracteres)"),
+        objetivo: z.string().optional(),
+        partesEnvolvidas: z.string().optional(),
+        legislacao: z.string().optional(),
+        detalhes: z.string().optional(),
+        estrategia: z.enum(["direct", "chain_of_thought", "knowledge_retrieval"]).default("direct")
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const startTime = Date.now();
+        
+        try {
+          // Importar função de geração
+          const { gerarDocumentoComEstrategia } = await import("./estrategias-ia");
+          
+          // Gerar documento usando estratégia selecionada
+          const resultado = await gerarDocumentoComEstrategia({
+            tipoDocumento: input.tipoDocumento,
+            areaJuridica: input.areaJuridica,
+            contexto: input.contexto,
+            objetivo: input.objetivo,
+            partesEnvolvidas: input.partesEnvolvidas,
+            legislacao: input.legislacao,
+            detalhes: input.detalhes,
+            estrategia: input.estrategia
+          });
+          
+          // Validar legislação citada no documento
+          const validacaoLegislacao = await validarLegislacao(resultado.documento);
+          
+          // TODO: Salvar no histórico quando implementarmos tabela de documentos
+          
+          return {
+            documento: resultado.documento,
+            estrategiaUsada: resultado.estrategiaUsada,
+            metadados: resultado.metadados,
+            validacaoLegislacao: {
+              confiabilidadeGeral: validacaoLegislacao.confiabilidadeGeral,
+              totalCitacoes: validacaoLegislacao.totalCitacoes,
+              citacoesValidadas: validacaoLegislacao.citacoesValidadas,
+              citacoes: validacaoLegislacao.citacoes
+            },
+            tempoGeracao: Date.now() - startTime
+          };
+        } catch (error) {
+          console.error("[Documentos] Erro ao gerar documento:", error);
+          throw new Error(`Erro ao gerar documento: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+      })
   })
 });
 

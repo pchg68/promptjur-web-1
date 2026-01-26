@@ -1199,3 +1199,34 @@
 - [x] Resetar todos os campos da tab Otimizar (promptOtimizacao)
 - [x] Limpar todos os resultados (mutations reset)
 - [x] Adicionar confirmação antes de limpar para evitar perda acidental
+
+## Nova Tab "Documentos" - Geração Avançada com IA (Sessão Atual)
+
+### Backend
+- [x] Criar rota tRPC `documentos.gerar` para geração de documentos jurídicos
+- [x] Implementar suporte a estratégias de IA:
+  - [x] Chain of Thought (raciocínio passo a passo)
+  - [x] Knowledge Retrieval (recuperação de conhecimento)
+  - [x] Direct Answer (resposta direta, padrão atual)
+- [x] Integrar com LLM usando diferentes system prompts por estratégia
+- [x] Adicionar validação de legislação nos documentos gerados
+- [ ] Criar schema de banco de dados para documentos gerados (histórico) - TODO futuro
+
+### Frontend
+- [x] Adicionar nova tab "Documentos" no Dashboard
+- [x] Criar formulário com campos:
+  - [x] Tipo de documento (petição, parecer, contrato, etc.)
+  - [x] Área jurídica
+  - [x] Estratégia de IA (selector)
+  - [x] Contexto/descrição do caso
+  - [x] Campos específicos por tipo de documento
+- [x] Implementar visualização do documento gerado com formatação
+- [x] Adicionar botão "Salvar como Modelo" integrado
+- [x] Mostrar indicador visual da estratégia sendo usada durante geração
+- [x] Adicionar seção de explicação de cada estratégia
+
+### Integração
+- [x] Conectar com sistema de modelos existente
+- [x] Permitir salvar documento gerado diretamente como modelo
+- [x] Adicionar metadados de estratégia usada nos modelos salvos
+- [ ] Criar histórico de documentos gerados na tab - TODO futuro

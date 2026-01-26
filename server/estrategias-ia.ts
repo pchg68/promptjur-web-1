@@ -1,0 +1,250 @@
+/**
+ * Estratégias avançadas de IA para geração de documentos jurídicos
+ * Baseado nos conceitos do Manus AI (Chain of Thought, Knowledge Retrieval, etc.)
+ */
+
+import { invokeLLM } from "./_core/llm";
+
+export type EstrategiaIA = "direct" | "chain_of_thought" | "knowledge_retrieval";
+
+export interface ParametrosGeracao {
+  tipoDocumento: string;
+  areaJuridica: string;
+  contexto: string;
+  objetivo?: string;
+  partesEnvolvidas?: string;
+  legislacao?: string;
+  detalhes?: string;
+  estrategia: EstrategiaIA;
+}
+
+/**
+ * Gera documento usando estratégia Direct Answer (resposta direta)
+ */
+async function gerarComDirect(params: ParametrosGeracao): Promise<string> {
+  const systemPrompt = `Você é um assistente jurídico especializado em elaborar documentos legais de alta qualidade.
+Sua tarefa é gerar um ${params.tipoDocumento} completo e profissional na área de ${params.areaJuridica}.
+
+INSTRUÇÕES:
+- Use linguagem jurídica formal e técnica apropriada
+- Estruture o documento conforme as normas da ABNT e padrões jurídicos brasileiros
+- Inclua todas as seções necessárias para este tipo de documento
+- Cite legislação relevante quando apropriado
+- Mantenha clareza e objetividade
+
+Gere APENAS o documento final, sem explicações adicionais.`;
+
+  const userPrompt = `Contexto: ${params.contexto}
+
+${params.objetivo ? `Objetivo: ${params.objetivo}` : ''}
+${params.partesEnvolvidas ? `Partes Envolvidas: ${params.partesEnvolvidas}` : ''}
+${params.legislacao ? `Legislação Relevante: ${params.legislacao}` : ''}
+${params.detalhes ? `Detalhes Adicionais: ${params.detalhes}` : ''}
+
+Gere o ${params.tipoDocumento} completo:`;
+
+  const response = await invokeLLM({
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ],
+  });
+
+  const content = response.choices[0].message.content;
+  return typeof content === 'string' ? content : JSON.stringify(content) || "";
+}
+
+/**
+ * Gera documento usando estratégia Chain of Thought (raciocínio passo a passo)
+ */
+async function gerarComChainOfThought(params: ParametrosGeracao): Promise<string> {
+  const systemPrompt = `Você é um assistente jurídico especializado que usa raciocínio estruturado passo a passo.
+Ao elaborar documentos jurídicos, você primeiro analisa o caso, identifica os pontos-chave, e então constrói o documento de forma lógica e fundamentada.
+
+Sua tarefa é gerar um ${params.tipoDocumento} completo na área de ${params.areaJuridica}.`;
+
+  // Passo 1: Análise do caso
+  const analisePrompt = `Analise o seguinte caso jurídico e identifique:
+1. Pontos-chave e questões jurídicas principais
+2. Legislação aplicável
+3. Argumentos jurídicos relevantes
+4. Estrutura ideal para o documento
+
+Contexto: ${params.contexto}
+${params.objetivo ? `Objetivo: ${params.objetivo}` : ''}
+${params.partesEnvolvidas ? `Partes: ${params.partesEnvolvidas}` : ''}
+${params.legislacao ? `Legislação: ${params.legislacao}` : ''}
+
+Forneça uma análise estruturada:`;
+
+  const analiseResponse = await invokeLLM({
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: analisePrompt }
+    ],
+  });
+
+  const analise = typeof analiseResponse.choices[0].message.content === 'string' 
+    ? analiseResponse.choices[0].message.content 
+    : JSON.stringify(analiseResponse.choices[0].message.content) || "";
+
+  // Passo 2: Geração do documento baseado na análise
+  const geracaoPrompt = `Com base na análise anterior, agora gere o ${params.tipoDocumento} completo e profissional.
+
+ANÁLISE PRÉVIA:
+${analise}
+
+INSTRUÇÕES FINAIS:
+- Use linguagem jurídica formal e técnica
+- Estruture conforme normas ABNT e padrões jurídicos brasileiros
+- Inclua todas as seções necessárias
+- Fundamente com a legislação identificada
+- Mantenha coerência com a análise realizada
+
+${params.detalhes ? `Detalhes Adicionais: ${params.detalhes}` : ''}
+
+Gere APENAS o documento final, sem incluir a análise:`;
+
+  const documentoResponse = await invokeLLM({
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: analisePrompt },
+      { role: "assistant", content: analise },
+      { role: "user", content: geracaoPrompt }
+    ],
+  });
+
+  const content = documentoResponse.choices[0].message.content;
+  return typeof content === 'string' ? content : JSON.stringify(content) || "";
+}
+
+/**
+ * Gera documento usando estratégia Knowledge Retrieval (recuperação de conhecimento)
+ */
+async function gerarComKnowledgeRetrieval(params: ParametrosGeracao): Promise<string> {
+  const systemPrompt = `Você é um assistente jurídico especializado com acesso a amplo conhecimento jurídico brasileiro.
+Antes de elaborar documentos, você recupera e sintetiza conhecimento relevante sobre legislação, jurisprudência e doutrinas aplicáveis.
+
+Sua tarefa é gerar um ${params.tipoDocumento} completo na área de ${params.areaJuridica}.`;
+
+  // Passo 1: Recuperar conhecimento relevante
+  const retrievalPrompt = `Para o seguinte caso jurídico, recupere e sintetize conhecimento relevante:
+
+Tipo de Documento: ${params.tipoDocumento}
+Área Jurídica: ${params.areaJuridica}
+Contexto: ${params.contexto}
+${params.objetivo ? `Objetivo: ${params.objetivo}` : ''}
+${params.legislacao ? `Legislação Mencionada: ${params.legislacao}` : ''}
+
+Recupere e organize:
+1. Legislação aplicável (códigos, leis, artigos específicos)
+2. Jurisprudência relevante (súmulas, precedentes importantes)
+3. Doutrinas e princípios jurídicos pertinentes
+4. Requisitos formais para este tipo de documento
+5. Modelos e estruturas recomendadas
+
+Forneça uma síntese estruturada do conhecimento recuperado:`;
+
+  const knowledgeResponse = await invokeLLM({
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: retrievalPrompt }
+    ],
+  });
+
+  const knowledge = typeof knowledgeResponse.choices[0].message.content === 'string' 
+    ? knowledgeResponse.choices[0].message.content 
+    : JSON.stringify(knowledgeResponse.choices[0].message.content) || "";
+
+  // Passo 2: Gerar documento usando o conhecimento recuperado
+  const geracaoPrompt = `Agora, utilizando o conhecimento jurídico recuperado, gere o ${params.tipoDocumento} completo e profissional.
+
+CONHECIMENTO RECUPERADO:
+${knowledge}
+
+INFORMAÇÕES DO CASO:
+Contexto: ${params.contexto}
+${params.objetivo ? `Objetivo: ${params.objetivo}` : ''}
+${params.partesEnvolvidas ? `Partes Envolvidas: ${params.partesEnvolvidas}` : ''}
+${params.detalhes ? `Detalhes Adicionais: ${params.detalhes}` : ''}
+
+INSTRUÇÕES:
+- Aplique a legislação e jurisprudência identificadas
+- Use linguagem jurídica formal e técnica
+- Estruture conforme normas ABNT e padrões jurídicos
+- Cite adequadamente as fontes legais
+- Fundamente os argumentos com base no conhecimento recuperado
+
+Gere APENAS o documento final, sem incluir a síntese de conhecimento:`;
+
+  const documentoResponse = await invokeLLM({
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: retrievalPrompt },
+      { role: "assistant", content: knowledge },
+      { role: "user", content: geracaoPrompt }
+    ],
+  });
+
+  const content = documentoResponse.choices[0].message.content;
+  return typeof content === 'string' ? content : JSON.stringify(content) || "";
+}
+
+/**
+ * Função principal que roteia para a estratégia apropriada
+ */
+export async function gerarDocumentoComEstrategia(params: ParametrosGeracao): Promise<{
+  documento: string;
+  estrategiaUsada: EstrategiaIA;
+  metadados: {
+    tipoDocumento: string;
+    areaJuridica: string;
+    timestamp: Date;
+  };
+}> {
+  let documento: string;
+
+  switch (params.estrategia) {
+    case "chain_of_thought":
+      documento = await gerarComChainOfThought(params);
+      break;
+    case "knowledge_retrieval":
+      documento = await gerarComKnowledgeRetrieval(params);
+      break;
+    case "direct":
+    default:
+      documento = await gerarComDirect(params);
+      break;
+  }
+
+  return {
+    documento,
+    estrategiaUsada: params.estrategia,
+    metadados: {
+      tipoDocumento: params.tipoDocumento,
+      areaJuridica: params.areaJuridica,
+      timestamp: new Date(),
+    },
+  };
+}
+
+/**
+ * Descrições das estratégias para exibir ao usuário
+ */
+export const DESCRICOES_ESTRATEGIAS = {
+  direct: {
+    nome: "Resposta Direta",
+    descricao: "Geração rápida e direta do documento. Ideal para casos simples ou quando você já tem todas as informações necessárias.",
+    icone: "⚡",
+  },
+  chain_of_thought: {
+    nome: "Raciocínio Passo a Passo",
+    descricao: "A IA primeiro analisa o caso, identifica pontos-chave e argumentos, depois constrói o documento de forma estruturada. Ideal para casos complexos que exigem análise detalhada.",
+    icone: "🧠",
+  },
+  knowledge_retrieval: {
+    nome: "Recuperação de Conhecimento",
+    descricao: "A IA primeiro recupera e sintetiza legislação, jurisprudência e doutrinas relevantes, depois aplica esse conhecimento na elaboração do documento. Ideal quando você precisa de fundamentação jurídica sólida.",
+    icone: "📚",
+  },
+};
