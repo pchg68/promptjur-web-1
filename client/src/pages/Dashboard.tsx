@@ -907,8 +907,35 @@ export default function Dashboard() {
                       </div>
                     )}
                     
-                    {/* Botão de Fluxo Automatizado */}
-                    <div className="pt-4 border-t border-border">
+                    {/* Botões de Navegação e Fluxo Automatizado */}
+                    <div className="pt-4 border-t border-border space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => {
+                            // Limpar resultado mas manter o prompt para refazer
+                            analiseMutation.reset();
+                            toast.info('Pronto para refazer a análise');
+                          }}
+                          variant="outline"
+                          size="lg"
+                        >
+                          <History className="w-4 h-4 mr-2" />
+                          Voltar
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            // Limpar tudo para nova análise
+                            setPromptAnalise('');
+                            analiseMutation.reset();
+                            toast.success('Campos limpos para nova análise');
+                          }}
+                          variant="outline"
+                          size="lg"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Nova Análise
+                        </Button>
+                      </div>
                       <Button
                         onClick={() => {
                           // Preencher tab de otimização com prompt analisado
@@ -1262,8 +1289,41 @@ export default function Dashboard() {
                       </CollapsibleContent>
                     </Collapsible>
                     
-                    {/* Prompt profissional pronto - sem botão de fluxo (já é o resultado final) */}
-                    <div className="pt-4 border-t border-border">
+                    {/* Botões de Navegação */}
+                    <div className="pt-4 border-t border-border space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => {
+                            // Limpar resultado mas manter os campos para refazer
+                            geracaoMutation.reset();
+                            toast.info('Pronto para refazer a geração');
+                          }}
+                          variant="outline"
+                          size="lg"
+                        >
+                          <History className="w-4 h-4 mr-2" />
+                          Voltar
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            // Limpar tudo para nova geração
+                            setContextoJuridico('');
+                            setObjetivoEspecifico('');
+                            setPartesEnvolvidas('');
+                            setLegislacaoRelevante('');
+                            setDetalhesAdicionais('');
+                            setTipoDocumento('peticao');
+                            setAreaGeracao('Civil');
+                            geracaoMutation.reset();
+                            toast.success('Campos limpos para nova geração');
+                          }}
+                          variant="outline"
+                          size="lg"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Nova Geração
+                        </Button>
+                      </div>
                       <p className="text-sm text-muted-foreground text-center">
                         ✅ Prompt profissional gerado! Copie e use diretamente em ferramentas de IA.
                       </p>
@@ -1434,8 +1494,35 @@ export default function Dashboard() {
                       </DropdownMenu>
                     </div>
                     
-                    {/* Botão de Fluxo Automatizado */}
-                    <div className="pt-4 border-t border-border mt-4">
+                    {/* Botões de Navegação e Fluxo Automatizado */}
+                    <div className="pt-4 border-t border-border mt-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => {
+                            // Limpar resultado mas manter o prompt para refazer
+                            otimizacaoMutation.reset();
+                            toast.info('Pronto para refazer a otimização');
+                          }}
+                          variant="outline"
+                          size="lg"
+                        >
+                          <History className="w-4 h-4 mr-2" />
+                          Voltar
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            // Limpar tudo para nova otimização
+                            setPromptOtimizacao('');
+                            otimizacaoMutation.reset();
+                            toast.success('Campos limpos para nova otimização');
+                          }}
+                          variant="outline"
+                          size="lg"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Nova Otimização
+                        </Button>
+                      </div>
                       <Button
                         onClick={() => {
                           // Preencher tab de geração com prompt otimizado como base

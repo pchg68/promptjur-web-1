@@ -1179,3 +1179,9 @@
 - [x] Verificar serialização de todos os campos do retorno
 - [x] Confirmar que Number(promptId) está sendo usado corretamente
 - [x] Testar geração de prompts após correção - servidor rodando sem erros TypeScript
+
+## Melhorias de UX - Navegação (Sessão Atual)
+- [x] Adicionar botões de navegação na interface de resultados
+  - [x] Botão "Voltar" para refazer análise atual
+  - [x] Botão "Nova Análise" para limpar campos e iniciar do zero
+  - [x] Aplicar em todas as tabs (Analisar, Gerar, Otimizar)
