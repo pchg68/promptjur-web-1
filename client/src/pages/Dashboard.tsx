@@ -33,6 +33,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { CacheStatistics } from "@/components/CacheStatistics";
 import { GerenciadorPerfis } from "@/components/GerenciadorPerfis";
 import { SugestaoArea } from "@/components/SugestaoArea";
+import { DisclaimerLegal } from "@/components/DisclaimerLegal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Bookmark, Lightbulb, Save, Trash2 } from "lucide-react";
 
@@ -748,12 +749,7 @@ export default function Dashboard() {
                 <CardDescription>
                   Cole seu prompt abaixo para análise automática de área jurídica, palavras-chave e qualidade
                 </CardDescription>
-                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-2">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    <Shield className="w-4 h-4 inline mr-1" />
-                    <strong>Atenção:</strong> Sempre verifique citações legais (leis, artigos, CF/88) em fontes oficiais antes de usar em documentos jurídicos.
-                  </p>
-                </div>
+                <DisclaimerLegal className="mt-4" />
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -951,12 +947,7 @@ export default function Dashboard() {
                 <CardDescription>
                   Crie prompts PRONTOS PARA USO em ferramentas de IA (ChatGPT, Claude, Gemini) para gerar peças jurídicas de excelência
                 </CardDescription>
-                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-2">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    <Shield className="w-4 h-4 inline mr-1" />
-                    <strong>Atenção:</strong> Sempre verifique citações legais (leis, artigos, CF/88) em fontes oficiais antes de usar em documentos jurídicos.
-                  </p>
-                </div>
+                <DisclaimerLegal className="mt-4" />
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Seletor de Modelo Personalizado */}
@@ -1326,12 +1317,7 @@ export default function Dashboard() {
                 <CardDescription>
                   Cole um prompt existente para receber sugestões de melhoria e uma versão otimizada
                 </CardDescription>
-                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-2">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    <Shield className="w-4 h-4 inline mr-1" />
-                    <strong>Atenção:</strong> Sempre verifique citações legais (leis, artigos, CF/88) em fontes oficiais antes de usar em documentos jurídicos.
-                  </p>
-                </div>
+                <DisclaimerLegal className="mt-4" />
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">

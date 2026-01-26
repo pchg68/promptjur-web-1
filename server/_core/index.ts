@@ -8,6 +8,8 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { scheduleCacheCleanup } from "../jobs/cache-cleanup";
+import { handleStripeWebhook } from "./stripeWebhook";
+import { tRPCRateLimiter } from "./rateLimiter";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,14 +33,26 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  
+  // Configurar trust proxy para rate limiting funcionar corretamente
+  app.set('trust proxy', 1);
+  
+  // Stripe webhook MUST be registered BEFORE express.json() to receive raw body
+  app.post(
+    "/api/stripe/webhook",
+    express.raw({ type: "application/json" }),
+    handleStripeWebhook
+  );
+  
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
-  // tRPC API
+  // tRPC API with rate limiting
   app.use(
     "/api/trpc",
+    tRPCRateLimiter,
     createExpressMiddleware({
       router: appRouter,
       createContext,

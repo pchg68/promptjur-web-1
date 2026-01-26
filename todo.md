@@ -1095,3 +1095,34 @@
   - [x] Atualizar configuração do Vitest para incluir testes do client e shared
   - [x] Garantir cobertura de casos de erro e extremos
   - [x] Total de 108 testes passando com sucesso
+
+## Melhorias Críticas para Produção (Pré-Lançamento)
+- [x] Webhook Stripe Completo
+  - [x] Criar endpoint /api/stripe/webhook com express.raw
+  - [x] Implementar verificação de assinatura do Stripe
+  - [x] Processar evento customer.subscription.created
+  - [x] Processar evento customer.subscription.updated
+  - [x] Processar evento customer.subscription.deleted
+  - [x] Processar evento invoice.payment_succeeded
+  - [x] Processar evento invoice.payment_failed
+  - [x] Atualizar subscriptionPlan em users baseado nos eventos
+  - [x] Suporte a eventos de teste do Stripe
+  - [x] Documentar eventos suportados
+
+- [x] Disclaimer de Verificação de Fontes
+  - [x] Adicionar aviso em página de Geração
+  - [x] Adicionar aviso em página de Otimização
+  - [x] Adicionar aviso em página de Análise
+  - [x] Criar componente DisclaimerLegal reutilizável
+  - [ ] Adicionar checkbox de confirmação antes de exportar (opcional)
+  - [ ] Salvar confirmação do usuário no histórico (opcional)
+
+- [x] Rate Limiting por Plano
+  - [x] Instalar e configurar express-rate-limit
+  - [x] Criar middleware de rate limiting customizado
+  - [x] Implementar limites por plano (Free: 10/hora, Pro: 100/hora, Enterprise: ilimitado)
+  - [x] Buscar plano do usuário dinamicamente do banco
+  - [x] Retornar erro 429 com mensagem clara e informações do plano
+  - [x] Aplicar rate limiting nas rotas tRPC
+  - [ ] Exibir limite restante no dashboard (opcional)
+  - [ ] Criar testes para rate limiting
