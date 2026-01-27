@@ -203,8 +203,7 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
             citacoesLegais: {
               total: citacoesExtraidas.length,
               porTipo: contagemCitacoes,
-              lista: citacoesFormatadas,
-              detalhes: citacoesExtraidas
+              lista: citacoesFormatadas
             },
             // EXTRAÇÃO UNIFICADA: Fontes legais (súmulas, jurisprudência, datas, valores)
             fontesLegais: {

@@ -1293,3 +1293,10 @@
 - [ ] Exibir precedentes similares com score
 - [ ] Adicionar validação visual de prazos
 - [ ] Mostrar modelos sugeridos durante geração
+
+
+## Bug: Erro de Serialização "Unable to transform response from server" (Sessão Atual)
+- [x] Verificar logs do servidor para identificar qual rota está causando erro (rota analisar)
+- [x] Identificar objetos não serializáveis sendo retornados (campo detalhes com objetos complexos)
+- [x] Corrigir serialização (removido campo detalhes de citacoesLegais)
+- [x] Testar todas as funcionalidades afetadas
