@@ -33,7 +33,7 @@ const ESTRATEGIAS: Record<EstrategiaIA, EstrategiaInfo> = {
   },
   knowledge_retrieval: {
     nome: "Recuperação de Conhecimento",
-    descricao: "A IA primeiro recupera e sintetiza legislação, jurisprudência e doutrinas relevantes, depois aplica esse conhecimento na elaboração do documento. Ideal quando você precisa de fundamentação jurídica sólida.",
+    descricao: "A IA busca precedentes processuais REAIS na base do CNJ (DataJud), identifica prazos aplicáveis e recupera legislação relevante antes de elaborar o documento. Ideal para casos que exigem fundamentação baseada em dados reais do Judiciário.",
     icone: <BookOpen className="w-5 h-5" />,
   },
 };

@@ -1140,6 +1140,117 @@ Responda em formato JSON com:
           throw new Error(`Erro ao gerar documento: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       })
+  }),
+
+  // Router de Knowledge Retrieval - APIs de precedentes, prazos e feriados
+  knowledgeRetrieval: router({
+    // Buscar precedentes processuais similares
+    buscarPrecedentes: protectedProcedure
+      .input(z.object({
+        contexto: z.string(),
+        areaJuridica: z.string(),
+        tipoDocumento: z.string(),
+        tribunais: z.array(z.enum(["STJ", "STF", "TST", "TSE", "STM", "TRF1", "TRF2", "TRF3", "TRF4", "TRF5", "TRF6", "TJSP", "TJRJ", "TJMG", "TJRS", "TJPR", "TJSC", "TJBA", "TJPE", "TJCE", "TJGO"])).optional(),
+        limite: z.number().min(1).max(20).optional()
+      }))
+      .query(async ({ input }) => {
+        try {
+          const { buscarPrecedentesSimilares, formatarProcessoParaTexto } = await import("./knowledge-retrieval-datajud");
+          
+          const tribunais = input.tribunais || ["STJ", "TRF1", "TJSP"];
+          const limite = input.limite || 5;
+          
+          const precedentes = await buscarPrecedentesSimilares(
+            input.contexto,
+            input.areaJuridica,
+            input.tipoDocumento,
+            tribunais as any,
+            limite
+          );
+          
+          return {
+            total: precedentes.length,
+            precedentes: precedentes.map(p => ({
+              numeroProcesso: p.numeroProcesso,
+              tribunal: p.tribunal,
+              tribunalBusca: p.tribunal_busca,
+              classe: p.classe.nome,
+              assuntos: p.assuntos.map(a => a.nome),
+              dataAjuizamento: p.dataAjuizamento,
+              orgaoJulgador: p.orgaoJulgador.nome,
+              grau: p.grau,
+              scoreRelevancia: p.score_relevancia,
+              textoFormatado: formatarProcessoParaTexto(p)
+            }))
+          };
+        } catch (error) {
+          console.error("[Knowledge Retrieval] Erro ao buscar precedentes:", error);
+          throw new Error(`Erro ao buscar precedentes: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+      }),
+
+    // Calcular prazo processual
+    calcularPrazo: protectedProcedure
+      .input(z.object({
+        dataIntimacao: z.string(), // ISO date
+        chavePrazo: z.string(),
+        estado: z.enum(["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"]).optional()
+      }))
+      .query(async ({ input }) => {
+        try {
+          const { calcularPrazoProcessual, formatarResultadoPrazo } = await import("./knowledge-retrieval-prazos");
+          
+          const dataIntimacao = new Date(input.dataIntimacao);
+          const resultado = await calcularPrazoProcessual(
+            dataIntimacao,
+            input.chavePrazo,
+            input.estado as any
+          );
+          
+          return {
+            dataInicial: resultado.dataInicial.toISOString(),
+            dataFinal: resultado.dataFinal.toISOString(),
+            diasCorridos: resultado.diasCorridos,
+            diasUteis: resultado.diasUteis,
+            prazo: resultado.prazo,
+            feriados: resultado.feriadosNoIntervalo,
+            alertas: resultado.alertas,
+            textoFormatado: formatarResultadoPrazo(resultado)
+          };
+        } catch (error) {
+          console.error("[Knowledge Retrieval] Erro ao calcular prazo:", error);
+          throw new Error(`Erro ao calcular prazo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+      }),
+
+    // Listar prazos disponíveis
+    listarPrazos: protectedProcedure
+      .query(async () => {
+        try {
+          const { listarPrazosDisponiveis } = await import("./knowledge-retrieval-prazos");
+          return listarPrazosDisponiveis();
+        } catch (error) {
+          console.error("[Knowledge Retrieval] Erro ao listar prazos:", error);
+          throw new Error(`Erro ao listar prazos: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+      }),
+
+    // Buscar feriados de um ano
+    buscarFeriados: protectedProcedure
+      .input(z.object({
+        ano: z.number().min(2020).max(2030),
+        estado: z.enum(["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"]).optional()
+      }))
+      .query(async ({ input }) => {
+        try {
+          const { buscarFeriadosAno } = await import("./knowledge-retrieval-feriados");
+          const feriados = await buscarFeriadosAno(input.ano, input.estado as any);
+          return feriados;
+        } catch (error) {
+          console.error("[Knowledge Retrieval] Erro ao buscar feriados:", error);
+          throw new Error(`Erro ao buscar feriados: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+      })
   })
 });
 

@@ -1236,3 +1236,60 @@
 - [x] Verificar se campo `tipoDocumento` está faltando no INSERT
 - [x] Analisar schema da tabela prompts vs dados sendo inseridos
 - [x] Truncar campo areaJuridica para 100 caracteres em todas as rotas (analise, geração, otimização)
+
+
+## Melhorias de Knowledge Retrieval - Expansão Completa (Sessão Atual)
+
+### 1. Busca de Jurisprudência Real (FASE 1 - CONCLUÍDA ✅)
+- [x] Pesquisar APIs disponíveis de tribunais (STF, STJ, TJs)
+- [x] Implementar integração com API DataJud (CNJ) - acesso a TODOS os tribunais
+- [x] Implementar busca em tribunais estaduais (TJs via DataJud)
+- [x] Criar função de busca por palavras-chave e área jurídica
+- [x] Adicionar cache de precedentes (em memória)
+- [x] Integrar busca de precedentes na estratégia Knowledge Retrieval
+- [x] Criar rota tRPC `knowledgeRetrieval.buscarPrecedentes`
+
+### 2. Recuperação de Doutrinas Acadêmicas
+- [x] Pesquisar bases de dados acadêmicas disponíveis
+- [ ] Implementar busca em repositórios jurídicos
+- [ ] Integrar com Google Scholar para artigos jurídicos
+- [ ] Criar sistema de relevância para doutrinas
+- [ ] Exibir doutrinas recuperadas com citação ABNT
+
+### 3. Consulta de Precedentes Similares (FASE 1 - CONCLUÍDA ✅)
+- [x] Criar sistema de análise de similaridade de casos (score baseado em assuntos, atualidade, grau)
+- [x] Buscar precedentes em bases públicas (API DataJud)
+- [x] Calcular score de similaridade (contexto, área, assuntos, tribunal)
+- [x] Exibir precedentes ordenados por relevância (integrado na estratégia)
+- [ ] Implementar busca de precedentes no histórico do usuário - FASE 2
+
+### 4. Validação Automática de Prazos Processuais (FASE 1 - CONCLUÍDA ✅)
+- [x] Criar base de dados de prazos por tipo de ação/recurso (CPC + CLT)
+- [x] Implementar calculadora de prazos (dias úteis, feriados)
+- [x] Integrar com API de feriados (feriados.dev)
+- [x] Considerar feriados forenses e recesso judiciário
+- [x] Alertar sobre prazos próximos do vencimento
+- [x] Criar rotas tRPC: `calcularPrazo`, `listarPrazos`, `buscarFeriados`
+- [x] Integrar prazos na estratégia Knowledge Retrieval
+- [ ] Validar prazos mencionados em documentos gerados - FASE 2
+
+### 5. Busca de Modelos Aprovados
+- [ ] Criar repositório de modelos aprovados por tribunais
+- [ ] Implementar busca de modelos por tipo e área
+- [ ] Permitir usuário marcar seus próprios modelos como "aprovados"
+- [ ] Sistema de rating de modelos (sucesso em processos)
+- [ ] Sugerir modelos similares durante geração
+
+### Backend
+- [ ] Criar arquivo `server/knowledge-retrieval.ts` com funções auxiliares
+- [ ] Implementar cache Redis para resultados de buscas (opcional)
+- [ ] Adicionar rotas tRPC para cada tipo de busca
+- [ ] Criar tabelas no banco para cache de jurisprudências/doutrinas
+
+### Frontend
+- [ ] Adicionar seção "Conhecimento Recuperado" nos resultados
+- [ ] Exibir jurisprudências com links para inteiro teor
+- [ ] Mostrar doutrinas com citação formatada
+- [ ] Exibir precedentes similares com score
+- [ ] Adicionar validação visual de prazos
+- [ ] Mostrar modelos sugeridos durante geração

@@ -120,28 +120,77 @@ Gere APENAS o documento final, sem incluir a análise:`;
 
 /**
  * Gera documento usando estratégia Knowledge Retrieval (recuperação de conhecimento)
+ * AGORA COM INTEGRAÇÃO REAL: API DataJud, Feriados e Cálculo de Prazos
  */
 async function gerarComKnowledgeRetrieval(params: ParametrosGeracao): Promise<string> {
+  // Importar módulos de Knowledge Retrieval
+  const { buscarPrecedentesSimilares, formatarProcessoParaTexto } = await import("./knowledge-retrieval-datajud");
+  const { calcularPrazoProcessual, listarPrazosDisponiveis, formatarResultadoPrazo } = await import("./knowledge-retrieval-prazos");
+
   const systemPrompt = `Você é um assistente jurídico especializado com acesso a amplo conhecimento jurídico brasileiro.
 Antes de elaborar documentos, você recupera e sintetiza conhecimento relevante sobre legislação, jurisprudência e doutrinas aplicáveis.
 
 Sua tarefa é gerar um ${params.tipoDocumento} completo na área de ${params.areaJuridica}.`;
 
-  // Passo 1: Recuperar conhecimento relevante
-  const retrievalPrompt = `Para o seguinte caso jurídico, recupere e sintetize conhecimento relevante:
+  // Passo 1: RECUPERAR CONHECIMENTO REAL das APIs
+  console.log("[Knowledge Retrieval] Buscando precedentes processuais reais...");
+  
+  // Buscar precedentes similares na API DataJud
+  const precedentes = await buscarPrecedentesSimilares(
+    params.contexto,
+    params.areaJuridica,
+    params.tipoDocumento,
+    ["STJ", "TRF1", "TJSP"], // Tribunais prioritários
+    5 // Limite por tribunal
+  );
+
+  // Formatar precedentes para inclusão no prompt
+  let precedentesTexto = "";
+  if (precedentes.length > 0) {
+    precedentesTexto = "\n\n**PRECEDENTES PROCESSUAIS REAIS RECUPERADOS:**\n";
+    precedentes.slice(0, 5).forEach((proc, idx) => {
+      precedentesTexto += `\n${idx + 1}. ${formatarProcessoParaTexto(proc)}\n`;
+    });
+    console.log(`[Knowledge Retrieval] ${precedentes.length} precedentes encontrados`);
+  } else {
+    console.log("[Knowledge Retrieval] Nenhum precedente encontrado");
+  }
+
+  // Listar prazos processuais relevantes
+  const prazosDisponiveis = listarPrazosDisponiveis();
+  const prazosRelevantes = prazosDisponiveis
+    .filter(p => 
+      params.tipoDocumento.toLowerCase().includes(p.nome.toLowerCase().split(" ")[0]) ||
+      params.contexto.toLowerCase().includes(p.nome.toLowerCase())
+    )
+    .slice(0, 3);
+
+  let prazosTexto = "";
+  if (prazosRelevantes.length > 0) {
+    prazosTexto = "\n\n**PRAZOS PROCESSUAIS RELEVANTES:**\n";
+    prazosRelevantes.forEach(prazo => {
+      prazosTexto += `- ${prazo.nome}: ${prazo.dias} dias ${prazo.tipo} (${prazo.artigo})\n`;
+    });
+  }
+
+  // Passo 2: Prompt de recuperação com conhecimento real
+  const retrievalPrompt = `Para o seguinte caso jurídico, sintetize o conhecimento recuperado:
 
 Tipo de Documento: ${params.tipoDocumento}
 Área Jurídica: ${params.areaJuridica}
 Contexto: ${params.contexto}
 ${params.objetivo ? `Objetivo: ${params.objetivo}` : ''}
 ${params.legislacao ? `Legislação Mencionada: ${params.legislacao}` : ''}
+${precedentesTexto}
+${prazosTexto}
 
-Recupere e organize:
+Com base nos precedentes processuais REAIS acima e nos prazos aplicáveis, sintetize:
 1. Legislação aplicável (códigos, leis, artigos específicos)
-2. Jurisprudência relevante (súmulas, precedentes importantes)
+2. Análise dos precedentes recuperados e sua relevância
 3. Doutrinas e princípios jurídicos pertinentes
 4. Requisitos formais para este tipo de documento
-5. Modelos e estruturas recomendadas
+5. Prazos processuais que devem ser mencionados
+6. Estrutura recomendada baseada nos precedentes
 
 Forneça uma síntese estruturada do conhecimento recuperado:`;
 
@@ -156,7 +205,7 @@ Forneça uma síntese estruturada do conhecimento recuperado:`;
     ? knowledgeResponse.choices[0].message.content 
     : JSON.stringify(knowledgeResponse.choices[0].message.content) || "";
 
-  // Passo 2: Gerar documento usando o conhecimento recuperado
+  // Passo 3: Gerar documento usando o conhecimento recuperado (precedentes + prazos)
   const geracaoPrompt = `Agora, utilizando o conhecimento jurídico recuperado, gere o ${params.tipoDocumento} completo e profissional.
 
 CONHECIMENTO RECUPERADO:
