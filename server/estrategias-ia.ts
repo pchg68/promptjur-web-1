@@ -3,7 +3,7 @@
  * Baseado nos conceitos do Manus AI (Chain of Thought, Knowledge Retrieval, etc.)
  */
 
-import { invokeLLM } from "./_core/llm";
+import { invokeUnifiedLLM } from "./unified-llm";
 
 export type EstrategiaIA = "direct" | "chain_of_thought" | "knowledge_retrieval";
 
@@ -16,6 +16,8 @@ export interface ParametrosGeracao {
   legislacao?: string;
   detalhes?: string;
   estrategia: EstrategiaIA;
+  provider?: "manus" | "openai";
+  model?: string;
 }
 
 /**
@@ -43,15 +45,16 @@ ${params.detalhes ? `Detalhes Adicionais: ${params.detalhes}` : ''}
 
 Gere o ${params.tipoDocumento} completo:`;
 
-  const response = await invokeLLM({
+  const response = await invokeUnifiedLLM({
+    provider: params.provider,
+    model: params.model,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
     ],
   });
 
-  const content = response.choices[0].message.content;
-  return typeof content === 'string' ? content : JSON.stringify(content) || "";
+  return response.content;
 }
 
 /**
@@ -77,16 +80,16 @@ ${params.legislacao ? `Legislação: ${params.legislacao}` : ''}
 
 Forneça uma análise estruturada:`;
 
-  const analiseResponse = await invokeLLM({
+  const analiseResponse = await invokeUnifiedLLM({
+    provider: params.provider,
+    model: params.model,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: analisePrompt }
     ],
   });
 
-  const analise = typeof analiseResponse.choices[0].message.content === 'string' 
-    ? analiseResponse.choices[0].message.content 
-    : JSON.stringify(analiseResponse.choices[0].message.content) || "";
+  const analise = analiseResponse.content;
 
   // Passo 2: Geração do documento baseado na análise
   const geracaoPrompt = `Com base na análise anterior, agora gere o ${params.tipoDocumento} completo e profissional.
@@ -105,7 +108,9 @@ ${params.detalhes ? `Detalhes Adicionais: ${params.detalhes}` : ''}
 
 Gere APENAS o documento final, sem incluir a análise:`;
 
-  const documentoResponse = await invokeLLM({
+  const documentoResponse = await invokeUnifiedLLM({
+    provider: params.provider,
+    model: params.model,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: analisePrompt },
@@ -114,8 +119,7 @@ Gere APENAS o documento final, sem incluir a análise:`;
     ],
   });
 
-  const content = documentoResponse.choices[0].message.content;
-  return typeof content === 'string' ? content : JSON.stringify(content) || "";
+  return documentoResponse.content;
 }
 
 /**
@@ -194,16 +198,16 @@ Com base nos precedentes processuais REAIS acima e nos prazos aplicáveis, sinte
 
 Forneça uma síntese estruturada do conhecimento recuperado:`;
 
-  const knowledgeResponse = await invokeLLM({
+  const knowledgeResponse = await invokeUnifiedLLM({
+    provider: params.provider,
+    model: params.model,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: retrievalPrompt }
     ],
   });
 
-  const knowledge = typeof knowledgeResponse.choices[0].message.content === 'string' 
-    ? knowledgeResponse.choices[0].message.content 
-    : JSON.stringify(knowledgeResponse.choices[0].message.content) || "";
+  const knowledge = knowledgeResponse.content;
 
   // Passo 3: Gerar documento usando o conhecimento recuperado (precedentes + prazos)
   const geracaoPrompt = `Agora, utilizando o conhecimento jurídico recuperado, gere o ${params.tipoDocumento} completo e profissional.
@@ -226,7 +230,9 @@ INSTRUÇÕES:
 
 Gere APENAS o documento final, sem incluir a síntese de conhecimento:`;
 
-  const documentoResponse = await invokeLLM({
+  const documentoResponse = await invokeUnifiedLLM({
+    provider: params.provider,
+    model: params.model,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: retrievalPrompt },
@@ -235,8 +241,7 @@ Gere APENAS o documento final, sem incluir a síntese de conhecimento:`;
     ],
   });
 
-  const content = documentoResponse.choices[0].message.content;
-  return typeof content === 'string' ? content : JSON.stringify(content) || "";
+  return documentoResponse.content;
 }
 
 /**

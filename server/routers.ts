@@ -80,6 +80,8 @@ export const appRouter = router({
     analisar: protectedProcedure
       .input(z.object({
         prompt: z.string().min(10, "Prompt muito curto"),
+        provider: z.enum(["manus", "openai"] as const).optional(),
+        model: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
@@ -101,7 +103,10 @@ export const appRouter = router({
           const estatisticasFontes = getSourcesStatistics(input.prompt);
           
           // Identificar área jurídica usando LLM
-          const analiseResponse = await invokeLLM({
+          const { invokeUnifiedLLM } = await import("./unified-llm");
+          const llmResponse = await invokeUnifiedLLM({
+            provider: input.provider,
+            model: input.model,
             messages: [
               {
                 role: "system",
@@ -140,6 +145,13 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
               }
             }
           });
+          
+          // Compatibilidade com formato antigo
+          const analiseResponse = {
+            choices: [{ message: { content: llmResponse.content } }],
+            model: llmResponse.model,
+            usage: llmResponse.usage
+          };
 
           const content = analiseResponse.choices[0].message.content;
           const analise = JSON.parse(typeof content === 'string' ? content : "{}");
@@ -233,7 +245,9 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
         area: z.enum(["Civil", "Penal", "Trabalhista", "Tributário", "Administrativo", "Constitucional", "Empresarial", "Consumidor", "Família", "Previdenciário", "Ambiental", "Internacional", "Processo Civil", "Direito Médico", "Direito Digital", "Direito Internacional"] as const), // Campo obrigatório
         partesEnvolvidas: z.string().optional(),
         legislacaoRelevante: z.string().optional(),
-        detalhesAdicionais: z.string().optional()
+        detalhesAdicionais: z.string().optional(),
+        provider: z.enum(["manus", "openai"] as const).optional(),
+        model: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
@@ -248,8 +262,12 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
           // ETAPA 1: Detectar área jurídica automaticamente se não fornecida
           let areaDetectada = input.area;
           
+          const { invokeUnifiedLLM } = await import("./unified-llm");
+          
           if (!areaDetectada) {
-            const deteccaoResponse = await invokeLLM({
+            const llmDeteccao = await invokeUnifiedLLM({
+              provider: input.provider,
+              model: input.model,
               messages: [
                 {
                   role: "system",
@@ -262,7 +280,7 @@ Responda APENAS em formato JSON válido, sem texto adicional.`
               ]
             });
             
-            const areaResposta = deteccaoResponse.choices[0].message.content?.toString().trim() || "Civil";
+            const areaResposta = llmDeteccao.content.trim() || "Civil";
             areaDetectada = AREAS_JURIDICAS.find(a => areaResposta.includes(a)) || "Civil";
           }
           
@@ -304,15 +322,16 @@ ${input.objetivoEspecifico}
 
 ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
 
-          const geracaoResponse = await invokeLLM({
+          const llmGeracao = await invokeUnifiedLLM({
+            provider: input.provider,
+            model: input.model,
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt }
             ]
           });
 
-          const content = geracaoResponse.choices[0].message.content;
-          const promptProfissional = typeof content === 'string' ? content : "";
+          const promptProfissional = llmGeracao.content;
 
           // Validar legislação citada
           const validacaoRaw = await validarLegislacao(promptProfissional);
@@ -394,7 +413,9 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
     // Otimizar prompt existente
     otimizar: protectedProcedure
       .input(z.object({
-        prompt: z.string().min(10, "Prompt muito curto")
+        prompt: z.string().min(10, "Prompt muito curto"),
+        provider: z.enum(["manus", "openai"] as const).optional(),
+        model: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();
@@ -406,7 +427,10 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
         // }
         
         try {
-          const otimizacaoResponse = await invokeLLM({
+          const { invokeUnifiedLLM } = await import("./unified-llm");
+          const llmOtimizacao = await invokeUnifiedLLM({
+            provider: input.provider,
+            model: input.model,
             messages: [
               {
                 role: "system",
@@ -446,11 +470,11 @@ Responda em formato JSON com:
                   additionalProperties: false
                 }
               }
-            }
+             }
           });
 
-          const content3 = otimizacaoResponse.choices[0].message.content;
-          const resultado = JSON.parse(typeof content3 === 'string' ? content3 : "{}");
+          const content = llmOtimizacao.content;
+          const resultado = JSON.parse(typeof content === 'string' ? content : "{}");
 
           // Salvar no banco
           const promptId = await db.createPrompt({
@@ -1096,7 +1120,9 @@ Responda em formato JSON com:
         partesEnvolvidas: z.string().optional(),
         legislacao: z.string().optional(),
         detalhes: z.string().optional(),
-        estrategia: z.enum(["direct", "chain_of_thought", "knowledge_retrieval"]).default("direct")
+        estrategia: z.enum(["direct", "chain_of_thought", "knowledge_retrieval"]).default("direct"),
+        provider: z.enum(["manus", "openai"] as const).optional(),
+        model: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const startTime = Date.now();

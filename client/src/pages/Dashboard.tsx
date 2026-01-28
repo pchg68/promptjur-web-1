@@ -37,6 +37,7 @@ import { SugestaoArea } from "@/components/SugestaoArea";
 import { DisclaimerLegal } from "@/components/DisclaimerLegal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Bookmark, Lightbulb, Save, Trash2 } from "lucide-react";
+import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -49,6 +50,20 @@ export default function Dashboard() {
     const saved = localStorage.getItem('promptjur-compact-mode');
     return saved ? JSON.parse(saved) : false;
   });
+  
+  // Estado para modelo de IA selecionado (persistido no localStorage)
+  const [selectedModel, setSelectedModel] = useState(() => {
+    const saved = localStorage.getItem('promptjur-selected-model');
+    return saved || 'manus:manus-default';
+  });
+  
+  // Salvar preferência de modelo
+  const handleModelChange = (value: string) => {
+    setSelectedModel(value);
+    localStorage.setItem('promptjur-selected-model', value);
+    const [provider, model] = value.split(':');
+    toast.success(`Modelo alterado para ${model === 'manus-default' ? 'Manus AI' : model}`);
+  };
   
   // Salvar preferência de modo compacto
   const toggleCompactMode = () => {
@@ -350,9 +365,10 @@ export default function Dashboard() {
       return;
     }
     
-    console.log('[DEBUG] Chamando mutation com:', { prompt: promptAnalise });
+    const { provider, model } = parseModelValue(selectedModel);
+    console.log('[DEBUG] Chamando mutation com:', { prompt: promptAnalise, provider, model });
     try {
-      analiseMutation.mutate({ prompt: promptAnalise });
+      analiseMutation.mutate({ prompt: promptAnalise, provider, model });
       console.log('[DEBUG] Mutation chamada com sucesso');
     } catch (error) {
       console.error('[DEBUG] Erro ao chamar mutation:', error);
@@ -757,6 +773,11 @@ export default function Dashboard() {
                 <DisclaimerLegal className="mt-4" />
               </CardHeader>
               <CardContent className="space-y-4">
+                <ModelSelector
+                  value={selectedModel}
+                  onChange={handleModelChange}
+                  disabled={analiseMutation.isPending}
+                />
                 <div className="space-y-2">
                   <Label htmlFor="prompt-analise">Prompt para Análise</Label>
                   <HighlightedTextarea

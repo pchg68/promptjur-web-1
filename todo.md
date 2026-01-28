@@ -1300,3 +1300,27 @@
 - [x] Identificar objetos não serializáveis sendo retornados (campo detalhes com objetos complexos)
 - [x] Corrigir serialização (removido campo detalhes de citacoesLegais)
 - [x] Testar todas as funcionalidades afetadas
+
+
+## Integração API ChatGPT (OpenAI) (Sessão Atual)
+
+### Backend
+- [ ] Solicitar chave OPENAI_API_KEY do usuário
+- [ ] Criar módulo de integração com OpenAI API (server/openai-integration.ts)
+- [ ] Implementar suporte a múltiplos modelos (GPT-4, GPT-4-turbo, GPT-3.5-turbo)
+- [ ] Adicionar sistema de fallback (se OpenAI falhar, usa LLM padrão)
+- [ ] Criar função unificada que aceita provider (openai ou manus)
+- [ ] Atualizar rotas para aceitar parâmetro de modelo
+
+### Frontend
+- [ ] Adicionar seletor de modelo de IA nas tabs (Analisar, Gerar, Otimizar, Documentos)
+- [ ] Exibir modelo usado nos resultados
+- [ ] Adicionar tooltip explicando diferenças entre modelos
+- [ ] Salvar preferência de modelo do usuário no localStorage
+
+### Integração
+- [ ] Atualizar rota analisar para usar modelo selecionado
+- [ ] Atualizar rota gerar para usar modelo selecionado
+- [ ] Atualizar rota otimizar para usar modelo selecionado
+- [ ] Atualizar rota documentos.gerar para usar modelo selecionado
+- [ ] Testar todas as funcionalidades com ambos os providers
