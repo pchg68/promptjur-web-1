@@ -11,6 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { AREAS_JURIDICAS } from "@shared/juridico";
 import { Streamdown } from "streamdown";
+import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 
 type EstrategiaIA = "direct" | "chain_of_thought" | "knowledge_retrieval";
 
@@ -58,6 +59,14 @@ export default function TabDocumentos() {
   const [legislacao, setLegislacao] = useState<string>("");
   const [detalhes, setDetalhes] = useState<string>("");
   const [estrategia, setEstrategia] = useState<EstrategiaIA>("direct");
+  const [selectedModel, setSelectedModel] = useState<string>(() => {
+    return localStorage.getItem('promptjur_selected_model') || 'manus:default';
+  });
+
+  const handleModelChange = (value: string) => {
+    setSelectedModel(value);
+    localStorage.setItem('promptjur_selected_model', value);
+  };
 
   const geracaoMutation = trpc.documentos.gerar.useMutation({
     onSuccess: () => {
@@ -74,6 +83,7 @@ export default function TabDocumentos() {
       return;
     }
 
+    const { provider, model } = parseModelValue(selectedModel);
     geracaoMutation.mutate({
       tipoDocumento,
       areaJuridica,
@@ -83,6 +93,8 @@ export default function TabDocumentos() {
       legislacao: legislacao || undefined,
       detalhes: detalhes || undefined,
       estrategia,
+      provider,
+      model,
     });
   };
 
@@ -140,6 +152,11 @@ export default function TabDocumentos() {
         <CardContent className="space-y-6">
           {!geracaoMutation.data ? (
             <>
+              <ModelSelector
+                value={selectedModel}
+                onChange={handleModelChange}
+                disabled={geracaoMutation.isPending}
+              />
               {/* Seleção de Estratégia */}
               <div className="space-y-3">
                 <Label>Estratégia de IA</Label>

@@ -382,6 +382,7 @@ export default function Dashboard() {
       toast.error("Por favor, preencha os campos obrigatórios (Contexto e Objetivo)");
       return;
     }
+    const { provider, model } = parseModelValue(selectedModel);
     geracaoMutation.mutate({
       tipoDocumento,
       contextoJuridico,
@@ -389,7 +390,9 @@ export default function Dashboard() {
       area: areaGeracao, // Campo obrigatório
       partesEnvolvidas: partesEnvolvidas || undefined,
       legislacaoRelevante: legislacaoRelevante || undefined,
-      detalhesAdicionais: detalhesAdicionais || undefined
+      detalhesAdicionais: detalhesAdicionais || undefined,
+      provider,
+      model
     });
   };
 
@@ -400,7 +403,8 @@ export default function Dashboard() {
       toast.error("Por favor, insira um prompt para otimizar");
       return;
     }
-    otimizacaoMutation.mutate({ prompt: promptOtimizacao });
+    const { provider, model } = parseModelValue(selectedModel);
+    otimizacaoMutation.mutate({ prompt: promptOtimizacao, provider, model });
   };
 
   const copyToClipboard = (text: string) => {
@@ -1025,6 +1029,11 @@ export default function Dashboard() {
                 <DisclaimerLegal className="mt-4" />
               </CardHeader>
               <CardContent className="space-y-6">
+                <ModelSelector
+                  value={selectedModel}
+                  onChange={handleModelChange}
+                  disabled={geracaoMutation.isPending}
+                />
 
                 {/* Tipo de Documento */}
                 <div className="space-y-2">
@@ -1382,6 +1391,11 @@ export default function Dashboard() {
                 <DisclaimerLegal className="mt-4" />
               </CardHeader>
               <CardContent className="space-y-4">
+                <ModelSelector
+                  value={selectedModel}
+                  onChange={handleModelChange}
+                  disabled={otimizacaoMutation.isPending}
+                />
                 <div className="space-y-2">
                   <Label htmlFor="prompt-otimizacao">Prompt para Otimizar</Label>
                   <HighlightedTextarea

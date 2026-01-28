@@ -1324,3 +1324,16 @@
 - [ ] Atualizar rota otimizar para usar modelo selecionado
 - [ ] Atualizar rota documentos.gerar para usar modelo selecionado
 - [ ] Testar todas as funcionalidades com ambos os providers
+
+
+## Completar Integração ModelSelector (Sessão Atual)
+- [x] Integrar ModelSelector na tab Gerar
+  - [x] Adicionar componente ModelSelector no formulário
+  - [x] Atualizar handleGerar para passar provider e model
+- [x] Integrar ModelSelector na tab Otimizar
+  - [x] Adicionar componente ModelSelector no formulário
+  - [x] Atualizar handleOtimizar para passar provider e model
+- [x] Integrar ModelSelector na tab Documentos
+  - [x] Adicionar componente ModelSelector no formulário TabDocumentos
+  - [x] Atualizar handler de geração para passar provider e model
+- [x] Testar todas as integrações com diferentes modelos
