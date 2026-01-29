@@ -1337,3 +1337,38 @@
   - [x] Adicionar componente ModelSelector no formulário TabDocumentos
   - [x] Atualizar handler de geração para passar provider e model
 - [x] Testar todas as integrações com diferentes modelos
+
+## Business Plan Completo - PromptJur (Sessão Atual)
+- [ ] Pesquisar dados de mercado jurídico brasileiro (tamanho, crescimento, tendências)
+- [ ] Calcular custos de implantação detalhados (desenvolvimento, infraestrutura, APIs)
+- [ ] Definir custos operacionais mensais (hospedagem Manus, APIs OpenAI, manutenção)
+- [ ] Criar modelos de precificação (planos gratuito, mensal, anual)
+- [ ] Desenvolver projeções financeiras (3-5 anos)
+- [ ] Calcular break-even point e ROI
+- [ ] Elaborar estratégia de captação de recursos
+- [ ] Compilar documento final do Business Plan
+
+## Melhorias de UX - Indicadores e Comparação (Sessão Atual)
+
+### 1. Indicador Visual de Modelo Usado
+- [x] Criar componente ModelBadge.tsx
+- [ ] Adicionar badge nos resultados mostrando modelo usado (ex: "Gerado com GPT-4")
+- [ ] Implementar em todas as tabs (Analisar, Gerar, Otimizar, Documentos)
+- [x] Adicionar ícone correspondente ao provider (✨ Manus, 🤖 OpenAI)
+- [ ] Salvar modelo usado no histórico/banco de dados
+
+### 2. Modo de Comparação A/B
+- [ ] Criar componente de comparação lado a lado
+- [ ] Adicionar botão "Comparar Modelos" nas tabs principais
+- [ ] Permitir selecionar 2 modelos para comparação
+- [ ] Executar ambas as gerações simultaneamente
+- [ ] Exibir resultados lado a lado com diff visual
+- [ ] Adicionar opção de escolher melhor resultado ou mesclar
+
+### 3. Métricas de Custo e Velocidade
+- [ ] Adicionar timer para medir tempo de resposta
+- [ ] Calcular custo estimado baseado em tokens usados
+- [ ] Exibir métricas após cada operação (tempo + custo)
+- [ ] Criar dashboard de métricas acumuladas
+- [ ] Adicionar comparativo de performance entre modelos
+- [ ] Salvar métricas no banco para analytics
