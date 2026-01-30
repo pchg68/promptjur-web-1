@@ -1379,3 +1379,8 @@
 - [x] Corrigir erro "Unable to transform response from server" na rota analytics.get
 - [x] Converter objetos Drizzle para formato serializável em getAnalytics()
 - [x] Testar dashboard após correção
+
+### Bug de Serialização em Mutation
+- [x] Identificar qual mutation está causando erro de serialização (modelos.maisUsados)
+- [x] Corrigir retorno da mutation para formato serializável (objeto explícito)
+- [x] Testar correção no dashboard

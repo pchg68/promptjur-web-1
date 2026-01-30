@@ -1019,13 +1019,25 @@ Responda em formato JSON com:
         
         const usados = await db.getModelosMaisUsados(ctx.user.id, limit);
         
-        // Retornar modelos completos com contagem de uso
+        // Retornar modelos completos com contagem de uso (serializável)
         const modelosComUso = usados
           .map(u => {
             const modelo = MODELOS_PROFISSIONAIS.find(m => m.id === u.modeloId);
             if (!modelo) return null;
+            // Criar objeto explícito para garantir serialização correta
             return {
-              ...modelo,
+              id: modelo.id,
+              nome: modelo.nome,
+              descricao: modelo.descricao,
+              tipoDocumento: modelo.tipoDocumento,
+              areaJuridica: modelo.areaJuridica,
+              contextoJuridico: modelo.contextoJuridico,
+              objetivoEspecifico: modelo.objetivoEspecifico,
+              partesEnvolvidas: modelo.partesEnvolvidas,
+              legislacaoRelevante: modelo.legislacaoRelevante,
+              detalhesAdicionais: modelo.detalhesAdicionais,
+              isPremium: modelo.isPremium,
+              tags: modelo.tags,
               vezesUsado: Number(u.count)
             };
           })
