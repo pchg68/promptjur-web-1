@@ -1462,3 +1462,23 @@
 - [x] Visualizar histórico de alertas disparados (lista com scroll)
 - [x] Botão para marcar alerta como resolvido
 - [x] Rotas tRPC: listarAlertas, statsAlertas, resolverAlerta, listarRegras, criarRegra, toggleRegra, inicializarRegras
+
+## Auditoria de Segurança - Remoção de Credenciais Hardcoded
+
+### Identificação
+- [x] Escanear todos os arquivos .ts/.tsx em busca de padrões de API keys
+- [x] Identificar strings de conexão de banco de dados hardcoded (nenhuma encontrada)
+- [x] Buscar tokens de autenticação e senhas em código (nenhum encontrado)
+- [x] Verificar arquivos de configuração e constantes (apenas DATAJUD_API_KEY encontrada)
+
+### Correção
+- [x] Mover DATAJUD_API_KEY para variável de ambiente com fallback
+- [x] Atualizar código para usar process.env.DATAJUD_API_KEY
+- [x] Adicionar aviso sobre chave pública de demonstração
+- [x] Todas as outras credenciais já usam variáveis de ambiente (gerenciadas pelo Manus)
+
+### Documentação
+- [x] Criar guia de segurança completo (SECURITY.md)
+- [x] Documentar todas as variáveis de ambiente (obrigatórias e opcionais)
+- [x] Adicionar checklist de segurança para desenvolvedores
+- [x] Incluir informações sobre LGPD/GDPR e relatório de vulnerabilidades

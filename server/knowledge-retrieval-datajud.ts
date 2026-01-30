@@ -5,9 +5,12 @@
  * Documentação: https://datajud-wiki.cnj.jus.br/api-publica/
  */
 
-// Chave pública do DataJud (disponível publicamente)
-const DATAJUD_API_KEY = "cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==";
+// Chave de API do DataJud (configurada via variável de ambiente)
+const DATAJUD_API_KEY = process.env.DATAJUD_API_KEY || "cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==";
 const DATAJUD_BASE_URL = "https://api-publica.datajud.cnj.jus.br";
+
+// AVISO: A chave padrão acima é uma chave pública de demonstração.
+// Para produção, configure DATAJUD_API_KEY nas variáveis de ambiente.
 
 /**
  * Tribunais disponíveis na API DataJud
