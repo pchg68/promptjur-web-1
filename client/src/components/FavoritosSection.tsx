@@ -35,7 +35,7 @@ export function FavoritosSection() {
     toast.success("Prompt copiado!");
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',

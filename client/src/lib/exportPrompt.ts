@@ -9,7 +9,7 @@ interface PromptData {
   promptOriginal: string;
   promptOtimizado?: string | null;
   qualidade?: string | null;
-  createdAt: Date;
+  createdAt: Date | string;
 }
 
 const getTipoLabel = (tipo: string): string => {
@@ -21,7 +21,7 @@ const getTipoLabel = (tipo: string): string => {
   return labels[tipo] || tipo;
 };
 
-const formatDate = (date: Date): string => {
+const formatDate = (date: Date | string): string => {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',

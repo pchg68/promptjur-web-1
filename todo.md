@@ -1384,3 +1384,10 @@
 - [x] Identificar qual mutation está causando erro de serialização (modelos.maisUsados)
 - [x] Corrigir retorno da mutation para formato serializável (objeto explícito)
 - [x] Testar correção no dashboard
+
+### Múltiplos Bugs no Dashboard (Sessão Atual)
+- [x] Corrigir erro de validação de área jurídica ("Família e Sucessões" → "Família", "Digital e Proteção de Dados" → "Direito Digital")
+- [x] Identificar e corrigir mutation com erro de serialização (getUserPrompts, getTemplatesUsuario)
+- [x] Identificar e corrigir query com erro de serialização (getUserHistorico, getVersoesPrompt, getTemplatesSistema)
+- [x] Atualizar tipos no frontend para aceitar Date | string
+- [x] Testar todas as correções no dashboard

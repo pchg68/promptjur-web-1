@@ -116,10 +116,17 @@ export async function getUserPrompts(userId: number, limit = 50) {
   const db = await getDb();
   if (!db) return [];
   
-  return db.select().from(prompts)
+  const results = await db.select().from(prompts)
     .where(eq(prompts.userId, userId))
     .orderBy(desc(prompts.createdAt))
     .limit(limit);
+  
+  // Converter para formato serializável
+  return results.map(p => ({
+    ...p,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString()
+  }));
 }
 
 export async function getPromptById(id: number, userId?: number) {
@@ -260,10 +267,16 @@ export async function getUserHistorico(userId: number, limit = 100) {
   const db = await getDb();
   if (!db) return [];
   
-  return db.select().from(historico)
+  const results = await db.select().from(historico)
     .where(eq(historico.userId, userId))
     .orderBy(desc(historico.createdAt))
     .limit(limit);
+  
+  // Converter para formato serializável
+  return results.map(h => ({
+    ...h,
+    createdAt: h.createdAt.toISOString()
+  }));
 }
 
 export async function getUserStats(userId: number) {
@@ -335,8 +348,13 @@ export async function getTemplatesUsuario(userId: number) {
       eq(templates.isAtivo, true)
     ))
     .orderBy(desc(templates.createdAt));
-    
-  return result;
+  
+  // Converter para formato serializável
+  return result.map(t => ({
+    ...t,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString()
+  }));
 }
 
 export async function getTemplatesSistema() {
@@ -349,8 +367,13 @@ export async function getTemplatesSistema() {
       eq(templates.isAtivo, true)
     ))
     .orderBy(templates.areaJuridica);
-    
-  return result;
+  
+  // Converter para formato serializável
+  return result.map(t => ({
+    ...t,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString()
+  }));
 }
 
 export async function salvarTemplate(data: InsertTemplate) {
@@ -512,8 +535,12 @@ export async function getVersoesPrompt(promptId: number) {
   const result = await db.select().from(promptVersoes)
     .where(eq(promptVersoes.promptId, promptId))
     .orderBy(desc(promptVersoes.versao));
-    
-  return result;
+  
+  // Converter para formato serializável
+  return result.map(v => ({
+    ...v,
+    createdAt: v.createdAt.toISOString()
+  }));
 }
 
 // ===== ANALYTICS HELPERS =====
