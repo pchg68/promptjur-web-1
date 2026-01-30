@@ -19,12 +19,14 @@ import { getCacheStatistics } from "./db-legislacao-cache";
 import { criarPerfil, listarPerfis, deletarPerfil, buscarPerfilPorId } from "./db-perfis";
 import { sugerirArea } from "./sugestao-area";
 import { modelosPersonalizadosRouter } from "./routers-modelos-personalizados";
+import { adminRouter, getCachedData } from "./admin";
 
 export const appRouter = router({
   system: systemRouter,
   notifications: notificationsRouter,
   notificationPreferences: notificationPreferencesRouter,
   modelosPersonalizados: modelosPersonalizadosRouter,
+  admin: adminRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -580,9 +582,12 @@ Responda em formato JSON com:
         return prompt;
       }),
 
-    // Obter estatísticas do usuário
+    // Obter estatísticas do usuário (com cache)
     stats: protectedProcedure.query(async ({ ctx }) => {
-      return db.getUserStats(ctx.user.id);
+      return getCachedData(
+        `stats:${ctx.user.id}`,
+        () => db.getUserStats(ctx.user.id)
+      );
     }),
 
     // Toggle favorito
@@ -674,9 +679,12 @@ Responda em formato JSON com:
   }),
 
   templates: router({
-    // Listar templates do usuário
+    // Listar templates do usuário (com cache)
     meus: protectedProcedure.query(async ({ ctx }) => {
-      return db.getTemplatesUsuario(ctx.user.id);
+      return getCachedData(
+        `templates:${ctx.user.id}`,
+        () => db.getTemplatesUsuario(ctx.user.id)
+      );
     }),
 
     // Listar templates do sistema
@@ -856,9 +864,12 @@ Responda em formato JSON com:
   }),
 
   analytics: router({
-    // Obter estatísticas de uso
+    // Obter estatísticas de uso (com cache)
     get: protectedProcedure.query(async ({ ctx }) => {
-      return db.getAnalytics(ctx.user.id);
+      return getCachedData(
+        `analytics:${ctx.user.id}`,
+        () => db.getAnalytics(ctx.user.id)
+      );
     }),
     
     // Obter dados para gráfico de uso por data

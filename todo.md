@@ -1391,3 +1391,31 @@
 - [x] Identificar e corrigir query com erro de serialização (getUserHistorico, getVersoesPrompt, getTemplatesSistema)
 - [x] Atualizar tipos no frontend para aceitar Date | string
 - [x] Testar todas as correções no dashboard
+
+## Ferramentas Administrativas (Admin Tools)
+
+### Infraestrutura
+- [x] Criar rota admin no dashboard (acessível apenas para role='admin')
+- [x] Criar componente AdminTools.tsx com interface completa
+- [x] Adicionar guard de autenticação admin no frontend (redirect automático)
+- [x] Adicionar link Admin Tools no DashboardLayout (visível apenas para admins)
+
+### Script de Auditoria de Serialização
+- [x] Criar rota tRPC admin.auditarSerializacao
+- [x] Implementar scanner de rotas tRPC
+- [x] Detectar retornos diretos de Drizzle sem conversão
+- [x] Gerar relatório com rotas problemáticas e estatísticas
+- [x] Interface visual para exibir resultados (cards com badges)
+
+### Sistema de Cache Inteligente
+- [x] Implementar cache em memória (Map com LRU simples)
+- [x] Adicionar cache em queries frequentes (templates.meus, analytics.get, prompts.stats)
+- [x] Criar rota admin.limparCache
+- [x] Criar rota admin.estatisticasCache (taxa de acerto, memória usada, etc)
+- [x] Interface para gerenciar cache (visualizar estatísticas e limpar)
+
+### Testes de Integração tRPC
+- [x] Criar suite de testes automatizados (5 testes de serialização)
+- [x] Testar serialização de rotas críticas (prompts, histórico, templates, analytics, stats)
+- [x] Criar rota admin.executarTestes
+- [x] Interface para visualizar resultados dos testes (grid com sucessos/falhas)
