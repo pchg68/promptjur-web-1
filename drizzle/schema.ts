@@ -278,3 +278,35 @@ export const perfisUso = mysqlTable("perfis_uso", {
 
 export type PerfilUso = typeof perfisUso.$inferSelect;
 export type InsertPerfilUso = typeof perfisUso.$inferInsert;
+
+/**
+ * Tabela de logs de auditoria para ações administrativas
+ */
+export const auditLogs = mysqlTable("audit_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Admin que executou a ação
+  acao: varchar("acao", { length: 100 }).notNull(), // Ex: "limpar_cache", "executar_testes", "toggle_feature"
+  descricao: text("descricao"), // Detalhes da ação
+  metadata: json("metadata"), // Dados adicionais (ex: feature toggleada, resultado dos testes)
+  ipAddress: varchar("ipAddress", { length: 45 }), // IPv4 ou IPv6
+  userAgent: text("userAgent"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+/**
+ * Tabela de feature flags para controle de funcionalidades
+ */
+export const featureFlags = mysqlTable("feature_flags", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 100 }).notNull().unique(), // Ex: "knowledge_retrieval", "modelos_premium"
+  descricao: text("descricao"),
+  isAtivo: boolean("isAtivo").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+export type InsertFeatureFlag = typeof featureFlags.$inferInsert;

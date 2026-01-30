@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2 } from "lucide-react";
+import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function AdminTools() {
@@ -65,6 +65,36 @@ export default function AdminTools() {
     },
     onError: (error) => {
       toast.error("Erro ao executar testes: " + error.message);
+    }
+  });
+
+  // Logs de Auditoria
+  const logsQuery = trpc.admin.listarLogs.useQuery({ limit: 50 });
+  const statsAuditoriaQuery = trpc.admin.statsAuditoria.useQuery();
+
+  // Performance
+  const metricasPorRotaQuery = trpc.admin.metricasPorRota.useQuery();
+  const statsPerformanceQuery = trpc.admin.statsPerformance.useQuery();
+  const limparMetricasMutation = trpc.admin.limparMetricas.useMutation({
+    onSuccess: () => {
+      toast.success("Métricas limpas com sucesso!");
+      metricasPorRotaQuery.refetch();
+      statsPerformanceQuery.refetch();
+    }
+  });
+
+  // Feature Flags
+  const featuresQuery = trpc.admin.listarFeatures.useQuery();
+  const toggleFeatureMutation = trpc.admin.toggleFeature.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Feature "${data.nome}" ${data.isAtivo ? 'ativada' : 'desativada'}!`);
+      featuresQuery.refetch();
+    }
+  });
+  const inicializarFeaturesMutation = trpc.admin.inicializarFeatures.useMutation({
+    onSuccess: () => {
+      toast.success("Features padrão inicializadas!");
+      featuresQuery.refetch();
     }
   });
 
@@ -249,6 +279,164 @@ export default function AdminTools() {
                   )}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Logs de Auditoria */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Logs de Auditoria
+              </CardTitle>
+              <CardDescription>
+                Histórico de ações administrativas
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {statsAuditoriaQuery.data && (
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <p className="text-2xl font-bold">{statsAuditoriaQuery.data.totalLogs}</p>
+                    <p className="text-xs text-muted-foreground">Total de Logs</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <p className="text-2xl font-bold">{statsAuditoriaQuery.data.acoesUnicas}</p>
+                    <p className="text-xs text-muted-foreground">Ações Únicas</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {logsQuery.data?.slice(0, 10).map((log: any) => (
+                  <div key={log.id} className="p-3 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline">{log.acao}</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(log.createdAt).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    {log.descricao && (
+                      <p className="text-sm mt-2">{log.descricao}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Monitoramento de Performance */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                Monitoramento de Performance
+              </CardTitle>
+              <CardDescription>
+                Métricas de tempo de resposta das rotas tRPC
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {statsPerformanceQuery.data && (
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <p className="text-2xl font-bold">{statsPerformanceQuery.data.totalRequisicoes}</p>
+                    <p className="text-xs text-muted-foreground">Requisições</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <p className="text-2xl font-bold">{statsPerformanceQuery.data.p95Global}ms</p>
+                    <p className="text-xs text-muted-foreground">P95 Global</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <p className="text-2xl font-bold">{statsPerformanceQuery.data.duracaoMedia}ms</p>
+                    <p className="text-xs text-muted-foreground">Média</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                <p className="text-sm font-medium mb-2">Rotas Mais Lentas (P95):</p>
+                {metricasPorRotaQuery.data?.slice(0, 5).map((metrica: any) => (
+                  <div key={metrica.rota} className="p-3 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-mono">{metrica.rota}</span>
+                      <Badge variant={metrica.p95 > 1000 ? "destructive" : metrica.p95 > 500 ? "default" : "secondary"}>
+                        {metrica.p95}ms
+                      </Badge>
+                    </div>
+                    <div className="flex gap-3 mt-2 text-xs text-muted-foreground">
+                      <span>P50: {metrica.p50}ms</span>
+                      <span>P99: {metrica.p99}ms</span>
+                      <span>Total: {metrica.total}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <Button 
+                onClick={() => limparMetricasMutation.mutate()}
+                disabled={limparMetricasMutation.isPending}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Limpar Métricas
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Feature Flags */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Flag className="w-5 h-5" />
+                Feature Flags
+              </CardTitle>
+              <CardDescription>
+                Controle de funcionalidades experimentais
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={() => inicializarFeaturesMutation.mutate()}
+                disabled={inicializarFeaturesMutation.isPending}
+                variant="outline"
+                size="sm"
+                className="w-full mb-4"
+              >
+                {inicializarFeaturesMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Inicializando...
+                  </>
+                ) : (
+                  "Inicializar Features Padrão"
+                )}
+              </Button>
+              
+              <div className="space-y-2">
+                {featuresQuery.data?.map((feature: any) => (
+                  <div key={feature.id} className="p-3 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{feature.nome}</p>
+                        {feature.descricao && (
+                          <p className="text-xs text-muted-foreground mt-1">{feature.descricao}</p>
+                        )}
+                      </div>
+                      <Button
+                        onClick={() => toggleFeatureMutation.mutate({ nome: feature.nome })}
+                        disabled={toggleFeatureMutation.isPending}
+                        variant={feature.isAtivo ? "default" : "outline"}
+                        size="sm"
+                      >
+                        {feature.isAtivo ? "Ativo" : "Inativo"}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 

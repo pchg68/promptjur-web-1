@@ -7,6 +7,9 @@ import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
+import { logAuditoria, listarLogs, getAuditStats } from "./audit";
+import { getMetricasPorRota, getStatsPerformance, limparMetricas, registrarMetrica } from "./performance";
+import { listarFeatures, toggleFeature, criarFeature, inicializarFeatures, limparCacheFeatures } from "./feature-flags";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -94,11 +97,20 @@ export const adminRouter = router({
   }),
 
   // Limpar Cache
-  limparCache: adminProcedure.mutation(async () => {
+  limparCache: adminProcedure.mutation(async ({ ctx }) => {
     const tamanhoAntes = cache.size;
     cache.clear();
     cacheHits = 0;
     cacheMisses = 0;
+    
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'limpar_cache',
+      descricao: `Cache limpo com sucesso. ${tamanhoAntes} entradas removidas.`,
+      metadata: { entradasRemovidas: tamanhoAntes },
+      req: ctx.req
+    });
     
     return {
       sucesso: true,
@@ -249,6 +261,15 @@ export const adminRouter = router({
       erro: t.erro || 'Erro desconhecido'
     }));
     
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'executar_testes',
+      descricao: `Testes de integração executados. ${totalSucessos}/${totalTestes} sucessos.`,
+      metadata: { totalTestes, totalSucessos, totalFalhas, falhas },
+      req: ctx.req
+    });
+    
     return {
       totalTestes,
       totalSucessos,
@@ -256,5 +277,140 @@ export const adminRouter = router({
       falhas,
       timestamp: new Date().toISOString()
     };
+  }),
+
+  // ===== LOGS DE AUDITORIA =====
+  
+  // Listar logs de auditoria
+  listarLogs: adminProcedure
+    .input(z.object({
+      userId: z.number().optional(),
+      acao: z.string().optional(),
+      dataInicio: z.string().optional(), // ISO string
+      dataFim: z.string().optional(), // ISO string
+      limit: z.number().min(1).max(500).optional().default(100)
+    }).optional())
+    .query(async ({ input }) => {
+      const params = {
+        userId: input?.userId,
+        acao: input?.acao,
+        dataInicio: input?.dataInicio ? new Date(input.dataInicio) : undefined,
+        dataFim: input?.dataFim ? new Date(input.dataFim) : undefined,
+        limit: input?.limit
+      };
+      return listarLogs(params);
+    }),
+  
+  // Estatísticas de auditoria
+  statsAuditoria: adminProcedure.query(async () => {
+    return getAuditStats();
+  }),
+
+  // ===== MONITORAMENTO DE PERFORMANCE =====
+  
+  // Métricas por rota
+  metricasPorRota: adminProcedure.query(async () => {
+    return getMetricasPorRota();
+  }),
+  
+  // Estatísticas gerais de performance
+  statsPerformance: adminProcedure.query(async () => {
+    return getStatsPerformance();
+  }),
+  
+  // Limpar métricas
+  limparMetricas: adminProcedure.mutation(async ({ ctx }) => {
+    const resultado = limparMetricas();
+    
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'limpar_metricas',
+      descricao: `Métricas de performance limpas. ${resultado.metricasRemovidas} entradas removidas.`,
+      metadata: resultado,
+      req: ctx.req
+    });
+    
+    return resultado;
+  }),
+
+  // ===== FEATURE FLAGS =====
+  
+  // Listar todas as features
+  listarFeatures: adminProcedure.query(async () => {
+    return listarFeatures();
+  }),
+  
+  // Toggle feature flag
+  toggleFeature: adminProcedure
+    .input(z.object({
+      nome: z.string()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const resultado = await toggleFeature(input.nome);
+      
+      // Registrar no log de auditoria
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'toggle_feature',
+        descricao: `Feature "${resultado.nome}" ${resultado.isAtivo ? 'ativada' : 'desativada'}.`,
+        metadata: resultado,
+        req: ctx.req
+      });
+      
+      return resultado;
+    }),
+  
+  // Criar nova feature
+  criarFeature: adminProcedure
+    .input(z.object({
+      nome: z.string(),
+      descricao: z.string().optional(),
+      isAtivo: z.boolean().optional()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const id = await criarFeature(input);
+      
+      // Registrar no log de auditoria
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'criar_feature',
+        descricao: `Nova feature "${input.nome}" criada.`,
+        metadata: { id, ...input },
+        req: ctx.req
+      });
+      
+      return { id, ...input };
+    }),
+  
+  // Inicializar features padrão
+  inicializarFeatures: adminProcedure.mutation(async ({ ctx }) => {
+    await inicializarFeatures();
+    
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'inicializar_features',
+      descricao: 'Features padrão inicializadas.',
+      req: ctx.req
+    });
+    
+    return { sucesso: true };
+  }),
+  
+  // Limpar cache de features
+  limparCacheFeatures: adminProcedure.mutation(async ({ ctx }) => {
+    const resultado = limparCacheFeatures();
+    
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'limpar_cache_features',
+      descricao: `Cache de feature flags limpo. ${resultado.entradasRemovidas} entradas removidas.`,
+      metadata: resultado,
+      req: ctx.req
+    });
+    
+    return resultado;
   })
 });

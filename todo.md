@@ -1419,3 +1419,26 @@
 - [x] Testar serialização de rotas críticas (prompts, histórico, templates, analytics, stats)
 - [x] Criar rota admin.executarTestes
 - [x] Interface para visualizar resultados dos testes (grid com sucessos/falhas)
+
+## Funcionalidades Administrativas Avançadas
+
+### Logs de Auditoria Persistentes
+- [x] Criar tabela audit_logs no schema (userId, acao, descricao, metadata, ipAddress, userAgent)
+- [x] Implementar função logAuditoria() no backend (server/audit.ts)
+- [x] Registrar ações administrativas (limpar cache, executar testes, toggle features)
+- [x] Criar rotas admin.listarLogs com filtros e admin.statsAuditoria
+- [x] Interface para visualizar histórico de logs no Admin Tools (card com últimos 10 logs)
+
+### Monitoramento de Performance
+- [x] Criar middleware tRPC para medir tempo de resposta (performanceMiddleware)
+- [x] Armazenar métricas em memória (últimas 1000 requisições)
+- [x] Calcular P50, P95, P99 por rota (server/performance.ts)
+- [x] Criar rotas admin.metricasPorRota, admin.statsPerformance, admin.limparMetricas
+- [x] Interface com estatísticas e tabela de rotas lentas (card com top 5 rotas)
+
+### Sistema de Feature Flags
+- [x] Criar tabela feature_flags no schema (nome, descricao, isAtivo)
+- [x] Implementar funções isFeatureEnabled(), toggleFeature(), criarFeature() (server/feature-flags.ts)
+- [x] Criar rotas admin.listarFeatures, admin.toggleFeature, admin.criarFeature, admin.inicializarFeatures
+- [x] Adicionar 5 flags padrão: knowledge_retrieval, modelos_premium, notificacoes, exportacao_avancada, colaboracao
+- [x] Interface para gerenciar feature flags no Admin Tools (card com lista de features e toggle)
