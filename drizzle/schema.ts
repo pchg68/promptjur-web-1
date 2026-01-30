@@ -310,3 +310,40 @@ export const featureFlags = mysqlTable("feature_flags", {
 
 export type FeatureFlag = typeof featureFlags.$inferSelect;
 export type InsertFeatureFlag = typeof featureFlags.$inferInsert;
+
+/**
+ * Tabela de regras de alertas de performance
+ * Define thresholds para monitoramento automático
+ */
+export const alertRules = mysqlTable("alert_rules", {
+  id: int("id").autoincrement().primaryKey(),
+  rota: varchar("rota", { length: 255 }), // null = regra global
+  metrica: mysqlEnum("metrica", ["p50", "p95", "p99", "media"]).notNull(),
+  threshold: int("threshold").notNull(), // em ms
+  isAtivo: int("isAtivo").default(1).notNull(),
+  cooldown: int("cooldown").default(300).notNull(), // segundos entre alertas
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AlertRule = typeof alertRules.$inferSelect;
+export type InsertAlertRule = typeof alertRules.$inferInsert;
+
+/**
+ * Tabela de alertas de performance disparados
+ * Histórico de alertas para análise
+ */
+export const performanceAlerts = mysqlTable("performance_alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  ruleId: int("ruleId").notNull(),
+  rota: varchar("rota", { length: 255 }).notNull(),
+  metrica: varchar("metrica", { length: 20 }).notNull(),
+  valorAtual: int("valorAtual").notNull(), // em ms
+  threshold: int("threshold").notNull(), // em ms
+  mensagem: text("mensagem").notNull(),
+  resolvido: int("resolvido").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PerformanceAlert = typeof performanceAlerts.$inferSelect;
+export type InsertPerformanceAlert = typeof performanceAlerts.$inferInsert;

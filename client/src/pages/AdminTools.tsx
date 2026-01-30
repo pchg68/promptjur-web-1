@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap } from "lucide-react";
+import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function AdminTools() {
@@ -95,6 +95,17 @@ export default function AdminTools() {
     onSuccess: () => {
       toast.success("Features padrão inicializadas!");
       featuresQuery.refetch();
+    }
+  });
+
+  // Alertas de Performance
+  const alertasQuery = trpc.admin.listarAlertas.useQuery({ resolvido: false, limit: 20 });
+  const statsAlertasQuery = trpc.admin.statsAlertas.useQuery();
+  const resolverAlertaMutation = trpc.admin.resolverAlerta.useMutation({
+    onSuccess: () => {
+      toast.success("Alerta marcado como resolvido!");
+      alertasQuery.refetch();
+      statsAlertasQuery.refetch();
     }
   });
 
@@ -437,6 +448,84 @@ export default function AdminTools() {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Alertas de Performance */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Alertas de Performance
+              </CardTitle>
+              <CardDescription>
+                Alertas automáticos quando thresholds são excedidos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {statsAlertasQuery.data && (
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <p className="text-2xl font-bold">{statsAlertasQuery.data.totalAlertas}</p>
+                    <p className="text-xs text-muted-foreground">Total</p>
+                  </div>
+                  <div className="p-3 bg-destructive/10 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-destructive">{statsAlertasQuery.data.alertasAtivos}</p>
+                    <p className="text-xs text-muted-foreground">Ativos</p>
+                  </div>
+                  <div className="p-3 bg-green-500/10 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-green-600">{statsAlertasQuery.data.alertasResolvidos}</p>
+                    <p className="text-xs text-muted-foreground">Resolvidos</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {alertasQuery.data && alertasQuery.data.length === 0 && (
+                  <div className="p-4 text-center text-muted-foreground">
+                    <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                    <p className="text-sm">Nenhum alerta ativo</p>
+                  </div>
+                )}
+                {alertasQuery.data?.map((alerta: any) => (
+                  <div key={alerta.id} className="p-3 bg-destructive/10 rounded-lg">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="destructive">{alerta.rota}</Badge>
+                          <Badge variant="outline">{alerta.metrica.toUpperCase()}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {alerta.valorAtual}ms (threshold: {alerta.threshold}ms)
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(alerta.createdAt).toLocaleString('pt-BR')}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => resolverAlertaMutation.mutate({ alertaId: alerta.id })}
+                        disabled={resolverAlertaMutation.isPending}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Check className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {statsAlertasQuery.data?.rotaMaisProblematica && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Rota Mais Problemática:</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{statsAlertasQuery.data.rotaMaisProblematica.rota}</span>
+                    <Badge variant="destructive">
+                      {statsAlertasQuery.data.rotaMaisProblematica.total} alertas
+                    </Badge>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -1442,3 +1442,23 @@
 - [x] Criar rotas admin.listarFeatures, admin.toggleFeature, admin.criarFeature, admin.inicializarFeatures
 - [x] Adicionar 5 flags padrão: knowledge_retrieval, modelos_premium, notificacoes, exportacao_avancada, colaboracao
 - [x] Interface para gerenciar feature flags no Admin Tools (card com lista de features e toggle)
+
+## Sistema de Alertas Automáticos de Performance
+
+### Infraestrutura
+- [x] Criar tabela performance_alerts no schema (id, ruleId, rota, metrica, valorAtual, threshold, mensagem, resolvido)
+- [x] Criar tabela alert_rules para configurações de thresholds (rota, metrica, threshold, isAtivo, cooldown)
+- [x] Implementar sistema de detecção de anomalias em performance.ts (checkPerformanceThresholds)
+
+### Lógica de Alertas
+- [x] Criar função checkPerformanceThresholds() que verifica métricas a cada 10 requisições
+- [x] Implementar cooldown para evitar spam de alertas (Map com timestamp)
+- [x] Registrar alertas disparados em performance_alerts (dispararAlerta)
+- [x] Integrar com sistema de notificações para admins (notifyOwner)
+
+### Interface de Gerenciamento
+- [x] Criar card de Alertas de Performance no Admin Tools (7º card)
+- [x] Estatísticas (total, ativos, resolvidos, rota mais problemática)
+- [x] Visualizar histórico de alertas disparados (lista com scroll)
+- [x] Botão para marcar alerta como resolvido
+- [x] Rotas tRPC: listarAlertas, statsAlertas, resolverAlerta, listarRegras, criarRegra, toggleRegra, inicializarRegras

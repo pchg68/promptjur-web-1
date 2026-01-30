@@ -8,7 +8,7 @@ import { protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import { logAuditoria, listarLogs, getAuditStats } from "./audit";
-import { getMetricasPorRota, getStatsPerformance, limparMetricas, registrarMetrica } from "./performance";
+import { getMetricasPorRota, getStatsPerformance, limparMetricas, registrarMetrica, listarAlertas, resolverAlerta, getStatsAlertas, criarRegra, listarRegras, toggleRegra, inicializarRegras } from "./performance";
 import { listarFeatures, toggleFeature, criarFeature, inicializarFeatures, limparCacheFeatures } from "./feature-flags";
 
 // Middleware para verificar se é admin
@@ -412,5 +412,106 @@ export const adminRouter = router({
     });
     
     return resultado;
+  }),
+
+  // ===== ALERTAS DE PERFORMANCE =====
+  
+  // Listar alertas
+  listarAlertas: adminProcedure
+    .input(z.object({
+      rota: z.string().optional(),
+      resolvido: z.boolean().optional(),
+      limit: z.number().min(1).max(500).optional().default(100)
+    }).optional())
+    .query(async ({ input }) => {
+      return listarAlertas(input);
+    }),
+  
+  // Estatísticas de alertas
+  statsAlertas: adminProcedure.query(async () => {
+    return getStatsAlertas();
+  }),
+  
+  // Resolver alerta
+  resolverAlerta: adminProcedure
+    .input(z.object({
+      alertaId: z.number()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const resultado = await resolverAlerta(input.alertaId);
+      
+      // Registrar no log de auditoria
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'resolver_alerta',
+        descricao: `Alerta #${input.alertaId} marcado como resolvido.`,
+        metadata: resultado,
+        req: ctx.req
+      });
+      
+      return resultado;
+    }),
+  
+  // Listar regras de alertas
+  listarRegras: adminProcedure.query(async () => {
+    return listarRegras();
+  }),
+  
+  // Criar regra de alerta
+  criarRegra: adminProcedure
+    .input(z.object({
+      rota: z.string().optional(),
+      metrica: z.enum(["p50", "p95", "p99", "media"]),
+      threshold: z.number().min(1),
+      cooldown: z.number().min(60).optional()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const id = await criarRegra(input);
+      
+      // Registrar no log de auditoria
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'criar_regra_alerta',
+        descricao: `Nova regra de alerta criada: ${input.metrica} > ${input.threshold}ms${input.rota ? ` (rota: ${input.rota})` : ' (global)'}.`,
+        metadata: { id, ...input },
+        req: ctx.req
+      });
+      
+      return { id, ...input };
+    }),
+  
+  // Toggle regra de alerta
+  toggleRegra: adminProcedure
+    .input(z.object({
+      regraId: z.number()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const resultado = await toggleRegra(input.regraId);
+      
+      // Registrar no log de auditoria
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'toggle_regra_alerta',
+        descricao: `Regra #${input.regraId} ${resultado.isAtivo ? 'ativada' : 'desativada'}.`,
+        metadata: resultado,
+        req: ctx.req
+      });
+      
+      return resultado;
+    }),
+  
+  // Inicializar regras padrão
+  inicializarRegras: adminProcedure.mutation(async ({ ctx }) => {
+    await inicializarRegras();
+    
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'inicializar_regras',
+      descricao: 'Regras de alerta padrão inicializadas.',
+      req: ctx.req
+    });
+    
+    return { sucesso: true };
   })
 });
