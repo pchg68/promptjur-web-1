@@ -1372,3 +1372,10 @@
 - [ ] Criar dashboard de métricas acumuladas
 - [ ] Adicionar comparativo de performance entre modelos
 - [ ] Salvar métricas no banco para analytics
+
+## Correções de Bugs (Sessão Atual)
+
+### Bug de Serialização no Dashboard
+- [x] Corrigir erro "Unable to transform response from server" na rota analytics.get
+- [x] Converter objetos Drizzle para formato serializável em getAnalytics()
+- [x] Testar dashboard após correção

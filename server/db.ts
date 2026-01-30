@@ -556,12 +556,25 @@ export async function getAnalytics(userId: number) {
     }
   });
   
+  // Converter recentHistory para formato serializável (evitar erro de transformação do tRPC)
+  const recentHistorySerializable = recentHistory.slice(0, 10).map(item => ({
+    id: item.id,
+    userId: item.userId,
+    acao: item.acao,
+    sucesso: item.sucesso,
+    duracaoMs: item.duracaoMs,
+    promptId: item.promptId,
+    detalhes: item.detalhes,
+    mensagemErro: item.mensagemErro,
+    createdAt: item.createdAt.toISOString() // Converter Date para string
+  }));
+  
   return {
     totalAnalises: recentHistory.filter(h => h.acao === "analise").length,
     totalGeracoes: recentHistory.filter(h => h.acao === "geracao").length,
     totalOtimizacoes: recentHistory.filter(h => h.acao === "otimizacao").length,
     avgTimes,
-    recentHistory: recentHistory.slice(0, 10)
+    recentHistory: recentHistorySerializable
   };
 }
 
