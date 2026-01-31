@@ -1482,3 +1482,39 @@
 - [x] Documentar todas as variáveis de ambiente (obrigatórias e opcionais)
 - [x] Adicionar checklist de segurança para desenvolvedores
 - [x] Incluir informações sobre LGPD/GDPR e relatório de vulnerabilidades
+
+## Auditoria de Dependências Vulneráveis
+
+### Backend
+- [x] Criar módulo security-audit.ts com função executarAuditoriaNpm()
+- [x] Executar `pnpm audit --json` e parsear resultado
+- [x] Classificar vulnerabilidades por severidade (crítica/alta/média/baixa/info)
+- [x] Criar rotas tRPC admin.auditarDependencias e admin.atualizarDependencias
+- [x] Implementar atualização automática de dependências seguras (pnpm update --latest)
+
+### Frontend
+- [x] Criar card de Auditoria de Dependências no Admin Tools
+- [x] Exibir estatísticas (total, crítica, alta, média, baixa)
+- [x] Listar vulnerabilidades com detalhes (pacote, severidade, título)
+- [x] Botão para atualizar dependências automaticamente
+- [x] Integrar com logs de auditoria
+
+## Sistema de Backup Automatizado
+
+### Backend
+- [x] Criar módulo backup.ts com funções de backup/restore
+- [x] Implementar backup via mysqldump
+- [x] Criptografar backups com AES-256-GCM
+- [x] Armazenar backups no S3 (retenção de 30 dias planejada)
+- [x] Criar rotas tRPC admin.criarBackup, admin.listarBackups, admin.restaurarBackup
+- [x] Criar tabela backups no schema para rastrear backups
+- [ ] Implementar agendamento automático (diário) - pendente
+
+### Frontend
+- [x] Criar card de Backups no Admin Tools
+- [x] Exibir estatísticas (último backup, tamanho)
+- [x] Listar backups disponíveis com data/hora/tamanho
+- [x] Botões para criar backup manual e restaurar
+- [x] Confirmação antes de restaurar backup (confirm dialog)
+- [x] Aviso sobre criptografia e retenção
+- [x] Integrar com logs de auditoria

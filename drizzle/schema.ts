@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json, bigint } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -347,3 +347,21 @@ export const performanceAlerts = mysqlTable("performance_alerts", {
 
 export type PerformanceAlert = typeof performanceAlerts.$inferSelect;
 export type InsertPerformanceAlert = typeof performanceAlerts.$inferInsert;
+
+/**
+ * Tabela de backups do banco de dados
+ * Rastreia backups criados e armazenados no S3
+ */
+export const backups = mysqlTable("backups", {
+  id: int("id").autoincrement().primaryKey(),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  s3Key: varchar("s3Key", { length: 512 }).notNull(),
+  s3Url: varchar("s3Url", { length: 1024 }).notNull(),
+  size: bigint("size", { mode: "number" }).notNull(),
+  isEncrypted: int("isEncrypted").notNull().default(1),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Backup = typeof backups.$inferSelect;
+export type InsertBackup = typeof backups.$inferInsert;

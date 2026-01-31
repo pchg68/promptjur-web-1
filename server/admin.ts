@@ -10,6 +10,8 @@ import * as db from "./db";
 import { logAuditoria, listarLogs, getAuditStats } from "./audit";
 import { getMetricasPorRota, getStatsPerformance, limparMetricas, registrarMetrica, listarAlertas, resolverAlerta, getStatsAlertas, criarRegra, listarRegras, toggleRegra, inicializarRegras } from "./performance";
 import { listarFeatures, toggleFeature, criarFeature, inicializarFeatures, limparCacheFeatures } from "./feature-flags";
+import { executarAuditoriaNpm, atualizarDependenciasSeguras } from "./security-audit";
+import { criarBackup, listarBackups, restaurarBackup } from "./backup";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -513,5 +515,88 @@ export const adminRouter = router({
     });
     
     return { sucesso: true };
-  })
+  }),
+
+  // Auditoria de Dependências Vulneráveis
+  auditarDependencias: adminProcedure.mutation(async ({ ctx }) => {
+    const resultado = await executarAuditoriaNpm();
+    
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'auditar_dependencias',
+      descricao: `Auditoria de dependências executada: ${resultado.totalVulnerabilities} vulnerabilidades encontradas.`,
+      metadata: {
+        total: resultado.totalVulnerabilities,
+        critical: resultado.critical,
+        high: resultado.high,
+        moderate: resultado.moderate,
+        low: resultado.low
+      },
+      req: ctx.req
+    });
+    
+    return resultado;
+  }),
+
+  // Atualizar dependências seguras
+  atualizarDependencias: adminProcedure.mutation(async ({ ctx }) => {
+    const resultado = await atualizarDependenciasSeguras();
+    
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'atualizar_dependencias',
+      descricao: `Dependências atualizadas: ${resultado.updated.length} pacotes.`,
+      metadata: resultado,
+      req: ctx.req
+    });
+    
+    return resultado;
+  }),
+
+  // Criar backup do banco de dados
+  criarBackup: adminProcedure.mutation(async ({ ctx }) => {
+    const resultado = await criarBackup(ctx.user.id);
+    
+    // Registrar no log de auditoria
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'criar_backup',
+      descricao: resultado.success 
+        ? `Backup criado com sucesso: ${resultado.filename} (${Math.round((resultado.size || 0) / 1024 / 1024)}MB).`
+        : `Falha ao criar backup: ${resultado.error}`,
+      metadata: resultado,
+      req: ctx.req
+    });
+    
+    return resultado;
+  }),
+
+  // Listar backups disponíveis
+  listarBackups: adminProcedure.query(async () => {
+    return listarBackups();
+  }),
+
+  // Restaurar backup
+  restaurarBackup: adminProcedure
+    .input(z.object({
+      backupId: z.number()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const resultado = await restaurarBackup(input.backupId);
+      
+      // Registrar no log de auditoria
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'restaurar_backup',
+        descricao: resultado.success
+          ? `Backup #${input.backupId} restaurado com sucesso.`
+          : `Falha ao restaurar backup #${input.backupId}: ${resultado.error}`,
+        metadata: resultado,
+        req: ctx.req
+      });
+      
+      return resultado;
+    })
 });

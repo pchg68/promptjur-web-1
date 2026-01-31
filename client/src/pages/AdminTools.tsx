@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check } from "lucide-react";
+import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function AdminTools() {
@@ -106,6 +106,63 @@ export default function AdminTools() {
       toast.success("Alerta marcado como resolvido!");
       alertasQuery.refetch();
       statsAlertasQuery.refetch();
+    }
+  });
+
+  // Auditoria de Dependências
+  const [auditandoDeps, setAuditandoDeps] = useState(false);
+  const [resultadoAuditoriaDeps, setResultadoAuditoriaDeps] = useState<any>(null);
+  const auditarDependenciasMutation = trpc.admin.auditarDependencias.useMutation({
+    onSuccess: (data) => {
+      setResultadoAuditoriaDeps(data);
+      setAuditandoDeps(false);
+      if (data.totalVulnerabilities === 0) {
+        toast.success("✅ Nenhuma vulnerabilidade encontrada!");
+      } else {
+        toast.warning(`⚠️ ${data.totalVulnerabilities} vulnerabilidade(s) encontrada(s)`);
+      }
+    },
+    onError: (error) => {
+      setAuditandoDeps(false);
+      toast.error("Erro ao auditar: " + error.message);
+    }
+  });
+  const atualizarDependenciasMutation = trpc.admin.atualizarDependencias.useMutation({
+    onSuccess: (data) => {
+      toast.success(`✅ ${data.updated.length} pacote(s) atualizado(s)!`);
+      setAuditandoDeps(true);
+      auditarDependenciasMutation.mutate();
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar: " + error.message);
+    }
+  });
+
+  // Backups
+  const backupsQuery = trpc.admin.listarBackups.useQuery();
+  const criarBackupMutation = trpc.admin.criarBackup.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("✅ Backup criado com sucesso!");
+        backupsQuery.refetch();
+      } else {
+        toast.error("Erro ao criar backup: " + data.error);
+      }
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar backup: " + error.message);
+    }
+  });
+  const restaurarBackupMutation = trpc.admin.restaurarBackup.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("✅ Backup restaurado com sucesso!");
+      } else {
+        toast.error("Erro ao restaurar: " + data.error);
+      }
+    },
+    onError: (error) => {
+      toast.error("Erro ao restaurar: " + error.message);
     }
   });
 
@@ -448,6 +505,192 @@ export default function AdminTools() {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Auditoria de Dependências Vulneráveis */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5" />
+                Auditoria de Dependências
+              </CardTitle>
+              <CardDescription>
+                Verifica vulnerabilidades conhecidas em pacotes npm
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={() => {
+                  setAuditandoDeps(true);
+                  auditarDependenciasMutation.mutate();
+                }}
+                disabled={auditandoDeps}
+                className="w-full"
+              >
+                {auditandoDeps ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Auditando...
+                  </>
+                ) : (
+                  "Executar Auditoria"
+                )}
+              </Button>
+
+              {resultadoAuditoriaDeps && (
+                <div className="space-y-3 mt-4">
+                  <div className="grid grid-cols-5 gap-2">
+                    <div className="p-2 bg-muted rounded-lg text-center">
+                      <p className="text-lg font-bold">{resultadoAuditoriaDeps.totalVulnerabilities}</p>
+                      <p className="text-xs text-muted-foreground">Total</p>
+                    </div>
+                    <div className="p-2 bg-red-500/10 rounded-lg text-center">
+                      <p className="text-lg font-bold text-red-600">{resultadoAuditoriaDeps.critical}</p>
+                      <p className="text-xs text-muted-foreground">Crítica</p>
+                    </div>
+                    <div className="p-2 bg-orange-500/10 rounded-lg text-center">
+                      <p className="text-lg font-bold text-orange-600">{resultadoAuditoriaDeps.high}</p>
+                      <p className="text-xs text-muted-foreground">Alta</p>
+                    </div>
+                    <div className="p-2 bg-yellow-500/10 rounded-lg text-center">
+                      <p className="text-lg font-bold text-yellow-600">{resultadoAuditoriaDeps.moderate}</p>
+                      <p className="text-xs text-muted-foreground">Média</p>
+                    </div>
+                    <div className="p-2 bg-blue-500/10 rounded-lg text-center">
+                      <p className="text-lg font-bold text-blue-600">{resultadoAuditoriaDeps.low}</p>
+                      <p className="text-xs text-muted-foreground">Baixa</p>
+                    </div>
+                  </div>
+
+                  {resultadoAuditoriaDeps.vulnerabilities.length > 0 && (
+                    <>
+                      <div className="max-h-48 overflow-y-auto space-y-2">
+                        {resultadoAuditoriaDeps.vulnerabilities.slice(0, 10).map((vuln: any, idx: number) => (
+                          <div key={idx} className="p-2 bg-muted rounded-lg">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge 
+                                    variant={vuln.severity === 'critical' ? 'destructive' : 'outline'}
+                                    className={vuln.severity === 'high' ? 'bg-orange-500/10 text-orange-600' : ''}
+                                  >
+                                    {vuln.severity}
+                                  </Badge>
+                                  <span className="text-sm font-medium">{vuln.name}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">{vuln.title}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        onClick={() => atualizarDependenciasMutation.mutate()}
+                        disabled={atualizarDependenciasMutation.isPending}
+                        variant="default"
+                        className="w-full"
+                      >
+                        {atualizarDependenciasMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Atualizando...
+                          </>
+                        ) : (
+                          "Atualizar Dependências Seguras"
+                        )}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Backups do Banco de Dados */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Backups do Banco de Dados
+              </CardTitle>
+              <CardDescription>
+                Cria backups criptografados e armazena no S3
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={() => criarBackupMutation.mutate()}
+                disabled={criarBackupMutation.isPending}
+                className="w-full"
+              >
+                {criarBackupMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Criando Backup...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Criar Backup Manual
+                  </>
+                )}
+              </Button>
+
+              {backupsQuery.data && backupsQuery.data.length > 0 && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Último Backup:</p>
+                    <p className="text-sm font-medium">
+                      {new Date(backupsQuery.data[0].createdAt).toLocaleString('pt-BR')}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Tamanho: {Math.round(backupsQuery.data[0].size / 1024 / 1024)}MB
+                    </p>
+                  </div>
+
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {backupsQuery.data.slice(0, 10).map((backup: any) => (
+                      <div key={backup.id} className="p-2 bg-muted rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{backup.filename}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(backup.createdAt).toLocaleString('pt-BR')} • {Math.round(backup.size / 1024 / 1024)}MB
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => {
+                              if (confirm('Tem certeza? Esta ação substituirá todos os dados atuais!')) {
+                                restaurarBackupMutation.mutate({ backupId: backup.id });
+                              }
+                            }}
+                            disabled={restaurarBackupMutation.isPending}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-3 bg-yellow-500/10 rounded-lg flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
+                    <p className="text-xs text-muted-foreground">
+                      Backups são criptografados com AES-256 e armazenados no S3 com retenção de 30 dias.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {backupsQuery.data && backupsQuery.data.length === 0 && (
+                <div className="p-4 text-center text-muted-foreground">
+                  <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhum backup disponível</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
