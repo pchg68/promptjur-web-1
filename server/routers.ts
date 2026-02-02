@@ -20,6 +20,7 @@ import { criarPerfil, listarPerfis, deletarPerfil, buscarPerfilPorId } from "./d
 import { sugerirArea } from "./sugestao-area";
 import { modelosPersonalizadosRouter } from "./routers-modelos-personalizados";
 import { adminRouter, getCachedData } from "./admin";
+import { logger, logHttp, logLLM, logDatabase } from "./_core/logger";
 
 export const appRouter = router({
   system: systemRouter,
@@ -384,7 +385,7 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
 
           // Enviar notificação de sucesso
           await notifyPromptGenerated(ctx.user.id, input.tipoDocumento).catch(err => {
-            console.error('Erro ao enviar notificação:', err);
+            logger.error('Erro ao enviar notificação de prompt gerado', { userId: ctx.user.id, tipoDocumento: input.tipoDocumento, error: err });
           });
 
           // Verificar fontes jurídicas no prompt gerado
@@ -513,7 +514,7 @@ Responda em formato JSON com:
 
           // Enviar notificação de sucesso
           await notifyPromptOptimized(ctx.user.id).catch(err => {
-            console.error('Erro ao enviar notificação:', err);
+            logger.error('Erro ao enviar notificação de prompt otimizado', { userId: ctx.user.id, error: err });
           });
 
           // Verificar fontes jurídicas no prompt otimizado
@@ -1184,7 +1185,7 @@ Responda em formato JSON com:
             tempoGeracao: Date.now() - startTime
           };
         } catch (error) {
-          console.error("[Documentos] Erro ao gerar documento:", error);
+          logger.error('[Documentos] Erro ao gerar documento', { userId: ctx.user.id, tipoDocumento: input.tipoDocumento, error });
           throw new Error(`Erro ao gerar documento: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       })
@@ -1232,7 +1233,7 @@ Responda em formato JSON com:
             }))
           };
         } catch (error) {
-          console.error("[Knowledge Retrieval] Erro ao buscar precedentes:", error);
+          logger.error('[Knowledge Retrieval] Erro ao buscar precedentes', { error });
           throw new Error(`Erro ao buscar precedentes: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       }),
@@ -1266,7 +1267,7 @@ Responda em formato JSON com:
             textoFormatado: formatarResultadoPrazo(resultado)
           };
         } catch (error) {
-          console.error("[Knowledge Retrieval] Erro ao calcular prazo:", error);
+          logger.error('[Knowledge Retrieval] Erro ao calcular prazo', { error });
           throw new Error(`Erro ao calcular prazo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       }),
@@ -1278,7 +1279,7 @@ Responda em formato JSON com:
           const { listarPrazosDisponiveis } = await import("./knowledge-retrieval-prazos");
           return listarPrazosDisponiveis();
         } catch (error) {
-          console.error("[Knowledge Retrieval] Erro ao listar prazos:", error);
+          logger.error('[Knowledge Retrieval] Erro ao listar prazos', { error });
           throw new Error(`Erro ao listar prazos: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       }),
@@ -1295,7 +1296,7 @@ Responda em formato JSON com:
           const feriados = await buscarFeriadosAno(input.ano, input.estado as any);
           return feriados;
         } catch (error) {
-          console.error("[Knowledge Retrieval] Erro ao buscar feriados:", error);
+          logger.error('[Knowledge Retrieval] Erro ao buscar feriados', { ano: input.ano, estado: input.estado, error });
           throw new Error(`Erro ao buscar feriados: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       })

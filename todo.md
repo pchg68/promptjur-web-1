@@ -1567,3 +1567,59 @@
   - [x] Meilisearch (alternativa leve ao Elasticsearch, ~$10/mês)
 - [x] Conclusão: Elasticsearch é overkill para volume atual de dados (<50k docs)
 - [x] Recomendado apenas se houver >100k documentos ou busca complexa
+
+
+## Sugestões de Acompanhamento
+
+### 1. Integração do Logger Winston
+- [ ] Substituir console.log por loggers estruturados em routers.ts
+- [ ] Substituir console.log por loggers estruturados em admin.ts
+- [ ] Substituir console.log por loggers estruturados em db.ts
+- [ ] Adicionar logs de erro com contexto completo
+- [ ] Adicionar logs de performance em operações críticas
+
+### 2. Relatório de Cobertura de Código
+- [ ] Instalar c8 como dependência de desenvolvimento
+- [ ] Configurar script de cobertura no package.json
+- [ ] Configurar thresholds mínimos (70% statements, 70% branches)
+- [ ] Adicionar relatório HTML para visualização
+- [ ] Integrar cobertura no CI/CD
+
+### 3. Testes E2E com Playwright
+- [ ] Instalar Playwright e dependências
+- [ ] Configurar playwright.config.ts
+- [ ] Criar teste E2E: Login e autenticação
+- [ ] Criar teste E2E: Criação e edição de prompt
+- [ ] Criar teste E2E: Geração de documentos jurídicos
+- [ ] Criar teste E2E: Fluxo completo (login → criar → gerar → exportar)
+- [ ] Integrar testes E2E no CI/CD
+
+
+## Sugestões de Acompanhamento (Implementadas)
+
+### 1. Integrar Logger Winston nas Rotas
+- [x] Substituir console.log por logger.info em routers.ts
+- [x] Substituir console.error por logger.error em routers.ts (8 substituições)
+- [x] Substituir console.warn por logger.warn em db.ts (3 substituições)
+- [x] Adicionar import de logger em routers.ts e db.ts
+- [ ] Adicionar logHttp para requisições HTTP (planejado)
+- [ ] Adicionar logLLM para chamadas de IA (planejado)
+- [ ] Adicionar logDatabase para operações de banco (planejado)
+
+### 2. Configurar Relatório de Cobertura de Código
+- [x] Instalar c8 como devDependency (v10.1.3)
+- [x] Criar arquivo .c8rc.json com configuração completa
+- [x] Adicionar script test:coverage no package.json
+- [x] Configurar thresholds (70% para lines, functions, branches, statements)
+- [x] Adicionar exclusões (_core, node_modules, dist, tests)
+- [x] Gerar relatórios em HTML, text, lcov e JSON
+
+### 3. Implementar Testes E2E com Playwright
+- [x] Instalar @playwright/test como devDependency (v1.58.1)
+- [x] Criar playwright.config.ts com configuração completa
+- [x] Configurar 5 projetos (Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari)
+- [x] Criar diretório e2e/ para testes
+- [x] Criar teste E2E para fluxo de autenticação e navegação (auth.spec.ts)
+- [x] Criar teste E2E para criação de prompt (prompt-creation.spec.ts)
+- [x] Adicionar 3 scripts test:e2e no package.json (normal, UI, headed)
+- [ ] Criar teste E2E para geração de documento (planejado)
