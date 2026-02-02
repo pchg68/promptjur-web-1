@@ -18,6 +18,18 @@ import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+/**
+ * Obtém a instância do banco de dados Drizzle ORM.
+ * Cria a conexão lazy (apenas quando necessário) e reutiliza a instância.
+ * 
+ * @returns {Promise<ReturnType<typeof drizzle> | null>} Instância do Drizzle ORM ou null se conexão falhar
+ * @example
+ * const db = await getDb();
+ * if (!db) {
+ *   console.error('Database not available');
+ *   return;
+ * }
+ */
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -32,6 +44,28 @@ export async function getDb() {
 
 // ===== USER HELPERS =====
 
+/**
+ * Insere ou atualiza um usuário no banco de dados.
+ * Se o usuário já existir (baseado em openId), atualiza os campos fornecidos.
+ * Automaticamente promove o proprietário do projeto (ENV.ownerOpenId) para admin.
+ * 
+ * @param {InsertUser} user - Dados do usuário para inserir/atualizar
+ * @param {string} user.openId - ID único do OAuth (obrigatório)
+ * @param {string} [user.name] - Nome do usuário
+ * @param {string} [user.email] - Email do usuário
+ * @param {string} [user.loginMethod] - Método de login (google, github, etc)
+ * @param {Date} [user.lastSignedIn] - Data do último login
+ * @param {'admin' | 'user'} [user.role] - Role do usuário
+ * @throws {Error} Se openId não for fornecido
+ * @returns {Promise<void>}
+ * @example
+ * await upsertUser({
+ *   openId: 'abc123',
+ *   name: 'João Silva',
+ *   email: 'joao@example.com',
+ *   loginMethod: 'google'
+ * });
+ */
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
     throw new Error("User openId is required for upsert");
@@ -91,6 +125,17 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 }
 
+/**
+ * Busca um usuário pelo openId (identificador OAuth).
+ * 
+ * @param {string} openId - ID único do OAuth
+ * @returns {Promise<User | undefined>} Usuário encontrado ou undefined
+ * @example
+ * const user = await getUserByOpenId('abc123');
+ * if (user) {
+ *   console.log(`Usuário: ${user.name}`);
+ * }
+ */
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {

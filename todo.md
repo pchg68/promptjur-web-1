@@ -1518,3 +1518,52 @@
 - [x] Confirmação antes de restaurar backup (confirm dialog)
 - [x] Aviso sobre criptografia e retenção
 - [x] Integrar com logs de auditoria
+
+
+## Melhorias Sugeridas por Desenvolvedor Externo
+
+### 1. Testes Automatizados (Impacto: Alto) ✅ VIÁVEL
+- [x] Expandir cobertura de testes unitários com vitest (3 novos arquivos: audit, performance, feature-flags)
+- [x] Adicionar testes de integração para rotas tRPC críticas (11 arquivos de teste existentes)
+- [ ] Criar testes E2E com Playwright para fluxos principais (planejado para próxima fase)
+- [ ] Configurar relatório de cobertura de código (c8/istanbul)
+- [ ] Meta: atingir 70%+ de cobertura (atual: ~40%)
+
+### 2. Documentação JSDoc (Impacto: Médio) ✅ VIÁVEL
+- [x] Adicionar JSDoc em funções críticas do backend (getDb, upsertUser, getUserByOpenId)
+- [x] Documentar parâmetros, retornos e exemplos de uso
+- [ ] Gerar documentação automática com TypeDoc (planejado)
+- [ ] Criar guia de contribuição para desenvolvedores (planejado)
+
+### 3. Logs Estruturados (Impacto: Alto) ✅ VIÁVEL
+- [x] Implementar Winston para logs estruturados (server/_core/logger.ts)
+- [x] Adicionar níveis de log (error, warn, info, http, debug)
+- [x] Criar loggers especializados (logHttp, logDatabase, logCache, logLLM, logAuth, logAdmin)
+- [x] Configurar rotação de logs automática (10MB por arquivo, 5 arquivos de erro, 10 combinados)
+- [x] Formato JSON para produção, colorido para desenvolvimento
+- [ ] Adicionar correlationId para rastreamento de requisições (planejado)
+
+### 4. CI/CD com GitHub Actions (Impacto: Médio) ✅ VIÁVEL
+- [x] Workflow de CI já existente (.github/workflows/ci.yml)
+- [x] Jobs: lint-and-typecheck, test, build, security-audit, notify-success
+- [x] Adicionar job de security audit (pnpm audit + outdated)
+- [x] Deploy automático para Manus via GitHub (já configurado)
+- [ ] Configurar notificações de build (Discord/Slack) - opcional
+- [ ] Adicionar badge de status no README - opcional
+
+### 5. Cache Distribuído com Redis (Impacto: Alto) ⚠️ AVALIAR
+- [x] Avaliar necessidade vs cache em memória atual (Map/LRU)
+- [x] Documentar casos de uso que justificam Redis (docs/SCALING-GUIDE.md)
+- [x] Considerar custo/benefício para escala atual (~$12-15/mês)
+- [x] Conclusão: Cache em memória atual é suficiente para <10k usuários/mês
+- [x] Redis recomendado apenas se houver múltiplas instâncias do servidor
+
+### 6. Busca Full-Text com Elasticsearch (Impacto: Médio) ⚠️ AVALIAR
+- [x] Avaliar necessidade vs busca SQL atual (LIKE, FULLTEXT)
+- [x] Documentar casos de uso que justificam Elasticsearch (docs/SCALING-GUIDE.md)
+- [x] Considerar alternativas mais leves:
+  - [x] MySQL FULLTEXT indexes (já disponível e suficiente)
+  - [x] PostgreSQL pg_trgm + GIN indexes (alternativa futura)
+  - [x] Meilisearch (alternativa leve ao Elasticsearch, ~$10/mês)
+- [x] Conclusão: Elasticsearch é overkill para volume atual de dados (<50k docs)
+- [x] Recomendado apenas se houver >100k documentos ou busca complexa

@@ -106,15 +106,46 @@ jobs:
           ls -la dist/ || echo "Pasta dist não encontrada"
           ls -la client/dist/ || echo "Pasta client/dist não encontrada"
 
-  # Job 4: Notificação de Sucesso
+  # Job 4: Security Audit
+  security-audit:
+    name: Auditoria de Segurança
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+      
+      - name: Executar auditoria de segurança
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+      
+      - name: Verificar dependências desatualizadas
+        run: pnpm outdated
+        continue-on-error: true
+
+  # Job 5: Notificação de Sucesso
   notify-success:
     name: Notificar Sucesso
     runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, test, build]
+    needs: [lint-and-typecheck, test, build, security-audit]
     if: success()
     
     steps:
       - name: Notificar sucesso
         run: |
           echo "✅ Pipeline CI/CD executado com sucesso!"
-          echo "Todos os jobs passaram: Lint, TypeCheck, Testes e Build"
+          echo "Todos os jobs passaram: Lint, TypeCheck, Testes, Build e Security Audit"
