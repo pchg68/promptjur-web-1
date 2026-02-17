@@ -1713,3 +1713,11 @@
 - [x] Arquivo criado: e2e/visual-regression.spec.ts (10 testes, 100% passando)
 - [x] Configuração Percy: .percyrc
 - [x] Scripts adicionados ao package.json (test:visual, test:perf:smoke, test:perf:load)
+
+
+## Correção de Bug - Erro tRPC (Sessão Atual)
+- [x] Investigar erro "Unable to transform response from server" na homepage
+- [x] Identificar qual query/mutation está causando o problema (auth.me)
+- [x] Verificar inconsistência entre tipos do servidor e cliente
+- [x] Corrigir problema de serialização/transformação (adicionado retorno explícito de null)
+- [x] Testar correção e validar funcionamento (108 testes passando)

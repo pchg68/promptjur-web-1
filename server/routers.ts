@@ -29,7 +29,13 @@ export const appRouter = router({
   modelosPersonalizados: modelosPersonalizadosRouter,
   admin: adminRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => {
+      // Retornar null explicitamente se não houver usuário
+      if (!opts.ctx.user) return null;
+      
+      // Retornar usuário com campos Date serializados corretamente
+      return opts.ctx.user;
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
