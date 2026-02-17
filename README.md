@@ -223,7 +223,11 @@ pnpm db:push          # Aplica schema ao banco
 pnpm db:generate      # Gera migrações
 
 # Testes
-pnpm test             # Executa testes (se configurado)
+pnpm test             # Executa testes unitários (vitest)
+pnpm test:coverage    # Executa testes com cobertura de código
+pnpm test:e2e         # Executa testes E2E (Playwright)
+pnpm test:e2e:ui      # Executa testes E2E com interface visual
+pnpm test:e2e:headed  # Executa testes E2E com navegador visível
 ```
 
 ---
@@ -379,6 +383,87 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - OAuth e LLM dependem de APIs Manus
 - Migração para OpenAI recomendada
 - Guia de migração disponível
+
+---
+
+## 🧪 Testes
+
+### Testes Unitários (Vitest)
+
+O projeto possui 108 testes unitários cobrindo:
+- Validação de formulários
+- Análise de prompts
+- Exportação ABNT
+- Modelos personalizados
+- Sistema de cache
+- Perfis de uso
+- Sugestão de área jurídica
+
+```bash
+# Executar todos os testes
+pnpm test
+
+# Executar com cobertura de código
+pnpm test:coverage
+
+# Executar em modo watch
+pnpm test:watch
+```
+
+**Cobertura de Código:**
+- Threshold mínimo: 70% (lines, functions, branches, statements)
+- Relatórios gerados em: `coverage/`
+- Formatos: HTML, text, lcov, JSON
+
+### Testes E2E (Playwright)
+
+O projeto possui 3 suites de testes end-to-end:
+
+**1. Autenticação e Navegação** (`e2e/auth.spec.ts`)
+- Login e logout
+- Navegação entre páginas
+- Verificação de sessão
+
+**2. Criação de Prompt** (`e2e/prompt-creation.spec.ts`)
+- Preenchimento de formulário
+- Submissão e validação
+- Exibição de resultados
+
+**3. Geração de Documentos** (`e2e/document-generation.spec.ts`) ⭐ **NOVO**
+- Navegação para tab "Gerar Prompt Jurídico"
+- Preenchimento completo do formulário (tipo documento, contexto, objetivo, partes, legislação)
+- Seleção de modelo de IA (Manus AI, GPT-4, etc.)
+- Submissão e aguardo de resposta da IA
+- Validação do resultado gerado
+- Exportação em Markdown
+- Exportação em PDF
+- Salvamento de prompt
+- Fluxo completo de ponta a ponta
+
+```bash
+# Executar todos os testes E2E
+pnpm test:e2e
+
+# Executar com interface visual
+pnpm test:e2e:ui
+
+# Executar com navegador visível (headed mode)
+pnpm test:e2e:headed
+
+# Executar apenas testes de geração de documentos
+pnpm exec playwright test e2e/document-generation.spec.ts
+```
+
+**Navegadores Suportados:**
+- Chromium (Chrome/Edge)
+- Firefox
+- Safari (WebKit)
+- Mobile Chrome
+- Mobile Safari
+
+**Relatórios:**
+- Relatório HTML: `playwright-report/`
+- Screenshots de falhas: `test-results/`
 
 ---
 

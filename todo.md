@@ -1623,3 +1623,18 @@
 - [x] Criar teste E2E para criação de prompt (prompt-creation.spec.ts)
 - [x] Adicionar 3 scripts test:e2e no package.json (normal, UI, headed)
 - [ ] Criar teste E2E para geração de documento (planejado)
+
+
+## Testes E2E - Geração de Documentos (Sessão Atual)
+- [x] Criar teste E2E completo para fluxo de geração de documentos (10 testes criados)
+  - [x] Navegação para tab "Gerar Prompt Jurídico"
+  - [x] Preenchimento de formulário (tipo documento, contexto, objetivo, partes, legislação)
+  - [x] Seleção de modelo de IA (Manus AI, GPT-4, etc.)
+  - [x] Submissão e aguardo de resposta
+  - [x] Validação de resultado gerado
+  - [x] Teste de exportação Markdown
+  - [x] Teste de exportação PDF
+  - [x] Teste de salvamento de prompt
+  - [x] Teste de fluxo completo de ponta a ponta
+- [x] Executar teste em navegador Chromium (10 testes executados)
+- [x] Arquivo criado: e2e/document-generation.spec.ts
