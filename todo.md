@@ -1656,3 +1656,60 @@
   - [x] Teste de fluxo completo de ponta a ponta (criar → usar → editar → duplicar → excluir)
 - [x] Executar testes em navegador Chromium (11/12 testes passando)
 - [x] Arquivo criado: e2e/custom-models.spec.ts
+
+
+## Sugestões de Acompanhamento - Qualidade e Performance (Sessão Atual)
+
+### 1. Testes de Integração com APIs Externas (Mock) ✅
+- [x] Criar testes mock para integração com DataJud (CNJ)
+  - [x] Mock de busca de precedentes
+  - [x] Mock de resposta de erro (timeout, 404, 500)
+  - [x] Validação de formato de resposta
+- [x] Criar testes mock para API de Feriados
+  - [x] Mock de consulta de feriados nacionais
+  - [x] Mock de consulta de feriados estaduais/municipais
+  - [x] Validação de cálculo de prazos processuais
+- [x] Criar testes mock para validação de legislação
+  - [x] Mock de validação de artigos do Código Civil
+  - [x] Mock de validação de artigos da CLT
+  - [x] Tratamento de legislação inexistente
+- [x] Configurar biblioteca de mocking (MSW)
+- [x] Arquivo criado: server/__tests__/integration/external-apis.test.ts (17 testes, 100% passando)
+
+### 2. Testes de Performance com k6 ✅
+- [x] Instalar k6 como ferramenta de teste de carga (v1.6.1)
+- [x] Criar script de teste de carga completo
+  - [x] Simular 10 usuários simultâneos (warmup)
+  - [x] Simular 50 usuários simultâneos (carga média)
+  - [x] Simular 100 usuários simultâneos (carga alta)
+- [x] Criar cenários de teste
+  - [x] Cenário 1: Análise de prompts
+  - [x] Cenário 2: Geração de documentos
+  - [x] Cenário 3: Otimização de prompts
+  - [x] Cenário 4: Listagem de modelos personalizados
+  - [x] Cenário 5: Busca no histórico
+- [x] Definir métricas de sucesso
+  - [x] Tempo de resposta P95 < 3s
+  - [x] Tempo de resposta P99 < 5s
+  - [x] Taxa de erro < 1%
+- [x] Criar smoke test (validação rápida)
+- [x] Arquivos criados: k6-tests/load-test.js, k6-tests/smoke-test.js
+- [x] Smoke test executado: 150 requisições, P95=42.69ms, 0% falhas
+
+### 3. Testes de Regressão Visual com Percy ✅
+- [x] Configurar Percy no projeto
+- [x] Integrar Percy com Playwright
+- [x] Criar snapshots visuais de componentes críticos (10 snapshots)
+  - [x] Homepage
+  - [x] Dashboard principal
+  - [x] Formulário de geração de prompt
+  - [x] Formulário de análise
+  - [x] Formulário de otimização
+  - [x] Página de modelos personalizados
+  - [x] Página de histórico
+  - [x] Resultados de geração (com prompt)
+  - [x] Modal de criação de modelo
+  - [x] Snapshots responsivos (Desktop, Tablet, Mobile)
+- [x] Arquivo criado: e2e/visual-regression.spec.ts (10 testes, 100% passando)
+- [x] Configuração Percy: .percyrc
+- [x] Scripts adicionados ao package.json (test:visual, test:perf:smoke, test:perf:load)

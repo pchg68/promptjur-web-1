@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "snapshot": {
+    "widths": [375, 768, 1024, 1366, 1920],
+    "minHeight": 1024,
+    "percyCSS": "",
+    "enableJavaScript": true,
+    "waitForTimeout": 5000,
+    "waitForSelector": "body"
+  },
+  "discovery": {
+    "allowedHostnames": [],
+    "disallowedHostnames": [],
+    "networkIdleTimeout": 750
+  },
+  "static": {
+    "cleanUrls": true
+  }
+}

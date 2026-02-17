@@ -388,69 +388,72 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 🧪 Testes
 
+O PromptJur possui uma estratégia completa de testes em múltiplas camadas para garantir qualidade, confiabilidade e performance. **Consulte [docs/TESTING.md](docs/TESTING.md) para documentação completa.**
+
 ### Testes Unitários (Vitest)
 
-O projeto possui 108 testes unitários cobrindo:
-- Validação de formulários
-- Análise de prompts
-- Exportação ABNT
-- Modelos personalizados
-- Sistema de cache
-- Perfis de uso
-- Sugestão de área jurídica
+**108 testes unitários** cobrindo lógica de negócio, validações, análise de prompts, exportação ABNT, modelos personalizados, cache e perfis de uso.
 
 ```bash
-# Executar todos os testes
-pnpm test
-
-# Executar com cobertura de código
-pnpm test:coverage
-
-# Executar em modo watch
-pnpm test:watch
+pnpm test                # Executar todos os testes
+pnpm test:coverage       # Com cobertura de código (threshold: 70%)
+pnpm test:watch          # Modo watch
 ```
 
-**Cobertura de Código:**
-- Threshold mínimo: 70% (lines, functions, branches, statements)
-- Relatórios gerados em: `coverage/`
-- Formatos: HTML, text, lcov, JSON
+### Testes de Integração com APIs Externas (MSW)
+
+**17 testes de integração** mockando APIs externas (DataJud/CNJ, Feriados, Legislação) para validar integrações sem dependência de serviços externos.
+
+```bash
+pnpm test server/__tests__/integration/external-apis.test.ts
+```
 
 ### Testes E2E (Playwright)
 
-O projeto possui 3 suites de testes end-to-end:
+**4 suites completas** simulando fluxos reais de usuários em 5 navegadores (Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari).
 
-**1. Autenticação e Navegação** (`e2e/auth.spec.ts`)
-- Login e logout
-- Navegação entre páginas
-- Verificação de sessão
+**1. Autenticação** (`e2e/auth.spec.ts`)
+- Login via OAuth, logout, verificação de sessão
 
 **2. Criação de Prompt** (`e2e/prompt-creation.spec.ts`)
-- Preenchimento de formulário
-- Submissão e validação
-- Exibição de resultados
+- Preenchimento, submissão e validação
 
-**3. Geração de Documentos** (`e2e/document-generation.spec.ts`)
-- Navegação para tab "Gerar Prompt Jurídico"
-- Preenchimento completo do formulário (tipo documento, contexto, objetivo, partes, legislação)
-- Seleção de modelo de IA (Manus AI, GPT-4, etc.)
-- Submissão e aguardo de resposta da IA
-- Validação do resultado gerado
-- Exportação em Markdown
-- Exportação em PDF
-- Salvamento de prompt
-- Fluxo completo de ponta a ponta
+**3. Geração de Documentos** (`e2e/document-generation.spec.ts` - 10 testes)
+- Navegação, preenchimento completo, seleção de modelo IA, validação de resultado, exportação Markdown/PDF
 
-**4. Modelos Personalizados** (`e2e/custom-models.spec.ts`) ⭐ **NOVO**
-- Navegação para página "Meus Modelos"
-- Criação de modelo com variáveis dinâmicas (`{{nomeVariavel}}`)
-- Busca e filtragem de modelos
-- Edição de modelo existente
-- Duplicação de modelo
-- Alternar visibilidade (público/privado)
-- Exclusão de modelo com confirmação
-- Navegação na biblioteca pública
-- Uso de modelo personalizado na geração de prompt
-- Fluxo completo: criar → usar → editar → duplicar → excluir
+**4. Modelos Personalizados** (`e2e/custom-models.spec.ts` - 12 testes)
+- Criação com variáveis dinâmicas, edição, duplicação, visibilidade público/privado, exclusão, uso na geração
+
+```bash
+pnpm test:e2e            # Executar todos os testes E2E
+pnpm test:e2e:ui         # Com interface gráfica
+pnpm test:e2e:headed     # Com navegador visível (debug)
+```
+
+### Testes de Performance (k6)
+
+**Testes de carga** simulando até **100 usuários simultâneos** com métricas de performance (P95 < 3s, P99 < 5s, taxa de erro < 1%).
+
+```bash
+pnpm test:perf:smoke     # Smoke test (5 usuários, 30s)
+pnpm test:perf:load      # Load test (até 100 usuários, 7min)
+```
+
+**Resultados do Smoke Test:**
+- ✅ 150 requisições totais
+- ✅ Taxa: 4.85 req/s
+- ✅ P95: 42.69ms
+- ✅ Taxa de falha: 0.00%
+
+### Testes de Regressão Visual (Percy)
+
+**10 snapshots visuais** capturando componentes críticos em múltiplas resoluções (Desktop, Tablet, Mobile) para detectar quebras de layout/CSS automaticamente.
+
+```bash
+pnpm test:visual         # Executar com Percy (requer PERCY_TOKEN)
+```
+
+**Snapshots:** Homepage, Dashboard, Formulários (Gerar/Analisar/Otimizar), Modelos, Histórico, Resultados, Modal de Criação, Responsividade
 
 ```bash
 # Executar todos os testes E2E
