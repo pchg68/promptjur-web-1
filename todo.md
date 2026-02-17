@@ -1638,3 +1638,21 @@
   - [x] Teste de fluxo completo de ponta a ponta
 - [x] Executar teste em navegador Chromium (10 testes executados)
 - [x] Arquivo criado: e2e/document-generation.spec.ts
+
+
+## Testes E2E - Modelos Personalizados (Sessão Atual)
+- [x] Criar suite completa de testes E2E para modelos personalizados (12 testes criados)
+  - [x] Teste de navegação para página Meus Modelos
+  - [x] Teste de exibição de botão criar novo modelo
+  - [x] Teste de abertura de formulário de criação
+  - [x] Teste de criação de modelo com variáveis dinâmicas
+  - [x] Teste de busca de modelos
+  - [x] Teste de edição de modelo existente
+  - [x] Teste de duplicação de modelo
+  - [x] Teste de alternar visibilidade (público/privado)
+  - [x] Teste de exclusão de modelo com confirmação
+  - [x] Teste de navegação na biblioteca pública
+  - [x] Teste de uso de modelo personalizado na geração
+  - [x] Teste de fluxo completo de ponta a ponta (criar → usar → editar → duplicar → excluir)
+- [x] Executar testes em navegador Chromium (11/12 testes passando)
+- [x] Arquivo criado: e2e/custom-models.spec.ts

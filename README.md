@@ -429,7 +429,7 @@ O projeto possui 3 suites de testes end-to-end:
 - Submissão e validação
 - Exibição de resultados
 
-**3. Geração de Documentos** (`e2e/document-generation.spec.ts`) ⭐ **NOVO**
+**3. Geração de Documentos** (`e2e/document-generation.spec.ts`)
 - Navegação para tab "Gerar Prompt Jurídico"
 - Preenchimento completo do formulário (tipo documento, contexto, objetivo, partes, legislação)
 - Seleção de modelo de IA (Manus AI, GPT-4, etc.)
@@ -439,6 +439,18 @@ O projeto possui 3 suites de testes end-to-end:
 - Exportação em PDF
 - Salvamento de prompt
 - Fluxo completo de ponta a ponta
+
+**4. Modelos Personalizados** (`e2e/custom-models.spec.ts`) ⭐ **NOVO**
+- Navegação para página "Meus Modelos"
+- Criação de modelo com variáveis dinâmicas (`{{nomeVariavel}}`)
+- Busca e filtragem de modelos
+- Edição de modelo existente
+- Duplicação de modelo
+- Alternar visibilidade (público/privado)
+- Exclusão de modelo com confirmação
+- Navegação na biblioteca pública
+- Uso de modelo personalizado na geração de prompt
+- Fluxo completo: criar → usar → editar → duplicar → excluir
 
 ```bash
 # Executar todos os testes E2E
@@ -452,6 +464,9 @@ pnpm test:e2e:headed
 
 # Executar apenas testes de geração de documentos
 pnpm exec playwright test e2e/document-generation.spec.ts
+
+# Executar apenas testes de modelos personalizados
+pnpm exec playwright test e2e/custom-models.spec.ts
 ```
 
 **Navegadores Suportados:**
