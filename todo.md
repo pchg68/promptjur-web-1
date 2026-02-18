@@ -1841,3 +1841,22 @@
 - [ ] Implementar sincronização de scroll entre painéis (opcional)
 - [ ] Tornar divisor arrastável para ajustar proporção dos painéis
 - [ ] Adicionar responsividade (empilhar verticalmente em mobile)
+
+
+## Correção de Erro tRPC - Dashboard (Sessão Atual) ✅ CONCLUÍDO
+
+- [x] Investigar queries/mutations do dashboard que causam erro de serialização
+- [x] Identificar objetos Date ou tipos não serializáveis retornados
+- [x] Converter campos Date para string ISO em procedures problemáticos
+- [x] Testar dashboard após correção
+- [x] Validar que 176 testes continuam passando
+
+**Problema Identificado:**
+As funções `getCabecalhoTemplate()` e `salvarCabecalhoTemplate()` estavam retornando objetos com campos `Date` (createdAt, updatedAt) sem serialização para string ISO, causando erro "Unable to transform response from server" no tRPC.
+
+**Solução Aplicada:**
+- Modificado `getCabecalhoTemplate()` para converter `createdAt` e `updatedAt` para strings ISO
+- Modificado `salvarCabecalhoTemplate()` para retornar campos Date serializados em ambos os fluxos (update e insert)
+- Servidor reiniciado para aplicar correções
+- 176 testes passando
+- Dashboard carregando corretamente sem erros

@@ -814,22 +814,33 @@ export async function salvarCabecalhoTemplate(userId: number, data: Partial<Inse
   
   if (existing.length > 0) {
     // Atualizar existente
+    const now = new Date();
     await db.update(cabecalhoTemplates)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...data, updatedAt: now })
       .where(eq(cabecalhoTemplates.userId, userId));
     
-    return { ...existing[0], ...data };
+    // Retornar com campos Date serializados
+    return { 
+      ...existing[0], 
+      ...data,
+      createdAt: existing[0].createdAt.toISOString(),
+      updatedAt: now.toISOString()
+    };
   } else {
     // Criar novo
+    const now = new Date();
     const result = await db.insert(cabecalhoTemplates).values({
       userId,
       ...data
     });
     
+    // Retornar com campos Date serializados
     return {
       id: result[0].insertId,
       userId,
-      ...data
+      ...data,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
     };
   }
 }
@@ -843,7 +854,15 @@ export async function getCabecalhoTemplate(userId: number) {
   
   const result = await db.select().from(cabecalhoTemplates).where(eq(cabecalhoTemplates.userId, userId)).limit(1);
   
-  return result.length > 0 ? result[0] : null;
+  if (result.length === 0) return null;
+  
+  // Serializar campos Date para evitar erro tRPC
+  const template = result[0];
+  return {
+    ...template,
+    createdAt: template.createdAt.toISOString(),
+    updatedAt: template.updatedAt.toISOString()
+  };
 }
 
 /**
