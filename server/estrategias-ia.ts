@@ -253,7 +253,7 @@ export async function gerarDocumentoComEstrategia(params: ParametrosGeracao): Pr
   metadados: {
     tipoDocumento: string;
     areaJuridica: string;
-    timestamp: Date;
+    timestamp: string; // ISO string para serialização tRPC
   };
 }> {
   let documento: string;
@@ -277,7 +277,7 @@ export async function gerarDocumentoComEstrategia(params: ParametrosGeracao): Pr
     metadados: {
       tipoDocumento: params.tipoDocumento,
       areaJuridica: params.areaJuridica,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(), // Converter para string ISO para serialização tRPC
     },
   };
 }

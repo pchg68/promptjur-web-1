@@ -1765,3 +1765,11 @@
 - [x] Verificar se há campos Date não serializáveis (new Date() na formatação)
 - [x] Corrigir serialização da resposta (usar split/join de string ao invés de Date)
 - [x] Testar correção e validar funcionamento (176 testes passando)
+
+
+## Correção de Bug - Erro na Geração de Documentos (Sessão Atual)
+- [x] Investigar erro "Unable to transform response from server" na geração de documentos
+- [x] Identificar qual mutation/procedure está causando o problema (documentos.gerar)
+- [x] Verificar se há campos Date ou objetos não serializáveis no retorno (timestamp: new Date())
+- [x] Corrigir serialização da resposta (converter para ISO string)
+- [x] Testar geração de documentos e validar funcionamento (176 testes passando)
