@@ -17,7 +17,7 @@ describe('Feature Flags System', () => {
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue([{ isAtivo: 1 }]),
+              limit: vi.fn().mockResolvedValue([{ isAtivo: true }]),
             }),
           }),
         }),
@@ -34,7 +34,7 @@ describe('Feature Flags System', () => {
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue([{ isAtivo: 0 }]),
+              limit: vi.fn().mockResolvedValue([{ isAtivo: false }]),
             }),
           }),
         }),
@@ -75,6 +75,13 @@ describe('Feature Flags System', () => {
   describe('toggleFeature', () => {
     it('deve alternar status da feature', async () => {
       const mockDb = {
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([{ isAtivo: false }]),
+            }),
+          }),
+        }),
         update: vi.fn().mockReturnValue({
           set: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue(undefined),
@@ -83,8 +90,10 @@ describe('Feature Flags System', () => {
       };
       vi.mocked(db.getDb).mockResolvedValue(mockDb as any);
 
-      await toggleFeature('knowledge_retrieval', true);
+      const result = await toggleFeature('knowledge_retrieval');
 
+      expect(result).toHaveProperty('nome');
+      expect(result).toHaveProperty('isAtivo');
       expect(mockDb.update).toHaveBeenCalled();
     });
 
@@ -92,8 +101,8 @@ describe('Feature Flags System', () => {
       vi.mocked(db.getDb).mockResolvedValue(null);
 
       await expect(
-        toggleFeature('test', true)
-      ).resolves.not.toThrow();
+        toggleFeature('test')
+      ).rejects.toThrow('Database not available');
     });
   });
 
@@ -101,7 +110,7 @@ describe('Feature Flags System', () => {
     it('deve criar nova feature', async () => {
       const mockDb = {
         insert: vi.fn().mockReturnValue({
-          values: vi.fn().mockResolvedValue(undefined),
+          values: vi.fn().mockResolvedValue([{ insertId: 1 }]),
         }),
       };
       vi.mocked(db.getDb).mockResolvedValue(mockDb as any);
@@ -119,8 +128,8 @@ describe('Feature Flags System', () => {
       const mockDb = {
         insert: vi.fn().mockReturnValue({
           values: vi.fn().mockImplementation((values) => {
-            expect(values.isAtivo).toBe(0);
-            return Promise.resolve();
+            expect(values.isAtivo).toBe(false);
+            return Promise.resolve([{ insertId: 1 }]);
           }),
         }),
       };

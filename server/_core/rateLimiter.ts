@@ -1,8 +1,9 @@
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import { Request, Response } from "express";
+import rateLimit from "express-rate-limit";
+import { Request, Response, NextFunction } from "express";
 import { getDb } from "../db";
 import { users } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { sdk } from "./sdk";
 
 /**
  * Limites de requisições por plano
@@ -120,6 +121,21 @@ export const createRateLimiter = () => {
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   });
 };
+
+/**
+ * Middleware para injetar usuário autenticado no request antes do rate limiter
+ */
+export async function injectUserMiddleware(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = await sdk.authenticateRequest(req);
+    if (user) {
+      (req as any).user = user;
+    }
+  } catch (error) {
+    // Usuário não autenticado, continuar sem user
+  }
+  next();
+}
 
 /**
  * Middleware específico para rotas tRPC

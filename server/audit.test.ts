@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { logAuditoria, listarLogs, getStatsAuditoria } from './audit';
+import { logAuditoria, listarLogs, getAuditStats } from './audit';
 import * as db from './db';
 
 // Mock do módulo db
@@ -16,7 +16,7 @@ describe('Audit System', () => {
     it('deve registrar ação de auditoria com sucesso', async () => {
       const mockDb = {
         insert: vi.fn().mockReturnValue({
-          values: vi.fn().mockResolvedValue(undefined),
+          values: vi.fn().mockResolvedValue([{ insertId: 1 }]),
         }),
       };
       vi.mocked(db.getDb).mockResolvedValue(mockDb as any);
@@ -42,7 +42,7 @@ describe('Audit System', () => {
           acao: 'test',
           descricao: 'test',
         })
-      ).resolves.not.toThrow();
+      ).rejects.toThrow('Database not available');
     });
   });
 
@@ -57,26 +57,37 @@ describe('Audit System', () => {
           metadata: null,
           ipAddress: '127.0.0.1',
           userAgent: 'Mozilla/5.0',
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(),
         },
       ];
 
+      // Mock que simula query sem where (sem filtros)
+      const mockQuery = {
+        where: vi.fn().mockResolvedValue(mockLogs)
+      };
+      
       const mockDb = {
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnValue({
-              orderBy: vi.fn().mockReturnValue({
-                limit: vi.fn().mockResolvedValue(mockLogs),
-              }),
+            orderBy: vi.fn().mockReturnValue({
+              limit: vi.fn().mockReturnValue(mockQuery),
             }),
           }),
         }),
       };
+      
+      // Mock para query sem where (retorna promise diretamente)
+      Object.assign(mockQuery, {
+        then: (resolve: any) => resolve(mockLogs)
+      });
       vi.mocked(db.getDb).mockResolvedValue(mockDb as any);
 
       const result = await listarLogs({ limit: 10 });
 
-      expect(result).toEqual(mockLogs);
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty('acao', 'limpar_cache');
+      expect(result[0]).toHaveProperty('createdAt');
+      expect(typeof result[0].createdAt).toBe('string'); // Convertido para ISO string
       expect(mockDb.select).toHaveBeenCalled();
     });
 
@@ -89,29 +100,28 @@ describe('Audit System', () => {
     });
   });
 
-  describe('getStatsAuditoria', () => {
+  describe('getAuditStats', () => {
     it('deve retornar estatísticas de auditoria', async () => {
-      const mockStats = [
-        { acao: 'limpar_cache', count: 5 },
-        { acao: 'executar_testes', count: 3 },
+      const mockLogs = [
+        { id: 1, userId: 1, acao: 'limpar_cache', descricao: 'Cache limpo', metadata: null, ipAddress: '127.0.0.1', userAgent: 'Mozilla', createdAt: new Date() },
+        { id: 2, userId: 1, acao: 'limpar_cache', descricao: 'Cache limpo', metadata: null, ipAddress: '127.0.0.1', userAgent: 'Mozilla', createdAt: new Date() },
+        { id: 3, userId: 1, acao: 'executar_testes', descricao: 'Testes executados', metadata: null, ipAddress: '127.0.0.1', userAgent: 'Mozilla', createdAt: new Date() },
       ];
 
       const mockDb = {
         select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            groupBy: vi.fn().mockReturnValue({
-              orderBy: vi.fn().mockResolvedValue(mockStats),
-            }),
-          }),
+          from: vi.fn().mockResolvedValue(mockLogs),
         }),
       };
       vi.mocked(db.getDb).mockResolvedValue(mockDb as any);
 
-      const result = await getStatsAuditoria();
+      const result = await getAuditStats();
 
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('acao');
-      expect(result[0]).toHaveProperty('count');
+      expect(result).toHaveProperty('totalLogs');
+      expect(result).toHaveProperty('acoesUnicas');
+      expect(result).toHaveProperty('topAcoes');
+      expect(result.totalLogs).toBe(3);
+      expect(result.topAcoes).toHaveLength(2);
     });
   });
 });

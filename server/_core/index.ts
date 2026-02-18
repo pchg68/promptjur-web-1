@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { initSentry } from "./sentry";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
@@ -9,7 +10,8 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { scheduleCacheCleanup } from "../jobs/cache-cleanup";
 import { handleStripeWebhook } from "./stripeWebhook";
-import { tRPCRateLimiter } from "./rateLimiter";
+import { tRPCRateLimiter, injectUserMiddleware } from "./rateLimiter";
+import * as Sentry from "@sentry/node";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,6 +33,9 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Inicializar Sentry antes de tudo
+  initSentry();
+  
   const app = express();
   const server = createServer(app);
   
@@ -49,9 +54,13 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // Middleware do Sentry para capturar requisições (versão 10.x não requer handlers manuais)
+  // O Sentry 10.x captura automaticamente via integração expressIntegration()
+  
   // tRPC API with rate limiting
   app.use(
     "/api/trpc",
+    injectUserMiddleware, // Injetar usuário antes do rate limiter
     tRPCRateLimiter,
     createExpressMiddleware({
       router: appRouter,
@@ -63,6 +72,11 @@ async function startServer() {
     await setupVite(app, server);
   } else {
     serveStatic(app);
+  }
+  
+  // Middleware de tratamento de erros do Sentry (DEVE ser o último middleware)
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
   }
 
   const preferredPort = parseInt(process.env.PORT || "3000");

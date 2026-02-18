@@ -1721,3 +1721,39 @@
 - [x] Verificar inconsistência entre tipos do servidor e cliente
 - [x] Corrigir problema de serialização/transformação (adicionado retorno explícito de null)
 - [x] Testar correção e validar funcionamento (108 testes passando)
+
+
+## Melhorias Sugeridas - Qualidade e Monitoramento (Sessão Atual)
+
+### 1. Corrigir Testes Falhando ✅
+- [x] Revisar e corrigir testes de audit (4 testes falhando)
+  - [x] Corrigir mock de banco de dados para logAuditoria (retorno com insertId)
+  - [x] Corrigir mock para listarLogs (query chain com orderBy/limit/where)
+  - [x] Corrigir mock para getStatsAuditoria (renomeado para getAuditStats)
+- [x] Revisar e corrigir testes de feature-flags (6 testes falhando)
+  - [x] Corrigir mock de banco de dados para isFeatureEnabled (boolean ao invés de 0/1)
+  - [x] Corrigir mock para toggleFeature (adicionar select antes de update)
+  - [x] Corrigir mock para criarFeature (retorno com insertId)
+- [x] Revisar e corrigir testes de performance (7 testes falhando)
+  - [x] Corrigir assinatura de registrarMetrica (objeto ao invés de parâmetros separados)
+  - [x] Corrigir mock para getStatsPerformance (rotaMaisLenta é objeto)
+  - [x] Corrigir mock para limparMetricas (rotasUnicas ao invés de totalRotas)
+- [x] Executar todos os testes e garantir 100% de sucesso (20/20 testes passando)
+
+### 2. Implementar Rate Limiting por Usuário ✅
+- [x] Identificar onde o rate limiter está sendo chamado (server/_core/index.ts)
+- [x] Adicionar extração de userId do contexto/request (middleware injectUserMiddleware)
+- [x] Atualizar rate limiter para usar userId ao invés de "undefined" (email/openId)
+- [x] Implementar limites diferenciados por plano (free: 10/h, pro: 100/h, enterprise: ilimitado)
+- [x] Testar rate limiting com usuário autenticado (servidor reiniciado)
+- [x] Validar logs mostrando userId correto ("User pc@hertt.com.br (plan: free) - limit: 10/hour")
+
+### 3. Adicionar Monitoramento de Erros (Sentry) ✅
+- [x] Instalar SDK do Sentry (@sentry/node 10.39.0, @sentry/react 10.39.0)
+- [x] Configurar Sentry no servidor (server/_core/sentry.ts)
+- [x] Configurar Sentry no cliente (client/src/_core/sentry.ts)
+- [x] Adicionar middleware de captura de erros no Express (setupExpressErrorHandler)
+- [x] Inicializar Sentry no main.tsx do React
+- [x] Configurar integrações (expressIntegration, browserTracingIntegration, replayIntegration)
+- [x] Adicionar filtros de privacidade (remover cookies, authorization headers)
+- [x] Servidor funcionando sem erros (logs mostram rate limiting correto)
