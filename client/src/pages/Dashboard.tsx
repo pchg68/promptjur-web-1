@@ -482,43 +482,89 @@ export default function Dashboard() {
         <title>${title}</title>
         <style>
           @page {
-            margin: 3cm 3cm 2cm 3cm;
+            margin: 3cm 2cm 2cm 3cm;
+            size: A4;
           }
           body { 
             font-family: Arial, sans-serif;
             font-size: 12pt;
-            line-height: 1.0;
+            line-height: 1.5;
             text-align: justify;
             margin: 0;
             padding: 0;
+            color: #000;
           }
           h1 { 
             font-family: Arial, sans-serif;
             font-size: 14pt;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 1.0em;
+            margin-bottom: 1.5cm;
             margin-top: 0;
+            text-transform: uppercase;
+          }
+          h2 {
+            font-family: Arial, sans-serif;
+            font-size: 13pt;
+            font-weight: bold;
+            margin-top: 1.5cm;
+            margin-bottom: 1cm;
+            text-indent: 0;
+          }
+          h3 {
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 1.5cm;
+            margin-bottom: 1cm;
+            text-indent: 0;
           }
           .metadata { 
             font-family: Arial, sans-serif;
             font-size: 10pt;
             color: #666;
-            margin-bottom: 2.0em;
+            margin-bottom: 2cm;
             text-align: center;
           }
           .content { 
             font-family: Arial, sans-serif;
             font-size: 12pt;
-            line-height: 1.0;
+            line-height: 1.5;
             text-align: justify;
             white-space: pre-wrap;
             word-wrap: break-word;
           }
-          p {
-            margin: 0;
+          .content p {
+            margin-bottom: 1.5cm;
+            text-indent: 2cm;
+            line-height: 1.5;
+          }
+          .content h1 + p,
+          .content h2 + p,
+          .content h3 + p {
             text-indent: 0;
-            line-height: 1.0;
+          }
+          .content ul,
+          .content ol {
+            margin-bottom: 1.5cm;
+            padding-left: 2cm;
+          }
+          .content li {
+            margin-bottom: 0.5cm;
+          }
+          .content blockquote {
+            margin-left: 4cm;
+            margin-right: 0;
+            font-size: 11pt;
+            margin-bottom: 1.5cm;
+          }
+          .content strong,
+          .content b {
+            font-weight: bold;
+          }
+          .content em,
+          .content i {
+            font-style: italic;
           }
         </style>
       </head>
@@ -1298,8 +1344,8 @@ export default function Dashboard() {
                          </Button>
                        </div>
                     </div>
-                    <div className="p-4 bg-muted/30 rounded-sm">
-                      <Streamdown className="text-sm font-mono whitespace-pre-wrap">
+                    <div className="p-6 bg-white dark:bg-gray-900 rounded-sm border border-gray-200 dark:border-gray-700">
+                      <Streamdown className="abnt-document">
                         {geracaoMutation.data.promptProfissional}
                       </Streamdown>
                     </div>

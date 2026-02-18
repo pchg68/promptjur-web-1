@@ -342,11 +342,15 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
 
           let promptProfissional = llmGeracao.content;
           
-          // Remover cabeçalho de instrução do sistema se presente no resultado
+          // Remover cabeçalho de instrução do sistema e seções desnecessárias
           const padroes = [
             /^Você é um MESTRE em Engenharia de Prompts Jurídicos[\s\S]*?(?=\n\n[A-Z]|\n\n#|\n\n\*\*|$)/i,
             /^Você é um[\s\S]*?(?=\n\n[A-Z]|\n\n#|\n\n\*\*|$)/i,
-            /^Atue como[\s\S]*?(?=\n\n[A-Z]|\n\n#|\n\n\*\*|$)/i
+            /^Atue como[\s\S]*?(?=\n\n[A-Z]|\n\n#|\n\n\*\*|$)/i,
+            /##?\s*Persona[\s\S]*?(?=\n##?\s|$)/gi,
+            /##?\s*Contexto[\s\S]*?(?=\n##?\s|$)/gi,
+            /\*\*Persona\*\*[\s\S]*?(?=\n\n|$)/gi,
+            /\*\*Contexto\*\*[\s\S]*?(?=\n\n|$)/gi
           ];
           
           for (const padrao of padroes) {
@@ -354,13 +358,16 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
           }
           
           // Se ainda começar com instrução, remover primeira seção
-          if (promptProfissional.match(/^(Você é|Atue como)/i)) {
+          if (promptProfissional.match(/^(Você é|Atue como|Persona|Contexto)/i)) {
             const linhas = promptProfissional.split('\n');
-            const idx = linhas.findIndex(l => l.trim() && !l.match(/^(Você é|Atue como|Sua tarefa|IMPORTANTE:|OBSERVAÇÃO:)/i));
+            const idx = linhas.findIndex(l => l.trim() && !l.match(/^(Você é|Atue como|Sua tarefa|IMPORTANTE:|OBSERVAÇÃO:|Persona|Contexto|\*\*Persona|\*\*Contexto)/i));
             if (idx > 0) {
               promptProfissional = linhas.slice(idx).join('\n').trim();
             }
           }
+          
+          // Limpar múltiplas linhas vazias consecutivas
+          promptProfissional = promptProfissional.replace(/\n{3,}/g, '\n\n');
 
           // Validar legislação citada
           const validacaoRaw = await validarLegislacao(promptProfissional);

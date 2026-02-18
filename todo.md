@@ -1781,3 +1781,34 @@
 - [x] Corrigir lógica para remover cabeçalho de instrução do sistema do resultado final (regex patterns)
 - [x] Garantir que apenas o conteúdo jurídico relevante seja exibido ao usuário
 - [x] Testar geração de documento e validar que cabeçalho não aparece mais (176 testes passando)
+
+
+## Refinamento de Apresentação de Documentos - Formatação ABNT (Sessão Atual)
+
+### 1. Limpeza de Conteúdo ✅
+- [x] Remover seção "Persona" do resultado final (regex patterns adicionados)
+- [x] Remover seção "Contexto" do resultado final (regex patterns adicionados)
+- [x] Manter apenas endereçamento e conteúdo jurídico relevante
+- [x] Atualizar regex patterns de limpeza no routers.ts (7 padrões implementados)
+
+### 2. Formatação ABNT na Visualização Web ✅
+- [x] Aplicar fonte Arial 12pt no componente de resultado
+- [x] Implementar espaçamento entre linhas 1.5
+- [x] Adicionar recuo de parágrafo (primeira linha) de 2cm
+- [x] Configurar espaçamento entre parágrafos de 1.5cm
+- [x] Aplicar alinhamento justificado
+- [x] Atualizar CSS do componente de visualização (classe .abnt-document criada)
+
+### 3. Formatação ABNT na Exportação PDF ✅
+- [x] Configurar margens ABNT (3cm esquerda/superior, 2cm direita/inferior)
+- [x] Aplicar fonte Arial 12pt no PDF
+- [x] Implementar espaçamento 1.5 entre linhas
+- [x] Adicionar recuo de 2cm na primeira linha de parágrafos
+- [x] Configurar espaçamento de 1.5cm entre parágrafos
+- [x] Testar exportação PDF com formatação ABNT (função exportAsPDF atualizada)
+
+### 4. Validação ✅
+- [x] Testar geração de documento com nova formatação (176 testes passando)
+- [x] Validar remoção de persona e contexto (padrões regex implementados)
+- [x] Verificar legibilidade e facilidade de correção (formatação ABNT aplicada)
+- [x] Testar exportação em diferentes formatos (Markdown, PDF com estilos ABNT)

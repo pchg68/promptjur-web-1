@@ -184,3 +184,84 @@
     }
   }
 }
+
+/* Formatação ABNT para Documentos Jurídicos */
+.abnt-document {
+  font-family: Arial, sans-serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  text-align: justify;
+  color: #000;
+}
+
+.abnt-document p {
+  margin-bottom: 1.5cm;
+  text-indent: 2cm;
+}
+
+.abnt-document h1,
+.abnt-document h2,
+.abnt-document h3,
+.abnt-document h4,
+.abnt-document h5,
+.abnt-document h6 {
+  font-weight: bold;
+  text-indent: 0;
+  margin-top: 1.5cm;
+  margin-bottom: 1cm;
+}
+
+.abnt-document h1 {
+  font-size: 14pt;
+  text-transform: uppercase;
+}
+
+.abnt-document h2 {
+  font-size: 13pt;
+}
+
+.abnt-document h3 {
+  font-size: 12pt;
+}
+
+.abnt-document ul,
+.abnt-document ol {
+  margin-bottom: 1.5cm;
+  padding-left: 2cm;
+}
+
+.abnt-document li {
+  margin-bottom: 0.5cm;
+}
+
+.abnt-document blockquote {
+  margin-left: 4cm;
+  margin-right: 0;
+  font-size: 11pt;
+  margin-bottom: 1.5cm;
+}
+
+.abnt-document strong,
+.abnt-document b {
+  font-weight: bold;
+}
+
+.abnt-document em,
+.abnt-document i {
+  font-style: italic;
+}
+
+/* Remover indentação do primeiro parágrafo após título */
+.abnt-document h1 + p,
+.abnt-document h2 + p,
+.abnt-document h3 + p,
+.abnt-document h4 + p,
+.abnt-document h5 + p,
+.abnt-document h6 + p {
+  text-indent: 0;
+}
+
+/* Dark mode adjustments */
+.dark .abnt-document {
+  color: #e5e7eb;
+}
