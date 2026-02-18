@@ -365,3 +365,25 @@ export const backups = mysqlTable("backups", {
 
 export type Backup = typeof backups.$inferSelect;
 export type InsertBackup = typeof backups.$inferInsert;
+
+
+/**
+ * Tabela de templates de cabeçalho personalizados
+ * Armazena configurações de cabeçalho para documentos jurídicos
+ */
+export const cabecalhoTemplates = mysqlTable("cabecalho_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(), // Um template por usuário
+  nomeEscritorio: varchar("nomeEscritorio", { length: 255 }),
+  oab: varchar("oab", { length: 50 }), // Ex: "OAB/SP 123.456"
+  endereco: text("endereco"),
+  telefone: varchar("telefone", { length: 50 }),
+  email: varchar("email", { length: 320 }),
+  website: varchar("website", { length: 255 }),
+  habilitado: boolean("habilitado").default(true).notNull(), // Se deve incluir cabeçalho automaticamente
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CabecalhoTemplate = typeof cabecalhoTemplates.$inferSelect;
+export type InsertCabecalhoTemplate = typeof cabecalhoTemplates.$inferInsert;

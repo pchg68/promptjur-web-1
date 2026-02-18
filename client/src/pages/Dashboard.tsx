@@ -1261,6 +1261,32 @@ export default function Dashboard() {
                           Copiar Prompt
                         </Button>
                         <Button
+                          variant="default"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              const { copyFormattedToClipboard } = await import('@/lib/formatacao-abnt');
+                              await copyFormattedToClipboard(geracaoMutation.data?.promptProfissional || "");
+                              toast.success(
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-5 h-5 text-green-500 animate-in zoom-in duration-300" />
+                                  <span className="font-semibold">Copiado com formatação ABNT!</span>
+                                </div>,
+                                {
+                                  description: "Cole no Word ou Google Docs para manter a formatação profissional.",
+                                  duration: 4000,
+                                  className: "border-green-500/50 bg-green-500/10"
+                                }
+                              );
+                            } catch (error) {
+                              toast.error("Erro ao copiar formatado. Tente usar o botão 'Copiar Prompt' normal.");
+                            }
+                          }}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Copiar Formatado
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={async () => {

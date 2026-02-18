@@ -28,6 +28,27 @@ export const appRouter = router({
   notificationPreferences: notificationPreferencesRouter,
   modelosPersonalizados: modelosPersonalizadosRouter,
   admin: adminRouter,
+  
+  cabecalho: router({
+    get: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getCabecalhoTemplate(ctx.user.id);
+    }),
+    
+    salvar: protectedProcedure
+      .input(z.object({
+        nomeEscritorio: z.string().optional(),
+        oab: z.string().optional(),
+        endereco: z.string().optional(),
+        telefone: z.string().optional(),
+        email: z.string().email().optional(),
+        website: z.string().url().optional(),
+        habilitado: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.salvarCabecalhoTemplate(ctx.user.id, input);
+      }),
+  }),
+  
   auth: router({
     me: publicProcedure.query(opts => {
       // Retornar null explicitamente se não houver usuário

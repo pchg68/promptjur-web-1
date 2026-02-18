@@ -13,7 +13,8 @@ import {
   templateTags, InsertTemplateTag,
   promptTags, InsertPromptTag,
   promptVersoes, InsertPromptVersao,
-  usoModelos, InsertUsoModelo
+  usoModelos, InsertUsoModelo,
+  cabecalhoTemplates, InsertCabecalhoTemplate
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -796,4 +797,91 @@ export async function getModelosMaisUsados(userId: number, limit: number = 5) {
   .limit(limit);
   
   return result;
+}
+
+
+// ===== CABEÇALHO TEMPLATES HELPERS =====
+
+/**
+ * Salva ou atualiza o template de cabeçalho do usuário
+ */
+export async function salvarCabecalhoTemplate(userId: number, data: Partial<InsertCabecalhoTemplate>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Verificar se já existe template para este usuário
+  const existing = await db.select().from(cabecalhoTemplates).where(eq(cabecalhoTemplates.userId, userId)).limit(1);
+  
+  if (existing.length > 0) {
+    // Atualizar existente
+    await db.update(cabecalhoTemplates)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(cabecalhoTemplates.userId, userId));
+    
+    return { ...existing[0], ...data };
+  } else {
+    // Criar novo
+    const result = await db.insert(cabecalhoTemplates).values({
+      userId,
+      ...data
+    });
+    
+    return {
+      id: result[0].insertId,
+      userId,
+      ...data
+    };
+  }
+}
+
+/**
+ * Busca o template de cabeçalho do usuário
+ */
+export async function getCabecalhoTemplate(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(cabecalhoTemplates).where(eq(cabecalhoTemplates.userId, userId)).limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Gera o texto do cabeçalho formatado para inclusão em documentos
+ */
+export async function gerarTextoCabecalho(userId: number): Promise<string | null> {
+  const template = await getCabecalhoTemplate(userId);
+  
+  if (!template || !template.habilitado) {
+    return null;
+  }
+  
+  const partes: string[] = [];
+  
+  if (template.nomeEscritorio) {
+    partes.push(`**${template.nomeEscritorio}**`);
+  }
+  
+  if (template.oab) {
+    partes.push(template.oab);
+  }
+  
+  if (template.endereco) {
+    partes.push(template.endereco);
+  }
+  
+  const contatos: string[] = [];
+  if (template.telefone) contatos.push(`Tel: ${template.telefone}`);
+  if (template.email) contatos.push(`Email: ${template.email}`);
+  if (template.website) contatos.push(`Site: ${template.website}`);
+  
+  if (contatos.length > 0) {
+    partes.push(contatos.join(' | '));
+  }
+  
+  if (partes.length === 0) {
+    return null;
+  }
+  
+  return partes.join('\n') + '\n\n---\n\n';
 }

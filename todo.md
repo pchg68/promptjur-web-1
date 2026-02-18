@@ -1812,3 +1812,32 @@
 - [x] Validar remoção de persona e contexto (padrões regex implementados)
 - [x] Verificar legibilidade e facilidade de correção (formatação ABNT aplicada)
 - [x] Testar exportação em diferentes formatos (Markdown, PDF com estilos ABNT)
+
+
+## Melhorias de UX - Sugestões de Acompanhamento (Sessão Atual)
+
+### 1. Botão "Copiar Formatado" com Rich Text ✅
+- [x] Criar função para converter Markdown para HTML com formatação ABNT (formatacao-abnt.ts)
+- [x] Implementar cópia para clipboard com formato rich text (HTML + ClipboardItem API)
+- [x] Adicionar botão "Copiar Formatado" ao lado do botão "Copiar" existente
+- [x] Adicionar feedback visual (toast com CheckCircle2 animado)
+- [x] Implementar fallback para erro de cópia
+
+### 2. Templates de Cabeçalho Personalizados (Backend ✅ | Frontend ⏳)
+- [x] Criar tabela no banco de dados para armazenar templates de cabeçalho (cabecalho_templates)
+- [x] Aplicar migração com pnpm db:push (migration 0022)
+- [x] Adicionar campos: nomeEscritorio, oab, endereco, telefone, email, website, habilitado
+- [x] Implementar procedure tRPC para salvar/atualizar template (cabecalho.salvar)
+- [x] Implementar procedure tRPC para buscar template do usuário (cabecalho.get)
+- [x] Criar função gerarTextoCabecalho() para formatar cabeçalho em Markdown
+- [ ] Criar interface de configuração de cabeçalho no dashboard
+- [ ] Integrar cabeçalho automático na geração de documentos
+
+### 3. Pré-visualização Lado a Lado (Split-Screen)
+- [ ] Criar componente SplitView com painel esquerdo e direito
+- [ ] Painel esquerdo: exibir prompt original (entrada do usuário)
+- [ ] Painel direito: exibir resultado formatado com ABNT
+- [ ] Adicionar botão para alternar entre visualização normal e split-screen
+- [ ] Implementar sincronização de scroll entre painéis (opcional)
+- [ ] Tornar divisor arrastável para ajustar proporção dos painéis
+- [ ] Adicionar responsividade (empilhar verticalmente em mobile)
