@@ -1773,3 +1773,11 @@
 - [x] Verificar se há campos Date ou objetos não serializáveis no retorno (timestamp: new Date())
 - [x] Corrigir serialização da resposta (converter para ISO string)
 - [x] Testar geração de documentos e validar funcionamento (176 testes passando)
+
+
+## Correção - Remover Cabeçalho de Instrução do Resultado (Sessão Atual)
+- [x] Investigar onde o texto "Você é um MESTRE em Engenharia de Prompts Jurídicos..." está sendo incluído (routers.ts linha 299)
+- [x] Identificar função/arquivo responsável pela geração de documentos (documentos.gerar mutation)
+- [x] Corrigir lógica para remover cabeçalho de instrução do sistema do resultado final (regex patterns)
+- [x] Garantir que apenas o conteúdo jurídico relevante seja exibido ao usuário
+- [x] Testar geração de documento e validar que cabeçalho não aparece mais (176 testes passando)

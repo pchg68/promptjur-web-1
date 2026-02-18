@@ -340,7 +340,27 @@ ${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` :
             ]
           });
 
-          const promptProfissional = llmGeracao.content;
+          let promptProfissional = llmGeracao.content;
+          
+          // Remover cabeçalho de instrução do sistema se presente no resultado
+          const padroes = [
+            /^Você é um MESTRE em Engenharia de Prompts Jurídicos[\s\S]*?(?=\n\n[A-Z]|\n\n#|\n\n\*\*|$)/i,
+            /^Você é um[\s\S]*?(?=\n\n[A-Z]|\n\n#|\n\n\*\*|$)/i,
+            /^Atue como[\s\S]*?(?=\n\n[A-Z]|\n\n#|\n\n\*\*|$)/i
+          ];
+          
+          for (const padrao of padroes) {
+            promptProfissional = promptProfissional.replace(padrao, '').trim();
+          }
+          
+          // Se ainda começar com instrução, remover primeira seção
+          if (promptProfissional.match(/^(Você é|Atue como)/i)) {
+            const linhas = promptProfissional.split('\n');
+            const idx = linhas.findIndex(l => l.trim() && !l.match(/^(Você é|Atue como|Sua tarefa|IMPORTANTE:|OBSERVAÇÃO:)/i));
+            if (idx > 0) {
+              promptProfissional = linhas.slice(idx).join('\n').trim();
+            }
+          }
 
           // Validar legislação citada
           const validacaoRaw = await validarLegislacao(promptProfissional);
