@@ -1757,3 +1757,11 @@
 - [x] Configurar integrações (expressIntegration, browserTracingIntegration, replayIntegration)
 - [x] Adicionar filtros de privacidade (remover cookies, authorization headers)
 - [x] Servidor funcionando sem erros (logs mostram rate limiting correto)
+
+
+## Correção de Bug - Erro tRPC no Dashboard (Sessão Atual)
+- [x] Investigar erro "Unable to transform response from server" no dashboard
+- [x] Identificar qual query está causando o problema (analytics.usageByDate)
+- [x] Verificar se há campos Date não serializáveis (new Date() na formatação)
+- [x] Corrigir serialização da resposta (usar split/join de string ao invés de Date)
+- [x] Testar correção e validar funcionamento (176 testes passando)

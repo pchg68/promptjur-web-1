@@ -713,11 +713,14 @@ export async function getUsageByDate(userId: number, days: number = 7) {
     }
   });
   
-  // Converter para array
-  return Object.entries(groupedByDate).map(([date, counts]) => ({
-    date: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-    ...counts
-  }));
+  // Converter para array (garantir que date seja string, não Date)
+  return Object.entries(groupedByDate).map(([dateStr, counts]) => {
+    const [year, month, day] = dateStr.split('-');
+    return {
+      date: `${day}/${month}`, // Formato dd/mm como string
+      ...counts
+    };
+  });
 }
 
 
