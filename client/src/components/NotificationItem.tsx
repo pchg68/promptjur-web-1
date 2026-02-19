@@ -13,7 +13,7 @@ interface NotificationItemProps {
     mensagem: string;
     lida: boolean;
     link: string | null;
-    createdAt: Date;
+    createdAt: string; // ISO string from server
   };
 }
 
@@ -89,7 +89,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     deleteMutation.mutate({ notificationId: notification.id });
   };
 
-  const timeAgo = (date: Date) => {
+  const timeAgo = (date: string | Date) => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
     
     if (seconds < 60) return "agora mesmo";

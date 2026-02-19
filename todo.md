@@ -1860,3 +1860,31 @@ As funções `getCabecalhoTemplate()` e `salvarCabecalhoTemplate()` estavam reto
 - Servidor reiniciado para aplicar correções
 - 176 testes passando
 - Dashboard carregando corretamente sem erros
+
+
+## Correção de Erro tRPC - Página Inicial (Sessão Atual) ✅ CONCLUÍDO
+
+- [x] Identificar qual query/mutation tRPC está falhando na página inicial
+- [x] Localizar procedure em routers.ts e rastrear função do banco
+- [x] Inspecionar função do banco e identificar campos Date não serializados
+- [x] Aplicar correção convertendo Date para ISO strings
+- [x] Verificar todos os caminhos de retorno da função
+- [x] Reiniciar servidor e testar página inicial
+- [x] Validar que testes continuam passando
+- [x] Documentar correção aplicada
+
+**Funções Corrigidas:**
+1. `getTagsUsuario()` em db.ts - serializa createdAt de tags
+2. `getUserNotifications()` em db-notifications.ts - serializa createdAt de notificações
+3. `searchPrompts()` em db-search.ts - serializa createdAt e updatedAt de prompts
+
+**Tipos Frontend Atualizados:**
+1. `NotificationItem.tsx` - createdAt agora aceita string ISO
+2. `Historico.tsx` - formatDate() agora aceita string | Date
+
+**Validação:**
+- ✅ 176 testes passando
+- ✅ TypeScript sem erros
+- ✅ Página inicial carregando sem erros
+- ✅ Dashboard carregando sem erros
+- ✅ Console do navegador limpo (sem erros tRPC)

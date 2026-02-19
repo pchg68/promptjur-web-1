@@ -41,7 +41,7 @@ export default function Historico() {
   const totalResults = searchQuery.data?.total || 0;
   const totalPages = Math.ceil(totalResults / limite);
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: string | Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',

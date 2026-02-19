@@ -487,7 +487,11 @@ export async function getTagsUsuario(userId: number) {
     .where(eq(tags.userId, userId))
     .orderBy(tags.nome);
     
-  return result;
+  // Serializar campos Date para ISO strings
+  return result.map(tag => ({
+    ...tag,
+    createdAt: tag.createdAt.toISOString()
+  }));
 }
 
 export async function criarTag(data: InsertTag) {

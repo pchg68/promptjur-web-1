@@ -23,7 +23,11 @@ export async function getUserNotifications(userId: number, limit: number = 50) {
     .orderBy(desc(notifications.createdAt))
     .limit(limit);
 
-  return result;
+  // Serializar campos Date para ISO strings
+  return result.map(notif => ({
+    ...notif,
+    createdAt: notif.createdAt.toISOString()
+  }));
 }
 
 export async function getUnreadCount(userId: number) {

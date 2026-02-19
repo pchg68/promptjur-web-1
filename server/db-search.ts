@@ -112,10 +112,21 @@ export async function searchPrompts(filters: SearchFilters) {
       .having(sql`COUNT(DISTINCT ${promptTags.tagId}) = ${filters.tagIds.length}`);
 
     const idsComTodasTags = new Set(promptsComTags.map((p) => p.promptId));
-    return results.filter((p) => idsComTodasTags.has(p.id));
+    const filtered = results.filter((p) => idsComTodasTags.has(p.id));
+    // Serializar campos Date para ISO strings
+    return filtered.map(p => ({
+      ...p,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString()
+    }));
   }
 
-  return results;
+  // Serializar campos Date para ISO strings
+  return results.map(p => ({
+    ...p,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString()
+  }));
 }
 
 /**
