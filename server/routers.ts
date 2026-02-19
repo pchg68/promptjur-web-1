@@ -689,27 +689,57 @@ Responda em formato JSON com:
       return prompts.filter(p => p.isFavorito);
     }),
 
-    // Exportar prompt como DOCX
+    // Exportar prompt como DOCX com formatação ABNT completa
     exportarDocx: protectedProcedure
       .input(z.object({
-        titulo: z.string(),
-        conteudo: z.string(),
-        area: z.string().optional(),
-        tipo: z.string().optional()
+        promptId: z.number().optional(),
+        titulo: z.string().min(1, "Título é obrigatório"),
+        conteudo: z.string().min(1, "Conteúdo é obrigatório"),
+        incluirCabecalho: z.boolean().optional().default(true),
+        incluirDataHora: z.boolean().optional().default(true),
       }))
-      .mutation(async ({ input }) => {
-        const buffer = await gerarDocumentoWord({
+      .mutation(async ({ input, ctx }) => {
+        const { generateDocxABNT, gerarNomeArquivo } = await import("./docx-generator");
+        
+        // Buscar cabeçalho do usuário se solicitado
+        let cabecalho = undefined;
+        if (input.incluirCabecalho) {
+          const cabecalhoDb = await db.getCabecalhoTemplate(ctx.user.id);
+          if (cabecalhoDb) {
+            cabecalho = {
+              nomeEscritorio: cabecalhoDb.nomeEscritorio || undefined,
+              numeroOAB: cabecalhoDb.oab || undefined, // Campo do banco é 'oab'
+              endereco: cabecalhoDb.endereco || undefined,
+              telefone: cabecalhoDb.telefone || undefined,
+              email: cabecalhoDb.email || undefined,
+            };
+          }
+        }
+        
+        // Gerar documento DOCX com formatação ABNT
+        const buffer = await generateDocxABNT({
           titulo: input.titulo,
           conteudo: input.conteudo,
-          area: input.area,
-          tipo: input.tipo,
-          data: new Date()
+          cabecalho,
+          incluirDataHora: input.incluirDataHora,
+          removerPersonaContexto: true, // Sempre remover persona/contexto
         });
+        
+        // Registrar exportação no histórico se promptId fornecido
+        if (input.promptId) {
+          await db.createHistorico({
+            userId: ctx.user.id,
+            acao: "exportacao_docx",
+            promptId: input.promptId,
+            duracaoMs: 0,
+            sucesso: true
+          });
+        }
         
         // Converter buffer para base64 para enviar ao cliente
         return {
           buffer: buffer.toString('base64'),
-          filename: `${input.titulo.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.docx`
+          filename: gerarNomeArquivo(input.titulo)
         };
       })
   }),

@@ -627,10 +627,11 @@ export default function Dashboard() {
     }
 
     gerarDocMutation.mutate({
+      promptId: geracaoMutation.data.promptId,
       titulo: `Prompt Jurídico - ${tipoDocumento.charAt(0).toUpperCase() + tipoDocumento.slice(1)}`,
       conteudo: geracaoMutation.data.promptProfissional,
-      area: geracaoMutation.data.area,
-      tipo: tipoDocumento
+      incluirCabecalho: true,
+      incluirDataHora: true
     });
   };
 
@@ -1289,17 +1290,26 @@ export default function Dashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={async () => {
-                            await exportAsDOCXABNT({
-                              titulo: "Prompt Jurídico Profissional",
-                              conteudo: geracaoMutation.data?.promptProfissional || "",
-                              areaJuridica: areaGeracao,
-                              tipoDocumento: tipoDocumento
+                          onClick={() => {
+                            if (!geracaoMutation.data?.promptProfissional || !geracaoMutation.data?.promptId) {
+                              toast.error("Nenhum prompt gerado para exportar");
+                              return;
+                            }
+                            gerarDocMutation.mutate({
+                              promptId: geracaoMutation.data.promptId,
+                              titulo: `Prompt Jurídico - ${tipoDocumento.charAt(0).toUpperCase() + tipoDocumento.slice(1)}`,
+                              conteudo: geracaoMutation.data.promptProfissional,
+                              incluirCabecalho: true,
+                              incluirDataHora: true
                             });
-                            toast.success("Arquivo .DOCX salvo com formatação ABNT!");
                           }}
+                          disabled={gerarDocMutation.isPending || !geracaoMutation.data?.promptId}
                         >
-                          <FileDown className="w-4 h-4 mr-2" />
+                          {gerarDocMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <FileDown className="w-4 h-4 mr-2" />
+                          )}
                           DOCX (ABNT)
                         </Button>
                         <Button
@@ -1537,17 +1547,26 @@ export default function Dashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={async () => {
-                          await exportAsDOCXABNT({
+                        onClick={() => {
+                          if (!otimizacaoMutation.data?.promptOtimizado || !otimizacaoMutation.data?.promptId) {
+                            toast.error("Nenhum prompt otimizado para exportar");
+                            return;
+                          }
+                          gerarDocMutation.mutate({
+                            promptId: otimizacaoMutation.data.promptId,
                             titulo: "Prompt Otimizado",
-                            conteudo: otimizacaoMutation.data?.promptOtimizado || "",
-                            areaJuridica: otimizacaoMutation.data?.area,
-                            tipoDocumento: "Otimização"
+                            conteudo: otimizacaoMutation.data.promptOtimizado,
+                            incluirCabecalho: true,
+                            incluirDataHora: true
                           });
-                          toast.success("Arquivo .DOCX salvo com formatação ABNT!");
                         }}
+                        disabled={gerarDocMutation.isPending || !otimizacaoMutation.data?.promptId}
                       >
-                        <FileDown className="w-4 h-4 mr-2" />
+                        {gerarDocMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <FileDown className="w-4 h-4 mr-2" />
+                        )}
                         DOCX (ABNT)
                       </Button>
                       <Button

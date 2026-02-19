@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2, ArrowLeft } from "lucide-react";
+import { Scale, History as HistoryIcon, Home, BookTemplate, Filter, X, Eye, Copy, Search, Star, RotateCcw, Trash2, ArrowLeft, FileDown, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
@@ -31,6 +31,32 @@ export default function Historico() {
 
   // Query de histórico (fallback)
   const historicoQuery = trpc.historico.listar.useQuery({ limit: 100 });
+
+  // Mutation para exportar DOCX
+  const exportarDocxMutation = trpc.prompts.exportarDocx.useMutation({
+    onSuccess: (data) => {
+      // Converter base64 para blob e fazer download
+      const byteCharacters = atob(data.buffer);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success("Arquivo DOCX exportado com formatação ABNT!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao exportar DOCX: " + error.message);
+    }
+  });
 
   const handleSearch = (filters: SearchFilters) => {
     setSearchFilters(filters);
@@ -267,6 +293,34 @@ export default function Historico() {
                               title="Copiar prompt"
                             >
                               <Copy className="w-4 h-4" />
+                            </Button>
+                            
+                            {/* Exportar DOCX */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const conteudo = prompt.promptOtimizado || prompt.promptOriginal;
+                                if (!conteudo) {
+                                  toast.error("Nenhum conteúdo para exportar");
+                                  return;
+                                }
+                                exportarDocxMutation.mutate({
+                                  promptId: prompt.id,
+                                  titulo: `Prompt ${prompt.tipo} - ${prompt.areaJuridica || 'Jurídico'}`,
+                                  conteudo,
+                                  incluirCabecalho: true,
+                                  incluirDataHora: true
+                                });
+                              }}
+                              disabled={exportarDocxMutation.isPending}
+                              title="Exportar como DOCX (ABNT)"
+                            >
+                              {exportarDocxMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <FileDown className="w-4 h-4" />
+                              )}
                             </Button>
                             
                             {/* Favoritar */}
