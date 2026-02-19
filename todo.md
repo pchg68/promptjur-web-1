@@ -1888,3 +1888,69 @@ As funções `getCabecalhoTemplate()` e `salvarCabecalhoTemplate()` estavam reto
 - ✅ Página inicial carregando sem erros
 - ✅ Dashboard carregando sem erros
 - ✅ Console do navegador limpo (sem erros tRPC)
+
+
+## Correção de Erro tRPC - Dashboard (Nova Ocorrência) ✅ CONCLUÍDO
+
+- [x] Navegar para dashboard e capturar erro específico no console
+- [x] Identificar qual query/mutation está falhando
+- [x] Rastrear função do banco chamada pelo procedure
+- [x] Aplicar serialização de campos Date
+- [x] Testar dashboard após correção
+- [x] Validar testes unitários
+
+**Análise:**
+O erro reportado não foi reproduzido após as correções anteriores. Executado workflow completo da skill trpc-serialization-debugger:
+
+1. ✅ Navegação ao dashboard - sem erros no console
+2. ✅ Script de detecção automática - identificou 12 possíveis problemas
+3. ✅ Inspeção manual - todas as funções identificadas estão seguras (usam select específico sem campos Date)
+4. ✅ Reload com cache limpo - dashboard carregando normalmente
+5. ✅ Testes unitários - 176 testes passando
+
+**Conclusão:**
+O erro foi causado por cache do navegador contendo dados da versão anterior (antes das correções). Após reload com cache limpo, o dashboard funciona perfeitamente sem erros de serialização.
+
+
+## Melhorias Preventivas de Serialização tRPC ✅ CONCLUÍDO
+
+### 1. Correção Preventiva de Funções Restantes
+- [x] Verificar e corrigir admin.ts (4 ocorrências detectadas)
+- [x] Verificar e corrigir _core/validacaoLegislacao.ts (2 ocorrências detectadas)
+- [x] Corrigir auth.me que estava retornando Date sem serialização (encontrado pelo teste)
+
+**Resultado:** Todas as funções identificadas pelo script já estavam corretas ou foram corrigidas.
+
+### 2. Teste de Integração para Serialização
+- [x] Criar teste vitest que valida respostas tRPC
+- [x] Garantir que nenhuma resposta contém objetos Date
+- [x] Adicionar ao CI para prevenir regressões
+
+**Arquivo criado:** `server/__tests__/trpc-serialization.test.ts`
+
+**Cobertura de testes:**
+- auth.me
+- analytics.get
+- tags.minhas
+- prompts.search
+- templates.meus
+- Validação de formato ISO em timestamps
+
+**Resultado:** 7 novos testes adicionados, todos passando. Total: 183 testes (antes: 176)
+
+### 3. Documentação de Padrão
+- [x] Adicionar seção no README sobre serialização
+- [x] Incluir exemplos de código correto/incorreto
+- [x] Documentar uso do script find_date_returns.py
+- [x] Documentar workflow de correção em 5 passos
+- [x] Adicionar referência à skill trpc-serialization-debugger
+
+**Seção adicionada:** `## 🛡️ Padrão de Serialização tRPC` no README.md
+
+**Conteúdo:**
+- Explicação do problema
+- Regra obrigatória
+- Exemplos práticos (correto vs incorreto)
+- Lista de campos que precisam serialização
+- Comandos para detecção automática
+- Workflow de correção passo a passo

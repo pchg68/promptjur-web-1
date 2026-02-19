@@ -354,6 +354,98 @@ VITE_APP_LOGO=/seu-logo.svg
 
 ---
 
+## 🛡️ Padrão de Serialização tRPC
+
+### Por que serializar campos Date?
+
+O tRPC usa **superjson** para serialização automática, mas em alguns casos objetos `Date` podem causar o erro:
+
+```
+TRPCClientError: Unable to transform response from server
+```
+
+### Regra Obrigatória
+
+**Todas as funções do banco de dados que retornam objetos com campos `Date` DEVEM serializá-los para strings ISO antes de retornar.**
+
+### Exemplos de Código
+
+#### ❌ Incorreto (retorna Date)
+
+```typescript
+export async function getTagsUsuario(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select().from(tags)
+    .where(eq(tags.userId, userId));
+    
+  return result; // ❌ Erro: createdAt é Date
+}
+```
+
+#### ✅ Correto (serializa Date para ISO string)
+
+```typescript
+export async function getTagsUsuario(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select().from(tags)
+    .where(eq(tags.userId, userId));
+    
+  // ✅ Serializar campos Date para ISO strings
+  return result.map(tag => ({
+    ...tag,
+    createdAt: tag.createdAt.toISOString()
+  }));
+}
+```
+
+### Campos que precisam serialização
+
+- `createdAt`
+- `updatedAt`
+- `lastSignedIn`
+- Qualquer campo do tipo `timestamp` no schema Drizzle
+
+### Detecção Automática
+
+Use o script de detecção para encontrar possíveis problemas:
+
+```bash
+python3 /home/ubuntu/skills/trpc-serialization-debugger/scripts/find_date_returns.py /caminho/do/projeto/server
+```
+
+### Teste de Integração
+
+O projeto inclui um teste automático que valida serialização:
+
+```bash
+pnpm vitest run server/__tests__/trpc-serialization.test.ts
+```
+
+Este teste verifica que **nenhuma resposta tRPC contém objetos Date não serializados**, prevenindo erros em produção.
+
+### Workflow de Correção
+
+Se encontrar o erro "Unable to transform response from server":
+
+1. **Identificar**: Verifique qual query/mutation está falhando no console do navegador
+2. **Rastrear**: Localize o procedure em `routers.ts` e a função do banco chamada
+3. **Inspecionar**: Verifique se a função retorna objetos com campos Date
+4. **Corrigir**: Aplique `.toISOString()` em todos os campos Date antes do retorno
+5. **Testar**: Execute os testes e valide no navegador
+
+### Referência Completa
+
+Para workflow detalhado e scripts de diagnóstico, consulte a skill:
+```
+/home/ubuntu/skills/trpc-serialization-debugger/SKILL.md
+```
+
+---
+
 ## 🤝 Contribuindo
 
 Contribuições são bem-vindas! Por favor:

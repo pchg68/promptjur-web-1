@@ -54,8 +54,13 @@ export const appRouter = router({
       // Retornar null explicitamente se não houver usuário
       if (!opts.ctx.user) return null;
       
-      // Retornar usuário com campos Date serializados corretamente
-      return opts.ctx.user;
+      // Retornar usuário com campos Date serializados para ISO strings
+      return {
+        ...opts.ctx.user,
+        createdAt: opts.ctx.user.createdAt.toISOString(),
+        updatedAt: opts.ctx.user.updatedAt.toISOString(),
+        lastSignedIn: opts.ctx.user.lastSignedIn.toISOString(),
+      };
     }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
