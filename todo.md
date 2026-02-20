@@ -2021,3 +2021,27 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - ✅ Botões funcionando em Dashboard (abas Gerar e Otimizar) e Histórico
 - ✅ Download automático funcionando perfeitamente
 - ✅ Toast de sucesso exibido corretamente
+
+
+## Refinamento da Aba "Testar Prompt" (Sessão Atual)
+- [ ] Remover opções de teste com Gemini e Claude
+- [ ] Simplificar interface da aba Testar Prompt
+- [ ] Manter apenas funcionalidade essencial de teste
+- [ ] Atualizar UI para design mais limpo
+- [ ] Testar funcionalidade após remoção
+
+
+## Refinamento da Aba "Testar Prompt" - Remover Gemini e Claude ✅ CONCLUÍDO
+
+- [x] Identificar código relacionado aos testes com Gemini e Claude
+- [x] Remover opções Claude e Gemini da função testarPromptNaPlataforma
+- [x] Simplificar UI mantendo apenas Manus, ChatGPT e Perplexity
+- [x] Testar funcionalidade no navegador
+- [x] Validar testes unitários
+
+**Resultado:**
+- ✅ Opções Claude e Gemini removidas do menu "Testar Prompt"
+- ✅ Menu simplificado com apenas 3 opções: Manus (Recomendado), ChatGPT e Perplexity
+- ✅ Interface mais limpa e focada nas plataformas essenciais
+- ✅ 191 testes continuam passando
+- ✅ TypeScript sem erros

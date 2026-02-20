@@ -412,23 +412,19 @@ export default function Dashboard() {
     toast.success("Copiado para a área de transferência!");
   };
 
-  const testarPromptNaPlataforma = (prompt: string, plataforma: 'chatgpt' | 'claude' | 'gemini' | 'perplexity' | 'manus') => {
+  const testarPromptNaPlataforma = (prompt: string, plataforma: 'chatgpt' | 'perplexity' | 'manus') => {
     // Copiar para clipboard
     navigator.clipboard.writeText(prompt);
-    
+
     // URLs das plataformas
     const urls = {
       chatgpt: 'https://chatgpt.com/',
-      claude: 'https://claude.ai/new',
-      gemini: 'https://gemini.google.com/app',
       perplexity: 'https://www.perplexity.ai/',
       manus: 'https://manus.im/'
     };
-    
+
     const nomes = {
       chatgpt: 'ChatGPT',
-      claude: 'Claude',
-      gemini: 'Gemini',
       perplexity: 'Perplexity',
       manus: 'Manus'
     };
@@ -957,14 +953,7 @@ export default function Dashboard() {
                               <Bot className="w-4 h-4 mr-2" />
                               ChatGPT
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'claude')}>
-                              <MessageSquare className="w-4 h-4 mr-2" />
-                              Claude
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'gemini')}>
-                              <Sparkle className="w-4 h-4 mr-2" />
-                              Gemini
-                            </DropdownMenuItem>
+
                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(promptAnalise, 'perplexity')}>
                               <Search className="w-4 h-4 mr-2" />
                               Perplexity
@@ -1071,7 +1060,7 @@ export default function Dashboard() {
                   Gerar Prompt Jurídico Profissional
                 </CardTitle>
                 <CardDescription>
-                  Crie prompts PRONTOS PARA USO em ferramentas de IA (ChatGPT, Claude, Gemini) para gerar peças jurídicas de excelência
+                  Crie prompts PRONTOS PARA USO em ferramentas de IA (ChatGPT, Perplexity, Manus) para gerar peças jurídicas de excelência
                 </CardDescription>
                 <DisclaimerLegal className="mt-4" />
               </CardHeader>
@@ -1346,14 +1335,7 @@ export default function Dashboard() {
                                <Bot className="w-4 h-4 mr-2" />
                                ChatGPT
                              </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'claude')}>
-                               <MessageSquare className="w-4 h-4 mr-2" />
-                               Claude
-                             </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'gemini')}>
-                               <Sparkle className="w-4 h-4 mr-2" />
-                               Gemini
-                             </DropdownMenuItem>
+
                              <DropdownMenuItem onClick={() => testarPromptNaPlataforma(geracaoMutation.data?.promptProfissional || "", 'perplexity')}>
                                <Search className="w-4 h-4 mr-2" />
                                Perplexity
@@ -1611,14 +1593,7 @@ export default function Dashboard() {
                             <Bot className="w-4 h-4 mr-2" />
                             ChatGPT
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'claude')}>
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Claude
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'gemini')}>
-                            <Sparkle className="w-4 h-4 mr-2" />
-                            Gemini
-                          </DropdownMenuItem>
+
                           <DropdownMenuItem onClick={() => testarPromptNaPlataforma(otimizacaoMutation.data?.promptOtimizado || "", 'perplexity')}>
                             <Search className="w-4 h-4 mr-2" />
                             Perplexity
