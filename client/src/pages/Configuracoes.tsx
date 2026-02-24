@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Building2, Loader2, Mail, MapPin, Phone, Save, Scale } from "lucide-react";
+import { Building2, Eye, Loader2, Mail, MapPin, Phone, Save, Scale } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -190,6 +190,48 @@ export default function Configuracoes() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-[#0a0e1a]/50 border-[#d4af37]/30 text-white placeholder:text-gray-500"
               />
+            </div>
+
+            {/* Pré-visualização do Cabeçalho */}
+            <div className="space-y-2">
+              <Label className="text-white flex items-center gap-2">
+                <Eye className="w-4 h-4 text-[#d4af37]" />
+                Pré-visualização do Cabeçalho
+              </Label>
+              <div className="bg-white text-black p-6 rounded-lg border-2 border-[#d4af37]/30">
+                {/* Simulação do cabeçalho DOCX */}
+                <div className="space-y-2 font-sans">
+                  {nomeEscritorio ? (
+                    <p className="font-bold text-lg text-center">{nomeEscritorio}</p>
+                  ) : (
+                    <p className="text-gray-400 text-center italic">Nome do Escritório</p>
+                  )}
+                  
+                  {oab && <p className="text-sm text-center">{oab}</p>}
+                  
+                  {endereco && (
+                    <p className="text-sm text-center whitespace-pre-line">{endereco}</p>
+                  )}
+                  
+                  <div className="flex justify-center gap-4 text-sm">
+                    {telefone && <span>Tel: {telefone}</span>}
+                    {email && <span>Email: {email}</span>}
+                  </div>
+                  
+                  <p className="text-xs text-center text-gray-500 mt-4 pt-2 border-t border-gray-300">
+                    Gerado em: {new Date().toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+                
+                {!nomeEscritorio && !oab && !endereco && !telefone && !email && (
+                  <p className="text-gray-400 text-center text-sm mt-4">
+                    Preencha os campos acima para ver a pré-visualização
+                  </p>
+                )}
+              </div>
+              <p className="text-xs text-gray-500">
+                Esta é uma representação aproximada de como o cabeçalho aparecerá nos documentos DOCX exportados.
+              </p>
             </div>
 
             {/* Botão Salvar */}

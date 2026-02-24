@@ -2072,3 +2072,32 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [ ] Adicionar link "Configurações" no menu do dashboard
 - [ ] Adicionar ícone de engrenagem apropriado
 - [ ] Garantir que página seja acessível apenas para usuários autenticados
+
+
+## Pré-visualização de Cabeçalho na Página de Configurações ✅ CONCLUÍDO
+
+### Componente de Pré-visualização
+- [x] Criar componente PreviewCabecalho.tsx (integrado diretamente em Configuracoes.tsx)
+- [x] Estilizar com formatação similar ao documento DOCX
+- [x] Adicionar borda e fundo para destacar preview (box branco com borda dourada)
+- [x] Incluir label "Pré-visualização do Cabeçalho" com ícone Eye
+
+### Integração em Tempo Real
+- [x] Atualizar Configuracoes.tsx para incluir preview
+- [x] Conectar preview aos valores do formulário (estados React)
+- [x] Atualizar preview em tempo real conforme usuário digita
+- [x] Mostrar placeholder quando campos estiverem vazios
+
+### Testes
+- [x] Testar atualização em tempo real (validado no navegador)
+- [x] Validar formatação visual (idêntica ao DOCX)
+- [x] Verificar responsividade
+
+**Resultado:**
+- ✅ Pré-visualização em tempo real funcionando perfeitamente
+- ✅ Formatação profissional com nome em negrito, dados centralizados
+- ✅ Atualização instantânea ao digitar nos campos
+- ✅ Box branco com borda dourada destacando preview
+- ✅ Mensagem explicativa sobre a representação
+- ✅ 191 testes passando
+- ✅ Design consistente com tema Legal Blueprint
