@@ -11,8 +11,8 @@ import { sdk } from "./sdk";
 export const RATE_LIMITS = {
   free: {
     windowMs: 60 * 60 * 1000, // 1 hora
-    max: 10, // 10 requisições por hora
-    dailyMax: 50, // 50 requisições por dia
+    max: 1000, // 1000 requisições por hora (aumentado para desenvolvimento)
+    dailyMax: 5000, // 5000 requisições por dia (aumentado para desenvolvimento)
   },
   pro: {
     windowMs: 60 * 60 * 1000, // 1 hora

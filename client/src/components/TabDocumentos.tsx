@@ -132,9 +132,45 @@ export default function TabDocumentos() {
     });
   };
 
+  const exportarDocxMutation = trpc.prompts.exportarDocx.useMutation({
+    onSuccess: (data) => {
+      // Converter base64 para blob e fazer download
+      const byteCharacters = atob(data.buffer);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success(`Documento exportado: ${data.filename}`);
+    },
+    onError: (error) => {
+      toast.error(`Erro ao exportar: ${error.message}`);
+    },
+  });
+
   const handleExportar = () => {
-    // TODO: Implementar exportação DOCX
-    toast.info("Funcionalidade de exportação será implementada em breve!");
+    if (!geracaoMutation.data) {
+      toast.error("Nenhum documento gerado para exportar");
+      return;
+    }
+
+    const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento;
+    exportarDocxMutation.mutate({
+      promptId: 0, // Documentos avançados não têm promptId
+      titulo: `Documento Jurídico - ${tipoLabel}`,
+      conteudo: geracaoMutation.data.documento,
+      incluirCabecalho: true,
+      incluirDataHora: true
+    });
   };
 
   return (
@@ -322,9 +358,23 @@ export default function TabDocumentos() {
                     <Save className="mr-2 w-4 h-4" />
                     Salvar como Modelo
                   </Button>
-                  <Button onClick={handleExportar} variant="default" size="sm">
-                    <Download className="mr-2 w-4 h-4" />
-                    Exportar DOCX
+                  <Button 
+                    onClick={handleExportar} 
+                    variant="default" 
+                    size="sm"
+                    disabled={exportarDocxMutation.isPending}
+                  >
+                    {exportarDocxMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                        Exportando...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 w-4 h-4" />
+                        Exportar DOCX
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

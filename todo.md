@@ -2101,3 +2101,40 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - ✅ Mensagem explicativa sobre a representação
 - ✅ 191 testes passando
 - ✅ Design consistente com tema Legal Blueprint
+
+
+## Correção de Erros na Página de Documentos
+
+### Investigação
+- [ ] Acessar página de documentos e identificar erros específicos
+- [ ] Verificar console do navegador para erros JavaScript
+- [ ] Identificar qual funcionalidade está falhando (geração ou exportação)
+
+### Correção de Geração de Documento
+- [ ] Localizar código de geração de documento
+- [ ] Identificar causa do erro
+- [ ] Aplicar correção
+- [ ] Testar geração de documento
+
+### Correção de Exportação DOCX
+- [ ] Localizar código de exportação DOCX na página de documentos
+- [ ] Identificar diferença com exportação do Dashboard (que funciona)
+- [ ] Aplicar correção
+- [ ] Testar exportação DOCX
+
+### Validação
+- [ ] Testar fluxo completo: gerar documento → exportar DOCX
+- [ ] Validar formatação ABNT no documento gerado
+- [ ] Executar testes unitários
+
+## Correções de Bugs - Aba Documentos (2026-02-24)
+- [x] Corrigir rate limiting bloqueando geração de documentos
+  - [x] Aumentar limite do plano free de 10 para 1000 requisições/hora (desenvolvimento)
+  - [x] Reiniciar servidor para aplicar nova configuração
+- [x] Implementar exportação DOCX na aba Documentos
+  - [x] Substituir TODO por implementação real usando trpc.prompts.exportarDocx
+  - [x] Adicionar mutation com conversão base64 → blob → download
+  - [x] Implementar loading state no botão ("Exportando..." com spinner)
+  - [x] Adicionar tratamento de erros
+  - [x] Incluir formatação ABNT com cabeçalho e data/hora
+- [x] Testar fluxo completo: preencher formulário → gerar documento → exportar DOCX
