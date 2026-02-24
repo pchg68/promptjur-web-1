@@ -2045,3 +2045,30 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - ✅ Interface mais limpa e focada nas plataformas essenciais
 - ✅ 191 testes continuam passando
 - ✅ TypeScript sem erros
+
+
+## Página de Configurações de Escritório
+
+### Backend
+- [ ] Verificar se procedures cabecalho.get e cabecalho.salvar já existem
+- [ ] Criar/atualizar procedures tRPC para gerenciar dados do escritório
+- [ ] Garantir que dados sejam salvos por usuário (userId)
+
+### Frontend
+- [ ] Criar página /configuracoes com formulário completo
+- [ ] Campos: nome do escritório, OAB, endereço, telefone, email
+- [ ] Implementar validação de formulário (campos obrigatórios)
+- [ ] Adicionar botão "Salvar Configurações"
+- [ ] Mostrar toast de sucesso/erro
+- [ ] Carregar dados salvos ao abrir a página
+
+### Integração com Exportação DOCX
+- [ ] Atualizar função generateDocxABNT para aceitar dados do escritório
+- [ ] Modificar procedure exportarDocx para buscar dados do usuário
+- [ ] Incluir dados do escritório no cabeçalho do documento
+- [ ] Testar exportação com e sem dados configurados
+
+### Navegação
+- [ ] Adicionar link "Configurações" no menu do dashboard
+- [ ] Adicionar ícone de engrenagem apropriado
+- [ ] Garantir que página seja acessível apenas para usuários autenticados

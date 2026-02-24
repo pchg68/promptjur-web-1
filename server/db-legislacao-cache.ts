@@ -33,7 +33,12 @@ export async function getCachedValidation(citacao: string): Promise<LegislacaoCa
       return null;
     }
 
-    return cached;
+    // Serializar campos Date para evitar erros de serialização tRPC
+    return {
+      ...cached,
+      createdAt: cached.createdAt.toISOString(),
+      expiresAt: cached.expiresAt ? cached.expiresAt.toISOString() : null
+    } as any;
   } catch (error) {
     console.error("[Cache] Erro ao buscar validação:", error);
     return null;

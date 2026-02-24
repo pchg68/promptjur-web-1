@@ -14,6 +14,7 @@ import BibliotecaPublica from "./pages/BibliotecaPublica";
 import Tutoriais from "./pages/Tutoriais";
 import BibliotecaTemplates from "./pages/BibliotecaTemplates";
 import AdminTools from "./pages/AdminTools";
+import Configuracoes from "./pages/Configuracoes";
 
 function Router() {
   return (
@@ -26,6 +27,7 @@ function Router() {
       <Route path={"/biblioteca-publica"} component={BibliotecaPublica} />      <Route path={" /tutoriais"} component={Tutoriais} />
       <Route path={"/biblioteca-templates"} component={BibliotecaTemplates} />
       <Route path={"/admin-tools"} component={AdminTools} />
+      <Route path={"/configuracoes"} component={Configuracoes} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
