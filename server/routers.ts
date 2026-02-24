@@ -741,6 +741,60 @@ Responda em formato JSON com:
           buffer: buffer.toString('base64'),
           filename: gerarNomeArquivo(input.titulo)
         };
+      }),
+
+    // Exportar prompt como PDF com formatação ABNT completa
+    exportarPdf: protectedProcedure
+      .input(z.object({
+        promptId: z.number().optional(),
+        titulo: z.string().min(1, "Título é obrigatório"),
+        conteudo: z.string().min(1, "Conteúdo é obrigatório"),
+        incluirCabecalho: z.boolean().optional().default(true),
+        incluirDataHora: z.boolean().optional().default(true),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { generatePdfABNT, gerarNomeArquivoPdf } = await import("./pdf-generator");
+        
+        // Buscar cabeçalho do usuário se solicitado
+        let cabecalho = undefined;
+        if (input.incluirCabecalho) {
+          const cabecalhoDb = await db.getCabecalhoTemplate(ctx.user.id);
+          if (cabecalhoDb) {
+            cabecalho = {
+              nomeEscritorio: cabecalhoDb.nomeEscritorio || undefined,
+              numeroOAB: cabecalhoDb.oab || undefined,
+              endereco: cabecalhoDb.endereco || undefined,
+              telefone: cabecalhoDb.telefone || undefined,
+              email: cabecalhoDb.email || undefined,
+            };
+          }
+        }
+        
+        // Gerar documento PDF com formatação ABNT
+        const buffer = await generatePdfABNT({
+          titulo: input.titulo,
+          conteudo: input.conteudo,
+          cabecalho,
+          incluirDataHora: input.incluirDataHora,
+          removerPersonaContexto: true,
+        });
+        
+        // Registrar exportação no histórico se promptId fornecido
+        if (input.promptId) {
+          await db.createHistorico({
+            userId: ctx.user.id,
+            acao: "exportacao_pdf",
+            promptId: input.promptId,
+            duracaoMs: 0,
+            sucesso: true
+          });
+        }
+        
+        // Converter buffer para base64 para enviar ao cliente
+        return {
+          buffer: buffer.toString('base64'),
+          filename: gerarNomeArquivoPdf(input.titulo)
+        };
       })
   }),
 

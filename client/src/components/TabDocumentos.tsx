@@ -157,7 +157,32 @@ export default function TabDocumentos() {
     },
   });
 
-  const handleExportar = () => {
+  const exportarPdfMutation = trpc.prompts.exportarPdf.useMutation({
+    onSuccess: (data) => {
+      // Converter base64 para blob e fazer download
+      const byteCharacters = atob(data.buffer);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success(`Documento exportado: ${data.filename}`);
+    },
+    onError: (error) => {
+      toast.error(`Erro ao exportar PDF: ${error.message}`);
+    },
+  });
+
+  const handleExportarDocx = () => {
     if (!geracaoMutation.data) {
       toast.error("Nenhum documento gerado para exportar");
       return;
@@ -165,7 +190,23 @@ export default function TabDocumentos() {
 
     const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento;
     exportarDocxMutation.mutate({
-      promptId: 0, // Documentos avançados não têm promptId
+      promptId: 0,
+      titulo: `Documento Jurídico - ${tipoLabel}`,
+      conteudo: geracaoMutation.data.documento,
+      incluirCabecalho: true,
+      incluirDataHora: true
+    });
+  };
+
+  const handleExportarPdf = () => {
+    if (!geracaoMutation.data) {
+      toast.error("Nenhum documento gerado para exportar");
+      return;
+    }
+
+    const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento;
+    exportarPdfMutation.mutate({
+      promptId: 0,
       titulo: `Documento Jurídico - ${tipoLabel}`,
       conteudo: geracaoMutation.data.documento,
       incluirCabecalho: true,
@@ -359,8 +400,8 @@ export default function TabDocumentos() {
                     Salvar como Modelo
                   </Button>
                   <Button 
-                    onClick={handleExportar} 
-                    variant="default" 
+                    onClick={handleExportarDocx} 
+                    variant="outline" 
                     size="sm"
                     disabled={exportarDocxMutation.isPending}
                   >
@@ -373,6 +414,24 @@ export default function TabDocumentos() {
                       <>
                         <Download className="mr-2 w-4 h-4" />
                         Exportar DOCX
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={handleExportarPdf} 
+                    variant="default" 
+                    size="sm"
+                    disabled={exportarPdfMutation.isPending}
+                  >
+                    {exportarPdfMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                        Exportando...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 w-4 h-4" />
+                        Exportar PDF
                       </>
                     )}
                   </Button>

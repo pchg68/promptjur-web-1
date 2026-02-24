@@ -2138,3 +2138,41 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Adicionar tratamento de erros
   - [x] Incluir formatação ABNT com cabeçalho e data/hora
 - [x] Testar fluxo completo: preencher formulário → gerar documento → exportar DOCX
+
+## Nova Funcionalidade - Exportação PDF (2026-02-24)
+- [ ] Implementar exportação em PDF na aba Documentos
+  - [ ] Adicionar botão "Exportar PDF" ao lado do botão "Exportar DOCX"
+  - [ ] Criar mutation usando trpc.prompts.exportarPdf
+  - [ ] Implementar conversão base64 → blob → download automático
+  - [ ] Adicionar loading state no botão
+  - [ ] Incluir formatação ABNT (Arial 12, espaçamento 1.5, tabulação 2cm)
+  - [ ] Testar exportação completa no navegador
+
+## Nova Funcionalidade - Exportação PDF (Sessão Atual) ✅ CONCLUÍDA
+- [x] Criar módulo pdf-generator.ts com formatação ABNT
+  - [x] Instalar PDFKit e @types/pdfkit
+  - [x] Implementar generatePdfABNT() com margens 3cm/2cm
+  - [x] Suporte a cabeçalho personalizado (escritório, OAB, contato)
+  - [x] Formatação: Arial 12pt, espaçamento 1.5, tabulação 2cm
+  - [x] Remoção automática de persona/contexto
+  - [x] Processamento de markdown (títulos, listas, negrito)
+- [x] Adicionar procedure exportarPdf no backend
+  - [x] Criar mutation prompts.exportarPdf no routers.ts
+  - [x] Integrar com pdf-generator.ts
+  - [x] Buscar cabeçalho do usuário do banco de dados
+  - [x] Registrar exportação no histórico
+  - [x] Retornar buffer base64 para download no frontend
+- [x] Atualizar schema do banco de dados
+  - [x] Adicionar "exportacao_pdf" ao enum acao da tabela historico
+  - [x] Executar pnpm db:push para aplicar migração
+- [x] Implementar botão Exportar PDF no TabDocumentos
+  - [x] Criar mutation exportarPdfMutation com conversão base64→blob
+  - [x] Criar handler handleExportarPdf()
+  - [x] Adicionar botão "Exportar PDF" ao lado de "Exportar DOCX"
+  - [x] Implementar loading state (spinner + "Exportando...")
+  - [x] Download automático do arquivo PDF
+- [x] Testar exportação PDF no navegador
+  - [x] Gerar documento jurídico de teste (petição inicial)
+  - [x] Clicar no botão "Exportar PDF"
+  - [x] Confirmar download automático do arquivo
+  - [x] Verificar toast de sucesso
