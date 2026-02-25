@@ -15,7 +15,8 @@ import {
   promptVersoes, InsertPromptVersao,
   usoModelos, InsertUsoModelo,
   cabecalhoTemplates, InsertCabecalhoTemplate,
-  formatacaoTemplates, InsertFormatacaoTemplate
+  formatacaoTemplates, InsertFormatacaoTemplate,
+  tutorialProgresso, InsertTutorialProgresso
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1082,4 +1083,69 @@ export async function definirFormatacaoTemplatePadrao(id: number, userId: number
     ));
 
   return { success: true };
+}
+
+
+// ===== Tutorial Progresso =====
+
+export async function marcarTutorialConcluido(userId: number, tutorialId: string) {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Verificar se já existe registro
+  const existente = await db
+    .select()
+    .from(tutorialProgresso)
+    .where(
+      and(
+        eq(tutorialProgresso.userId, userId),
+        eq(tutorialProgresso.tutorialId, tutorialId)
+      )
+    )
+    .limit(1);
+
+  if (existente.length > 0) {
+    // Já marcado como concluído
+    return existente[0];
+  }
+
+  // Criar novo registro
+  await db.insert(tutorialProgresso).values({
+    userId,
+    tutorialId,
+    concluido: true,
+  });
+
+  return { userId, tutorialId, concluido: true };
+}
+
+export async function obterProgressoTutoriais(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const progresso = await db
+    .select()
+    .from(tutorialProgresso)
+    .where(eq(tutorialProgresso.userId, userId));
+
+  return progresso;
+}
+
+export async function verificarTutorialConcluido(userId: number, tutorialId: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const resultado = await db
+    .select()
+    .from(tutorialProgresso)
+    .where(
+      and(
+        eq(tutorialProgresso.userId, userId),
+        eq(tutorialProgresso.tutorialId, tutorialId),
+        eq(tutorialProgresso.concluido, true)
+      )
+    )
+    .limit(1);
+
+  return resultado.length > 0;
 }

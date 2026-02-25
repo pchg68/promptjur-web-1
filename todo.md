@@ -2288,3 +2288,35 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Implementar visualização de tutorial individual
 - [x] Testar busca e navegação
 - [x] Integrar aba Tutoriais no Dashboard
+
+
+## Melhorias da Aba Tutoriais - Fase 2
+- [ ] Criar scripts de 5 vídeos tutoriais (3 min cada) para gravação com OBS Studio
+- [ ] Preparar estrutura para embed de vídeos do YouTube nos tutoriais
+- [ ] Criar tabela tutorial_progresso no banco de dados
+- [ ] Implementar procedures tRPC para rastrear progresso (marcar como lido, obter progresso)
+- [ ] Adicionar badges "Concluído" nos cards de tutoriais
+- [ ] Implementar barra de progresso geral no topo da aba Tutoriais
+- [ ] Criar seção de FAQ com 15-20 perguntas frequentes
+- [ ] Implementar busca rápida de FAQ
+- [ ] Testar sistema de progresso e FAQ
+
+
+## Melhorias da Aba Tutoriais - Concluídas (Sessão Atual)
+- [x] Adicionar vídeos tutoriais (scripts para gravação com OBS Studio)
+  - [x] Criar 5 scripts completos de vídeos (3 minutos cada)
+  - [x] Preparar estrutura de embed do YouTube no modal
+  - [x] Campo videoId implementado na interface
+- [x] Criar sistema de progresso do usuário (badges e barra de progresso)
+  - [x] Criar tabela tutorial_progresso no banco
+  - [x] Implementar procedures tRPC (obterProgresso, marcarConcluido)
+  - [x] Adicionar barra de progresso no topo da aba
+  - [x] Implementar badges "Concluído" nos cards
+  - [x] Marcar tutorial como concluído ao abrir modal
+- [x] Implementar seção de FAQ (perguntas frequentes)
+  - [x] Criar 10 FAQs com formato pergunta/resposta
+  - [x] Integrar FAQs ao array de tutoriais
+  - [x] Adicionar categoria 'faq' aos tipos
+  - [x] FAQs funcionando com busca e filtros
+
+**Resultado**: 22 tutoriais totais (13 originais + 10 FAQs) com sistema completo de progresso e estrutura para vídeos.

@@ -70,6 +70,26 @@ export const appRouter = router({
         }
         return tutorial;
       }),
+    
+    marcarConcluido: protectedProcedure
+      .input(z.string())
+      .mutation(async ({ ctx, input }) => {
+        await db.marcarTutorialConcluido(ctx.user.id, input);
+        return { success: true };
+      }),
+    
+    obterProgresso: protectedProcedure
+      .query(async ({ ctx }) => {
+        const progresso = await db.obterProgressoTutoriais(ctx.user.id);
+        const tutoriaisConcluidosIds = progresso.map(p => p.tutorialId);
+        
+        return {
+          tutoriaisConcluidosIds,
+          totalConcluidos: progresso.length,
+          totalTutoriais: tutoriais.length,
+          percentualConcluido: Math.round((progresso.length / tutoriais.length) * 100)
+        };
+      }),
   }),
   
   cabecalho: router({

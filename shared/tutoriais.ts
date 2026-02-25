@@ -10,7 +10,8 @@ export type CategoriaTutorial =
   | 'organizacao-trabalho'
   | 'pagamentos-planos'
   | 'dicas-produtividade'
-  | 'solucao-problemas';
+  | 'solucao-problemas'
+  | 'faq';
 
 export interface Tutorial {
   id: string;
@@ -34,6 +35,7 @@ export const CATEGORIAS_NOMES: Record<CategoriaTutorial, string> = {
   'pagamentos-planos': 'Pagamentos e Planos',
   'dicas-produtividade': 'Dicas de Produtividade',
   'solucao-problemas': 'Solução de Problemas',
+  'faq': 'Perguntas Frequentes (FAQ)',
 };
 
 // Mapeamento de níveis para nomes amigáveis
@@ -53,6 +55,7 @@ export const CATEGORIAS_DESCRICOES: Record<CategoriaTutorial, string> = {
   'pagamentos-planos': 'Entenda os planos, pagamentos e limites de uso',
   'dicas-produtividade': 'Aumente sua produtividade com dicas e melhores práticas',
   'solucao-problemas': 'Solucione problemas comuns e encontre respostas rápidas',
+  'faq': 'Respostas rápidas para as perguntas mais comuns',
 };
 
 export const tutoriais: Tutorial[] = [
@@ -674,6 +677,349 @@ Consulte seção de Perguntas Frequentes
 - **Urgências**: Até 12 horas (úteis)
 `
   },
-];
+  // FAQs (Perguntas Frequentes) - Respostas rápidas
+  {
+    id: 'faq-o-que-e-promptjur',
+    titulo: 'O que é o PromptJur?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 1,
+    conteudo: `# O que é o PromptJur?
 
-export default tutoriais;
+O PromptJur é uma plataforma especializada em **engenharia de prompts jurídicos**, desenvolvida para advogados e profissionais do direito.
+
+## Principais Funcionalidades
+
+- **Análise de Prompts**: Avalia a qualidade e eficácia de prompts jurídicos
+- **Otimização**: Melhora prompts existentes com técnicas avançadas
+- **Geração**: Cria prompts profissionais do zero
+- **Documentos Jurídicos**: Gera petições, contratos e outros documentos
+- **Validação**: Verifica citações de legislação e precedentes
+
+## Para Quem é?
+
+- Advogados que usam IA em seu trabalho
+- Escritórios de advocacia buscando eficiência
+- Estudantes de direito aprendendo sobre IA jurídica
+- Profissionais do direito que querem melhorar seus prompts`,
+    tags: ['introdução', 'básico', 'plataforma'],
+    ordem: 1
+  },
+  {
+    id: 'faq-como-comecar',
+    titulo: 'Como começar a usar o PromptJur?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Como começar a usar o PromptJur?
+
+## Passo 1: Faça Login
+Acesse a plataforma e faça login com sua conta Google ou GitHub.
+
+## Passo 2: Explore as Abas
+- **Analisar**: Cole um prompt para análise
+- **Otimizar**: Melhore um prompt existente
+- **Gerar**: Crie um novo prompt do zero
+- **Documentos**: Gere documentos jurídicos completos
+
+## Passo 3: Experimente com um Exemplo
+Comece com algo simples:
+\`\`\`
+Preciso elaborar uma petição inicial de ação de indenização por danos morais decorrentes de acidente de trânsito
+\`\`\`
+
+## Passo 4: Refine os Resultados
+Use as sugestões da plataforma para melhorar seus prompts.
+
+## Dica
+Consulte os tutoriais na aba "Tutoriais" para aprender técnicas avançadas!`,
+    tags: ['primeiros passos', 'tutorial', 'início'],
+    ordem: 2
+  },
+  {
+    id: 'faq-quanto-custa',
+    titulo: 'Quanto custa o PromptJur?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Quanto custa o PromptJur?
+
+## Plano Free (Gratuito)
+- **1000 requisições/hora**
+- Acesso a todas as funcionalidades básicas
+- Análise, otimização e geração de prompts
+- Exportação em PDF, DOCX e TXT
+- Ideal para: Testes e uso pessoal
+
+## Plano Pro (Em Breve)
+- Requisições ilimitadas
+- Prioridade no processamento
+- Acesso a modelos avançados de IA
+- Suporte prioritário
+- Templates personalizados
+
+## Plano Enterprise (Em Breve)
+- Tudo do Pro +
+- API dedicada
+- Integração com sistemas jurídicos
+- Treinamento personalizado
+- SLA garantido
+
+## Como Atualizar?
+Atualmente, todos os usuários têm acesso ao plano Free. Os planos pagos serão lançados em breve.`,
+    tags: ['preços', 'planos', 'pagamento', 'custo'],
+    ordem: 3
+  },
+  {
+    id: 'faq-exportar-documentos',
+    titulo: 'Como exportar documentos?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 1,
+    conteudo: `# Como exportar documentos?
+
+## Formatos Disponíveis
+- **PDF**: Ideal para impressão e compartilhamento
+- **DOCX**: Editável no Microsoft Word
+- **TXT**: Texto simples para cópia
+
+## Passo a Passo
+1. Gere ou analise um prompt/documento
+2. Clique no botão **"Preview e Exportar"**
+3. Visualize o documento formatado
+4. Escolha as opções de formatação:
+   - ☑️ Incluir cabeçalho do escritório
+   - ☑️ Incluir data e hora
+5. Clique em **"Salvar PDF"**, **"Salvar .DOCX"** ou **"Salvar .TXT"**
+
+## Formatação ABNT
+Todos os documentos exportados seguem as normas ABNT:
+- Fonte Arial 12pt
+- Espaçamento 1.5
+- Margens: 3cm (esquerda/superior) e 2cm (direita/inferior)`,
+    tags: ['exportação', 'pdf', 'docx', 'download'],
+    ordem: 4
+  },
+  {
+    id: 'faq-validacao-legislacao',
+    titulo: 'Como funciona a validação de legislação?',
+    categoria: 'faq' as const,
+    nivel: 'intermediario' as const,
+    tempoLeitura: 2,
+    conteudo: `# Como funciona a validação de legislação?
+
+## O Que é Validado?
+A plataforma verifica automaticamente:
+- **Leis**: Ex: Lei 8.078/1990 (CDC)
+- **Artigos**: Ex: Art. 5º da CF/88
+- **Precedentes**: Súmulas, jurisprudências
+- **Normas**: Resoluções, portarias
+
+## Processo de Validação
+1. **Extração**: Identifica citações no texto
+2. **Verificação**: Consulta bases de dados oficiais
+3. **Classificação**: Marca como válida, inválida ou não encontrada
+4. **Relatório**: Exibe estatísticas e avisos
+
+## Interpretação dos Resultados
+- ✅ **Verde**: Citação válida e verificada
+- ⚠️ **Amarelo**: Citação encontrada mas com ressalvas
+- ❌ **Vermelho**: Citação inválida ou não encontrada
+
+## Limitações
+- Validação automática pode ter falsos positivos
+- Sempre revise manualmente citações críticas
+- Base de dados atualizada periodicamente`,
+    tags: ['validação', 'legislação', 'citações', 'verificação'],
+    ordem: 5
+  },
+  {
+    id: 'faq-estrategias-ia',
+    titulo: 'Quais são as estratégias de IA disponíveis?',
+    categoria: 'faq' as const,
+    nivel: 'intermediario' as const,
+    tempoLeitura: 3,
+    conteudo: `# Quais são as estratégias de IA disponíveis?
+
+## 1. Resposta Direta
+**Quando usar**: Documentos simples e diretos
+**Vantagens**: Rápido (5-10 segundos)
+**Desvantagens**: Menos detalhado
+
+## 2. Raciocínio Passo a Passo (Chain of Thought)
+**Quando usar**: Casos complexos que exigem análise detalhada
+**Vantagens**: Mais preciso e fundamentado
+**Desvantagens**: Mais lento (15-30 segundos)
+
+## 3. Recuperação de Conhecimento (RAG)
+**Quando usar**: Quando precisa de precedentes e jurisprudências reais
+**Vantagens**: Busca precedentes do CNJ e STF
+**Desvantagens**: Requer conexão com bases externas
+
+## Como Escolher?
+- **Petição simples**: Resposta Direta
+- **Caso complexo**: Raciocínio Passo a Passo
+- **Precisa de precedentes**: Recuperação de Conhecimento
+
+## Dica Profissional
+Experimente todas as estratégias e compare os resultados para encontrar a melhor para seu caso!`,
+    tags: ['estratégias', 'ia', 'chain of thought', 'rag'],
+    ordem: 6
+  },
+  {
+    id: 'faq-templates-personalizados',
+    titulo: 'Como criar templates personalizados?',
+    categoria: 'faq' as const,
+    nivel: 'profissional' as const,
+    tempoLeitura: 3,
+    conteudo: `# Como criar templates personalizados?
+
+## O Que São Templates?
+Templates são modelos reutilizáveis de prompts que você pode salvar e usar novamente.
+
+## Criando um Template
+1. Acesse a aba **"Modelos"**
+2. Clique em **"Criar Novo Modelo"**
+3. Preencha os campos:
+   - **Nome**: Ex: "Petição Inicial - Danos Morais"
+   - **Área Jurídica**: Ex: "Civil"
+   - **Prompt Base**: Seu prompt modelo
+   - **Descrição**: Quando usar este template
+
+## Variáveis Dinâmicas
+Use placeholders para personalizar:
+\`\`\`
+{{nome_cliente}}
+{{valor_causa}}
+{{data_fato}}
+\`\`\`
+
+## Compartilhamento
+- **Privado**: Apenas você vê
+- **Público**: Outros usuários podem usar (em breve)
+
+## Boas Práticas
+- Crie templates para casos recorrentes
+- Use nomes descritivos
+- Documente quando usar cada template
+- Mantenha templates atualizados`,
+    tags: ['templates', 'modelos', 'personalização', 'avançado'],
+    ordem: 7
+  },
+  {
+    id: 'faq-historico-prompts',
+    titulo: 'Como acessar meu histórico de prompts?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 1,
+    conteudo: `# Como acessar meu histórico de prompts?
+
+## Acessando o Histórico
+1. Clique na aba **"Histórico"** no menu superior
+2. Veja todos os prompts que você criou, analisou ou otimizou
+
+## Filtros Disponíveis
+- **Por tipo**: Análise, Otimização, Geração, Documentos
+- **Por data**: Hoje, Última semana, Último mês
+- **Por área jurídica**: Civil, Penal, Trabalhista, etc.
+- **Por status**: Sucesso, Erro
+
+## Ações no Histórico
+- **Visualizar**: Ver detalhes completos
+- **Reutilizar**: Usar novamente o prompt
+- **Exportar**: Baixar em PDF/DOCX
+- **Excluir**: Remover do histórico
+
+## Estatísticas
+O histórico também mostra:
+- Total de análises realizadas
+- Total de documentos gerados
+- Áreas jurídicas mais usadas
+- Taxa de sucesso`,
+    tags: ['histórico', 'prompts', 'busca', 'filtros'],
+    ordem: 8
+  },
+  {
+    id: 'faq-erro-geracao',
+    titulo: 'O que fazer quando a geração falha?',
+    categoria: 'faq' as const,
+    nivel: 'intermediario' as const,
+    tempoLeitura: 2,
+    conteudo: `# O que fazer quando a geração falha?
+
+## Causas Comuns
+
+### 1. Prompt Muito Curto
+**Erro**: "Contexto insuficiente"
+**Solução**: Adicione mais detalhes sobre o caso
+
+### 2. Prompt Muito Longo
+**Erro**: "Limite de tokens excedido"
+**Solução**: Divida em partes menores
+
+### 3. Limite de Requisições
+**Erro**: "Rate limit exceeded"
+**Solução**: Aguarde alguns minutos
+
+### 4. Erro de Conexão
+**Erro**: "Network error"
+**Solução**: Verifique sua internet e tente novamente
+
+## Dicas para Evitar Erros
+- Use prompts claros e objetivos
+- Evite caracteres especiais excessivos
+- Não faça requisições simultâneas
+- Aguarde o processamento completo
+
+## Ainda com Problemas?
+- Verifique o console do navegador (F12)
+- Limpe o cache do navegador
+- Tente em modo anônimo
+- Entre em contato com o suporte`,
+    tags: ['erro', 'problema', 'falha', 'troubleshooting'],
+    ordem: 9
+  },
+  {
+    id: 'faq-privacidade-dados',
+    titulo: 'Meus dados estão seguros?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Meus dados estão seguros?
+
+## Segurança e Privacidade
+
+### Criptografia
+- Todos os dados são transmitidos via **HTTPS**
+- Senhas nunca são armazenadas (usamos OAuth)
+- Dados em repouso são criptografados
+
+### Armazenamento
+- Prompts são salvos apenas na sua conta
+- Ninguém mais tem acesso aos seus dados
+- Você pode excluir seus dados a qualquer momento
+
+### Conformidade
+- **LGPD**: Totalmente conforme
+- **GDPR**: Compatível
+- **OAB**: Segue normas de sigilo profissional
+
+## O Que Coletamos?
+- Email e nome (via OAuth)
+- Prompts e documentos que você cria
+- Estatísticas de uso (anônimas)
+
+## O Que NÃO Coletamos?
+- Dados sensíveis de clientes
+- Informações bancárias
+- Localização precisa
+
+## Seus Direitos
+- Acessar seus dados
+- Corrigir informações
+- Excluir sua conta
+- Exportar seus dados`,
+    tags: ['privacidade', 'segurança', 'lgpd', 'dados'],
+    ordem: 10
+  }
+];

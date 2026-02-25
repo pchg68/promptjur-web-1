@@ -183,6 +183,13 @@
       "when": 1772021121631,
       "tag": "0025_icy_valeria_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1772050867339,
+      "tag": "0026_white_valkyrie",
+      "breakpoints": true
     }
   ]
 }

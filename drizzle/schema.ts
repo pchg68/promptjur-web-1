@@ -411,3 +411,19 @@ export const cabecalhoTemplates = mysqlTable("cabecalho_templates", {
 
 export type CabecalhoTemplate = typeof cabecalhoTemplates.$inferSelect;
 export type InsertCabecalhoTemplate = typeof cabecalhoTemplates.$inferInsert;
+
+
+/**
+ * Tabela de progresso de tutoriais
+ * Rastreia quais tutoriais o usuário já leu/completou
+ */
+export const tutorialProgresso = mysqlTable("tutorial_progresso", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  tutorialId: varchar("tutorialId", { length: 100 }).notNull(), // ID do tutorial (ex: 'bem-vindo-promptjur')
+  concluido: boolean("concluido").default(true).notNull(),
+  concluidoEm: timestamp("concluidoEm").defaultNow().notNull(),
+});
+
+export type TutorialProgresso = typeof tutorialProgresso.$inferSelect;
+export type InsertTutorialProgresso = typeof tutorialProgresso.$inferInsert;

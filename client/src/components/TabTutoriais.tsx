@@ -29,6 +29,26 @@ export default function TabTutoriais() {
     { enabled: !!tutorialSelecionado }
   );
 
+  // Query de progresso do usuário
+  const { data: progresso } = trpc.tutoriais.obterProgresso.useQuery();
+
+  // Mutation para marcar tutorial como concluído
+  const marcarConcluidoMutation = trpc.tutoriais.marcarConcluido.useMutation({
+    onSuccess: () => {
+      // Invalidar query de progresso para atualizar UI
+      trpc.useUtils().tutoriais.obterProgresso.invalidate();
+    },
+  });
+
+  // Marcar como concluído ao abrir tutorial
+  const handleAbrirTutorial = (tutorialId: string) => {
+    setTutorialSelecionado(tutorialId);
+    // Marcar como concluído após 3 segundos (tempo mínimo de leitura)
+    setTimeout(() => {
+      marcarConcluidoMutation.mutate(tutorialId);
+    }, 3000);
+  };
+
   const limparFiltros = () => {
     setBusca("");
     setCategoriaFiltro("todas");
@@ -55,6 +75,33 @@ export default function TabTutoriais() {
           Aprenda a usar o PromptJur com nossos tutoriais organizados por categoria e nível
         </p>
       </div>
+
+      {/* Barra de Progresso */}
+      {progresso && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Seu Progresso</CardTitle>
+                <CardDescription>
+                  {progresso.totalConcluidos} de {progresso.totalTutoriais} tutoriais concluídos
+                </CardDescription>
+              </div>
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                {progresso.percentualConcluido}%
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full bg-muted rounded-full h-3">
+              <div
+                className="bg-primary h-3 rounded-full transition-all duration-500"
+                style={{ width: `${progresso.percentualConcluido}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Barra de Busca e Filtros */}
       <Card>
@@ -134,7 +181,7 @@ export default function TabTutoriais() {
             <Card
               key={tutorial.id}
               className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setTutorialSelecionado(tutorial.id)}
+              onClick={() => handleAbrirTutorial(tutorial.id)}
             >
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
@@ -150,6 +197,12 @@ export default function TabTutoriais() {
               <CardContent className="space-y-3">
                 {/* Badges */}
                 <div className="flex flex-wrap gap-2">
+                  {/* Badge Concluído */}
+                  {progresso?.tutoriaisConcluidosIds.includes(tutorial.id) && (
+                    <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                      ✓ Concluído
+                    </Badge>
+                  )}
                   <Badge className={getNivelColor(tutorial.nivel)}>
                     {NIVEIS_NOMES[tutorial.nivel]}
                   </Badge>
@@ -217,6 +270,24 @@ export default function TabTutoriais() {
                   </Badge>
                 </div>
               </DialogHeader>
+
+              {/* Vídeo do YouTube (se disponível) */}
+              {tutorialDetalhado.videoId && (
+                <div className="mt-4 mb-6">
+                  <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${tutorialDetalhado.videoId}`}
+                      title={tutorialDetalhado.titulo}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Conteúdo do Tutorial */}
               <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
