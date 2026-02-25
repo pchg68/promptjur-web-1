@@ -2245,3 +2245,35 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Confirmar modal de preview funcionando
   - [x] Verificar aplicação de template padrão
   - [x] Validar download automático de arquivos
+
+## Sistema de Tutoriais Completo (Sessão Atual)
+- [ ] Analisar todas as funcionalidades do PromptJur
+  - [ ] Mapear funcionalidades principais (Analisar, Otimizar, Gerar, Documentos, Modelos)
+  - [ ] Documentar funcionalidades secundárias (Histórico, Templates, Tags, Analytics)
+  - [ ] Identificar fluxos de uso e casos de uso comuns
+  - [ ] Documentar sistema de pagamentos e planos
+- [ ] Escrever conteúdo dos tutoriais
+  - [ ] Tutoriais nível Iniciante (conceitos básicos, primeiros passos)
+  - [ ] Tutoriais nível Intermediário (funcionalidades avançadas, otimizações)
+  - [ ] Tutoriais nível Profissional (casos complexos, integrações, automações)
+  - [ ] Guia de pagamentos e planos
+  - [ ] FAQ e solução de problemas comuns
+- [ ] Criar estrutura de dados para tutoriais
+  - [ ] Definir schema/interface de tutoriais
+  - [ ] Criar arquivo com biblioteca de tutoriais
+  - [ ] Organizar por categorias e níveis
+- [ ] Implementar backend de tutoriais
+  - [ ] Criar procedures tRPC para listar tutoriais
+  - [ ] Adicionar filtros por categoria e nível
+  - [ ] Implementar busca de tutoriais
+- [ ] Implementar aba Tutoriais no frontend
+  - [ ] Criar interface de navegação de tutoriais
+  - [ ] Implementar visualização de conteúdo
+  - [ ] Adicionar filtros e busca
+  - [ ] Design consistente com tema Legal Blueprint
+- [ ] Preparar ativos para vídeos tutoriais
+  - [ ] Escrever scripts dos 5 vídeos (máx 3min cada)
+  - [ ] Criar roteiros detalhados
+  - [ ] Preparar assets visuais (screenshots, diagramas)
+  - [ ] Documentar instruções de gravação com OBS Studio
+- [ ] Testar sistema de tutoriais completo
