@@ -176,6 +176,13 @@
       "when": 1771969558931,
       "tag": "0024_slippery_the_liberteens",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1772021121631,
+      "tag": "0025_icy_valeria_richards",
+      "breakpoints": true
     }
   ]
 }

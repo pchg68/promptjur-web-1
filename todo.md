@@ -2176,3 +2176,72 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Clicar no botão "Exportar PDF"
   - [x] Confirmar download automático do arquivo
   - [x] Verificar toast de sucesso
+
+## Melhorias de Exportação (Sessão Atual)
+### 1. Exportação PDF/DOCX nas Outras Abas
+- [ ] Adicionar botões de exportação na aba "Analisar Prompt"
+  - [ ] Criar mutation exportarAnalise (PDF e DOCX)
+  - [ ] Implementar handlers de exportação
+  - [ ] Adicionar botões na UI após resultados de análise
+- [ ] Adicionar botões de exportação na aba "Otimizar Prompt"
+  - [ ] Criar mutation exportarOtimizacao (PDF e DOCX)
+  - [ ] Implementar handlers de exportação
+  - [ ] Adicionar botões na UI após resultados de otimização
+- [ ] Adicionar botões de exportação na aba "Gerar Prompt Jurídico"
+  - [ ] Criar mutation exportarPromptGerado (PDF e DOCX)
+  - [ ] Implementar handlers de exportação
+  - [ ] Adicionar botões na UI após geração de prompt
+
+### 2. Visualização Prévia de Exportação
+- [ ] Criar componente PreviewExportDialog
+  - [ ] Modal com preview do documento formatado
+  - [ ] Opções de configuração (incluir/excluir cabeçalho, data/hora, etc.)
+  - [ ] Botões de confirmação (Exportar PDF / Exportar DOCX / Cancelar)
+- [ ] Integrar preview em todas as abas com exportação
+  - [ ] Aba Documentos
+  - [ ] Aba Analisar
+  - [ ] Aba Otimizar
+  - [ ] Aba Gerar
+
+### 3. Templates de Formatação Personalizados
+- [ ] Atualizar schema do banco de dados
+  - [ ] Adicionar tabela formatacao_templates
+  - [ ] Campos: userId, nome, fonte, tamanho, espacamento, margens, incluirCabecalho, incluirDataHora
+  - [ ] Executar pnpm db:push
+- [ ] Criar procedures tRPC
+  - [ ] formatacao.salvarTemplate
+  - [ ] formatacao.listarTemplates
+  - [ ] formatacao.obterTemplate
+  - [ ] formatacao.deletarTemplate
+  - [ ] formatacao.definirPadrao
+- [ ] Criar página de Configurações de Formatação
+  - [ ] Interface para criar/editar templates
+  - [ ] Listagem de templates salvos
+  - [ ] Definir template padrão
+  - [ ] Preview em tempo real
+- [ ] Integrar templates no fluxo de exportação
+  - [ ] Carregar template padrão do usuário
+  - [ ] Permitir seleção de template no preview
+  - [ ] Aplicar configurações do template na geração PDF/DOCX
+
+## Melhorias de Exportação - Sistema Unificado (Sessão Atual) ✅ CONCLUÍDA
+- [x] Adicionar exportação PDF/DOCX nas abas Analisar, Otimizar e Gerar
+  - [x] Substituir funções antigas (exportAsPDF, exportAsDOCXABNT) por procedures tRPC modernos
+  - [x] Criar botão "Preview e Exportar" unificado em todas as abas
+  - [x] Reutilizar procedures prompts.exportarDocx e prompts.exportarPdf
+- [x] Criar sistema de visualização prévia com opções de formatação
+  - [x] Atualizar PreviewDocumentoModal para usar procedures tRPC
+  - [x] Adicionar checkboxes de opções (incluir cabeçalho, incluir data/hora)
+  - [x] Implementar botões de exportação (TXT, DOCX, PDF)
+  - [x] Adicionar loading states durante exportação
+  - [x] Fechar modal automaticamente após exportação bem-sucedida
+- [x] Implementar templates de formatação personalizados no perfil
+  - [x] Criar tabela formatacao_templates no schema
+  - [x] Adicionar procedures tRPC para CRUD completo (criar, listar, buscar, atualizar, deletar, definirPadrao)
+  - [x] Integrar carregamento automático de template padrão no PreviewDocumentoModal
+  - [x] Aplicar preferências de formatação (cabeçalho, data/hora) automaticamente
+- [x] Testar todas as funcionalidades no navegador
+  - [x] Testar exportação PDF na aba Analisar
+  - [x] Confirmar modal de preview funcionando
+  - [x] Verificar aplicação de template padrão
+  - [x] Validar download automático de arquivos

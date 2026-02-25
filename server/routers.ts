@@ -1262,6 +1262,91 @@ Responda em formato JSON com:
       })
   }),
 
+  // Router de templates de formatação
+  formatacaoTemplates: router({ 
+    // Criar novo template
+    criar: protectedProcedure
+      .input(z.object({
+        nome: z.string().min(3, "Nome muito curto"),
+        fonte: z.string().optional(),
+        tamanhoFonte: z.number().optional(),
+        espacamento: z.string().optional(),
+        margemSuperior: z.number().optional(),
+        margemInferior: z.number().optional(),
+        margemEsquerda: z.number().optional(),
+        margemDireita: z.number().optional(),
+        incluirCabecalho: z.boolean().optional(),
+        incluirDataHora: z.boolean().optional(),
+        isPadrao: z.boolean().optional()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return await db.criarFormatacaoTemplate({
+          userId: ctx.user.id,
+          ...input
+        });
+      }),
+
+    // Listar templates do usuário
+    listar: protectedProcedure
+      .query(async ({ ctx }) => {
+        return await db.listarFormatacaoTemplates(ctx.user.id);
+      }),
+
+    // Buscar template por ID
+    buscar: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .query(async ({ input, ctx }) => {
+        return await db.buscarFormatacaoTemplate(input.id, ctx.user.id);
+      }),
+
+    // Buscar template padrão
+    buscarPadrao: protectedProcedure
+      .query(async ({ ctx }) => {
+        return await db.buscarFormatacaoTemplatePadrao(ctx.user.id);
+      }),
+
+    // Atualizar template
+    atualizar: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        nome: z.string().optional(),
+        fonte: z.string().optional(),
+        tamanhoFonte: z.number().optional(),
+        espacamento: z.string().optional(),
+        margemSuperior: z.number().optional(),
+        margemInferior: z.number().optional(),
+        margemEsquerda: z.number().optional(),
+        margemDireita: z.number().optional(),
+        incluirCabecalho: z.boolean().optional(),
+        incluirDataHora: z.boolean().optional(),
+        isPadrao: z.boolean().optional()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { id, ...data } = input;
+        return await db.atualizarFormatacaoTemplate(id, ctx.user.id, data);
+      }),
+
+    // Deletar template
+    deletar: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return await db.deletarFormatacaoTemplate(input.id, ctx.user.id);
+      }),
+
+    // Definir como padrão
+    definirPadrao: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return await db.definirFormatacaoTemplatePadrao(input.id, ctx.user.id);
+      })
+  }),
+
   // Router de sugestão inteligente
   sugestao: router({
     // Sugerir área jurídica baseada no contexto

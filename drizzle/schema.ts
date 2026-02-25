@@ -280,6 +280,30 @@ export type PerfilUso = typeof perfisUso.$inferSelect;
 export type InsertPerfilUso = typeof perfisUso.$inferInsert;
 
 /**
+ * Tabela de templates de formatação personalizados
+ */
+export const formatacaoTemplates = mysqlTable("formatacao_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  nome: varchar("nome", { length: 100 }).notNull(), // Nome do template (ex: "Padrão Escritório")
+  fonte: varchar("fonte", { length: 50 }).default("Arial").notNull(), // Fonte do documento
+  tamanhoFonte: int("tamanhoFonte").default(12).notNull(), // Tamanho da fonte em pt
+  espacamento: varchar("espacamento", { length: 10 }).default("1.5").notNull(), // Espaçamento entre linhas
+  margemSuperior: int("margemSuperior").default(3).notNull(), // Margem superior em cm
+  margemInferior: int("margemInferior").default(2).notNull(), // Margem inferior em cm
+  margemEsquerda: int("margemEsquerda").default(3).notNull(), // Margem esquerda em cm
+  margemDireita: int("margemDireita").default(2).notNull(), // Margem direita em cm
+  incluirCabecalho: boolean("incluirCabecalho").default(true).notNull(),
+  incluirDataHora: boolean("incluirDataHora").default(true).notNull(),
+  isPadrao: boolean("isPadrao").default(false).notNull(), // Template padrão do usuário
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FormatacaoTemplate = typeof formatacaoTemplates.$inferSelect;
+export type InsertFormatacaoTemplate = typeof formatacaoTemplates.$inferInsert;
+
+/**
  * Tabela de logs de auditoria para ações administrativas
  */
 export const auditLogs = mysqlTable("audit_logs", {

@@ -168,7 +168,7 @@ export default function Dashboard() {
     conteudo: string;
     areaJuridica?: string;
     tipoDocumento?: string;
-    onExportPDF: () => void;
+    promptId?: number;
   } | null>(null);
 
   // Estado para Análise
@@ -906,8 +906,7 @@ export default function Dashboard() {
                               titulo: "Análise de Prompt",
                               conteudo: JSON.stringify(analiseMutation.data, null, 2),
                               areaJuridica: analiseMutation.data?.area,
-                              tipoDocumento: "Análise",
-                              onExportPDF: () => exportAsPDF("Análise de Prompt", analiseMutation.data)
+                              tipoDocumento: "Análise"
                             });
                             setPreviewOpen(true);
                           }}
@@ -1281,37 +1280,21 @@ export default function Dashboard() {
                           Copiar Formatado
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
                           onClick={() => {
-                            if (!geracaoMutation.data?.promptProfissional || !geracaoMutation.data?.promptId) {
-                              toast.error("Nenhum prompt gerado para exportar");
-                              return;
-                            }
-                            gerarDocMutation.mutate({
-                              promptId: geracaoMutation.data.promptId,
+                            setPreviewData({
                               titulo: `Prompt Jurídico - ${tipoDocumento.charAt(0).toUpperCase() + tipoDocumento.slice(1)}`,
-                              conteudo: geracaoMutation.data.promptProfissional,
-                              incluirCabecalho: true,
-                              incluirDataHora: true
+                              conteudo: geracaoMutation.data?.promptProfissional || "",
+                              areaJuridica: areaGeracao,
+                              tipoDocumento: tipoDocumento,
+                              promptId: geracaoMutation.data?.promptId
                             });
+                            setPreviewOpen(true);
                           }}
-                          disabled={gerarDocMutation.isPending || !geracaoMutation.data?.promptId}
                         >
-                          {gerarDocMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <FileDown className="w-4 h-4 mr-2" />
-                          )}
-                          DOCX (ABNT)
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => exportAsPDF("Prompt Gerado", geracaoMutation.data?.promptProfissional || "")}
-                        >
-                          <FileDown className="w-4 h-4 mr-2" />
-                          PDF (ABNT)
+                          <Eye className="w-4 h-4 mr-2" />
+                          Preview e Exportar
                         </Button>
                          <Button
                            variant="outline"
@@ -1515,45 +1498,18 @@ export default function Dashboard() {
                         variant="default"
                         size="sm"
                         onClick={() => {
-                          exportAsTextABNT("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "");
-                          toast.success("Arquivo .TXT salvo com formatação ABNT (Arial 12, espaçamento 1.0)!");
-                        }}
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Salvar .TXT (ABNT)
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportAsPDF("Prompt Otimizado", otimizacaoMutation.data?.promptOtimizado || "")}
-                      >
-                        <FileDown className="w-4 h-4 mr-2" />
-                        PDF (ABNT)
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          if (!otimizacaoMutation.data?.promptOtimizado || !otimizacaoMutation.data?.promptId) {
-                            toast.error("Nenhum prompt otimizado para exportar");
-                            return;
-                          }
-                          gerarDocMutation.mutate({
-                            promptId: otimizacaoMutation.data.promptId,
+                          setPreviewData({
                             titulo: "Prompt Otimizado",
-                            conteudo: otimizacaoMutation.data.promptOtimizado,
-                            incluirCabecalho: true,
-                            incluirDataHora: true
+                            conteudo: otimizacaoMutation.data?.promptOtimizado || "",
+                            areaJuridica: otimizacaoMutation.data?.area,
+                            tipoDocumento: "Otimização",
+                            promptId: otimizacaoMutation.data?.promptId
                           });
+                          setPreviewOpen(true);
                         }}
-                        disabled={gerarDocMutation.isPending || !otimizacaoMutation.data?.promptId}
                       >
-                        {gerarDocMutation.isPending ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <FileDown className="w-4 h-4 mr-2" />
-                        )}
-                        DOCX (ABNT)
+                        <Eye className="w-4 h-4 mr-2" />
+                        Preview e Exportar
                       </Button>
                       <Button
                         variant="outline"
@@ -2286,7 +2242,7 @@ export default function Dashboard() {
           conteudo={previewData.conteudo}
           areaJuridica={previewData.areaJuridica}
           tipoDocumento={previewData.tipoDocumento}
-          onExportPDF={previewData.onExportPDF}
+          promptId={previewData.promptId}
         />
       )}
     </div>
