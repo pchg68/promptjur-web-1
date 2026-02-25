@@ -3,6 +3,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
 import { atualizarTag, atribuirTagPrompt as atribuirTagPromptComValidacao } from "./db-tags-update";
@@ -21,7 +22,7 @@ import { sugerirArea } from "./sugestao-area";
 import { modelosPersonalizadosRouter } from "./routers-modelos-personalizados";
 import { adminRouter, getCachedData } from "./admin";
 import { logger, logHttp, logLLM, logDatabase } from "./_core/logger";
-// import { tutoriais, type Tutorial, type NivelTutorial, type CategoriaTutorial } from "@shared/tutoriais";
+import { tutoriais, type Tutorial, type NivelTutorial, type CategoriaTutorial } from "@shared/tutoriais";
 
 export const appRouter = router({
   system: systemRouter,
@@ -30,33 +31,46 @@ export const appRouter = router({
   modelosPersonalizados: modelosPersonalizadosRouter,
   admin: adminRouter,
   
-  // tutoriais: router({
-  //   listar: publicProcedure.query(() => {
-  //     return tutoriais;
-  //   }),
-  //   
-  //   porId: publicProcedure
-  //     .input(z.string())
-  //     .query(({ input }) => {
-  //       const tutorial = tutoriais.find((t: Tutorial) => t.id === input);
-  //       if (!tutorial) {
-  //         throw new TRPCError({ code: 'NOT_FOUND', message: 'Tutorial não encontrado' });
-  //       }
-  //       return tutorial;
-  //     }),
-  //   
-  //   porCategoria: publicProcedure
-  //     .input(z.string())
-  //     .query(({ input }) => {
-  //       return tutoriais.filter((t: Tutorial) => t.categoria === input);
-  //     }),
-  //   
-  //   porNivel: publicProcedure
-  //     .input(z.enum(['iniciante', 'intermediario', 'profissional']))
-  //     .query(({ input }) => {
-  //       return tutoriais.filter((t: Tutorial) => t.nivel === input);
-  //     }),
-  // }),
+  tutoriais: router({
+    listar: publicProcedure
+      .input(z.object({
+        busca: z.string().optional(),
+        categoria: z.string().optional(),
+        nivel: z.enum(['iniciante', 'intermediario', 'profissional']).optional(),
+      }).optional())
+      .query(({ input }) => {
+        let resultado = tutoriais;
+        
+        if (input?.busca) {
+          const buscaLower = input.busca.toLowerCase();
+          resultado = resultado.filter((t: Tutorial) => 
+            t.titulo.toLowerCase().includes(buscaLower) ||
+            t.conteudo.toLowerCase().includes(buscaLower) ||
+            t.tags.some(tag => tag.toLowerCase().includes(buscaLower))
+          );
+        }
+        
+        if (input?.categoria) {
+          resultado = resultado.filter((t: Tutorial) => t.categoria === input.categoria);
+        }
+        
+        if (input?.nivel) {
+          resultado = resultado.filter((t: Tutorial) => t.nivel === input.nivel);
+        }
+        
+        return resultado;
+      }),
+    
+    porId: publicProcedure
+      .input(z.string())
+      .query(({ input }) => {
+        const tutorial = tutoriais.find((t: Tutorial) => t.id === input);
+        if (!tutorial) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Tutorial não encontrado' });
+        }
+        return tutorial;
+      }),
+  }),
   
   cabecalho: router({
     get: protectedProcedure.query(async ({ ctx }) => {

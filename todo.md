@@ -2277,3 +2277,14 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [ ] Preparar assets visuais (screenshots, diagramas)
   - [ ] Documentar instruções de gravação com OBS Studio
 - [ ] Testar sistema de tutoriais completo
+
+
+## Implementação da Aba Tutoriais (Sessão Atual)
+- [x] Criar estrutura de dados simplificada de tutoriais (TypeScript)
+- [x] Implementar backend com procedures tRPC (listar, buscar, filtrar)
+- [x] Criar componente TabTutoriais.tsx com interface completa
+- [x] Implementar barra de busca por palavras-chave
+- [x] Adicionar filtros por categoria e nível
+- [x] Implementar visualização de tutorial individual
+- [x] Testar busca e navegação
+- [x] Integrar aba Tutoriais no Dashboard

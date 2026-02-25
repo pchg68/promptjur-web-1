@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu, PlayCircle, ChevronRight, Database, Settings } from "lucide-react";
+import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, BookTemplate, Home, FileDown, FileText, TrendingUp, Minimize2, Maximize2, Eye, ChevronDown, Bot, MessageSquare, Sparkle, Search, Cpu, PlayCircle, ChevronRight, Database, Settings, BookOpen } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ import { DisclaimerLegal } from "@/components/DisclaimerLegal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Bookmark, Lightbulb, Save, Trash2 } from "lucide-react";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
+import TabTutoriais from "@/components/TabTutoriais";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -807,6 +808,10 @@ export default function Dashboard() {
             <TabsTrigger value="modelos" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Modelos
+            </TabsTrigger>
+            <TabsTrigger value="tutoriais" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Tutoriais
             </TabsTrigger>
           </TabsList>
 
@@ -1814,6 +1819,11 @@ export default function Dashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Tab: Tutoriais */}
+          <TabsContent value="tutoriais" className="space-y-6">
+            <TabTutoriais />
           </TabsContent>
         </Tabs>
         )}
