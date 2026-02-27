@@ -2338,3 +2338,10 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 
 ## Bug Fix - Acessibilidade DialogTitle
 - [x] Corrigir erro: DialogContent sem DialogTitle no Dashboard (acessibilidade Radix UI)
+
+## Migração Tutoriais - Página Dedicada
+- [x] Mover tutoriais da aba do Dashboard para página dedicada /tutoriais
+- [x] Combinar conteúdo de TabTutoriais (37 tutoriais, busca, filtros, progresso, feedback) com seção de vídeos
+- [x] Remover aba Tutoriais do Dashboard (voltar para 5 abas)
+- [x] Melhorar layout visual da página de tutoriais
+- [x] Testar navegação e funcionalidades

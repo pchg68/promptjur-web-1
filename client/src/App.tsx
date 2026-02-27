@@ -21,10 +21,12 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/historico"} component={Historico} />      <Route path={"/ templates"} component={Templates} />
+      <Route path={"/historico"} component={Historico} />
+      <Route path={"/templates"} component={Templates} />
       <Route path="/template/:id" component={TemplatePublico} />
       <Route path={"/meus-modelos"} component={MeusModelos} />
-      <Route path={"/biblioteca-publica"} component={BibliotecaPublica} />      <Route path={" /tutoriais"} component={Tutoriais} />
+      <Route path={"/biblioteca-publica"} component={BibliotecaPublica} />
+      <Route path={"/tutoriais"} component={Tutoriais} />
       <Route path={"/biblioteca-templates"} component={BibliotecaTemplates} />
       <Route path={"/admin-tools"} component={AdminTools} />
       <Route path={"/configuracoes"} component={Configuracoes} />
