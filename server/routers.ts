@@ -90,6 +90,36 @@ export const appRouter = router({
           percentualConcluido: Math.round((progresso.length / tutoriais.length) * 100)
         };
       }),
+
+    registrarFeedback: protectedProcedure
+      .input(z.object({
+        tutorialId: z.string(),
+        util: z.boolean(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.registrarFeedbackTutorial(ctx.user.id, input.tutorialId, input.util);
+        return { success: true };
+      }),
+
+    obterFeedback: protectedProcedure
+      .query(async ({ ctx }) => {
+        const feedbacks = await db.obterFeedbackUsuario(ctx.user.id);
+        return feedbacks.map(f => ({
+          tutorialId: f.tutorialId,
+          util: f.util,
+        }));
+      }),
+
+    estatisticasFeedback: publicProcedure
+      .query(async () => {
+        const stats = await db.obterEstatisticasFeedback();
+        return stats.map(s => ({
+          tutorialId: s.tutorialId,
+          totalUtil: Number(s.totalUtil) || 0,
+          totalNaoUtil: Number(s.totalNaoUtil) || 0,
+          total: Number(s.total) || 0,
+        }));
+      }),
   }),
   
   cabecalho: router({

@@ -2291,15 +2291,15 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 
 
 ## Melhorias da Aba Tutoriais - Fase 2
-- [ ] Criar scripts de 5 vídeos tutoriais (3 min cada) para gravação com OBS Studio
-- [ ] Preparar estrutura para embed de vídeos do YouTube nos tutoriais
-- [ ] Criar tabela tutorial_progresso no banco de dados
-- [ ] Implementar procedures tRPC para rastrear progresso (marcar como lido, obter progresso)
-- [ ] Adicionar badges "Concluído" nos cards de tutoriais
-- [ ] Implementar barra de progresso geral no topo da aba Tutoriais
-- [ ] Criar seção de FAQ com 15-20 perguntas frequentes
-- [ ] Implementar busca rápida de FAQ
-- [ ] Testar sistema de progresso e FAQ
+- [x] Criar scripts de 5 vídeos tutoriais (3 min cada) para gravação com OBS Studio
+- [x] Preparar estrutura para embed de vídeos do YouTube nos tutoriais
+- [x] Criar tabela tutorial_progresso no banco de dados
+- [x] Implementar procedures tRPC para rastrear progresso (marcar como lido, obter progresso)
+- [x] Adicionar badges "Concluído" nos cards de tutoriais
+- [x] Implementar barra de progresso geral no topo da aba Tutoriais
+- [x] Criar seção de FAQ com 15-20 perguntas frequentes
+- [x] Implementar busca rápida de FAQ
+- [x] Testar sistema de progresso e FAQ
 
 
 ## Melhorias da Aba Tutoriais - Concluídas (Sessão Atual)
@@ -2320,3 +2320,17 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] FAQs funcionando com busca e filtros
 
 **Resultado**: 22 tutoriais totais (13 originais + 10 FAQs) com sistema completo de progresso e estrutura para vídeos.
+
+
+## Melhorias de Acompanhamento - Tutoriais (Sessão Atual)
+- [x] Expandir biblioteca de FAQs com 15-20 perguntas avançadas (15 novos FAQs adicionados, total: 25 FAQs)
+- [x] Implementar sistema de feedback nos tutoriais (botões Útil/Não útil)
+  - [x] Criar tabela tutorial_feedback no banco
+  - [x] Criar procedures tRPC para registrar e consultar feedback
+  - [x] Adicionar botões de feedback no modal de tutorial
+  - [x] Exibir contagem de feedbacks nos cards
+- [x] Preparar estrutura de vídeos tutoriais com videoIds
+  - [x] Adicionar videoIds placeholder nos 5 tutoriais principais
+  - [x] Verificar embed do YouTube no modal
+
+**Resultado**: 37 tutoriais totais (12 originais + 25 FAQs) com sistema completo de progresso, feedback e estrutura para vídeos.

@@ -64,6 +64,7 @@ export const tutoriais: Tutorial[] = [
     titulo: 'Bem-vindo ao PromptJur',
     categoria: 'primeiros-passos',
     nivel: 'iniciante',
+    videoId: '', // TODO: Adicionar ID do vídeo do YouTube após gravação (Vídeo 1: Primeiros Passos)
     tempoLeitura: 3,
     ordem: 1,
     tags: ['introdução', 'visão geral', 'começar'],
@@ -159,6 +160,7 @@ Use modelos profissionais pré-prontos.
     titulo: 'Analisando Seu Primeiro Prompt',
     categoria: 'primeiros-passos',
     nivel: 'iniciante',
+    videoId: '', // TODO: Adicionar ID do vídeo do YouTube após gravação (Vídeo 2: Analisando Prompts)
     tempoLeitura: 4,
     ordem: 3,
     tags: ['análise', 'tutorial prático', 'começar'],
@@ -207,6 +209,7 @@ Recomendações específicas.
     titulo: 'Otimizando Prompts',
     categoria: 'funcionalidades-principais',
     nivel: 'intermediario',
+    videoId: '', // TODO: Adicionar ID do vídeo do YouTube após gravação (Vídeo 3: Otimizando Prompts)
     tempoLeitura: 6,
     ordem: 1,
     tags: ['otimização', 'chain-of-thought', 'RAG', 'estratégias'],
@@ -290,6 +293,7 @@ Você receberá um prompt profissional completo, pronto para copiar e usar em fe
     titulo: 'Gerando Documentos Jurídicos',
     categoria: 'funcionalidades-principais',
     nivel: 'intermediario',
+    videoId: '', // TODO: Adicionar ID do vídeo do YouTube após gravação (Vídeo 4: Gerando Documentos)
     tempoLeitura: 7,
     ordem: 3,
     tags: ['documentos', 'geração', 'petição', 'parecer'],
@@ -385,6 +389,7 @@ Os modelos são excelentes pontos de partida para casos similares. Sempre ajuste
     titulo: 'Exportando Documentos',
     categoria: 'exportacao-documentos',
     nivel: 'iniciante',
+    videoId: '', // TODO: Adicionar ID do vídeo do YouTube após gravação (Vídeo 5: Exportando Documentos)
     tempoLeitura: 3,
     ordem: 1,
     tags: ['exportação', 'PDF', 'DOCX', 'download'],
@@ -1021,5 +1026,597 @@ O histórico também mostra:
 - Exportar seus dados`,
     tags: ['privacidade', 'segurança', 'lgpd', 'dados'],
     ordem: 10
+  },
+  // FAQs Avançados - Áreas Jurídicas e Casos de Uso
+  {
+    id: 'faq-areas-juridicas-disponiveis',
+    titulo: 'Quais áreas jurídicas o PromptJur suporta?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Quais áreas jurídicas o PromptJur suporta?
+
+## 13 Áreas Jurídicas Disponíveis
+
+O PromptJur detecta automaticamente e suporta as seguintes áreas:
+
+| Área | Exemplos de Uso |
+|------|----------------|
+| **Direito Civil** | Contratos, responsabilidade civil, obrigações |
+| **Direito Penal** | Defesas criminais, habeas corpus |
+| **Direito Trabalhista** | Reclamações trabalhistas, rescisões |
+| **Direito Tributário** | Recursos fiscais, planejamento tributário |
+| **Direito Administrativo** | Licitações, mandados de segurança |
+| **Direito Constitucional** | Direitos fundamentais, ações constitucionais |
+| **Direito Empresarial** | Contratos societários, recuperação judicial |
+| **Direito Ambiental** | Licenciamento, responsabilidade ambiental |
+| **Direito do Consumidor** | Ações consumeristas, CDC |
+| **Direito de Família** | Divórcio, guarda, alimentos |
+| **Direito Imobiliário** | Usucapião, despejo, locação |
+| **Direito Previdenciário** | Aposentadoria, benefícios INSS |
+| **Processo Civil** | Procedimentos, recursos, execuções |
+
+## Detecção Automática
+
+Ao analisar um prompt, o sistema identifica automaticamente a área jurídica com base nas palavras-chave e contexto fornecido.`,
+    tags: ['áreas jurídicas', 'especialidades', 'direito', 'categorias'],
+    ordem: 11
+  },
+  {
+    id: 'faq-modo-assistido',
+    titulo: 'O que é o Modo Assistido?',
+    categoria: 'faq' as const,
+    nivel: 'intermediario' as const,
+    tempoLeitura: 2,
+    conteudo: `# O que é o Modo Assistido?
+
+## Definição
+
+O Modo Assistido é um recurso que guia o usuário passo a passo na criação de prompts jurídicos, ideal para quem está começando.
+
+## Como Funciona
+
+1. **Ative o Modo Assistido** no canto superior direito do Dashboard
+2. O sistema faz perguntas contextualizadas sobre seu caso
+3. Baseado nas respostas, monta o prompt automaticamente
+4. Você revisa e ajusta antes de gerar
+
+## Quando Usar
+
+- Primeira vez usando a plataforma
+- Casos complexos com muitas variáveis
+- Quando não sabe por onde começar
+- Para garantir que não esqueceu informações importantes
+
+## Modo Avançado vs Assistido
+
+| Característica | Avançado | Assistido |
+|---------------|----------|----------|
+| Entrada | Texto livre | Perguntas guiadas |
+| Velocidade | Rápido | Moderado |
+| Controle | Total | Guiado |
+| Ideal para | Experientes | Iniciantes |`,
+    tags: ['modo assistido', 'guia', 'passo a passo', 'iniciante'],
+    ordem: 12
+  },
+  {
+    id: 'faq-modo-compacto',
+    titulo: 'Como usar o Modo Compacto?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 1,
+    conteudo: `# Como usar o Modo Compacto?
+
+## O Que é
+
+O Modo Compacto oculta seções secundárias do Dashboard (métricas, favoritos, tags, analytics) para você focar nas ferramentas principais.
+
+## Como Ativar
+
+1. Localize o botão **"Compacto"** no canto superior direito do Dashboard
+2. Clique para ativar/desativar
+3. A preferência é salva automaticamente no navegador
+
+## O Que Fica Oculto
+
+- Cards de métricas (total de análises, gerações, etc.)
+- Seção de prompts favoritos
+- Gerenciador de tags
+- Analytics de uso
+- Estatísticas do cache
+
+## O Que Permanece Visível
+
+- Todas as abas principais (Analisar, Otimizar, Gerar, Documentos, Modelos)
+- Barra de navegação
+- Resultados de processamento`,
+    tags: ['modo compacto', 'interface', 'personalização', 'layout'],
+    ordem: 13
+  },
+  {
+    id: 'faq-fluxo-automatizado',
+    titulo: 'Como funciona o fluxo automatizado entre abas?',
+    categoria: 'faq' as const,
+    nivel: 'intermediario' as const,
+    tempoLeitura: 2,
+    conteudo: `# Como funciona o fluxo automatizado entre abas?
+
+## O Que é
+
+O fluxo automatizado permite navegar entre as abas sem copiar/colar manualmente, transferindo dados automaticamente.
+
+## Fluxo Circular
+
+1. **Analisar** → Botão "Otimizar Este Prompt" → vai para aba Otimizar
+2. **Otimizar** → Botão "Gerar Prompt Profissional" → vai para aba Gerar
+3. **Gerar** → Resultado final pronto para uso
+
+## Como Usar
+
+1. Comece analisando um prompt na aba "Analisar"
+2. Após ver os resultados, clique em **"Otimizar Este Prompt"**
+3. O prompt é transferido automaticamente para a aba Otimizar
+4. Após otimizar, clique em **"Gerar Prompt Profissional"**
+5. O prompt otimizado é usado como base para geração
+
+## Benefícios
+
+- Elimina copiar/colar manual
+- Mantém contexto entre etapas
+- Fluxo de trabalho mais eficiente
+- Resultados progressivamente melhores`,
+    tags: ['fluxo', 'automatizado', 'navegação', 'workflow'],
+    ordem: 14
+  },
+  {
+    id: 'faq-favoritos',
+    titulo: 'Como salvar e gerenciar prompts favoritos?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Como salvar e gerenciar prompts favoritos?
+
+## Salvando Favoritos
+
+1. Após gerar ou analisar um prompt, clique no ícone de **estrela** (☆)
+2. O prompt será adicionado à sua lista de favoritos
+3. Acesse seus favoritos na seção "Prompts Favoritos" do Dashboard
+
+## Gerenciando Favoritos
+
+- **Visualizar**: Clique no favorito para ver detalhes completos
+- **Reutilizar**: Use o botão "Usar" para carregar no Dashboard
+- **Remover**: Clique na estrela novamente para desfavoritar
+- **Exportar**: Exporte favoritos em PDF ou DOCX
+
+## Dicas
+
+- Favorite prompts que funcionaram bem para reutilização
+- Use tags para organizar favoritos por área jurídica
+- Revise favoritos periodicamente para manter atualizado
+- Combine favoritos com templates para máxima eficiência`,
+    tags: ['favoritos', 'salvar', 'organização', 'estrela'],
+    ordem: 15
+  },
+  {
+    id: 'faq-tags-organizacao',
+    titulo: 'Como organizar prompts com tags?',
+    categoria: 'faq' as const,
+    nivel: 'intermediario' as const,
+    tempoLeitura: 2,
+    conteudo: `# Como organizar prompts com tags?
+
+## O Que São Tags
+
+Tags são etiquetas coloridas que você cria para categorizar e organizar seus prompts e templates.
+
+## Criando Tags
+
+1. Acesse **"Gerenciar Tags"** no Dashboard
+2. Clique em **"Nova Tag"**
+3. Defina:
+   - **Nome**: Ex: "Cliente ABC", "Urgente", "Trabalhista"
+   - **Cor**: Escolha uma cor para identificação visual
+4. Clique em **"Criar"**
+
+## Atribuindo Tags
+
+1. Ao salvar um prompt, selecione as tags desejadas
+2. Você pode atribuir múltiplas tags a um mesmo prompt
+3. Tags aparecem como badges coloridos nos cards
+
+## Filtrando por Tags
+
+- Na página de Templates, clique em uma tag para filtrar
+- Combine filtros de tag com busca textual
+- Use o botão "Limpar Filtros" para resetar
+
+## Sugestões de Organização
+
+- **Por cliente**: "Cliente Silva", "Cliente Santos"
+- **Por urgência**: "Urgente", "Normal", "Baixa Prioridade"
+- **Por tipo**: "Petição", "Contrato", "Parecer"
+- **Por status**: "Em Andamento", "Concluído", "Revisão"`,
+    tags: ['tags', 'organização', 'categorização', 'filtros'],
+    ordem: 16
+  },
+  {
+    id: 'faq-chain-of-thought-detalhado',
+    titulo: 'Como funciona o Chain-of-Thought na prática?',
+    categoria: 'faq' as const,
+    nivel: 'profissional' as const,
+    tempoLeitura: 3,
+    conteudo: `# Como funciona o Chain-of-Thought na prática?
+
+## Conceito
+
+Chain-of-Thought (CoT) é uma técnica avançada de engenharia de prompts que faz a IA "pensar em voz alta", mostrando cada etapa do raciocínio jurídico.
+
+## Como o PromptJur Implementa
+
+Quando você seleciona a estratégia "Raciocínio Passo a Passo":
+
+1. **Decomposição**: O caso é dividido em questões jurídicas individuais
+2. **Análise Sequencial**: Cada questão é analisada separadamente
+3. **Fundamentação**: Cada conclusão é fundamentada com legislação
+4. **Síntese**: As análises são combinadas em um documento coerente
+
+## Exemplo Prático
+
+**Caso**: Rescisão indireta por atraso salarial
+
+**Passo 1**: Identificar fundamento legal (Art. 483, CLT)
+**Passo 2**: Verificar requisitos (atraso > 3 meses)
+**Passo 3**: Analisar jurisprudência (TST, TRTs)
+**Passo 4**: Calcular verbas rescisórias
+**Passo 5**: Redigir petição fundamentada
+
+## Quando Usar
+
+- Casos com múltiplas questões jurídicas
+- Recursos que exigem fundamentação detalhada
+- Pareceres jurídicos complexos
+- Quando precisa demonstrar raciocínio ao juiz`,
+    tags: ['chain-of-thought', 'raciocínio', 'técnica avançada', 'CoT'],
+    ordem: 17
+  },
+  {
+    id: 'faq-rag-precedentes',
+    titulo: 'Como a busca de precedentes (RAG) funciona?',
+    categoria: 'faq' as const,
+    nivel: 'profissional' as const,
+    tempoLeitura: 3,
+    conteudo: `# Como a busca de precedentes (RAG) funciona?
+
+## O Que é RAG
+
+RAG (Retrieval-Augmented Generation) é uma técnica que combina busca em bases de dados reais com geração de texto por IA.
+
+## Como Funciona no PromptJur
+
+1. **Extração de Contexto**: O sistema identifica o tema jurídico do seu prompt
+2. **Busca em Bases Oficiais**: Consulta bases do CNJ, STF, STJ e tribunais
+3. **Seleção de Precedentes**: Filtra os mais relevantes para o caso
+4. **Geração Fundamentada**: Usa os precedentes reais na geração do documento
+
+## Fontes Consultadas
+
+- **CNJ**: Jurisprudência unificada
+- **STF**: Supremo Tribunal Federal
+- **STJ**: Superior Tribunal de Justiça
+- **TST**: Tribunal Superior do Trabalho
+- **Legislação Federal**: Planalto.gov.br
+
+## Limitações Importantes
+
+- Precedentes podem estar desatualizados
+- Nem todos os tribunais estaduais estão cobertos
+- Sempre verifique a vigência das decisões citadas
+- Use como ponto de partida, não como fonte definitiva
+
+## Dica Profissional
+
+Combine RAG com Chain-of-Thought para obter documentos com raciocínio detalhado E fundamentação em precedentes reais.`,
+    tags: ['RAG', 'precedentes', 'jurisprudência', 'busca', 'CNJ'],
+    ordem: 18
+  },
+  {
+    id: 'faq-documentos-tipos',
+    titulo: 'Quais tipos de documentos jurídicos posso gerar?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Quais tipos de documentos jurídicos posso gerar?
+
+## 8 Tipos de Documentos
+
+### 1. Petição Inicial
+Documento que inicia um processo judicial. Inclui qualificação das partes, fatos, fundamentos e pedidos.
+
+### 2. Contestação
+Resposta do réu à petição inicial. Apresenta defesa e argumentos contrários.
+
+### 3. Parecer Jurídico
+Análise técnica sobre questão jurídica específica. Inclui fundamentação e conclusão.
+
+### 4. Contrato
+Instrumento que formaliza acordo entre partes. Inclui cláusulas, obrigações e penalidades.
+
+### 5. Recurso
+Peça para contestar decisão judicial. Inclui razões recursais e pedido de reforma.
+
+### 6. Memorando
+Comunicação interna sobre questão jurídica. Formato objetivo e direto.
+
+### 7. Procuração
+Instrumento que outorga poderes a terceiro. Inclui poderes específicos e gerais.
+
+### 8. Notificação Extrajudicial
+Comunicação formal fora do âmbito judicial. Constitui o destinatário em mora.
+
+## Formatação
+
+Todos os documentos são gerados com formatação ABNT profissional, prontos para impressão e protocolo.`,
+    tags: ['documentos', 'tipos', 'petição', 'contrato', 'parecer'],
+    ordem: 19
+  },
+  {
+    id: 'faq-qualidade-score',
+    titulo: 'Como interpretar o Score de Qualidade?',
+    categoria: 'faq' as const,
+    nivel: 'intermediario' as const,
+    tempoLeitura: 2,
+    conteudo: `# Como interpretar o Score de Qualidade?
+
+## O Que é o Score
+
+O Score de Qualidade é uma avaliação de 0 a 100 que mede a eficácia do seu prompt jurídico.
+
+## Faixas de Qualidade
+
+### 80-100 (Verde) - Alta Qualidade
+- Prompt bem estruturado e detalhado
+- Área jurídica clara
+- Contexto suficiente
+- Linguagem jurídica adequada
+
+### 50-79 (Amarelo) - Média Qualidade
+- Prompt funcional mas com melhorias possíveis
+- Falta algum contexto
+- Pode ser mais específico
+
+### 0-49 (Vermelho) - Baixa Qualidade
+- Prompt vago ou incompleto
+- Falta contexto essencial
+- Linguagem inadequada
+- Precisa de reformulação
+
+## Critérios Avaliados
+
+- **Clareza**: O prompt é claro e objetivo?
+- **Especificidade**: Contém detalhes suficientes?
+- **Contexto Jurídico**: Inclui informações legais relevantes?
+- **Estrutura**: Está bem organizado?
+- **Linguagem**: Usa terminologia jurídica adequada?
+
+## Como Melhorar
+
+1. Use a aba "Otimizar" para melhorar automaticamente
+2. Siga as sugestões fornecidas na análise
+3. Adicione mais contexto e detalhes específicos`,
+    tags: ['score', 'qualidade', 'avaliação', 'métricas'],
+    ordem: 20
+  },
+  {
+    id: 'faq-configuracoes-conta',
+    titulo: 'Como personalizar minha conta e configurações?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Como personalizar minha conta e configurações?
+
+## Acessando Configurações
+
+Clique em **"Configurações"** no menu superior do Dashboard.
+
+## Opções Disponíveis
+
+### Perfil
+- Nome de exibição
+- Email de contato
+- Nome do escritório (aparece nos documentos exportados)
+- Número da OAB
+
+### Preferências de Exportação
+- Incluir cabeçalho do escritório por padrão
+- Incluir data e hora nos documentos
+- Formato preferido (PDF, DOCX ou TXT)
+
+### Aparência
+- Modo Compacto (ativar/desativar)
+- Tema (claro/escuro)
+
+### Notificações
+- Alertas de limite de uso
+- Novidades da plataforma
+- Dicas de uso
+
+## Cabeçalho Personalizado
+
+Configure o cabeçalho que aparece nos documentos exportados:
+1. Acesse Configurações → Perfil
+2. Preencha "Nome do Escritório"
+3. Adicione "Número OAB"
+4. O cabeçalho aparecerá automaticamente nos PDFs e DOCX`,
+    tags: ['configurações', 'conta', 'perfil', 'personalização'],
+    ordem: 21
+  },
+  {
+    id: 'faq-diferenca-gerar-documentos',
+    titulo: 'Qual a diferença entre "Gerar Prompt" e "Documentos"?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Qual a diferença entre "Gerar Prompt" e "Documentos"?
+
+## Aba "Gerar Prompt Jurídico"
+
+**Objetivo**: Criar um **prompt profissional** otimizado para usar em ferramentas de IA.
+
+**Resultado**: Um texto de instrução (prompt) que você copia e cola no ChatGPT, Claude ou outra IA para obter o documento desejado.
+
+**Quando usar**: Quando quer ter controle total sobre a geração final, usando sua ferramenta de IA preferida.
+
+## Aba "Documentos"
+
+**Objetivo**: Gerar o **documento jurídico completo** diretamente na plataforma.
+
+**Resultado**: Um documento pronto (petição, contrato, parecer, etc.) formatado em ABNT, pronto para exportar em PDF ou DOCX.
+
+**Quando usar**: Quando quer o documento final pronto, sem precisar usar outra ferramenta.
+
+## Resumo Comparativo
+
+| Característica | Gerar Prompt | Documentos |
+|---------------|-------------|------------|
+| Resultado | Prompt para IA | Documento completo |
+| Formatação | Texto simples | ABNT profissional |
+| Exportação | Copiar texto | PDF, DOCX, TXT |
+| Controle | Máximo | Automatizado |
+| Velocidade | Rápido | Moderado |`,
+    tags: ['diferença', 'gerar', 'documentos', 'comparação'],
+    ordem: 22
+  },
+  {
+    id: 'faq-limites-uso',
+    titulo: 'Quais são os limites de uso por plano?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 2,
+    conteudo: `# Quais são os limites de uso por plano?
+
+## Plano Free (Atual)
+
+| Recurso | Limite |
+|---------|--------|
+| Requisições por hora | 1.000 |
+| Análises | Ilimitadas |
+| Otimizações | Ilimitadas |
+| Gerações de prompt | Ilimitadas |
+| Documentos jurídicos | Ilimitados |
+| Exportações | Ilimitadas |
+| Modelos básicos | Todos |
+| Modelos premium | Limitado |
+
+## Como Verificar Seu Uso
+
+1. Acesse o Dashboard
+2. Veja os cards de métricas no topo
+3. Ou acesse "Analytics de Uso" para detalhes
+
+## O Que Acontece ao Atingir o Limite
+
+- Um modal de aviso aparece
+- Você pode aguardar a renovação (a cada hora)
+- Ou fazer upgrade para plano Premium (em breve)
+
+## Dicas para Otimizar Uso
+
+- Salve prompts como templates para reutilizar
+- Use favoritos para acessar rapidamente
+- Revise antes de gerar para evitar tentativas extras
+- Combine análise + otimização antes de gerar documentos`,
+    tags: ['limites', 'uso', 'plano', 'requisições', 'quota'],
+    ordem: 23
+  },
+  {
+    id: 'faq-melhores-praticas-prompts',
+    titulo: 'Quais as melhores práticas para escrever prompts jurídicos?',
+    categoria: 'faq' as const,
+    nivel: 'profissional' as const,
+    tempoLeitura: 3,
+    conteudo: `# Quais as melhores práticas para escrever prompts jurídicos?
+
+## Estrutura Ideal de um Prompt
+
+### 1. Contexto (Quem e O Quê)
+Descreva a situação jurídica com detalhes:
+- Partes envolvidas
+- Fatos relevantes
+- Datas importantes
+- Valores envolvidos
+
+### 2. Objetivo (Para Quê)
+Especifique claramente o que deseja:
+- Tipo de documento
+- Finalidade da peça
+- Resultado esperado
+
+### 3. Restrições (Como)
+Defina limites e requisitos:
+- Área jurídica específica
+- Legislação aplicável
+- Formato desejado
+- Tom e linguagem
+
+## Erros Comuns
+
+| Erro | Exemplo | Correção |
+|------|---------|----------|
+| Muito vago | "Faça uma petição" | "Elabore petição inicial de ação de indenização por danos morais..." |
+| Sem contexto | "Contrato de aluguel" | "Contrato de locação residencial, imóvel em SP, prazo 30 meses..." |
+| Mistura de áreas | "Petição trabalhista e criminal" | Separe em dois prompts distintos |
+
+## Checklist do Prompt Perfeito
+
+- [ ] Área jurídica definida
+- [ ] Partes identificadas
+- [ ] Fatos descritos cronologicamente
+- [ ] Objetivo claro
+- [ ] Legislação relevante mencionada
+- [ ] Tipo de documento especificado
+- [ ] Tom e linguagem definidos`,
+    tags: ['melhores práticas', 'dicas', 'escrita', 'prompts', 'qualidade'],
+    ordem: 24
+  },
+  {
+    id: 'faq-acessibilidade-navegadores',
+    titulo: 'Quais navegadores e dispositivos são compatíveis?',
+    categoria: 'faq' as const,
+    nivel: 'iniciante' as const,
+    tempoLeitura: 1,
+    conteudo: `# Quais navegadores e dispositivos são compatíveis?
+
+## Navegadores Suportados
+
+| Navegador | Versão Mínima | Status |
+|-----------|--------------|--------|
+| Google Chrome | 90+ | Recomendado |
+| Mozilla Firefox | 88+ | Suportado |
+| Microsoft Edge | 90+ | Suportado |
+| Safari | 14+ | Suportado |
+| Opera | 76+ | Suportado |
+
+## Dispositivos
+
+- **Desktop/Notebook**: Experiência completa (recomendado)
+- **Tablet**: Funcional com layout responsivo
+- **Smartphone**: Funcional, mas recomendamos desktop para documentos longos
+
+## Requisitos Mínimos
+
+- Conexão com internet estável
+- JavaScript habilitado
+- Cookies habilitados (para login)
+- Resolução mínima: 1024x768
+
+## Dicas de Performance
+
+- Use navegador atualizado para melhor experiência
+- Feche abas desnecessárias ao gerar documentos longos
+- Limpe cache periodicamente se notar lentidão
+- Use conexão Wi-Fi estável para uploads`,
+    tags: ['navegadores', 'compatibilidade', 'dispositivos', 'requisitos'],
+    ordem: 25
   }
 ];

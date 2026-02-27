@@ -427,3 +427,18 @@ export const tutorialProgresso = mysqlTable("tutorial_progresso", {
 
 export type TutorialProgresso = typeof tutorialProgresso.$inferSelect;
 export type InsertTutorialProgresso = typeof tutorialProgresso.$inferInsert;
+
+/**
+ * Tabela de feedback de tutoriais
+ * Registra avaliações "Útil" / "Não útil" dos usuários
+ */
+export const tutorialFeedback = mysqlTable("tutorial_feedback", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  tutorialId: varchar("tutorialId", { length: 100 }).notNull(),
+  util: boolean("util").notNull(), // true = útil, false = não útil
+  criadoEm: timestamp("criadoEm").defaultNow().notNull(),
+  atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
+});
+export type TutorialFeedback = typeof tutorialFeedback.$inferSelect;
+export type InsertTutorialFeedback = typeof tutorialFeedback.$inferInsert;
