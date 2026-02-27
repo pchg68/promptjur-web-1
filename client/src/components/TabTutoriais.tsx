@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Search, BookOpen, Clock, Tag, X, ThumbsUp, ThumbsDown, Play } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { CATEGORIAS_NOMES, CATEGORIAS_DESCRICOES, NIVEIS_NOMES, type CategoriaTutorial, type NivelTutorial } from "@shared/tutoriais";
@@ -321,6 +322,12 @@ export default function TabTutoriais() {
       {/* Dialog de Tutorial Detalhado */}
       <Dialog open={!!tutorialSelecionado} onOpenChange={() => setTutorialSelecionado(null)}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          {!tutorialDetalhado && (
+            <VisuallyHidden>
+              <DialogTitle>Tutorial</DialogTitle>
+              <DialogDescription>Carregando tutorial...</DialogDescription>
+            </VisuallyHidden>
+          )}
           {tutorialDetalhado && (() => {
             const stats = getEstatisticas(tutorialDetalhado.id);
             const meuFeedback = getMeuFeedback(tutorialDetalhado.id);

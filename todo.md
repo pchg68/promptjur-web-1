@@ -2334,3 +2334,7 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Verificar embed do YouTube no modal
 
 **Resultado**: 37 tutoriais totais (12 originais + 25 FAQs) com sistema completo de progresso, feedback e estrutura para vídeos.
+
+
+## Bug Fix - Acessibilidade DialogTitle
+- [x] Corrigir erro: DialogContent sem DialogTitle no Dashboard (acessibilidade Radix UI)
