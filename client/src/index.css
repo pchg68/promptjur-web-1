@@ -265,3 +265,117 @@
 .dark .abnt-document {
   color: #e5e7eb;
 }
+
+/* Prompt Artifact View Sections */
+.prompt-section {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.prompt-section:hover {
+  border-left-color: var(--primary);
+}
+
+.prompt-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+}
+
+/* Fade-in animation for generated content */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* Legal citation badges */
+.citation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.citation-badge.validated {
+  background-color: oklch(0.45 0.1 145 / 15%);
+  border-color: oklch(0.55 0.15 145 / 40%);
+  color: oklch(0.75 0.15 145);
+}
+
+.citation-badge.pending {
+  background-color: oklch(0.55 0.12 75 / 15%);
+  border-color: oklch(0.65 0.12 75 / 40%);
+  color: oklch(0.75 0.12 75);
+}
+
+.citation-badge.invalid {
+  background-color: oklch(0.50 0.15 25 / 15%);
+  border-color: oklch(0.60 0.20 25 / 40%);
+  color: oklch(0.75 0.15 25);
+}
+
+/* Stepper progress indicator */
+.stepper-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.stepper-dot.active {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 0 0 4px oklch(0.65 0.12 75 / 20%);
+}
+
+.stepper-dot.completed {
+  background-color: oklch(0.55 0.15 145);
+  color: white;
+}
+
+.stepper-dot.pending {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+/* Scrollbar styling for artifact panel */
+.artifact-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.artifact-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.artifact-panel::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 3px;
+}
+
+.artifact-panel::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}
