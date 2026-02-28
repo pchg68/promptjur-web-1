@@ -2378,3 +2378,33 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 ### Fase 4 - Testes
 - [x] Escrever 21 testes unitários (módulos de router, utilidades, dados compartilhados)
 - [x] Todos os testes passando com sucesso
+
+## Implementação de Conectores - Relatório de Análise
+
+### Integrações de IA
+- [x] Criar claude-integration.ts (Anthropic Claude 3.5 Sonnet)
+- [x] Criar gemini-integration.ts (Google Gemini 2.0 Flash)
+- [x] Criar perplexity-integration.ts (Perplexity com fontes citadas)
+- [x] Atualizar openai-integration.ts (GPT-4o, GPT-4o-mini)
+- [x] Expandir unified-llm.ts para suportar todos os provedores
+- [x] Atualizar AVAILABLE_MODELS com todos os modelos
+
+### Validação de Legislação
+- [x] Implementar API do Planalto para validação robusta de legislação federal
+- [x] Integrar validação por API com sistema de cache existente
+
+### Stripe Frontend
+- [x] Criar página de Planos/Preços (/planos)
+- [x] Implementar checkout session no backend
+- [x] Criar componente de gerenciamento de assinatura
+- [x] Adicionar rota de planos no App.tsx
+
+### UI do Dashboard
+- [x] Atualizar seletor de modelo de IA para incluir todos os provedores
+- [x] Adicionar indicador de provedor no resultado gerado
+- [x] Mostrar custos estimados por provedor
+
+### Testes
+- [x] Testes unitários para novos conectores de IA (52 testes passando)
+- [x] Testes para API do Planalto
+- [x] Testes para Stripe checkout

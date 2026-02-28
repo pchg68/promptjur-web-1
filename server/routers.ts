@@ -18,6 +18,7 @@ import { modelosRouter } from "./routers/modelos";
 import { analyticsRouter, historicoRouter, versoesRouter, configuracoesRouter } from "./routers/analytics";
 import { perfisRouter, formatacaoTemplatesRouter, sugestaoRouter } from "./routers/perfis";
 import { documentosRouter, legislacaoRouter, knowledgeRetrievalRouter } from "./routers/documentos";
+import { stripeRouter } from "./routers/stripe";
 
 export const appRouter = router({
   // Core system routers
@@ -136,6 +137,7 @@ export const appRouter = router({
   sugestao: sugestaoRouter,
   documentos: documentosRouter,
   knowledgeRetrieval: knowledgeRetrievalRouter,
+  stripe: stripeRouter,
 });
 
 export type AppRouter = typeof appRouter;

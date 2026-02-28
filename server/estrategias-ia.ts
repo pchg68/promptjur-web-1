@@ -16,7 +16,7 @@ export interface ParametrosGeracao {
   legislacao?: string;
   detalhes?: string;
   estrategia: EstrategiaIA;
-  provider?: "manus" | "openai";
+  provider?: "manus" | "openai" | "anthropic" | "google" | "perplexity";
   model?: string;
 }
 

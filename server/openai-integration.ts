@@ -1,13 +1,18 @@
 /**
  * Módulo de integração com OpenAI API (ChatGPT)
- * Suporta múltiplos modelos GPT com fallback automático
+ * Suporta GPT-4o, GPT-4o-mini e modelos anteriores com fallback automático
+ * 
+ * Documentação: https://platform.openai.com/docs/api-reference/chat
  */
 
 export type OpenAIModel = 
-  | "gpt-4-turbo-preview"
+  | "gpt-4o"
+  | "gpt-4o-mini"
+  | "gpt-4-turbo"
   | "gpt-4"
   | "gpt-3.5-turbo"
-  | "gpt-3.5-turbo-16k";
+  | "o1"
+  | "o1-mini";
 
 export interface OpenAIMessage {
   role: "system" | "user" | "assistant";
@@ -53,20 +58,28 @@ export async function invokeOpenAI(
   const apiKey = process.env.OPENAI_API_KEY;
   
   if (!apiKey) {
-    throw new Error("OPENAI_API_KEY não configurada");
+    throw new Error("OPENAI_API_KEY não configurada. Configure em Settings → Secrets.");
   }
 
-  const requestBody: any = {
+  const isReasoningModel = options.model === "o1" || options.model === "o1-mini";
+
+  const requestBody: Record<string, unknown> = {
     model: options.model,
-    messages: options.messages,
-    temperature: options.temperature ?? 0.7,
+    messages: isReasoningModel 
+      ? options.messages.filter(m => m.role !== "system") // o1 não suporta system messages
+      : options.messages,
   };
+
+  // Modelos de raciocínio (o1) não suportam temperature
+  if (!isReasoningModel) {
+    requestBody.temperature = options.temperature ?? 0.7;
+  }
 
   if (options.max_tokens) {
     requestBody.max_tokens = options.max_tokens;
   }
 
-  if (options.response_format) {
+  if (options.response_format && !isReasoningModel) {
     requestBody.response_format = options.response_format;
   }
 
@@ -111,11 +124,22 @@ export function extractOpenAIContent(response: OpenAIResponse): string {
  */
 export function mapToOpenAIModel(genericModel: string): OpenAIModel {
   const mapping: Record<string, OpenAIModel> = {
+    "gpt-4o": "gpt-4o",
+    "gpt-4o-mini": "gpt-4o-mini",
+    "gpt-4-turbo": "gpt-4-turbo",
     "gpt-4": "gpt-4",
-    "gpt-4-turbo": "gpt-4-turbo-preview",
     "gpt-3.5": "gpt-3.5-turbo",
     "gpt-3.5-turbo": "gpt-3.5-turbo",
+    "o1": "o1",
+    "o1-mini": "o1-mini",
   };
 
-  return mapping[genericModel] || "gpt-3.5-turbo";
+  return mapping[genericModel] || "gpt-4o-mini";
+}
+
+/**
+ * Verifica se a API key da OpenAI está configurada
+ */
+export function isOpenAIConfigured(): boolean {
+  return !!process.env.OPENAI_API_KEY;
 }

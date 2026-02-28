@@ -35,7 +35,7 @@ export const promptsRouter = router({
   analisar: protectedProcedure
     .input(z.object({
       prompt: z.string().min(10, "Prompt muito curto"),
-      provider: z.enum(["manus", "openai"] as const).optional(),
+      provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const).optional(),
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
@@ -120,7 +120,7 @@ export const promptsRouter = router({
       partesEnvolvidas: z.string().optional(),
       legislacaoRelevante: z.string().optional(),
       detalhesAdicionais: z.string().optional(),
-      provider: z.enum(["manus", "openai"] as const).optional(),
+      provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const).optional(),
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
@@ -194,7 +194,7 @@ export const promptsRouter = router({
   otimizar: protectedProcedure
     .input(z.object({
       prompt: z.string().min(10, "Prompt muito curto"),
-      provider: z.enum(["manus", "openai"] as const).optional(),
+      provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const).optional(),
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {

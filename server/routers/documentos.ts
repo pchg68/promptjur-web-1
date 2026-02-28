@@ -12,7 +12,7 @@ export const documentosRouter = router({
       partesEnvolvidas: z.string().optional(), legislacao: z.string().optional(),
       detalhes: z.string().optional(),
       estrategia: z.enum(["direct", "chain_of_thought", "knowledge_retrieval"]).default("direct"),
-      provider: z.enum(["manus", "openai"] as const).optional(), model: z.string().optional(),
+      provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const).optional(), model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const startTime = Date.now();

@@ -16,6 +16,7 @@ const NAV_LINKS = [
   { href: "/historico", label: "Histórico" },
   { href: "/templates", label: "Meus Templates" },
   { href: "/tutoriais", label: "Tutoriais" },
+  { href: "/planos", label: "Planos" },
   { href: "/configuracoes", label: "Configurações" },
 ];
 

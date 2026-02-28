@@ -9,13 +9,11 @@ import { eq } from "drizzle-orm";
  * Mapeia planos do Stripe para os planos do sistema
  */
 function mapStripePlanToSystemPlan(stripePriceId: string): "free" | "pro" | "enterprise" {
-  // TODO: Configurar IDs de preços do Stripe quando forem criados
-  // Por enquanto, usamos lógica baseada em nome do produto ou metadata
-  
-  // Exemplo de mapeamento (ajustar conforme seus produtos no Stripe):
-  if (stripePriceId.includes("pro")) return "pro";
-  if (stripePriceId.includes("enterprise")) return "enterprise";
-  
+  // Mapeamento baseado em metadata ou nome do preço
+  // Os IDs serão configurados quando os produtos forem criados no Stripe Dashboard
+  const priceIdLower = stripePriceId.toLowerCase();
+  if (priceIdLower.includes("enterprise") || priceIdLower.includes("escritorio")) return "enterprise";
+  if (priceIdLower.includes("pro") || priceIdLower.includes("profissional")) return "pro";
   return "free";
 }
 
@@ -24,7 +22,9 @@ function mapStripePlanToSystemPlan(stripePriceId: string): "free" | "pro" | "ent
  */
 async function updateUserSubscription(
   customerEmail: string,
-  plan: "free" | "pro" | "enterprise"
+  plan: "free" | "pro" | "enterprise",
+  stripeCustomerId?: string,
+  stripeSubscriptionId?: string
 ): Promise<void> {
   const db = await getDb();
   if (!db) {
@@ -33,14 +33,52 @@ async function updateUserSubscription(
   }
 
   try {
+    const updateData: Record<string, unknown> = { subscriptionPlan: plan };
+    if (stripeCustomerId) updateData.stripeCustomerId = stripeCustomerId;
+    if (stripeSubscriptionId) updateData.stripeSubscriptionId = stripeSubscriptionId;
+    if (plan === "free") updateData.stripeSubscriptionId = null;
+
     await db
       .update(users)
-      .set({ subscriptionPlan: plan })
+      .set(updateData)
       .where(eq(users.email, customerEmail));
     
     console.log(`[Webhook] Updated user ${customerEmail} to plan: ${plan}`);
   } catch (error) {
     console.error("[Webhook] Failed to update user subscription:", error);
+    throw error;
+  }
+}
+
+/**
+ * Atualiza o plano do usuário pelo userId (via metadata do checkout)
+ */
+async function updateUserSubscriptionById(
+  userId: number,
+  plan: "free" | "pro" | "enterprise",
+  stripeCustomerId?: string,
+  stripeSubscriptionId?: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.error("[Webhook] Database not available");
+    return;
+  }
+
+  try {
+    const updateData: Record<string, unknown> = { subscriptionPlan: plan };
+    if (stripeCustomerId) updateData.stripeCustomerId = stripeCustomerId;
+    if (stripeSubscriptionId) updateData.stripeSubscriptionId = stripeSubscriptionId;
+    if (plan === "free") updateData.stripeSubscriptionId = null;
+
+    await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId));
+    
+    console.log(`[Webhook] Updated user ID ${userId} to plan: ${plan}`);
+  } catch (error) {
+    console.error("[Webhook] Failed to update user subscription by ID:", error);
     throw error;
   }
 }
@@ -66,7 +104,6 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
   let event: Stripe.Event;
 
   try {
-    // Verificar assinatura do webhook
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
@@ -90,6 +127,28 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
 
   try {
     switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const userId = session.metadata?.user_id ? parseInt(session.metadata.user_id) : null;
+        const customerId = session.customer as string;
+        const subscriptionId = session.subscription as string;
+
+        if (userId && subscriptionId) {
+          // Buscar detalhes da assinatura para determinar o plano
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const priceId = subscription.items.data[0]?.price.id || "";
+          const plan = mapStripePlanToSystemPlan(priceId);
+          
+          await updateUserSubscriptionById(userId, plan, customerId, subscriptionId);
+          console.log(`[Webhook] Checkout completed for user ${userId}, plan: ${plan}`);
+        } else if (session.customer_email) {
+          // Fallback: usar email do cliente
+          const plan = subscriptionId ? "pro" : "free";
+          await updateUserSubscription(session.customer_email, plan, customerId, subscriptionId);
+        }
+        break;
+      }
+
       case "customer.subscription.created": {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = await stripe.customers.retrieve(subscription.customer as string);
@@ -97,7 +156,12 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
         if ("email" in customer && customer.email) {
           const priceId = subscription.items.data[0]?.price.id || "";
           const plan = mapStripePlanToSystemPlan(priceId);
-          await updateUserSubscription(customer.email, plan);
+          await updateUserSubscription(
+            customer.email, 
+            plan, 
+            subscription.customer as string,
+            subscription.id
+          );
         }
         break;
       }
@@ -107,13 +171,16 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
         const customer = await stripe.customers.retrieve(subscription.customer as string);
         
         if ("email" in customer && customer.email) {
-          // Verificar se a assinatura está ativa
           if (subscription.status === "active" || subscription.status === "trialing") {
             const priceId = subscription.items.data[0]?.price.id || "";
             const plan = mapStripePlanToSystemPlan(priceId);
-            await updateUserSubscription(customer.email, plan);
+            await updateUserSubscription(
+              customer.email, 
+              plan,
+              subscription.customer as string,
+              subscription.id
+            );
           } else if (subscription.status === "canceled" || subscription.status === "unpaid") {
-            // Downgrade para plano gratuito
             await updateUserSubscription(customer.email, "free");
           }
         }
@@ -125,7 +192,6 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
         const customer = await stripe.customers.retrieve(subscription.customer as string);
         
         if ("email" in customer && customer.email) {
-          // Downgrade para plano gratuito
           await updateUserSubscription(customer.email, "free");
         }
         break;
@@ -134,19 +200,14 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         console.log(`[Webhook] Payment succeeded for invoice: ${invoice.id}`);
-        // Assinatura já foi atualizada pelos eventos de subscription
-        // Aqui podemos adicionar lógica adicional se necessário (ex: enviar email de confirmação)
         break;
       }
 
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         console.log(`[Webhook] Payment failed for invoice: ${invoice.id}`);
-        
-        // Opcional: notificar usuário sobre falha no pagamento
         if (invoice.customer_email) {
           console.log(`[Webhook] Payment failed for customer: ${invoice.customer_email}`);
-          // TODO: Implementar notificação ao usuário
         }
         break;
       }

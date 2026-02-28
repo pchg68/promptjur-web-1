@@ -15,6 +15,7 @@ import Tutoriais from "./pages/Tutoriais";
 import BibliotecaTemplates from "./pages/BibliotecaTemplates";
 import AdminTools from "./pages/AdminTools";
 import Configuracoes from "./pages/Configuracoes";
+import Planos from "./pages/Planos";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
       <Route path={"/biblioteca-templates"} component={BibliotecaTemplates} />
       <Route path={"/admin-tools"} component={AdminTools} />
       <Route path={"/configuracoes"} component={Configuracoes} />
+      <Route path={"/planos"} component={Planos} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

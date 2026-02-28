@@ -1,9 +1,12 @@
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, Sparkles, Crown } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -13,49 +16,128 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export type LLMProvider = "manus" | "openai";
+export type LLMProvider = "manus" | "openai" | "anthropic" | "google" | "perplexity";
 
 export interface ModelOption {
   provider: LLMProvider;
   model: string;
   name: string;
   description: string;
+  tier: "free" | "pro" | "enterprise";
+  badge?: string;
 }
 
 const AVAILABLE_MODELS: ModelOption[] = [
+  // Manus AI
   {
     provider: "manus",
     model: "manus-default",
-    name: "Manus AI (Padrão)",
-    description: "Modelo otimizado para tarefas jurídicas brasileiras",
+    name: "Manus AI",
+    description: "Otimizado para direito brasileiro",
+    tier: "free",
+    badge: "Padrão",
+  },
+  // OpenAI
+  {
+    provider: "openai",
+    model: "gpt-4o-mini",
+    name: "GPT-4o Mini",
+    description: "Rápido e econômico, ideal para tarefas simples",
+    tier: "free",
   },
   {
     provider: "openai",
-    model: "gpt-4",
-    name: "GPT-4",
-    description: "Modelo mais avançado da OpenAI, melhor qualidade",
+    model: "gpt-4o",
+    name: "GPT-4o",
+    description: "Modelo multimodal avançado da OpenAI",
+    tier: "pro",
   },
   {
     provider: "openai",
-    model: "gpt-4-turbo",
-    name: "GPT-4 Turbo",
-    description: "Versão mais rápida do GPT-4 com contexto maior",
+    model: "o1",
+    name: "o1 (Raciocínio)",
+    description: "Raciocínio profundo para análises complexas",
+    tier: "enterprise",
+    badge: "Novo",
+  },
+  // Anthropic Claude
+  {
+    provider: "anthropic",
+    model: "claude-sonnet",
+    name: "Claude Sonnet",
+    description: "Raciocínio jurídico superior, 200K tokens",
+    tier: "pro",
+    badge: "Recomendado",
   },
   {
-    provider: "openai",
-    model: "gpt-3.5-turbo",
-    name: "GPT-3.5 Turbo",
-    description: "Modelo rápido e econômico",
+    provider: "anthropic",
+    model: "claude-opus",
+    name: "Claude Opus",
+    description: "Máxima qualidade para casos complexos",
+    tier: "enterprise",
+  },
+  // Google Gemini
+  {
+    provider: "google",
+    model: "gemini-pro",
+    name: "Gemini Pro",
+    description: "Contexto de 1M tokens para processos volumosos",
+    tier: "pro",
+  },
+  {
+    provider: "google",
+    model: "gemini-flash",
+    name: "Gemini Flash",
+    description: "Ultra-rápido para tarefas em lote",
+    tier: "pro",
+  },
+  // Perplexity
+  {
+    provider: "perplexity",
+    model: "perplexity-sonar",
+    name: "Perplexity Sonar",
+    description: "Pesquisa com fontes citadas automaticamente",
+    tier: "pro",
+    badge: "Pesquisa",
   },
 ];
 
+const PROVIDER_LABELS: Record<LLMProvider, string> = {
+  manus: "Manus AI",
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  google: "Google",
+  perplexity: "Perplexity",
+};
+
+const TIER_COLORS: Record<string, string> = {
+  free: "bg-zinc-500/10 text-zinc-500",
+  pro: "bg-amber-500/10 text-amber-600",
+  enterprise: "bg-violet-500/10 text-violet-600",
+};
+
+const TIER_LABELS: Record<string, string> = {
+  free: "Grátis",
+  pro: "Pro",
+  enterprise: "Escritório",
+};
+
 interface ModelSelectorProps {
-  value: string; // formato: "provider:model" ex: "openai:gpt-4"
+  value: string; // formato: "provider:model" ex: "openai:gpt-4o"
   onChange: (value: string) => void;
   disabled?: boolean;
 }
 
 export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps) {
+  // Group models by provider
+  const groupedModels = AVAILABLE_MODELS.reduce((acc, model) => {
+    if (!acc[model.provider]) acc[model.provider] = [];
+    acc[model.provider].push(model);
+    return acc;
+  }, {} as Record<LLMProvider, ModelOption[]>);
+
+  const providerOrder: LLMProvider[] = ["manus", "openai", "anthropic", "google", "perplexity"];
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -67,14 +149,18 @@ export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps)
           <TooltipTrigger asChild>
             <Sparkles className="h-4 w-4 text-muted-foreground cursor-help" />
           </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
-            <p className="font-semibold mb-1">Escolha o modelo de IA:</p>
-            <ul className="text-sm space-y-1">
-              <li>• <strong>Manus AI:</strong> Otimizado para direito brasileiro</li>
-              <li>• <strong>GPT-4:</strong> Melhor qualidade, mais lento</li>
-              <li>• <strong>GPT-4 Turbo:</strong> Equilíbrio entre qualidade e velocidade</li>
-              <li>• <strong>GPT-3.5:</strong> Mais rápido e econômico</li>
+          <TooltipContent className="max-w-sm">
+            <p className="font-semibold mb-2">Provedores de IA disponíveis:</p>
+            <ul className="text-sm space-y-1.5">
+              <li><strong>Manus AI:</strong> Otimizado para direito brasileiro</li>
+              <li><strong>OpenAI (GPT-4o):</strong> Modelo multimodal avançado</li>
+              <li><strong>Claude (Anthropic):</strong> Raciocínio jurídico superior</li>
+              <li><strong>Gemini (Google):</strong> Contexto longo (1M tokens)</li>
+              <li><strong>Perplexity:</strong> Pesquisa com fontes citadas</li>
             </ul>
+            <p className="text-xs text-muted-foreground mt-2">
+              Modelos marcados com Pro/Escritório requerem plano correspondente.
+            </p>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -84,19 +170,44 @@ export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps)
           <SelectValue placeholder="Selecione o modelo" />
         </SelectTrigger>
         <SelectContent>
-          {AVAILABLE_MODELS.map((model) => (
-            <SelectItem
-              key={`${model.provider}:${model.model}`}
-              value={`${model.provider}:${model.model}`}
-            >
-              <div className="flex flex-col">
-                <span className="font-medium">{model.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {model.description}
-                </span>
-              </div>
-            </SelectItem>
-          ))}
+          {providerOrder.map((provider) => {
+            const models = groupedModels[provider];
+            if (!models?.length) return null;
+            return (
+              <SelectGroup key={provider}>
+                <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                  {PROVIDER_LABELS[provider]}
+                </SelectLabel>
+                {models.map((model) => (
+                  <SelectItem
+                    key={`${model.provider}:${model.model}`}
+                    value={`${model.provider}:${model.model}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-medium">{model.name}</span>
+                          {model.badge && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                              {model.badge}
+                            </Badge>
+                          )}
+                          {model.tier !== "free" && (
+                            <span className={`text-[10px] px-1.5 py-0 rounded-full font-medium ${TIER_COLORS[model.tier]}`}>
+                              {TIER_LABELS[model.tier]}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {model.description}
+                        </span>
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            );
+          })}
         </SelectContent>
       </Select>
     </div>
@@ -107,10 +218,11 @@ export function ModelSelector({ value, onChange, disabled }: ModelSelectorProps)
  * Parse valor do seletor para provider e model
  */
 export function parseModelValue(value: string): { provider: LLMProvider; model: string } {
-  const [provider, model] = value.split(":");
+  const [provider, ...modelParts] = value.split(":");
+  const model = modelParts.join(":") || "manus-default";
   return {
     provider: (provider as LLMProvider) || "manus",
-    model: model || "manus-default",
+    model,
   };
 }
 
@@ -119,4 +231,11 @@ export function parseModelValue(value: string): { provider: LLMProvider; model: 
  */
 export function formatModelValue(provider: LLMProvider, model: string): string {
   return `${provider}:${model}`;
+}
+
+/**
+ * Retorna a lista de modelos disponíveis
+ */
+export function getAvailableModels(): ModelOption[] {
+  return AVAILABLE_MODELS;
 }
