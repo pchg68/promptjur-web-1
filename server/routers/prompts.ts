@@ -8,6 +8,20 @@ import { notifyPromptGenerated, notifyPromptOptimized } from "../notification-tr
 import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes, extractLegalSources, getSourcesStatistics } from "../extractCitacoesLegais";
 import { logger } from "../_core/logger";
 import { getCachedData } from "../admin";
+import { canAccessModel, getAccessDeniedMessage } from "../plan-access";
+import { TRPCError } from "@trpc/server";
+
+/** Helper: verifica acesso ao modelo antes de chamar a IA */
+function checkModelAccess(userPlan: string, model?: string) {
+  if (!model) return; // modelo padrão (manus) é sempre acessível
+  const plan = (userPlan || "free") as "free" | "pro" | "enterprise";
+  if (!canAccessModel(plan, model)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: getAccessDeniedMessage(model, plan),
+    });
+  }
+}
 
 export const promptsRouter = router({
   search: protectedProcedure
@@ -39,6 +53,7 @@ export const promptsRouter = router({
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
+      checkModelAccess(ctx.user.subscriptionPlan, input.model);
       const startTime = Date.now();
       try {
         const citacoesExtraidas = extractCitacoesLegais(input.prompt);
@@ -124,6 +139,7 @@ export const promptsRouter = router({
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
+      checkModelAccess(ctx.user.subscriptionPlan, input.model);
       const startTime = Date.now();
       try {
         let areaDetectada = input.area;
@@ -198,6 +214,7 @@ export const promptsRouter = router({
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
+      checkModelAccess(ctx.user.subscriptionPlan, input.model);
       const startTime = Date.now();
       try {
         const { invokeUnifiedLLM } = await import("../unified-llm");

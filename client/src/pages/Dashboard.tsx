@@ -44,6 +44,7 @@ import AIDisclaimer from "@/components/AIDisclaimer";
 import GenerationStepper from "@/components/GenerationStepper";
 import PromptActions from "@/components/PromptActions";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
+import { ProviderStatus } from "@/components/ProviderStatus";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -345,6 +346,9 @@ export default function Dashboard() {
           />
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="mb-4">
+              <ProviderStatus />
+            </div>
             <TabsList className="grid w-full grid-cols-5 mb-8">
               <TabsTrigger value="analisar" className="flex items-center gap-2"><Sparkles className="w-4 h-4" />Analisar</TabsTrigger>
               <TabsTrigger value="otimizar" className="flex items-center gap-2"><Shield className="w-4 h-4" />Otimizar</TabsTrigger>

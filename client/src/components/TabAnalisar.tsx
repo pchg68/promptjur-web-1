@@ -12,6 +12,7 @@ import PromptActions from "@/components/PromptActions";
 import GenerationStepper from "@/components/GenerationStepper";
 import AIDisclaimer from "@/components/AIDisclaimer";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
+import { VoiceInput } from "@/components/VoiceInput";
 
 interface TabAnalisarProps {
   promptAnalise: string;
@@ -48,8 +49,14 @@ export default function TabAnalisar({
       <CardContent className="space-y-4">
         <ModelSelector value={selectedModel} onChange={handleModelChange} disabled={analiseMutation.isPending} />
         <div className="space-y-2">
-          <Label htmlFor="prompt-analise">Prompt para Análise</Label>
-          <HighlightedTextarea value={promptAnalise} onChange={setPromptAnalise} placeholder="Cole aqui o prompt que deseja analisar..." showValidation={true} minHeight="200px" />
+          <div className="flex items-center gap-2">
+            <Label htmlFor="prompt-analise">Prompt para Análise</Label>
+            <VoiceInput
+              onTranscription={(text) => setPromptAnalise(promptAnalise ? promptAnalise + " " + text : text)}
+              disabled={analiseMutation.isPending}
+            />
+          </div>
+          <HighlightedTextarea value={promptAnalise} onChange={setPromptAnalise} placeholder="Cole aqui o prompt ou use o microfone para ditar..." showValidation={true} minHeight="200px" />
         </div>
         <div className="grid grid-cols-[1fr_auto] gap-3">
           <Button onClick={handleAnalisar} disabled={analiseMutation.isPending}>

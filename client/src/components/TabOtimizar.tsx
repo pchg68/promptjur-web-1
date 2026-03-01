@@ -13,6 +13,7 @@ import AIDisclaimer from "@/components/AIDisclaimer";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
 import { PromptComparison } from "@/components/PromptComparison";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
+import { VoiceInput } from "@/components/VoiceInput";
 
 interface TabOtimizarProps {
   promptOtimizacao: string;
@@ -46,8 +47,14 @@ export default function TabOtimizar({
       <CardContent className="space-y-4">
         <ModelSelector value={selectedModel} onChange={handleModelChange} disabled={otimizacaoMutation.isPending} />
         <div className="space-y-2">
-          <Label>Prompt para Otimizar</Label>
-          <HighlightedTextarea value={promptOtimizacao} onChange={setPromptOtimizacao} placeholder="Cole aqui o prompt que deseja otimizar..." showValidation={true} minHeight="200px" />
+          <div className="flex items-center gap-2">
+            <Label>Prompt para Otimizar</Label>
+            <VoiceInput
+              onTranscription={(text) => setPromptOtimizacao(promptOtimizacao ? promptOtimizacao + " " + text : text)}
+              disabled={otimizacaoMutation.isPending}
+            />
+          </div>
+          <HighlightedTextarea value={promptOtimizacao} onChange={setPromptOtimizacao} placeholder="Cole aqui o prompt ou use o microfone para ditar..." showValidation={true} minHeight="200px" />
         </div>
         <Button type="button" onClick={handleOtimizar} disabled={otimizacaoMutation.isPending} className="w-full">
           {otimizacaoMutation.isPending ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Otimizando...</>) : (<><Shield className="mr-2 w-4 h-4" />Otimizar Prompt</>)}

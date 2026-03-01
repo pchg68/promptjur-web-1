@@ -2413,3 +2413,23 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Configurar ANTHROPIC_API_KEY para Claude
 - [x] Configurar GOOGLE_AI_API_KEY para Gemini
 - [x] Configurar PERPLEXITY_API_KEY para Perplexity
+
+## Sugestões de Acompanhamento - Implementação
+
+### 1. Controle de Acesso por Plano ✅
+- [x] Criar middleware de verificação de plano para modelos premium (plan-access.ts)
+- [x] Restringir Claude Opus, o1-mini, Sonar Pro aos planos Profissional/Escritório
+- [x] Adicionar feedback visual no ModelSelector para modelos bloqueados (ícone Lock + opacidade)
+- [x] Exibir modal de upgrade quando usuário tenta usar modelo premium (Dialog com preços e benefícios)
+
+### 2. Input de Voz com Whisper ✅
+- [x] Criar componente VoiceInput reutilizável (VoiceInput.tsx)
+- [x] Integrar captura de áudio no navegador (MediaRecorder API com webm/opus)
+- [x] Criar procedure tRPC para transcrever áudio via Whisper (voice.transcribe)
+- [x] Adicionar botão de microfone nas textareas do Dashboard (Analisar, Otimizar, Gerar)
+- [x] Implementar estados de gravação (idle, recording, transcribing) com feedback visual
+
+### 3. Validação Funcional dos Provedores ✅
+- [x] Criar endpoint de health check para cada provedor (providerHealth.status)
+- [x] Testar chamada leve a cada provedor configurado (providerHealth.testProvider)
+- [x] Exibir status dos provedores no Dashboard (ProviderStatus.tsx com collapsible)

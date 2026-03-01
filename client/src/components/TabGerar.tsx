@@ -19,6 +19,7 @@ import AIDisclaimer from "@/components/AIDisclaimer";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
 import { TIPOS_DOCUMENTO, type TipoDocumento } from "@/utils/dashboardUtils";
 import { AREAS_JURIDICAS } from "@/const";
+import { VoiceInput } from "@/components/VoiceInput";
 
 interface TabGerarProps {
   selectedModel: string;
@@ -191,8 +192,14 @@ export default function TabGerar({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm">Contexto do Caso *</Label>
-              <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Descreva os fatos relevantes do caso..." rows={hasResult ? 3 : 4} />
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">Contexto do Caso *</Label>
+                <VoiceInput
+                  onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)}
+                  disabled={geracaoMutation.isPending}
+                />
+              </div>
+              <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Descreva os fatos ou use o microfone para ditar..." rows={hasResult ? 3 : 4} />
             </div>
 
             <div className="space-y-2">
