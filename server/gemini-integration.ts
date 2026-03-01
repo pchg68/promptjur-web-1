@@ -78,10 +78,10 @@ function convertToGeminiMessages(
 export async function invokeGemini(
   options: GeminiRequestOptions
 ): Promise<GeminiResponse> {
-  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
 
   if (!apiKey) {
-    throw new Error("GOOGLE_GEMINI_API_KEY não configurada. Configure em Settings → Secrets.");
+    throw new Error("GOOGLE_AI_API_KEY não configurada. Configure em Settings → Secrets.");
   }
 
   const { systemInstruction, contents } = convertToGeminiMessages(options.messages);
@@ -168,5 +168,5 @@ export function mapToGeminiModel(genericModel: string): GeminiModel {
  * Verifica se a API key do Gemini está configurada
  */
 export function isGeminiConfigured(): boolean {
-  return !!process.env.GOOGLE_GEMINI_API_KEY;
+  return !!process.env.GOOGLE_AI_API_KEY;
 }

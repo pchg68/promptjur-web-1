@@ -2408,3 +2408,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Testes unitários para novos conectores de IA (52 testes passando)
 - [x] Testes para API do Planalto
 - [x] Testes para Stripe checkout
+
+## Configuração de Secrets - API Keys dos Provedores de IA
+- [x] Configurar ANTHROPIC_API_KEY para Claude
+- [x] Configurar GOOGLE_AI_API_KEY para Gemini
+- [x] Configurar PERPLEXITY_API_KEY para Perplexity

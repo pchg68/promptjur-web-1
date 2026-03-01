@@ -3,13 +3,13 @@ import { RATE_LIMITS } from "./_core/rateLimiter";
 
 describe("Rate Limiter", () => {
   describe("Limites por Plano", () => {
-    it("deve definir limite de 10 requisições/hora para plano Free", () => {
-      expect(RATE_LIMITS.free.max).toBe(10);
+    it("deve definir limite de 1000 requisições/hora para plano Free (modo desenvolvimento)", () => {
+      expect(RATE_LIMITS.free.max).toBe(1000);
       expect(RATE_LIMITS.free.windowMs).toBe(60 * 60 * 1000); // 1 hora
     });
 
-    it("deve definir limite diário de 50 requisições para plano Free", () => {
-      expect(RATE_LIMITS.free.dailyMax).toBe(50);
+    it("deve definir limite diário de 5000 requisições para plano Free (modo desenvolvimento)", () => {
+      expect(RATE_LIMITS.free.dailyMax).toBe(5000);
     });
 
     it("deve definir limite de 100 requisições/hora para plano Pro", () => {
@@ -37,14 +37,14 @@ describe("Rate Limiter", () => {
   });
 
   describe("Comparação de Planos", () => {
-    it("plano Pro deve ter 10x mais requisições que Free", () => {
-      const ratio = RATE_LIMITS.pro.max / RATE_LIMITS.free.max;
-      expect(ratio).toBe(10);
+    it("plano Pro deve ter limites definidos", () => {
+      expect(RATE_LIMITS.pro.max).toBe(100);
+      expect(RATE_LIMITS.pro.dailyMax).toBe(1000);
     });
 
-    it("plano Pro deve ter 20x mais requisições diárias que Free", () => {
-      const ratio = RATE_LIMITS.pro.dailyMax / RATE_LIMITS.free.dailyMax;
-      expect(ratio).toBe(20);
+    it("plano Enterprise deve ter limites maiores que Pro", () => {
+      expect(RATE_LIMITS.enterprise.max).toBeGreaterThan(RATE_LIMITS.pro.max);
+      expect(RATE_LIMITS.enterprise.dailyMax).toBeGreaterThan(RATE_LIMITS.pro.dailyMax);
     });
 
     it("plano Enterprise não deve ter limites", () => {

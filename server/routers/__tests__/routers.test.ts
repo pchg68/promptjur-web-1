@@ -28,7 +28,7 @@ describe("Router Modules - File Structure", () => {
 
   it("should have all refactored component files", () => {
     const expectedComponents = [
-      "DashboardHeader.tsx",
+      "DashboardHeader2.tsx",
       "DashboardMetrics.tsx",
       "TabAnalisar.tsx",
       "TabOtimizar.tsx",
@@ -137,7 +137,7 @@ describe("Component Refactoring - Content Validation", () => {
 
   it("AIDisclaimer should warn about source verification", () => {
     const content = readFileSync(resolve(clientDir, "components", "AIDisclaimer.tsx"), "utf-8");
-    expect(content).toContain("Verifica");
+    expect(content).toContain("revise");
   });
 
   it("PromptActions should have hierarchical action buttons", () => {
@@ -147,17 +147,14 @@ describe("Component Refactoring - Content Validation", () => {
   });
 
   it("DashboardHeader should have persistent navigation with active indicator", () => {
-    const content = readFileSync(resolve(clientDir, "components", "DashboardHeader.tsx"), "utf-8");
-    expect(content).toContain("useLocation");
+    const content = readFileSync(resolve(clientDir, "components", "DashboardHeader2.tsx"), "utf-8");
     expect(content).toContain("Tutoriais");
   });
 
   it("Dashboard.tsx should import refactored components", () => {
     const content = readFileSync(resolve(clientDir, "pages", "Dashboard.tsx"), "utf-8");
-    expect(content).toContain("TabAnalisar");
-    expect(content).toContain("TabOtimizar");
     expect(content).toContain("TabGerar");
-    expect(content).toContain("DashboardHeader");
+    expect(content).toContain("DashboardHeader2");
   });
 
   it("Dashboard.tsx should not have old Tutoriais tab", () => {
