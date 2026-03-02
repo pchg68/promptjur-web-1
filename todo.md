@@ -2433,3 +2433,21 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Criar endpoint de health check para cada provedor (providerHealth.status)
 - [x] Testar chamada leve a cada provedor configurado (providerHealth.testProvider)
 - [x] Exibir status dos provedores no Dashboard (ProviderStatus.tsx com collapsible)
+
+## Pesquisa Jurisprudencial - Aba Elaboração de Documentos
+
+### Backend
+- [x] Criar módulo de pesquisa DataJud (CNJ) com queries Elasticsearch (pesquisa-jurisprudencial.ts)
+- [x] Criar módulo de pesquisa STJ (SCON/Dados Abertos) — integrado via DataJud STJ
+- [x] Implementar extração inteligente de teses/termos do prompt do usuário via LLM (extrairTesesDoPrompt)
+- [x] Criar router tRPC para pesquisa jurisprudencial (routers/pesquisa-jurisprudencial.ts)
+- [x] Implementar checklist de validação anti-jurisprudência falsa (validarProcesso com 4 critérios)
+
+### Frontend
+- [x] Criar componente PesquisaJurisprudencial com resultados organizados por tese (PesquisaJurisprudencial.tsx)
+- [x] Implementar botão "Pesquisar Jurisprudência" na aba de elaboração (Collapsible trigger)
+- [x] Criar cards de resultado com ementa, tribunal, data, link oficial (ProcessoCard)
+- [x] Implementar botão "Incorporar ao Documento" para cada resultado (handleIncorporar)
+- [x] Adicionar filtros por tribunal, período e relevância (20 tribunais, 5 períodos)
+- [x] Implementar estado de loading e feedback visual (progresso em etapas)
+-- [x] Seção recolável conforme preferência do usuário (Collapsible component)

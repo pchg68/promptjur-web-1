@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { AREAS_JURIDICAS } from "@shared/juridico";
 import { Streamdown } from "streamdown";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
+import { PesquisaJurisprudencial } from "@/components/PesquisaJurisprudencial";
 
 type EstrategiaIA = "direct" | "chain_of_thought" | "knowledge_retrieval";
 
@@ -62,6 +63,8 @@ export default function TabDocumentos() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     return localStorage.getItem('promptjur_selected_model') || 'manus:default';
   });
+  // Estado para o documento com jurisprudência incorporada
+  const [documentoComJurisprudencia, setDocumentoComJurisprudencia] = useState<string>("");
 
   const handleModelChange = (value: string) => {
     setSelectedModel(value);
@@ -69,8 +72,10 @@ export default function TabDocumentos() {
   };
 
   const geracaoMutation = trpc.documentos.gerar.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Documento gerado com sucesso!");
+      // Inicializar o documento editável com o resultado
+      setDocumentoComJurisprudencia(data.documento);
     },
     onError: (error) => {
       toast.error(`Erro ao gerar documento: ${error.message}`);
@@ -100,7 +105,12 @@ export default function TabDocumentos() {
 
   const handleVoltar = () => {
     geracaoMutation.reset();
+    setDocumentoComJurisprudencia("");
     toast.info("Resultado limpo. Você pode ajustar os campos e gerar novamente.");
+  };
+
+  const handleIncorporarJurisprudencia = (citacao: string) => {
+    setDocumentoComJurisprudencia(prev => prev + citacao);
   };
 
   const salvarModeloMutation = trpc.modelosPersonalizados.criar.useMutation({
@@ -125,7 +135,7 @@ export default function TabDocumentos() {
     salvarModeloMutation.mutate({
       nome: nomeModelo,
       descricao: `Documento gerado com estratégia ${ESTRATEGIAS[geracaoMutation.data.estrategiaUsada].nome}`,
-      template: geracaoMutation.data.documento,
+      template: documentoComJurisprudencia || geracaoMutation.data.documento,
       areaJuridica,
       tipoDocumento,
       isPublico: false,
@@ -134,7 +144,6 @@ export default function TabDocumentos() {
 
   const exportarDocxMutation = trpc.prompts.exportarDocx.useMutation({
     onSuccess: (data) => {
-      // Converter base64 para blob e fazer download
       const byteCharacters = atob(data.buffer);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -159,7 +168,6 @@ export default function TabDocumentos() {
 
   const exportarPdfMutation = trpc.prompts.exportarPdf.useMutation({
     onSuccess: (data) => {
-      // Converter base64 para blob e fazer download
       const byteCharacters = atob(data.buffer);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -192,7 +200,7 @@ export default function TabDocumentos() {
     exportarDocxMutation.mutate({
       promptId: 0,
       titulo: `Documento Jurídico - ${tipoLabel}`,
-      conteudo: geracaoMutation.data.documento,
+      conteudo: documentoComJurisprudencia || geracaoMutation.data.documento,
       incluirCabecalho: true,
       incluirDataHora: true
     });
@@ -208,11 +216,16 @@ export default function TabDocumentos() {
     exportarPdfMutation.mutate({
       promptId: 0,
       titulo: `Documento Jurídico - ${tipoLabel}`,
-      conteudo: geracaoMutation.data.documento,
+      conteudo: documentoComJurisprudencia || geracaoMutation.data.documento,
       incluirCabecalho: true,
       incluirDataHora: true
     });
   };
+
+  // Texto do prompt completo para pesquisa jurisprudencial
+  const textoParaPesquisa = geracaoMutation.data
+    ? documentoComJurisprudencia || geracaoMutation.data.documento
+    : `${contexto}\n${objetivo}\n${partesEnvolvidas}\n${legislacao}\n${detalhes}`.trim();
 
   return (
     <div className="space-y-6">
@@ -378,7 +391,7 @@ export default function TabDocumentos() {
           ) : (
             /* Resultado */
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <h3 className="text-lg font-semibold">Documento Gerado</h3>
                   <div className="flex items-center gap-2 mt-1">
@@ -390,7 +403,7 @@ export default function TabDocumentos() {
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Button onClick={handleVoltar} variant="outline" size="sm">
                     <ArrowLeft className="mr-2 w-4 h-4" />
                     Voltar
@@ -449,9 +462,17 @@ export default function TabDocumentos() {
                 </Alert>
               )}
 
+              {/* Pesquisa Jurisprudencial — integrada ao resultado */}
+              <PesquisaJurisprudencial
+                promptTexto={textoParaPesquisa}
+                areaJuridica={areaJuridica}
+                tipoDocumento={tipoDocumento}
+                onIncorporar={handleIncorporarJurisprudencia}
+              />
+
               {/* Documento */}
               <div className="p-6 bg-card border border-border rounded-lg">
-                <Streamdown>{geracaoMutation.data.documento}</Streamdown>
+                <Streamdown>{documentoComJurisprudencia || geracaoMutation.data.documento}</Streamdown>
               </div>
             </div>
           )}
