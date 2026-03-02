@@ -17,9 +17,11 @@ import { invokeLLM } from "./_core/llm";
 import { logger } from "./_core/logger";
 import {
   TRIBUNAIS,
+  TRIBUNAIS_METADATA,
   type TribunalCode,
   type ProcessoDataJud,
   type ResultadoBuscaDataJud,
+  type GrauJurisdicao,
 } from "./knowledge-retrieval-datajud";
 
 const DATAJUD_API_KEY = process.env.DATAJUD_API_KEY || "cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==";
@@ -244,7 +246,8 @@ async function buscarNoDataJud(
   query: string,
   tribunal: TribunalCode,
   limite: number = 10,
-  filtroTemporal: { inicio: string; fim: string } = { inicio: "2022-01-01", fim: new Date().toISOString().split("T")[0] }
+  filtroTemporal: { inicio: string; fim: string } = { inicio: "2022-01-01", fim: new Date().toISOString().split("T")[0] },
+  grau: GrauJurisdicao = "todos"
 ): Promise<{ processos: ProcessoDataJud[]; total: number }> {
   const tribunalAlias = TRIBUNAIS[tribunal];
   if (!tribunalAlias) {
@@ -254,14 +257,22 @@ async function buscarNoDataJud(
 
   const url = `${DATAJUD_BASE_URL}/${tribunalAlias}/_search`;
 
+  // Montar filtros
+  const filters: any[] = [
+    { range: { "@timestamp": { gte: filtroTemporal.inicio, lte: filtroTemporal.fim } } },
+  ];
+
+  // Filtro de grau de jurisdição
+  if (grau !== "todos") {
+    filters.push({ match: { grau: grau } });
+  }
+
   const body = {
     size: limite,
     sort: [{ "@timestamp": "desc" }],
     query: {
       bool: {
-        filter: [
-          { range: { "@timestamp": { gte: filtroTemporal.inicio, lte: filtroTemporal.fim } } },
-        ],
+        filter: filters,
         must: [
           { query_string: { query } },
         ],
@@ -312,6 +323,41 @@ async function buscarEmMultiplosTribunais(
   query: string,
   tribunais: TribunalCode[],
   limitePorTribunal: number = 5,
+  filtroTemporal?: { inicio: string; fim: string },
+  grau: GrauJurisdicao = "todos"
+): Promise<{ processos: Array<ProcessoDataJud & { tribunalBusca: string }>; totalGeral: number }> {
+  // Limitar concorrência para não sobrecarregar a API do DataJud
+  const BATCH_SIZE = 8;
+  const allProcessos: Array<ProcessoDataJud & { tribunalBusca: string }> = [];
+  let totalGeral = 0;
+
+  for (let i = 0; i < tribunais.length; i += BATCH_SIZE) {
+    const batch = tribunais.slice(i, i + BATCH_SIZE);
+    const promessas = batch.map(async (tribunal) => {
+      const resultado = await buscarNoDataJud(query, tribunal, limitePorTribunal, filtroTemporal, grau);
+      return {
+        processos: resultado.processos.map((p) => ({ ...p, tribunalBusca: tribunal })),
+        total: resultado.total,
+      };
+    });
+
+    const resultados = await Promise.allSettled(promessas);
+    for (const resultado of resultados) {
+      if (resultado.status === "fulfilled") {
+        allProcessos.push(...resultado.value.processos);
+        totalGeral += resultado.value.total;
+      }
+    }
+  }
+
+  return { processos: allProcessos, totalGeral };
+}
+
+// Legacy wrapper kept for compatibility
+async function _buscarEmMultiplosTribunaisLegacy(
+  query: string,
+  tribunais: TribunalCode[],
+  limitePorTribunal: number = 5,
   filtroTemporal?: { inicio: string; fim: string }
 ): Promise<{ processos: Array<ProcessoDataJud & { tribunalBusca: string }>; totalGeral: number }> {
   const promessas = tribunais.map(async (tribunal) => {
@@ -324,16 +370,16 @@ async function buscarEmMultiplosTribunais(
 
   const resultados = await Promise.allSettled(promessas);
   const processos: Array<ProcessoDataJud & { tribunalBusca: string }> = [];
-  let totalGeral = 0;
+  let totalGeralLegacy = 0;
 
   for (const resultado of resultados) {
     if (resultado.status === "fulfilled") {
       processos.push(...resultado.value.processos);
-      totalGeral += resultado.value.total;
+      totalGeralLegacy += resultado.value.total;
     }
   }
 
-  return { processos, totalGeral };
+  return { processos, totalGeral: totalGeralLegacy };
 }
 
 // ============================================================================
@@ -451,14 +497,75 @@ function gerarLinkOficial(processo: ProcessoDataJud & { tribunalBusca?: string }
 
   // Links oficiais por tribunal
   const links: Record<string, string> = {
-    STJ: `https://processo.stj.jus.br/processo/pesquisa/?tipoPesquisa=tipoPesquisaNumeroRegistro&termo=${numero}`,
+    // Tribunais Superiores
     STF: `https://portal.stf.jus.br/processos/detalhe.asp?incidente=${numero}`,
-    TJSP: `https://esaj.tjsp.jus.br/cpopg/show.do?processo.numero=${numero}`,
-    TJRJ: `https://www3.tjrj.jus.br/consultaprocessual/#/consultapublica#702`,
-    TJPR: `https://portal.tjpr.jus.br/jurisprudencia/publico/pesquisa.do?actionType=pesquisar`,
-    TJRS: `https://www.tjrs.jus.br/novo/busca/?return=proc&client=wp_index`,
+    STJ: `https://processo.stj.jus.br/processo/pesquisa/?tipoPesquisa=tipoPesquisaNumeroRegistro&termo=${numero}`,
+    TST: `https://consultaprocessual.tst.jus.br/consultaProcessual/consultaTstNumUnica.do?consulta=Consultar&conscsjt=&numeroTst=&digitoTst=&anoTst=&orgaoTst=&tribunalTst=&varaTst=&consulta=Consultar`,
+    TSE: `https://www.tse.jus.br/servicos-judiciais/processos`,
+    STM: `https://www.stm.jus.br/servicos-stm/processos`,
+    
+    // TRFs
+    TRF1: `https://processual.trf1.jus.br/consultaProcessual/processo.php?proc=${numero}`,
+    TRF2: `https://eproc.trf2.jus.br/eproc/externo_controlador.php?acao=processo_seleciona_publica`,
+    TRF3: `https://pje1g.trf3.jus.br/pje/ConsultaPublica/listView.seam`,
+    TRF4: `https://www2.trf4.jus.br/trf4/controlador.php?acao=consulta_processual_resultado_pesquisa&txtValor=${numero}`,
+    TRF5: `https://pje.trf5.jus.br/pje/ConsultaPublica/listView.seam`,
+    TRF6: `https://pje.trf6.jus.br/pje/ConsultaPublica/listView.seam`,
+    
+    // TJs Estaduais
+    TJAC: `https://esaj.tjac.jus.br/cpopg/open.do`,
+    TJAL: `https://www2.tjal.jus.br/cpopg/open.do`,
+    TJAM: `https://consultasaj.tjam.jus.br/cpopg/open.do`,
+    TJAP: `https://tucujuris.tjap.jus.br/`,
+    TJBA: `https://esaj.tjba.jus.br/cpopg/open.do`,
+    TJCE: `https://esaj.tjce.jus.br/cpopg/open.do`,
+    TJDF: `https://pje.tjdft.jus.br/consultapublica/ConsultaPublica/listView.seam`,
+    TJES: `https://sistemas.tjes.jus.br/pje/ConsultaPublica/listView.seam`,
+    TJGO: `https://pje.tjgo.jus.br/ConsultaPublica/listView.seam`,
+    TJMA: `https://pje.tjma.jus.br/pje/ConsultaPublica/listView.seam`,
     TJMG: `https://www5.tjmg.jus.br/jurisprudencia/`,
+    TJMS: `https://esaj.tjms.jus.br/cpopg/open.do`,
+    TJMT: `https://pje.tjmt.jus.br/pje/ConsultaPublica/listView.seam`,
+    TJPA: `https://consultas.tjpa.jus.br/consultaprocessual/`,
+    TJPB: `https://pje.tjpb.jus.br/pje/ConsultaPublica/listView.seam`,
+    TJPE: `https://pje.tjpe.jus.br/1g/ConsultaPublica/listView.seam`,
+    TJPI: `https://pje.tjpi.jus.br/1g/ConsultaPublica/listView.seam`,
+    TJPR: `https://portal.tjpr.jus.br/jurisprudencia/publico/pesquisa.do?actionType=pesquisar`,
+    TJRJ: `https://www3.tjrj.jus.br/consultaprocessual/`,
+    TJRN: `https://pje.tjrn.jus.br/consultapublica/ConsultaPublica/listView.seam`,
+    TJRO: `https://pje.tjro.jus.br/1g/ConsultaPublica/listView.seam`,
+    TJRR: `https://pje.tjrr.jus.br/pje/ConsultaPublica/listView.seam`,
+    TJRS: `https://www.tjrs.jus.br/novo/busca/?return=proc&client=wp_index`,
     TJSC: `https://busca.tjsc.jus.br/jurisprudencia/`,
+    TJSE: `https://pje.tjse.jus.br/pje/ConsultaPublica/listView.seam`,
+    TJSP: `https://esaj.tjsp.jus.br/cpopg/show.do?processo.numero=${numero}`,
+    TJTO: `https://pje.tjto.jus.br/1g/ConsultaPublica/listView.seam`,
+    
+    // TRTs (Justiça do Trabalho)
+    TRT1: `https://pje.trt1.jus.br/consultaprocessual/`,
+    TRT2: `https://pje.trt2.jus.br/consultaprocessual/`,
+    TRT3: `https://pje.trt3.jus.br/consultaprocessual/`,
+    TRT4: `https://pje.trt4.jus.br/consultaprocessual/`,
+    TRT5: `https://pje.trt5.jus.br/consultaprocessual/`,
+    TRT6: `https://pje.trt6.jus.br/consultaprocessual/`,
+    TRT7: `https://pje.trt7.jus.br/consultaprocessual/`,
+    TRT8: `https://pje.trt8.jus.br/consultaprocessual/`,
+    TRT9: `https://pje.trt9.jus.br/consultaprocessual/`,
+    TRT10: `https://pje.trt10.jus.br/consultaprocessual/`,
+    TRT11: `https://pje.trt11.jus.br/consultaprocessual/`,
+    TRT12: `https://pje.trt12.jus.br/consultaprocessual/`,
+    TRT13: `https://pje.trt13.jus.br/consultaprocessual/`,
+    TRT14: `https://pje.trt14.jus.br/consultaprocessual/`,
+    TRT15: `https://pje.trt15.jus.br/consultaprocessual/`,
+    TRT16: `https://pje.trt16.jus.br/consultaprocessual/`,
+    TRT17: `https://pje.trt17.jus.br/consultaprocessual/`,
+    TRT18: `https://pje.trt18.jus.br/consultaprocessual/`,
+    TRT19: `https://pje.trt19.jus.br/consultaprocessual/`,
+    TRT20: `https://pje.trt20.jus.br/consultaprocessual/`,
+    TRT21: `https://pje.trt21.jus.br/consultaprocessual/`,
+    TRT22: `https://pje.trt22.jus.br/consultaprocessual/`,
+    TRT23: `https://pje.trt23.jus.br/consultaprocessual/`,
+    TRT24: `https://pje.trt24.jus.br/consultaprocessual/`,
   };
 
   return links[tribunal] || `https://api-publica.datajud.cnj.jus.br`;
@@ -475,15 +582,17 @@ export async function pesquisarJurisprudencia(params: {
   tribunais?: TribunalCode[];
   limitePorTese?: number;
   filtroTemporal?: { inicio: string; fim: string };
+  grau?: GrauJurisdicao;
 }): Promise<ResultadoPesquisaCompleta> {
   const startTime = Date.now();
   const {
     promptTexto,
     areaJuridica,
     tipoDocumento,
-    tribunais = ["STJ", "TJSP", "TJPR", "TJRJ", "TJRS"],
+    tribunais = ["STF", "STJ", "TJSP", "TJPR", "TJRJ", "TJRS"],
     limitePorTese = 5,
     filtroTemporal = { inicio: "2022-01-01", fim: new Date().toISOString().split("T")[0] },
+    grau = "todos",
   } = params;
 
   logger.info("[PesquisaJurisprudencial] Iniciando pesquisa", {
@@ -505,7 +614,8 @@ export async function pesquisarJurisprudencia(params: {
       tese.queryElasticsearch,
       tribunais as TribunalCode[],
       limitePorTese,
-      filtroTemporal
+      filtroTemporal,
+      grau
     );
 
     // Passo 3: Enriquecer e validar cada processo

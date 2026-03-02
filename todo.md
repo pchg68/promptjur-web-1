@@ -2471,3 +2471,19 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 
 ### Testes
 - [x] 7 testes unitários para gerarResumoJurisprudencia (332 testes totais passando)
+
+## Expansão Completa de Tribunais - Pesquisa Jurisprudencial
+
+### Backend
+- [x] Adicionar STF ao catálogo de tribunais (api_publica_stf)
+- [x] Adicionar todos os 24 TRTs (TRT1 a TRT24)
+- [x] Adicionar todos os 27 TJs estaduais (TJAC a TJTO, incluindo TJDFT)
+- [x] Adicionar suporte a filtro por grau (G1, G2, JE, TR, todos) nas queries DataJud
+- [x] Atualizar gerarLinkOficial para incluir links de todos os 62+ tribunais
+- [x] Atualizar router com TRIBUNAIS_METADATA (nome, sigla, UF, categoria, região)
+
+### Frontend
+- [x] Reorganizar filtros de tribunais por categoria com seleção em grupo (colapsável)
+- [x] Adicionar filtro de grau (1º Grau, 2º Grau, Juizados, Turmas Recursais)
+- [x] Adicionar botões de seleção rápida (Todos, Padrão, Limpar, por grupo)
+- [x] Atualizar tribunais padrão para incluir STF e TST (7 tribunais padrão)

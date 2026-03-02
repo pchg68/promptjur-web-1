@@ -9,7 +9,12 @@ import {
   type ResultadoPesquisaCompleta,
   type TomResumo,
 } from "../pesquisa-jurisprudencial";
-import { TRIBUNAIS, type TribunalCode } from "../knowledge-retrieval-datajud";
+import {
+  TRIBUNAIS,
+  TRIBUNAIS_METADATA,
+  type TribunalCode,
+  type GrauJurisdicao,
+} from "../knowledge-retrieval-datajud";
 
 const tribunaisValidos = Object.keys(TRIBUNAIS) as [string, ...string[]];
 
@@ -27,6 +32,7 @@ export const pesquisaJurisprudencialRouter = router({
       limitePorTese: z.number().min(1).max(10).optional(),
       periodoInicio: z.string().optional(),
       periodoFim: z.string().optional(),
+      grau: z.enum(["G1", "G2", "JE", "TR", "todos"]).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const startTime = Date.now();
@@ -35,6 +41,7 @@ export const pesquisaJurisprudencialRouter = router({
         area: input.areaJuridica,
         tipo: input.tipoDocumento,
         tribunais: input.tribunais,
+        grau: input.grau,
       });
 
       try {
@@ -42,12 +49,13 @@ export const pesquisaJurisprudencialRouter = router({
           promptTexto: input.promptTexto,
           areaJuridica: input.areaJuridica,
           tipoDocumento: input.tipoDocumento,
-          tribunais: (input.tribunais || ["STJ", "TJSP", "TJPR", "TJRJ", "TJRS"]) as TribunalCode[],
+          tribunais: (input.tribunais || ["STF", "STJ", "TJSP", "TJPR", "TJRJ", "TJRS"]) as TribunalCode[],
           limitePorTese: input.limitePorTese || 5,
           filtroTemporal: {
             inicio: input.periodoInicio || "2022-01-01",
             fim: input.periodoFim || new Date().toISOString().split("T")[0],
           },
+          grau: (input.grau || "todos") as GrauJurisdicao,
         });
 
         return {
@@ -178,46 +186,17 @@ export const pesquisaJurisprudencialRouter = router({
     }),
 
   /**
-   * Listar tribunais disponíveis para pesquisa
+   * Listar tribunais disponíveis para pesquisa, organizados por categoria
    */
   listarTribunais: protectedProcedure.query(() => {
-    return Object.entries(TRIBUNAIS).map(([codigo, alias]) => ({
+    return Object.entries(TRIBUNAIS_METADATA).map(([codigo, meta]) => ({
       codigo,
-      alias,
-      nome: getNomeTribunal(codigo),
-      categoria: getCategoriaTribunal(codigo),
+      alias: TRIBUNAIS[codigo as TribunalCode],
+      nome: meta.nome,
+      sigla: meta.sigla,
+      uf: meta.uf || null,
+      categoria: meta.categoria,
+      regiao: meta.regiao || null,
     }));
   }),
 });
-
-function getNomeTribunal(codigo: string): string {
-  const nomes: Record<string, string> = {
-    STJ: "Superior Tribunal de Justiça",
-    TST: "Tribunal Superior do Trabalho",
-    TSE: "Tribunal Superior Eleitoral",
-    STM: "Superior Tribunal Militar",
-    TRF1: "TRF 1ª Região",
-    TRF2: "TRF 2ª Região",
-    TRF3: "TRF 3ª Região",
-    TRF4: "TRF 4ª Região",
-    TRF5: "TRF 5ª Região",
-    TRF6: "TRF 6ª Região",
-    TJSP: "Tribunal de Justiça de São Paulo",
-    TJRJ: "Tribunal de Justiça do Rio de Janeiro",
-    TJMG: "Tribunal de Justiça de Minas Gerais",
-    TJRS: "Tribunal de Justiça do Rio Grande do Sul",
-    TJPR: "Tribunal de Justiça do Paraná",
-    TJSC: "Tribunal de Justiça de Santa Catarina",
-    TJBA: "Tribunal de Justiça da Bahia",
-    TJPE: "Tribunal de Justiça de Pernambuco",
-    TJCE: "Tribunal de Justiça do Ceará",
-    TJGO: "Tribunal de Justiça de Goiás",
-  };
-  return nomes[codigo] || codigo;
-}
-
-function getCategoriaTribunal(codigo: string): string {
-  if (["STJ", "TST", "TSE", "STM"].includes(codigo)) return "Tribunais Superiores";
-  if (codigo.startsWith("TRF")) return "Justiça Federal";
-  return "Justiça Estadual";
-}
