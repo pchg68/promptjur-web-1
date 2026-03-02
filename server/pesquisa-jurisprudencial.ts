@@ -550,6 +550,146 @@ export function formatarParaIncorporacao(processo: ProcessoEnriquecido): string 
   return `(${processo.tribunal}, ${processo.classe} nº ${processo.numeroProcesso}, ${processo.orgaoJulgador}, j. ${data})`;
 }
 
+// ============================================================================
+// 6. RESUMO AUTOMÁTICO DE JURISPRUDÊNCIA VIA IA
+// ============================================================================
+
+export type TomResumo = "formal" | "tecnico" | "persuasivo";
+
+export interface ResumoJurisprudenciaParams {
+  resultados: ResultadoJurisprudencial[];
+  contextoDocumento: string;
+  areaJuridica: string;
+  tipoDocumento: string;
+  tom?: TomResumo;
+}
+
+export interface ResumoJurisprudenciaResult {
+  resumo: string;
+  processosUtilizados: string[];
+  tesesAbordadas: string[];
+  tempoGeracao: number;
+  tom: TomResumo;
+}
+
+/**
+ * Gera um resumo automático de fundamentação jurídica a partir dos processos
+ * encontrados na pesquisa jurisprudencial.
+ * 
+ * REGRA CRÍTICA: O resumo NUNCA inventa jurisprudência. Ele utiliza EXCLUSIVAMENTE
+ * os processos reais retornados pelo DataJud/CNJ, formatando-os em parágrafos
+ * de fundamentação prontos para inserção no documento.
+ */
+export async function gerarResumoJurisprudencia(
+  params: ResumoJurisprudenciaParams
+): Promise<ResumoJurisprudenciaResult> {
+  const startTime = Date.now();
+  const { resultados, contextoDocumento, areaJuridica, tipoDocumento, tom = "formal" } = params;
+
+  // Filtrar apenas processos com score >= 40 (mínimo de confiabilidade)
+  const resultadosComProcessos = resultados.filter(r => r.processos.length > 0);
+  const processosValidos: { processo: ProcessoEnriquecido; tese: TeseExtraida }[] = [];
+
+  for (const resultado of resultadosComProcessos) {
+    for (const processo of resultado.processos) {
+      if (processo.validacao.scoreValidacao >= 40) {
+        processosValidos.push({ processo, tese: resultado.tese });
+      }
+    }
+  }
+
+  if (processosValidos.length === 0) {
+    return {
+      resumo: "Não foram encontrados processos com score de validação suficiente para gerar um resumo de fundamentação. Considere ampliar os filtros de pesquisa (mais tribunais ou período mais amplo).",
+      processosUtilizados: [],
+      tesesAbordadas: [],
+      tempoGeracao: Date.now() - startTime,
+      tom,
+    };
+  }
+
+  // Montar contexto estruturado dos processos para o LLM
+  const processosContexto = processosValidos.map(({ processo, tese }) => {
+    const data = new Date(processo.dataAjuizamento).toLocaleDateString("pt-BR");
+    return `- Tese: "${tese.titulo}"
+  Processo: ${processo.numeroProcesso}
+  Tribunal: ${processo.tribunal} — ${processo.orgaoJulgador}
+  Classe: ${processo.classe}
+  Assuntos: ${processo.assuntos.join(", ")}
+  Data: ${data}
+  Grau: ${processo.grau}
+  Score de validação: ${processo.validacao.scoreValidacao}/100
+  Link: ${processo.linkOficial}`;
+  }).join("\n\n");
+
+  const tesesAbordadas = Array.from(new Set(processosValidos.map(p => p.tese.titulo)));
+
+  // Definir instruções de tom
+  const instrucoesTom: Record<TomResumo, string> = {
+    formal: "Use linguagem formal e objetiva, adequada para petições e peças processuais. Utilize vocabulário jurídico preciso e construções frasais típicas do meio forense.",
+    tecnico: "Use linguagem técnica e analítica, adequada para pareceres e memorandos internos. Foque na análise dos precedentes e sua aplicabilidade ao caso concreto.",
+    persuasivo: "Use linguagem persuasiva e argumentativa, adequada para sustentações orais e recursos. Enfatize a força dos precedentes e sua convergência com a tese defendida.",
+  };
+
+  try {
+    const response = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content: `Você é um jurista brasileiro especializado em redação de fundamentação jurisprudencial.
+
+Sua tarefa é gerar um RESUMO DE FUNDAMENTAÇÃO JURÍDICA pronto para inserção em documento jurídico, baseado EXCLUSIVAMENTE nos processos reais fornecidos abaixo.
+
+REGRAS ABSOLUTAS:
+1. NUNCA invente, fabrique ou presuma jurisprudência que não esteja na lista fornecida
+2. NUNCA cite números de processo, datas, tribunais ou órgãos julgadores que não constem nos dados fornecidos
+3. NUNCA adicione ementas, trechos de acórdãos ou citações textuais — você NÃO tem acesso ao inteiro teor
+4. Cite APENAS os dados objetivos: número do processo, tribunal, órgão julgador, classe, assuntos e data
+5. Use expressões como "conforme precedente identificado no DataJud/CNJ" para deixar clara a fonte
+6. Ao final, inclua uma nota de que o advogado deve verificar o inteiro teor dos acórdãos nos links oficiais
+
+FORMATO:
+- Gere parágrafos de fundamentação em Markdown
+- Organize por tese jurídica quando houver mais de uma
+- Use citações no formato: (TRIBUNAL, Classe nº NÚMERO, Órgão Julgador, j. DATA)
+- Inclua ao final: "**Nota:** Os precedentes acima foram identificados via consulta à base DataJud/CNJ. Recomenda-se a verificação do inteiro teor nos links oficiais antes da utilização em peça processual."
+
+TOM: ${instrucoesTom[tom]}
+
+ÁREA JURÍDICA: ${areaJuridica}
+TIPO DE DOCUMENTO: ${tipoDocumento}`,
+        },
+        {
+          role: "user",
+          content: `CONTEXTO DO DOCUMENTO:
+${contextoDocumento.substring(0, 2000)}
+
+PROCESSOS ENCONTRADOS (DataJud/CNJ):
+${processosContexto}
+
+Gere um resumo de fundamentação jurisprudencial pronto para inserção no documento, citando os processos acima de forma organizada e profissional.`,
+        },
+      ],
+    });
+
+    const content = response.choices?.[0]?.message?.content;
+    const resumo = typeof content === "string" ? content : "Não foi possível gerar o resumo. Tente novamente.";
+
+    logger.info(`[ResumoJurisprudencia] Resumo gerado com ${processosValidos.length} processos em ${Date.now() - startTime}ms`);
+
+    return {
+      resumo,
+      processosUtilizados: processosValidos.map(p => p.processo.numeroProcesso),
+      tesesAbordadas,
+      tempoGeracao: Date.now() - startTime,
+      tom,
+    };
+  } catch (error) {
+    logger.error("[ResumoJurisprudencia] Erro ao gerar resumo", { error });
+    throw new Error(`Erro ao gerar resumo de jurisprudência: ${error instanceof Error ? error.message : "Erro desconhecido"}`);
+  }
+}
+
 /**
  * Gerar bloco de citação completo para incorporação
  */

@@ -2451,3 +2451,23 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar filtros por tribunal, período e relevância (20 tribunais, 5 períodos)
 - [x] Implementar estado de loading e feedback visual (progresso em etapas)
 -- [x] Seção recolável conforme preferência do usuário (Collapsible component)
+
+## Resumo Automático de Jurisprudência via IA
+
+### Backend
+- [x] Criar função gerarResumoJurisprudencia via LLM (pesquisa-jurisprudencial.ts)
+- [x] Adicionar endpoint tRPC gerarResumo no router de pesquisa
+- [x] Garantir que o resumo cite apenas processos reais (6 regras anti-fabricação no prompt)
+- [x] Filtrar processos com score >= 40 antes de gerar resumo
+- [x] Suporte a 3 tons: formal, técnico, persuasivo
+
+### Frontend
+- [x] Criar botão "Gerar Resumo com IA" no componente PesquisaJurisprudencial
+- [x] Exibir resumo em Markdown com Streamdown + metadados (processos, teses, tempo)
+- [x] Implementar estados de loading e feedback visual para geração do resumo
+- [x] Permitir regenerar resumo com seletor de tom (formal/técnico/persuasivo)
+- [x] Botão "Incorporar ao Documento" e "Copiar Resumo"
+- [x] Disclaimer de verificação obrigatória nos links oficiais
+
+### Testes
+- [x] 7 testes unitários para gerarResumoJurisprudencia (332 testes totais passando)

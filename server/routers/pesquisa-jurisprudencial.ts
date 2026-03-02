@@ -5,7 +5,9 @@ import {
   pesquisarJurisprudencia,
   formatarParaIncorporacao,
   gerarBlocoCitacao,
+  gerarResumoJurisprudencia,
   type ResultadoPesquisaCompleta,
+  type TomResumo,
 } from "../pesquisa-jurisprudencial";
 import { TRIBUNAIS, type TribunalCode } from "../knowledge-retrieval-datajud";
 
@@ -105,6 +107,74 @@ export const pesquisaJurisprudencialRouter = router({
         return { citacao: formatarParaIncorporacao(input.processo) };
       }
       return { citacao: gerarBlocoCitacao(input.processo, input.tese) };
+    }),
+
+  /**
+   * Gerar resumo automático de fundamentação jurisprudencial via IA
+   * Recebe os resultados da pesquisa e gera parágrafos prontos para inserção
+   */
+  gerarResumo: protectedProcedure
+    .input(z.object({
+      resultados: z.array(z.object({
+        tese: z.object({
+          id: z.string(),
+          titulo: z.string(),
+          descricao: z.string(),
+          termosChave: z.array(z.string()),
+          artigosRelacionados: z.array(z.string()),
+          queryElasticsearch: z.string(),
+        }),
+        processos: z.array(z.object({
+          numeroProcesso: z.string(),
+          tribunal: z.string(),
+          tribunalBusca: z.string(),
+          classe: z.string(),
+          assuntos: z.array(z.string()),
+          orgaoJulgador: z.string(),
+          grau: z.string(),
+          dataAjuizamento: z.string(),
+          dataUltimaAtualizacao: z.string(),
+          movimentoRecente: z.string().optional(),
+          dataMovimentoRecente: z.string().optional(),
+          scoreRelevancia: z.number(),
+          linkOficial: z.string(),
+          validacao: z.object({
+            temFonteOficial: z.boolean(),
+            temIdentificacaoCompleta: z.boolean(),
+            temDataRecente: z.boolean(),
+            temAderenciaFatica: z.boolean(),
+            scoreValidacao: z.number(),
+            alertas: z.array(z.string()),
+          }),
+        })),
+        totalEncontrado: z.number(),
+      })),
+      contextoDocumento: z.string().min(10),
+      areaJuridica: z.string().min(1),
+      tipoDocumento: z.string().min(1),
+      tom: z.enum(["formal", "tecnico", "persuasivo"]).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      logger.info("[ResumoJurisprudencia] Requisição recebida", {
+        userId: ctx.user.id,
+        totalResultados: input.resultados.length,
+        tom: input.tom || "formal",
+      });
+
+      try {
+        const resultado = await gerarResumoJurisprudencia({
+          resultados: input.resultados,
+          contextoDocumento: input.contextoDocumento,
+          areaJuridica: input.areaJuridica,
+          tipoDocumento: input.tipoDocumento,
+          tom: (input.tom || "formal") as TomResumo,
+        });
+
+        return resultado;
+      } catch (error) {
+        logger.error("[ResumoJurisprudencia] Erro ao gerar resumo", { error, userId: ctx.user.id });
+        throw new Error(`Erro ao gerar resumo: ${error instanceof Error ? error.message : "Erro desconhecido"}`);
+      }
     }),
 
   /**

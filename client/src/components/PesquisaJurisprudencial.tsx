@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,9 +24,12 @@ import {
   Filter,
   BookOpen,
   ShieldCheck,
-  Info,
+  Sparkles,
+  RefreshCw,
+  ClipboardCheck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Streamdown } from "streamdown";
 
 // ============================================================================
 // TIPOS
@@ -79,6 +82,8 @@ interface PesquisaJurisprudencialProps {
   disabled?: boolean;
 }
 
+type TomResumo = "formal" | "tecnico" | "persuasivo";
+
 // ============================================================================
 // CONSTANTES
 // ============================================================================
@@ -110,6 +115,12 @@ const TRIBUNAIS_OPCOES = [
 
 const TRIBUNAIS_PADRAO = ["STJ", "TJSP", "TJPR", "TJRJ", "TJRS"];
 
+const TONS_RESUMO: { value: TomResumo; label: string; descricao: string }[] = [
+  { value: "formal", label: "Formal", descricao: "Linguagem objetiva para petições e peças processuais" },
+  { value: "tecnico", label: "Técnico", descricao: "Linguagem analítica para pareceres e memorandos" },
+  { value: "persuasivo", label: "Persuasivo", descricao: "Linguagem argumentativa para sustentações e recursos" },
+];
+
 // ============================================================================
 // COMPONENTE PRINCIPAL
 // ============================================================================
@@ -127,17 +138,29 @@ export function PesquisaJurisprudencial({
   const [showFiltros, setShowFiltros] = useState(false);
   const [processosIncorporados, setProcessosIncorporados] = useState<Set<string>>(new Set());
   const [teseAberta, setTeseAberta] = useState<string | null>(null);
+  const [tomResumo, setTomResumo] = useState<TomResumo>("formal");
+  const [resumoIncorporado, setResumoIncorporado] = useState(false);
 
   const pesquisaMutation = trpc.pesquisaJurisprudencial.pesquisar.useMutation({
     onSuccess: (data) => {
       toast.success(`Pesquisa concluída: ${data.metadados.totalProcessos} processos encontrados em ${data.metadados.tempoTotal}ms`);
-      // Abrir a primeira tese automaticamente
       if (data.resultados.length > 0) {
         setTeseAberta(data.resultados[0].tese.id);
       }
+      // Reset resumo state on new search
+      setResumoIncorporado(false);
     },
     onError: (error) => {
       toast.error("Erro na pesquisa jurisprudencial", { description: error.message });
+    },
+  });
+
+  const resumoMutation = trpc.pesquisaJurisprudencial.gerarResumo.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Resumo gerado em ${data.tempoGeracao}ms com ${data.processosUtilizados.length} processos`);
+    },
+    onError: (error) => {
+      toast.error("Erro ao gerar resumo", { description: error.message });
     },
   });
 
@@ -155,6 +178,33 @@ export function PesquisaJurisprudencial({
       limitePorTese: 5,
       periodoInicio,
     });
+  };
+
+  const handleGerarResumo = () => {
+    if (!pesquisaMutation.data) return;
+
+    resumoMutation.mutate({
+      resultados: pesquisaMutation.data.resultados,
+      contextoDocumento: promptTexto,
+      areaJuridica,
+      tipoDocumento,
+      tom: tomResumo,
+    });
+  };
+
+  const handleIncorporarResumo = () => {
+    if (!resumoMutation.data) return;
+
+    const bloco = `\n\n---\n## Fundamentação Jurisprudencial\n\n${resumoMutation.data.resumo}\n\n---\n`;
+    onIncorporar(bloco);
+    setResumoIncorporado(true);
+    toast.success("Fundamentação jurisprudencial incorporada ao documento");
+  };
+
+  const handleCopiarResumo = () => {
+    if (!resumoMutation.data) return;
+    navigator.clipboard.writeText(resumoMutation.data.resumo);
+    toast.success("Resumo copiado para a área de transferência");
   };
 
   const handleIncorporar = (processo: ProcessoEnriquecido, tese: TeseExtraida) => {
@@ -182,6 +232,7 @@ export function PesquisaJurisprudencial({
   };
 
   const hasResultados = pesquisaMutation.data && pesquisaMutation.data.resultados.length > 0;
+  const hasProcessos = pesquisaMutation.data && pesquisaMutation.data.metadados.totalProcessos > 0;
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -197,6 +248,12 @@ export function PesquisaJurisprudencial({
             {pesquisaMutation.data && (
               <Badge variant="secondary" className="text-xs">
                 {pesquisaMutation.data.metadados.totalProcessos} processos
+              </Badge>
+            )}
+            {resumoMutation.data && (
+              <Badge variant="default" className="text-xs gap-1">
+                <Sparkles className="h-3 w-3" />
+                Resumo IA
               </Badge>
             )}
           </div>
@@ -324,6 +381,158 @@ export function PesquisaJurisprudencial({
                 {pesquisaMutation.data.metadados.tempoTotal}ms
               </span>
             </div>
+
+            {/* ============================================================ */}
+            {/* RESUMO AUTOMÁTICO VIA IA */}
+            {/* ============================================================ */}
+            {hasProcessos && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Resumo Automático de Fundamentação
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    A IA analisa os processos encontrados e gera um parágrafo de fundamentação jurisprudencial pronto para inserção no documento.
+                  </p>
+                </CardHeader>
+                <CardContent className="p-4 pt-2 space-y-3">
+                  {/* Seletor de tom + botão gerar */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={tomResumo} onValueChange={(v) => setTomResumo(v as TomResumo)}>
+                      <SelectTrigger className="w-44 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TONS_RESUMO.map(t => (
+                          <SelectItem key={t.value} value={t.value}>
+                            <div>
+                              <span className="font-medium">{t.label}</span>
+                              <span className="text-muted-foreground ml-1">— {t.descricao}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Button
+                      onClick={handleGerarResumo}
+                      disabled={resumoMutation.isPending}
+                      size="sm"
+                      className="gap-1.5"
+                    >
+                      {resumoMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Gerando resumo...
+                        </>
+                      ) : resumoMutation.data ? (
+                        <>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Regenerar Resumo
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Gerar Resumo com IA
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Loading do resumo */}
+                  {resumoMutation.isPending && (
+                    <div className="p-3 bg-muted/30 rounded-sm space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                        <span>Analisando processos e gerando fundamentação...</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        A IA está redigindo parágrafos de fundamentação com base exclusivamente nos processos reais encontrados.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Resultado do resumo */}
+                  {resumoMutation.data && (
+                    <div className="space-y-3">
+                      {/* Metadados do resumo */}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <FileText className="h-3 w-3" />
+                          {resumoMutation.data.processosUtilizados.length} processos citados
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="h-3 w-3" />
+                          {resumoMutation.data.tesesAbordadas.length} teses abordadas
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {resumoMutation.data.tempoGeracao}ms
+                        </span>
+                        <Badge variant="outline" className="text-xs capitalize">
+                          Tom: {resumoMutation.data.tom}
+                        </Badge>
+                      </div>
+
+                      {/* Texto do resumo */}
+                      <div className="p-4 bg-card border border-border rounded-sm prose prose-sm max-w-none dark:prose-invert">
+                        <Streamdown>{resumoMutation.data.resumo}</Streamdown>
+                      </div>
+
+                      {/* Ações do resumo */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button
+                          onClick={handleIncorporarResumo}
+                          disabled={resumoIncorporado}
+                          size="sm"
+                          className="gap-1.5"
+                        >
+                          {resumoIncorporado ? (
+                            <>
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Incorporado ao Documento
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-3.5 w-3.5" />
+                              Incorporar ao Documento
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          onClick={handleCopiarResumo}
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                          Copiar Resumo
+                        </Button>
+                      </div>
+
+                      {/* Disclaimer do resumo */}
+                      <div className="flex items-start gap-2 p-2 bg-amber-500/5 border border-amber-500/10 rounded-sm text-xs text-muted-foreground">
+                        <ShieldCheck className="h-3.5 w-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <span>
+                          Este resumo foi gerado com base exclusivamente nos processos reais identificados via DataJud/CNJ.
+                          Recomenda-se a verificação do inteiro teor dos acórdãos nos links oficiais antes da utilização em peça processual.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Erro do resumo */}
+                  {resumoMutation.error && (
+                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-sm text-sm text-destructive">
+                      <p className="font-medium">Erro ao gerar resumo</p>
+                      <p className="mt-1">{resumoMutation.error.message}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Teses e Resultados */}
             {pesquisaMutation.data.resultados.map((resultado) => (
