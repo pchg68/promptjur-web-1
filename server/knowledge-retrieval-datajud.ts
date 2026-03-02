@@ -214,6 +214,88 @@ export function getCategorias(): string[] {
 }
 
 /**
+ * Mapeamento completo de UF para tribunais correspondentes
+ * Cada UF mapeia para: TJ estadual, TRT(s) da região e TRF da região
+ * Inclui também tribunais superiores nacionais como opção
+ */
+export const UF_TRIBUNAIS_MAP: Record<string, {
+  nome: string;
+  regiao: string;
+  tribunais: TribunalCode[];
+}> = {
+  AC: { nome: "Acre", regiao: "Norte", tribunais: ["TJAC", "TRT14", "TRF1"] },
+  AL: { nome: "Alagoas", regiao: "Nordeste", tribunais: ["TJAL", "TRT19", "TRF5"] },
+  AM: { nome: "Amazonas", regiao: "Norte", tribunais: ["TJAM", "TRT11", "TRF1"] },
+  AP: { nome: "Amapá", regiao: "Norte", tribunais: ["TJAP", "TRT8", "TRF1"] },
+  BA: { nome: "Bahia", regiao: "Nordeste", tribunais: ["TJBA", "TRT5", "TRF1"] },
+  CE: { nome: "Ceará", regiao: "Nordeste", tribunais: ["TJCE", "TRT7", "TRF5"] },
+  DF: { nome: "Distrito Federal", regiao: "Centro-Oeste", tribunais: ["TJDF", "TRT10", "TRF1"] },
+  ES: { nome: "Espírito Santo", regiao: "Sudeste", tribunais: ["TJES", "TRT17", "TRF2"] },
+  GO: { nome: "Goiás", regiao: "Centro-Oeste", tribunais: ["TJGO", "TRT18", "TRF1"] },
+  MA: { nome: "Maranhão", regiao: "Nordeste", tribunais: ["TJMA", "TRT16", "TRF1"] },
+  MG: { nome: "Minas Gerais", regiao: "Sudeste", tribunais: ["TJMG", "TRT3", "TRF6"] },
+  MS: { nome: "Mato Grosso do Sul", regiao: "Centro-Oeste", tribunais: ["TJMS", "TRT24", "TRF3"] },
+  MT: { nome: "Mato Grosso", regiao: "Centro-Oeste", tribunais: ["TJMT", "TRT23", "TRF1"] },
+  PA: { nome: "Pará", regiao: "Norte", tribunais: ["TJPA", "TRT8", "TRF1"] },
+  PB: { nome: "Paraíba", regiao: "Nordeste", tribunais: ["TJPB", "TRT13", "TRF5"] },
+  PE: { nome: "Pernambuco", regiao: "Nordeste", tribunais: ["TJPE", "TRT6", "TRF5"] },
+  PI: { nome: "Piauí", regiao: "Nordeste", tribunais: ["TJPI", "TRT22", "TRF1"] },
+  PR: { nome: "Paraná", regiao: "Sul", tribunais: ["TJPR", "TRT9", "TRF4"] },
+  RJ: { nome: "Rio de Janeiro", regiao: "Sudeste", tribunais: ["TJRJ", "TRT1", "TRF2"] },
+  RN: { nome: "Rio Grande do Norte", regiao: "Nordeste", tribunais: ["TJRN", "TRT21", "TRF5"] },
+  RO: { nome: "Rondônia", regiao: "Norte", tribunais: ["TJRO", "TRT14", "TRF1"] },
+  RR: { nome: "Roraima", regiao: "Norte", tribunais: ["TJRR", "TRT11", "TRF1"] },
+  RS: { nome: "Rio Grande do Sul", regiao: "Sul", tribunais: ["TJRS", "TRT4", "TRF4"] },
+  SC: { nome: "Santa Catarina", regiao: "Sul", tribunais: ["TJSC", "TRT12", "TRF4"] },
+  SE: { nome: "Sergipe", regiao: "Nordeste", tribunais: ["TJSE", "TRT20", "TRF5"] },
+  SP: { nome: "São Paulo", regiao: "Sudeste", tribunais: ["TJSP", "TRT2", "TRT15", "TRF3"] },
+  TO: { nome: "Tocantins", regiao: "Norte", tribunais: ["TJTO", "TRT10", "TRF1"] },
+};
+
+/**
+ * Obter tribunais correspondentes a uma ou mais UFs
+ * Retorna array único de tribunais (sem duplicatas)
+ */
+export function getTribunaisPorUF(ufs: string[]): TribunalCode[] {
+  const tribunaisSet = new Set<TribunalCode>();
+  ufs.forEach(uf => {
+    const entry = UF_TRIBUNAIS_MAP[uf.toUpperCase()];
+    if (entry) {
+      entry.tribunais.forEach(t => tribunaisSet.add(t));
+    }
+  });
+  return Array.from(tribunaisSet);
+}
+
+/**
+ * Obter todas as UFs disponíveis com seus nomes e regiões
+ */
+export function getUFsDisponiveis(): Array<{ uf: string; nome: string; regiao: string; tribunaisCount: number }> {
+  return Object.entries(UF_TRIBUNAIS_MAP)
+    .map(([uf, data]) => ({
+      uf,
+      nome: data.nome,
+      regiao: data.regiao,
+      tribunaisCount: data.tribunais.length,
+    }))
+    .sort((a, b) => a.nome.localeCompare(b.nome));
+}
+
+/**
+ * Obter UFs agrupadas por região
+ */
+export function getUFsPorRegiao(): Record<string, Array<{ uf: string; nome: string; tribunaisCount: number }>> {
+  const regioes: Record<string, Array<{ uf: string; nome: string; tribunaisCount: number }>> = {};
+  Object.entries(UF_TRIBUNAIS_MAP).forEach(([uf, data]) => {
+    if (!regioes[data.regiao]) regioes[data.regiao] = [];
+    regioes[data.regiao].push({ uf, nome: data.nome, tribunaisCount: data.tribunais.length });
+  });
+  // Ordenar UFs dentro de cada região
+  Object.values(regioes).forEach(arr => arr.sort((a, b) => a.nome.localeCompare(b.nome)));
+  return regioes;
+}
+
+/**
  * Estrutura de um processo retornado pela API DataJud
  */
 export interface ProcessoDataJud {

@@ -2487,3 +2487,23 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar filtro de grau (1º Grau, 2º Grau, Juizados, Turmas Recursais)
 - [x] Adicionar botões de seleção rápida (Todos, Padrão, Limpar, por grupo)
 - [x] Atualizar tribunais padrão para incluir STF e TST (7 tribunais padrão)
+
+## Filtro Geográfico por UF - Pesquisa Jurisprudencial
+
+### Backend
+- [x] Criar mapeamento UF_TRIBUNAIS_MAP com 27 UFs (knowledge-retrieval-datajud.ts)
+- [x] Exportar getTribunaisPorUF com deduplicação automática
+- [x] Implementar getUFsDisponiveis e getUFsPorRegiao
+- [x] Mapear TRFs corretos por região (TRF1-Norte, TRF4-Sul, TRF5-Nordeste, TRF6-MG)
+
+### Frontend
+- [x] Criar seletor de UF/Estado organizado por 5 regiões no painel de filtros
+- [x] Implementar seleção automática de tribunais ao escolher UF (TJ + TRT + TRF)
+- [x] Permitir seleção múltipla de UFs com botão "Toda região"
+- [x] Adicionar botão "Limpar UFs" para voltar à seleção padrão
+- [x] Exibir tribunais selecionados automaticamente com chips visuais
+- [x] Tooltip com nome do estado e tribunais correspondentes
+- [x] Manter tribunais superiores ao usar filtro por UF
+
+### Testes
+- [x] 28 testes unitários para mapeamento UF-tribunais (379 testes totais)

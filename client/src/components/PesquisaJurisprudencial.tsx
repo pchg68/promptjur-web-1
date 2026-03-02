@@ -27,6 +27,9 @@ import {
   Sparkles,
   RefreshCw,
   ClipboardCheck,
+  MapPin,
+  Globe,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
@@ -201,6 +204,67 @@ const TONS_RESUMO: { value: TomResumo; label: string; descricao: string }[] = [
   { value: "persuasivo", label: "Persuasivo", descricao: "Linguagem argumentativa para sustentações e recursos" },
 ];
 
+// ============================================================================
+// MAPEAMENTO UF → TRIBUNAIS (espelho do backend)
+// ============================================================================
+
+interface UFData {
+  nome: string;
+  regiao: string;
+  tribunais: string[];
+}
+
+const UF_TRIBUNAIS_MAP: Record<string, UFData> = {
+  AC: { nome: "Acre", regiao: "Norte", tribunais: ["TJAC", "TRT14", "TRF1"] },
+  AL: { nome: "Alagoas", regiao: "Nordeste", tribunais: ["TJAL", "TRT19", "TRF5"] },
+  AM: { nome: "Amazonas", regiao: "Norte", tribunais: ["TJAM", "TRT11", "TRF1"] },
+  AP: { nome: "Amapá", regiao: "Norte", tribunais: ["TJAP", "TRT8", "TRF1"] },
+  BA: { nome: "Bahia", regiao: "Nordeste", tribunais: ["TJBA", "TRT5", "TRF1"] },
+  CE: { nome: "Ceará", regiao: "Nordeste", tribunais: ["TJCE", "TRT7", "TRF5"] },
+  DF: { nome: "Distrito Federal", regiao: "Centro-Oeste", tribunais: ["TJDF", "TRT10", "TRF1"] },
+  ES: { nome: "Espírito Santo", regiao: "Sudeste", tribunais: ["TJES", "TRT17", "TRF2"] },
+  GO: { nome: "Goiás", regiao: "Centro-Oeste", tribunais: ["TJGO", "TRT18", "TRF1"] },
+  MA: { nome: "Maranhão", regiao: "Nordeste", tribunais: ["TJMA", "TRT16", "TRF1"] },
+  MG: { nome: "Minas Gerais", regiao: "Sudeste", tribunais: ["TJMG", "TRT3", "TRF6"] },
+  MS: { nome: "Mato Grosso do Sul", regiao: "Centro-Oeste", tribunais: ["TJMS", "TRT24", "TRF3"] },
+  MT: { nome: "Mato Grosso", regiao: "Centro-Oeste", tribunais: ["TJMT", "TRT23", "TRF1"] },
+  PA: { nome: "Pará", regiao: "Norte", tribunais: ["TJPA", "TRT8", "TRF1"] },
+  PB: { nome: "Paraíba", regiao: "Nordeste", tribunais: ["TJPB", "TRT13", "TRF5"] },
+  PE: { nome: "Pernambuco", regiao: "Nordeste", tribunais: ["TJPE", "TRT6", "TRF5"] },
+  PI: { nome: "Piauí", regiao: "Nordeste", tribunais: ["TJPI", "TRT22", "TRF1"] },
+  PR: { nome: "Paraná", regiao: "Sul", tribunais: ["TJPR", "TRT9", "TRF4"] },
+  RJ: { nome: "Rio de Janeiro", regiao: "Sudeste", tribunais: ["TJRJ", "TRT1", "TRF2"] },
+  RN: { nome: "Rio Grande do Norte", regiao: "Nordeste", tribunais: ["TJRN", "TRT21", "TRF5"] },
+  RO: { nome: "Rondônia", regiao: "Norte", tribunais: ["TJRO", "TRT14", "TRF1"] },
+  RR: { nome: "Roraima", regiao: "Norte", tribunais: ["TJRR", "TRT11", "TRF1"] },
+  RS: { nome: "Rio Grande do Sul", regiao: "Sul", tribunais: ["TJRS", "TRT4", "TRF4"] },
+  SC: { nome: "Santa Catarina", regiao: "Sul", tribunais: ["TJSC", "TRT12", "TRF4"] },
+  SE: { nome: "Sergipe", regiao: "Nordeste", tribunais: ["TJSE", "TRT20", "TRF5"] },
+  SP: { nome: "São Paulo", regiao: "Sudeste", tribunais: ["TJSP", "TRT2", "TRT15", "TRF3"] },
+  TO: { nome: "Tocantins", regiao: "Norte", tribunais: ["TJTO", "TRT10", "TRF1"] },
+};
+
+const REGIOES_ORDEM = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"];
+
+function getUFsPorRegiao(): Record<string, Array<{ uf: string; nome: string }>> {
+  const regioes: Record<string, Array<{ uf: string; nome: string }>> = {};
+  Object.entries(UF_TRIBUNAIS_MAP).forEach(([uf, data]) => {
+    if (!regioes[data.regiao]) regioes[data.regiao] = [];
+    regioes[data.regiao].push({ uf, nome: data.nome });
+  });
+  Object.values(regioes).forEach(arr => arr.sort((a, b) => a.nome.localeCompare(b.nome)));
+  return regioes;
+}
+
+function getTribunaisPorUFs(ufs: string[]): string[] {
+  const tribunaisSet = new Set<string>();
+  ufs.forEach(uf => {
+    const entry = UF_TRIBUNAIS_MAP[uf];
+    if (entry) entry.tribunais.forEach(t => tribunaisSet.add(t));
+  });
+  return Array.from(tribunaisSet);
+}
+
 // Helper para obter todos os tribunais de um grupo
 function getTribunaisDoGrupo(grupo: string): string[] {
   const g = TRIBUNAIS_OPCOES.find(g => g.grupo === grupo);
@@ -228,6 +292,8 @@ export function PesquisaJurisprudencial({
   const [tomResumo, setTomResumo] = useState<TomResumo>("formal");
   const [resumoIncorporado, setResumoIncorporado] = useState(false);
   const [grupoExpandido, setGrupoExpandido] = useState<string | null>(null);
+  const [ufsSelecionadas, setUfsSelecionadas] = useState<string[]>([]);
+  const [showUFFilter, setShowUFFilter] = useState(false);
 
   // Contagem de tribunais por grupo
   const contagemPorGrupo = useMemo(() => {
@@ -349,11 +415,70 @@ export function PesquisaJurisprudencial({
   const selecionarTodos = () => {
     const todos = TRIBUNAIS_OPCOES.flatMap(g => g.items.map(i => i.value));
     setTribunaisSelecionados(todos);
+    setUfsSelecionadas([]);
   };
 
   const limparSelecao = () => {
     setTribunaisSelecionados([]);
+    setUfsSelecionadas([]);
   };
+
+  // Filtro geográfico por UF
+  const handleToggleUF = (uf: string) => {
+    setUfsSelecionadas(prev => {
+      const novasUFs = prev.includes(uf) ? prev.filter(u => u !== uf) : [...prev, uf];
+      // Atualizar tribunais automaticamente com base nas UFs selecionadas
+      if (novasUFs.length > 0) {
+        const tribunaisUF = getTribunaisPorUFs(novasUFs);
+        // Manter superiores se já estavam selecionados + adicionar tribunais da UF
+        const superioresSelecionados = tribunaisSelecionados.filter(t =>
+          ["STF", "STJ", "TST", "TSE", "STM"].includes(t)
+        );
+        const novos = new Set([...superioresSelecionados, ...tribunaisUF]);
+        setTribunaisSelecionados(Array.from(novos));
+      } else {
+        // Se nenhuma UF selecionada, voltar ao padrão
+        setTribunaisSelecionados(TRIBUNAIS_PADRAO);
+      }
+      return novasUFs;
+    });
+  };
+
+  const handleSelecionarRegiao = (regiao: string) => {
+    const ufsDaRegiao = Object.entries(UF_TRIBUNAIS_MAP)
+      .filter(([_, data]) => data.regiao === regiao)
+      .map(([uf]) => uf);
+    const todasJaSelecionadas = ufsDaRegiao.every(uf => ufsSelecionadas.includes(uf));
+
+    if (todasJaSelecionadas) {
+      const novasUFs = ufsSelecionadas.filter(uf => !ufsDaRegiao.includes(uf));
+      setUfsSelecionadas(novasUFs);
+      if (novasUFs.length > 0) {
+        const tribunaisUF = getTribunaisPorUFs(novasUFs);
+        const superioresSelecionados = tribunaisSelecionados.filter(t =>
+          ["STF", "STJ", "TST", "TSE", "STM"].includes(t)
+        );
+        setTribunaisSelecionados(Array.from(new Set([...superioresSelecionados, ...tribunaisUF])));
+      } else {
+        setTribunaisSelecionados(TRIBUNAIS_PADRAO);
+      }
+    } else {
+      const novasUFs = Array.from(new Set([...ufsSelecionadas, ...ufsDaRegiao]));
+      setUfsSelecionadas(novasUFs);
+      const tribunaisUF = getTribunaisPorUFs(novasUFs);
+      const superioresSelecionados = tribunaisSelecionados.filter(t =>
+        ["STF", "STJ", "TST", "TSE", "STM"].includes(t)
+      );
+      setTribunaisSelecionados(Array.from(new Set([...superioresSelecionados, ...tribunaisUF])));
+    }
+  };
+
+  const handleLimparUFs = () => {
+    setUfsSelecionadas([]);
+    setTribunaisSelecionados(TRIBUNAIS_PADRAO);
+  };
+
+  const ufsPorRegiao = useMemo(() => getUFsPorRegiao(), []);
 
   const hasResultados = pesquisaMutation.data && pesquisaMutation.data.resultados.length > 0;
   const hasProcessos = pesquisaMutation.data && pesquisaMutation.data.metadados.totalProcessos > 0;
@@ -416,6 +541,114 @@ export function PesquisaJurisprudencial({
 
           {showFiltros && (
             <div className="space-y-4 p-3 bg-muted/30 rounded-sm">
+              {/* ============================================================ */}
+              {/* FILTRO GEOGRÁFICO POR UF */}
+              {/* ============================================================ */}
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowUFFilter(!showUFFilter)}
+                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                  {showUFFilter ? "Ocultar filtro por estado" : "Filtrar por estado (UF)"}
+                  {ufsSelecionadas.length > 0 && (
+                    <Badge variant="default" className="text-xs">
+                      {ufsSelecionadas.length} UF{ufsSelecionadas.length !== 1 ? "s" : ""}
+                    </Badge>
+                  )}
+                </button>
+
+                {showUFFilter && (
+                  <div className="space-y-3 p-3 bg-background/50 border border-border/50 rounded-sm">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        Selecione um ou mais estados para filtrar automaticamente os tribunais (TJ + TRT + TRF) da região.
+                      </p>
+                      {ufsSelecionadas.length > 0 && (
+                        <Button variant="ghost" size="sm" className="h-6 text-xs gap-1" onClick={handleLimparUFs}>
+                          <X className="h-3 w-3" />
+                          Limpar UFs
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* UFs selecionadas com tribunais */}
+                    {ufsSelecionadas.length > 0 && (
+                      <div className="p-2 bg-primary/5 border border-primary/20 rounded-sm">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Globe className="h-3 w-3 text-primary" />
+                          <span className="text-xs font-medium text-primary">Tribunais selecionados automaticamente:</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {getTribunaisPorUFs(ufsSelecionadas).map(t => (
+                            <span key={t} className="px-1.5 py-0.5 text-xs bg-primary/10 text-primary rounded-sm">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Regiões e UFs */}
+                    {REGIOES_ORDEM.map(regiao => {
+                      const ufs = ufsPorRegiao[regiao] || [];
+                      const ufsDaRegiao = ufs.map(u => u.uf);
+                      const todasSelecionadas = ufsDaRegiao.length > 0 && ufsDaRegiao.every(uf => ufsSelecionadas.includes(uf));
+                      const algumaSelecionada = ufsDaRegiao.some(uf => ufsSelecionadas.includes(uf));
+
+                      return (
+                        <div key={regiao} className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-muted-foreground">{regiao}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleSelecionarRegiao(regiao)}
+                              className={`text-xs px-1.5 py-0.5 rounded-sm transition-colors ${
+                                todasSelecionadas
+                                  ? "bg-primary/20 text-primary"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              {todasSelecionadas ? "Desmarcar" : "Toda região"}
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {ufs.map(({ uf, nome }) => (
+                              <Tooltip key={uf}>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleUF(uf)}
+                                    className={`px-2 py-1 text-xs rounded-sm border transition-colors ${
+                                      ufsSelecionadas.includes(uf)
+                                        ? "bg-primary text-primary-foreground border-primary"
+                                        : "bg-background border-border hover:border-primary/50"
+                                    }`}
+                                  >
+                                    {uf}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="text-xs">
+                                  <p className="font-medium">{nome}</p>
+                                  <p className="text-muted-foreground">
+                                    {UF_TRIBUNAIS_MAP[uf].tribunais.join(", ")}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-border/50 pt-3">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-2">Ou selecione tribunais manualmente:</span>
+              </div>
+
               {/* Ações rápidas */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Seleção rápida:</span>
