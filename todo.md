@@ -2512,3 +2512,11 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Investigar botão de cópia na TabAnalisar que copia JSON ao invés de texto legível
 - [x] Corrigir PromptActions.promptText para passar promptAnalise (texto original) ao invés de JSON.stringify
 - [x] Formatar preview com Markdown legível (área, qualidade, palavras-chave, sugestões + prompt original)
+
+## Melhoria: Botão "Otimizar Este Prompt" preencher aba Otimização
+- [x] Verificar fluxo onNavigateToOtimizar no Dashboard (aba inline não tinha o botão)
+- [x] Adicionar botão "Otimizar Este Prompt" na aba Analisar inline do Dashboard
+- [x] Garantir que o texto original (promptAnalise) é passado para setPromptOtimizacao
+- [x] Garantir troca automática de aba (setActiveTab) e scroll ao topo
+- [x] Corrigir PromptActions no Dashboard para usar promptAnalise ao invés de JSON.stringify
+- [x] Corrigir preview para exibir resultado formatado em Markdown

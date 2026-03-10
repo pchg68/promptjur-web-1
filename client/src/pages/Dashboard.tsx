@@ -391,13 +391,23 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-foreground">Resultado da Análise</h3>
                         <PromptActions
-                          promptText={JSON.stringify(analiseMutation.data, null, 2)}
+                          promptText={promptAnalise}
                           titulo="Análise de Prompt"
                           onPreview={() => {
-                            setPreviewData({ titulo: "Análise de Prompt Jurídico", conteudo: JSON.stringify(analiseMutation.data, null, 2) });
+                            const d = analiseMutation.data;
+                            const conteudoFormatado = [
+                              `## Resultado da Análise\n`,
+                              `**Área Jurídica:** ${d?.area || "N/A"}`,
+                              `**Qualidade:** ${d?.qualidade || "N/A"}`,
+                              d?.pontuacaoQualidade !== undefined ? `**Nota:** ${d.pontuacaoQualidade}/10\n` : "",
+                              d?.palavrasChave?.length ? `**Palavras-Chave:** ${d.palavrasChave.join(", ")}\n` : "",
+                              d?.sugestoes?.length ? `**Sugestões de Melhoria:**\n${d.sugestoes.map((s: string, i: number) => `${i + 1}. ${s}`).join("\n")}\n` : "",
+                              `---\n\n**Prompt Original:**\n\n${promptAnalise}`,
+                            ].filter(Boolean).join("\n");
+                            setPreviewData({ titulo: "Análise de Prompt Jurídico", conteudo: conteudoFormatado });
                             setPreviewOpen(true);
                           }}
-                          onSaveTemplate={() => openSaveTemplateDialog(JSON.stringify(analiseMutation.data, null, 2), "Geral")}
+                          onSaveTemplate={() => openSaveTemplateDialog(promptAnalise, analiseMutation.data?.area || "Geral")}
                         />
                       </div>
                       
@@ -467,6 +477,23 @@ export default function Dashboard() {
                       )}
 
                       <PostGenerationGuide className="mt-4" />
+
+                      {/* Botão Otimizar Este Prompt */}
+                      <div className="pt-4 border-t border-border space-y-3">
+                        <Button
+                          onClick={() => {
+                            setPromptOtimizacao(promptAnalise);
+                            setActiveTab("otimizar");
+                            toast.info("Prompt carregado na aba Otimizar!");
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="w-full"
+                          size="lg"
+                        >
+                          <Shield className="w-4 h-4 mr-2" />
+                          Otimizar Este Prompt
+                        </Button>
+                      </div>
                     </div>
                   )}
 
