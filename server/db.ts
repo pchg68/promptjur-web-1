@@ -1207,3 +1207,313 @@ export async function obterEstatisticasFeedback() {
   
   return result;
 }
+
+
+// ===== PAINEL DE CONTROLE - HISTÓRICO UNIFICADO =====
+
+/**
+ * Retorna estatísticas completas do histórico do usuário para o painel de controle.
+ * Inclui totais por ação, por área jurídica, por modelo, taxa de sucesso e tempo médio.
+ */
+export async function getHistoricoStats(userId: number) {
+  const db = await getDb();
+  if (!db) return {
+    totalAcoes: 0,
+    porAcao: {} as Record<string, number>,
+    porArea: {} as Record<string, number>,
+    porModelo: {} as Record<string, number>,
+    taxaSucesso: 0,
+    tempoMedio: 0,
+    totalPrompts: 0,
+    totalFavoritos: 0,
+    ultimaAtividade: null as string | null,
+  };
+
+  // Total de ações no histórico
+  const allHistorico = await db.select().from(historico)
+    .where(eq(historico.userId, userId));
+
+  const totalAcoes = allHistorico.length;
+  const porAcao: Record<string, number> = {};
+  const porModelo: Record<string, number> = {};
+  let totalDuracao = 0;
+  let countDuracao = 0;
+  let totalSucesso = 0;
+
+  allHistorico.forEach(h => {
+    // Por ação
+    porAcao[h.acao] = (porAcao[h.acao] || 0) + 1;
+    
+    // Por modelo (extrair do detalhes)
+    if (h.detalhes && typeof h.detalhes === 'object') {
+      const det = h.detalhes as any;
+      const modelo = det.modelo || det.model || det.modeloId;
+      if (modelo) {
+        porModelo[modelo] = (porModelo[modelo] || 0) + 1;
+      }
+    }
+    
+    // Tempo médio
+    if (h.duracaoMs) {
+      totalDuracao += h.duracaoMs;
+      countDuracao++;
+    }
+    
+    // Taxa de sucesso
+    if (h.sucesso) totalSucesso++;
+  });
+
+  // Total de prompts salvos
+  const allPrompts = await db.select().from(prompts)
+    .where(eq(prompts.userId, userId));
+
+  const totalPrompts = allPrompts.length;
+  const totalFavoritos = allPrompts.filter(p => p.isFavorito).length;
+
+  // Por área jurídica (dos prompts)
+  const porArea: Record<string, number> = {};
+  allPrompts.forEach(p => {
+    if (p.areaJuridica) {
+      porArea[p.areaJuridica] = (porArea[p.areaJuridica] || 0) + 1;
+    }
+  });
+
+  // Última atividade
+  const ultimaAtividade = allHistorico.length > 0
+    ? allHistorico.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0].createdAt.toISOString()
+    : null;
+
+  return {
+    totalAcoes,
+    porAcao,
+    porArea,
+    porModelo,
+    taxaSucesso: totalAcoes > 0 ? Math.round((totalSucesso / totalAcoes) * 100) : 0,
+    tempoMedio: countDuracao > 0 ? Math.round(totalDuracao / countDuracao) : 0,
+    totalPrompts,
+    totalFavoritos,
+    ultimaAtividade,
+  };
+}
+
+/**
+ * Retorna histórico unificado (historico + prompts) com filtros avançados e paginação.
+ */
+export async function getHistoricoUnificado(userId: number, filtros: {
+  acao?: string;
+  area?: string;
+  modelo?: string;
+  texto?: string;
+  dataInicio?: Date;
+  dataFim?: Date;
+  sucesso?: boolean;
+  limite?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { items: [], total: 0 };
+
+  const limite = filtros.limite || 20;
+  const offset = filtros.offset || 0;
+
+  // Buscar histórico com filtros
+  const conditions: any[] = [eq(historico.userId, userId)];
+
+  if (filtros.acao) {
+    conditions.push(eq(historico.acao, filtros.acao as any));
+  }
+
+  if (filtros.sucesso !== undefined) {
+    conditions.push(eq(historico.sucesso, filtros.sucesso));
+  }
+
+  if (filtros.dataInicio) {
+    conditions.push(sql`${historico.createdAt} >= ${filtros.dataInicio}`);
+  }
+
+  if (filtros.dataFim) {
+    conditions.push(sql`${historico.createdAt} <= ${filtros.dataFim}`);
+  }
+
+  // Contar total
+  const countResult = await db.select({ count: sql<number>`COUNT(*)` })
+    .from(historico)
+    .where(and(...conditions));
+  const total = countResult[0]?.count || 0;
+
+  // Buscar itens paginados
+  const items = await db.select().from(historico)
+    .where(and(...conditions))
+    .orderBy(desc(historico.createdAt))
+    .limit(limite)
+    .offset(offset);
+
+  // Enriquecer com dados do prompt (se existir)
+  const enrichedItems = await Promise.all(items.map(async (item) => {
+    let promptData = null;
+    if (item.promptId) {
+      const p = await db.select().from(prompts)
+        .where(eq(prompts.id, item.promptId))
+        .limit(1);
+      if (p.length > 0) {
+        promptData = {
+          id: p[0].id,
+          tipo: p[0].tipo,
+          areaJuridica: p[0].areaJuridica,
+          promptOriginal: p[0].promptOriginal?.substring(0, 200) + (p[0].promptOriginal && p[0].promptOriginal.length > 200 ? '...' : ''),
+          promptOtimizado: p[0].promptOtimizado?.substring(0, 200) + (p[0].promptOtimizado && p[0].promptOtimizado.length > 200 ? '...' : ''),
+          qualidade: p[0].qualidade,
+          isFavorito: p[0].isFavorito,
+        };
+      }
+    }
+
+    // Filtrar por área (se especificado)
+    if (filtros.area && promptData && promptData.areaJuridica !== filtros.area) {
+      return null;
+    }
+
+    // Filtrar por texto (se especificado)
+    if (filtros.texto) {
+      const searchTerm = filtros.texto.toLowerCase();
+      const matchPrompt = promptData && (
+        (promptData.promptOriginal || '').toLowerCase().includes(searchTerm) ||
+        (promptData.promptOtimizado || '').toLowerCase().includes(searchTerm)
+      );
+      const matchDetalhes = item.detalhes && JSON.stringify(item.detalhes).toLowerCase().includes(searchTerm);
+      if (!matchPrompt && !matchDetalhes) {
+        return null;
+      }
+    }
+
+    return {
+      id: item.id,
+      acao: item.acao,
+      promptId: item.promptId,
+      detalhes: item.detalhes,
+      duracaoMs: item.duracaoMs,
+      sucesso: item.sucesso,
+      mensagemErro: item.mensagemErro,
+      createdAt: item.createdAt.toISOString(),
+      prompt: promptData,
+    };
+  }));
+
+  // Remover nulls (filtrados por área/texto)
+  const filteredItems = enrichedItems.filter(Boolean);
+
+  return {
+    items: filteredItems,
+    total: filtros.area || filtros.texto ? filteredItems.length : total,
+  };
+}
+
+/**
+ * Retorna detalhes completos de um item do histórico, incluindo prompt completo.
+ */
+export async function getHistoricoDetalhes(historicoId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [item] = await db.select().from(historico)
+    .where(and(
+      eq(historico.id, historicoId),
+      eq(historico.userId, userId)
+    ))
+    .limit(1);
+
+  if (!item) return null;
+
+  let promptCompleto = null;
+  if (item.promptId) {
+    const [p] = await db.select().from(prompts)
+      .where(eq(prompts.id, item.promptId))
+      .limit(1);
+    if (p) {
+      promptCompleto = {
+        ...p,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt.toISOString(),
+      };
+    }
+  }
+
+  // Buscar tags do prompt (se existir)
+  let promptTags: any[] = [];
+  if (item.promptId) {
+    promptTags = await getTagsPrompt(item.promptId);
+  }
+
+  return {
+    id: item.id,
+    acao: item.acao,
+    promptId: item.promptId,
+    detalhes: item.detalhes,
+    duracaoMs: item.duracaoMs,
+    sucesso: item.sucesso,
+    mensagemErro: item.mensagemErro,
+    createdAt: item.createdAt.toISOString(),
+    prompt: promptCompleto,
+    tags: promptTags,
+  };
+}
+
+/**
+ * Exclui um item do histórico.
+ */
+export async function excluirHistorico(historicoId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const [item] = await db.select().from(historico)
+    .where(and(
+      eq(historico.id, historicoId),
+      eq(historico.userId, userId)
+    ))
+    .limit(1);
+
+  if (!item) throw new Error("Item não encontrado");
+
+  await db.delete(historico).where(eq(historico.id, historicoId));
+  return { success: true };
+}
+
+/**
+ * Retorna dados de uso por dia para gráfico de atividade.
+ */
+export async function getAtividadePorDia(userId: number, dias: number = 30) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const allHistorico = await db.select().from(historico)
+    .where(eq(historico.userId, userId))
+    .orderBy(historico.createdAt);
+
+  // Agrupar por data
+  const groupedByDate: Record<string, Record<string, number>> = {};
+
+  // Inicializar todos os dias
+  for (let i = 0; i < dias; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - (dias - 1 - i));
+    const dateStr = date.toISOString().split('T')[0];
+    groupedByDate[dateStr] = { analise: 0, geracao: 0, otimizacao: 0, execucao_prompt: 0, verificacao: 0, exportacao_docx: 0, exportacao_pdf: 0 };
+  }
+
+  allHistorico.forEach(item => {
+    const dateStr = new Date(item.createdAt).toISOString().split('T')[0];
+    if (groupedByDate[dateStr]) {
+      groupedByDate[dateStr][item.acao] = (groupedByDate[dateStr][item.acao] || 0) + 1;
+    }
+  });
+
+  return Object.entries(groupedByDate).map(([dateStr, counts]) => {
+    const [year, month, day] = dateStr.split('-');
+    return {
+      date: `${day}/${month}`,
+      dateISO: dateStr,
+      ...counts,
+      total: Object.values(counts).reduce((a, b) => a + b, 0),
+    };
+  });
+}

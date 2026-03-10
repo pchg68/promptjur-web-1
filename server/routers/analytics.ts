@@ -24,6 +24,50 @@ export const historicoRouter = router({
       limit: z.number().optional().default(50)
     }))
     .query(async ({ input, ctx }) => db.getUserPrompts(ctx.user.id, input.limit)),
+
+  // Estatísticas completas para o painel de controle
+  stats: protectedProcedure
+    .query(async ({ ctx }) => {
+      return getCachedData(`historico-stats:${ctx.user.id}`, () => db.getHistoricoStats(ctx.user.id));
+    }),
+
+  // Histórico unificado com filtros avançados
+  unificado: protectedProcedure
+    .input(z.object({
+      acao: z.string().optional(),
+      area: z.string().optional(),
+      modelo: z.string().optional(),
+      texto: z.string().optional(),
+      dataInicio: z.date().optional(),
+      dataFim: z.date().optional(),
+      sucesso: z.boolean().optional(),
+      limite: z.number().min(1).max(100).optional(),
+      offset: z.number().min(0).optional(),
+    }))
+    .query(async ({ input, ctx }) => {
+      return db.getHistoricoUnificado(ctx.user.id, input);
+    }),
+
+  // Detalhes completos de um item do histórico
+  detalhes: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input, ctx }) => {
+      return db.getHistoricoDetalhes(input.id, ctx.user.id);
+    }),
+
+  // Excluir item do histórico
+  excluir: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      return db.excluirHistorico(input.id, ctx.user.id);
+    }),
+
+  // Atividade por dia para gráfico
+  atividadePorDia: protectedProcedure
+    .input(z.object({ dias: z.number().min(1).max(90).default(30) }).optional())
+    .query(async ({ input, ctx }) => {
+      return db.getAtividadePorDia(ctx.user.id, input?.dias || 30);
+    }),
 });
 
 export const versoesRouter = router({

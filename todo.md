@@ -2578,3 +2578,27 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar botão "Usar Este Resultado" com incorporação no PromptActions
 - [x] Integrar no fluxo pós-geração de prompt (PromptActions, seção colapsável)
 - [x] 26 testes criados (422 totais passando)
+
+## Painel de Histórico de Prompts e Documentos
+
+### Backend
+- [x] Criar queries de histórico com filtros (ação, área, período, busca textual)
+- [x] Implementar paginação eficiente (cursor-based ou offset)
+- [x] Criar endpoint tRPC para listar histórico com metadados
+- [x] Criar endpoint para estatísticas do histórico (totais por ação, área, modelo)
+- [x] Implementar endpoint de detalhes de um item do histórico
+- [x] Adicionar endpoint de exclusão de itens do histórico
+
+### Frontend
+- [x] Criar página Historico.tsx com layout de painel de controle
+- [x] Implementar tabela/lista com colunas (data, ação, área, modelo, preview)
+- [x] Adicionar filtros por tipo de ação, área jurídica, período e modelo
+- [x] Implementar busca textual no conteúdo dos prompts
+- [x] Criar modal de detalhes com conteúdo completo do prompt/documento
+- [x] Adicionar botões de reutilização (Reanalisar, Reotimizar, Gerar Documento)
+- [x] Implementar cards de estatísticas no topo (totais, por ação, por área)
+- [x] Adicionar paginação com botões de página
+- [x] Registrar rota /historico no App.tsx e navegação do Dashboard
+- [x] Gráfico sparkline de atividade dos últimos 30 dias
+- [x] Distribuição por tipo de ação com botões de filtro rápido
+- [x] 18 testes criados (todos passando)
