@@ -2527,3 +2527,10 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar botão "Gerar Documento" ao lado de "Otimizar Este Prompt" (grid 2 colunas)
 - [x] Preencher automaticamente o contexto e área jurídica na aba Documentos ao clicar
 - [x] Trocar para aba Documentos e scroll ao topo com toast de confirmação
+
+## Bug: Texto de persona/contexto aparece no prompt profissional gerado
+- [x] Investigar onde o texto de persona é gerado (systemPrompt em prompts.ts linha 162)
+- [x] Atualizar systemPrompt com regras críticas: NÃO iniciar com persona, NÃO incluir seções de Role/Persona
+- [x] Criar função removerPersonaDoTexto() com 7 regex patterns de limpeza
+- [x] Aplicar limpeza no resultado antes de retornar ao frontend
+- [x] Manter apenas o conteúdo útil do documento (endereçamento, fundamentação, etc.)

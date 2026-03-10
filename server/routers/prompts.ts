@@ -23,6 +23,48 @@ function checkModelAccess(userPlan: string, model?: string) {
   }
 }
 
+/**
+ * Remove texto de persona/contexto do início do prompt gerado pelo LLM.
+ * O LLM às vezes inclui descrições como "Você é um advogado sênior..." ou
+ * seções de "Persona:" que não devem ser apresentadas ao usuário final.
+ */
+function removerPersonaDoTexto(texto: string): string {
+  let resultado = texto;
+
+  // Padrões de persona no início do texto (com ou sem markdown)
+  const personaPatterns = [
+    // "Você é um..." no início (com variações)
+    /^\s*(?:\*\*)?(?:Você é|Atue como|Aja como|Assuma o papel de|Imagine que você é)[^]*?(?:\n\n|---)/i,
+    // Seções explícitas de Persona/Contexto/Role
+    /^\s*(?:#{1,3}\s*)?\*?\*?(?:Persona|Contexto do Sistema|System Context|Role|Papel)\*?\*?\s*:?[^]*?(?:\n\n|---)/i,
+    // Bloco entre colchetes [Persona: ...]
+    /^\s*\[(?:Persona|Contexto|Role):[^\]]*\]\s*/i,
+  ];
+
+  for (const pattern of personaPatterns) {
+    resultado = resultado.replace(pattern, '');
+  }
+
+  // Remover seções de persona que podem aparecer em qualquer posição
+  const inlinePatterns = [
+    /\*\*Persona:\*\*[\s\S]*?(?=\n\n|\*\*[A-Z]|$)/gi,
+    /\*\*Contexto do Sistema:\*\*[\s\S]*?(?=\n\n|\*\*[A-Z]|$)/gi,
+    /\[Persona:[\s\S]*?\]/gi,
+    /\[Contexto do Sistema:[\s\S]*?\]/gi,
+  ];
+
+  for (const pattern of inlinePatterns) {
+    resultado = resultado.replace(pattern, '');
+  }
+
+  // Limpar linhas de separação órfãs no início
+  resultado = resultado.replace(/^\s*---\s*\n/, '');
+  // Limpar espaços em branco excessivos no início
+  resultado = resultado.replace(/^\n{2,}/, '\n');
+
+  return resultado.trim();
+}
+
 export const promptsRouter = router({
   search: protectedProcedure
     .input(z.object({
@@ -159,7 +201,7 @@ export const promptsRouter = router({
         
         const referencias = REFERENCIAS_LEGAIS[areaDetectada] || [];
         
-        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Persona Especializada**: Definir claramente o papel da IA\n2. **Contexto Rico**: Fornecer todos os detalhes relevantes\n3. **Instruções Estruturadas**: Dividir em seções claras\n4. **Exemplos e Formato**: Especificar estrutura esperada\n5. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n6. **Chain-of-Thought**: Pedir raciocínio jurídico passo a passo\n7. **Verificação de Qualidade**: Incluir critérios de revisão\n\nREFERÊNCIAS LEGAIS: ${referencias.join(", ")}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado.\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações ou comentários adicionais.`;
+        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Exemplos e Formato**: Especificar estrutura esperada\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Pedir raciocínio jurídico passo a passo\n6. **Verificação de Qualidade**: Incluir critérios de revisão\n\nREFERÊNCIAS LEGAIS: ${referencias.join(", ")}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado.\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.`;
 
         const userPrompt = `TIPO DE DOCUMENTO: ${input.tipoDocumento.toUpperCase()}\nÁREA JURÍDICA: ${areaDetectada}\n\nCONTEXTO JURÍDICO:\n${input.contextoJuridico}\n\nOBJETIVO ESPECÍFICO:\n${input.objetivoEspecifico}\n\n${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
 
@@ -169,6 +211,8 @@ export const promptsRouter = router({
         });
 
         let promptProfissional = llmGeracao.content;
+        // Remover texto de persona/contexto que o LLM pode incluir no início
+        promptProfissional = removerPersonaDoTexto(promptProfissional);
         promptProfissional = promptProfissional.replace(/\n{3,}/g, '\n\n');
 
         const validacaoRaw = await validarLegislacao(promptProfissional);
