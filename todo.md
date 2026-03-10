@@ -2534,3 +2534,10 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Criar função removerPersonaDoTexto() com 7 regex patterns de limpeza
 - [x] Aplicar limpeza no resultado antes de retornar ao frontend
 - [x] Manter apenas o conteúdo útil do documento (endereçamento, fundamentação, etc.)
+
+## Melhoria: Botão "Analisar Versão Otimizada" na aba Otimizar
+- [x] Investigar onde o resultado da otimização é exibido no Dashboard (linhas 583-620)
+- [x] Adicionar botão "Analisar Versão Otimizada" em grid 2 colunas com "Gerar Documento"
+- [x] Preencher automaticamente a aba Análise com o prompt otimizado (setPromptAnalise)
+- [x] Trocar para aba Análise e scroll ao topo com toast de confirmação
+- [x] Adicionar botão "Gerar Documento" também na aba Otimizar (bonus)

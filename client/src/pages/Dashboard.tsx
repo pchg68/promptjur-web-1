@@ -581,9 +581,34 @@ export default function Dashboard() {
                       <PostGenerationGuide className="mt-4" />
 
                       <div className="pt-4 border-t border-border space-y-3">
-                        <Button onClick={() => { setActiveTab('analisar'); toast.info('Retornando à análise'); }} variant="outline" size="lg" className="w-full">
-                          <History className="w-4 h-4 mr-2" />Voltar para Análise
-                        </Button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <Button
+                            onClick={() => {
+                              setPromptAnalise(otimizacaoMutation.data?.promptOtimizado || "");
+                              setActiveTab('analisar');
+                              toast.info('Versão otimizada carregada na aba Análise!');
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            variant="outline"
+                            size="lg"
+                            className="bg-primary/10 hover:bg-primary/20 border-primary/30"
+                          >
+                            <Search className="w-4 h-4 mr-2" />Analisar Versão Otimizada
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setDocumentosInitialContexto(otimizacaoMutation.data?.promptOtimizado || "");
+                              setDocumentosInitialArea(otimizacaoMutation.data?.area || "Civil");
+                              setActiveTab('documentos');
+                              toast.info('Prompt otimizado carregado na aba Documentos!');
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            variant="outline"
+                            size="lg"
+                          >
+                            <FileText className="w-4 h-4 mr-2" />Gerar Documento
+                          </Button>
+                        </div>
                         <Button onClick={() => {
                           if (otimizacaoMutation.data?.area) setAreaGeracao(otimizacaoMutation.data.area as typeof areaGeracao);
                           setContextoJuridico(`Prompt otimizado: ${otimizacaoMutation.data?.promptOtimizado?.substring(0, 150)}...`);
