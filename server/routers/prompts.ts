@@ -399,5 +399,99 @@ export const promptsRouter = router({
       const buffer = await generatePdfABNT({ titulo: input.titulo, conteudo: input.conteudo, cabecalho, incluirDataHora: input.incluirDataHora, removerPersonaContexto: true });
       if (input.promptId) { await db.createHistorico({ userId: ctx.user.id, acao: "exportacao_pdf", promptId: input.promptId, duracaoMs: 0, sucesso: true }); }
       return { buffer: buffer.toString('base64'), filename: gerarNomeArquivoPdf(input.titulo) };
-    })
+    }),
+
+  /**
+   * Executar prompt com IA - envia o prompt gerado diretamente para o LLM
+   * e retorna o documento/resultado gerado, eliminando a necessidade de
+   * copiar e colar em ferramentas externas.
+   */
+  executarPrompt: protectedProcedure
+    .input(z.object({
+      promptText: z.string().min(10, "O prompt deve ter pelo menos 10 caracteres"),
+      promptId: z.number().optional(),
+      tipoDocumento: z.string().optional(),
+      areaJuridica: z.string().optional(),
+      provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const).optional(),
+      model: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const startTime = Date.now();
+      
+      // Verificar acesso ao modelo
+      const userPlan = (ctx.user as any).subscriptionPlan || "free";
+      checkModelAccess(userPlan, input.model);
+
+      try {
+        const { invokeUnifiedLLM } = await import("../unified-llm");
+
+        const systemPrompt = `Você é um advogado sênior altamente qualificado. Com base no prompt jurídico fornecido pelo usuário, elabore o documento solicitado com excelência técnica.
+
+REGRAS OBRIGATÓRIAS:
+1. Siga RIGOROSAMENTE as instruções do prompt fornecido
+2. Use linguagem técnica jurídica adequada
+3. Cite legislação e jurisprudência quando pertinente
+4. Formate o documento de acordo com as normas da ABNT
+5. NÃO inclua comentários meta sobre o prompt - apenas gere o documento
+6. NÃO inicie com descrições de persona ou contexto do sistema
+7. Comece DIRETAMENTE com o conteúdo do documento (endereçamento, título, etc.)
+8. Use formatação Markdown para estruturar o documento`;
+
+        const response = await invokeUnifiedLLM({
+          provider: (input.provider || "manus") as any,
+          model: input.model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: input.promptText },
+          ],
+          temperature: 0.3,
+        });
+
+        // Limpar persona do resultado
+        const documentoGerado = removerPersonaDoTexto(response.content);
+
+        // Registrar no histórico
+        if (input.promptId) {
+          await db.createHistorico({
+            userId: ctx.user.id,
+            acao: "execucao_prompt",
+            promptId: input.promptId,
+            duracaoMs: Date.now() - startTime,
+            sucesso: true,
+          });
+        }
+
+        // Validar legislação no documento gerado
+        const validacaoLegislacao = await validarLegislacao(documentoGerado);
+
+        return {
+          documento: documentoGerado,
+          provider: response.provider,
+          model: response.model,
+          tempoGeracao: Date.now() - startTime,
+          tipoDocumento: input.tipoDocumento,
+          areaJuridica: input.areaJuridica,
+          validacaoLegislacao: {
+            confiabilidadeGeral: validacaoLegislacao.confiabilidadeGeral,
+            totalCitacoes: validacaoLegislacao.totalCitacoes,
+            citacoesValidadas: validacaoLegislacao.citacoesValidadas,
+            citacoes: validacaoLegislacao.citacoes,
+          },
+        };
+      } catch (error) {
+        logger.error('[Prompts] Erro ao executar prompt', { userId: ctx.user.id, error });
+        
+        if (input.promptId) {
+          await db.createHistorico({
+            userId: ctx.user.id,
+            acao: "execucao_prompt",
+            promptId: input.promptId,
+            duracaoMs: Date.now() - startTime,
+            sucesso: false,
+          }).catch(() => {});
+        }
+
+        throw new Error(`Erro ao executar prompt: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      }
+    }),
 });

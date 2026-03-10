@@ -30,6 +30,10 @@ interface TabGerarProps {
   isGerandoDoc: boolean;
   initialArea?: string;
   initialContexto?: string;
+  /** Navegar para aba Documentos com prompt preenchido */
+  onNavigateToDocumentos?: () => void;
+  /** Navegar para aba Análise com prompt preenchido */
+  onNavigateToAnalise?: () => void;
 }
 
 // Seções do prompt para visualização estruturada
@@ -91,6 +95,7 @@ function parsePromptSections(text: string): { key: string; content: string }[] {
 export default function TabGerar({
   selectedModel, handleModelChange, onPreview, onSaveTemplate, onGerarDocumento, isGerandoDoc,
   initialArea = "", initialContexto = "",
+  onNavigateToDocumentos, onNavigateToAnalise,
 }: TabGerarProps) {
   // Form state
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("peticao");
@@ -310,6 +315,9 @@ export default function TabGerar({
               <PromptActions
                 promptText={promptText}
                 titulo={`Prompt ${TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || ""}`}
+                promptId={geracaoMutation.data?.promptId}
+                tipoDocumento={TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label}
+                areaJuridica={geracaoMutation.data?.area || areaJuridica}
                 onPreview={() => onPreview({
                   titulo: `Prompt Profissional - ${TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || ""}`,
                   conteudo: promptText,
@@ -321,6 +329,8 @@ export default function TabGerar({
                 showGerarDocumento={!!geracaoMutation.data?.promptId}
                 onGerarDocumento={() => geracaoMutation.data?.promptId && onGerarDocumento(geracaoMutation.data.promptId, promptText, tipoDocumento)}
                 isGerandoDoc={isGerandoDoc}
+                onNavigateToDocumentos={onNavigateToDocumentos}
+                onNavigateToAnalise={onNavigateToAnalise}
               />
 
               {/* Conteúdo do Prompt */}

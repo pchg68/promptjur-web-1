@@ -204,6 +204,13 @@
       "when": 1772295773988,
       "tag": "0028_equal_wolfpack",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1773152720569,
+      "tag": "0029_magical_electro",
+      "breakpoints": true
     }
   ]
 }

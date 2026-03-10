@@ -540,6 +540,16 @@ export default function Dashboard() {
                 isGerandoDoc={gerarDocMutation.isPending}
                 initialArea={areaGeracao}
                 initialContexto={contextoJuridico}
+                onNavigateToDocumentos={() => {
+                  setActiveTab("documentos");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  toast.info("Navegando para a aba Documentos");
+                }}
+                onNavigateToAnalise={() => {
+                  setActiveTab("analisar");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  toast.info("Navegando para a aba Análise");
+                }}
               />
             </TabsContent>
 

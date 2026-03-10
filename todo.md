@@ -2541,3 +2541,24 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Preencher automaticamente a aba Análise com o prompt otimizado (setPromptAnalise)
 - [x] Trocar para aba Análise e scroll ao topo com toast de confirmação
 - [x] Adicionar botão "Gerar Documento" também na aba Otimizar (bonus)
+
+## Redesign: Ações Pós-Geração de Prompt Profissional
+### Análise do problema
+- O fluxo atual exige: copiar prompt → abrir IA externa → colar → pedir documento
+- O botão "Testar IA" abre ferramenta externa, forçando cópia manual
+- O usuário precisa de ações integradas diretamente na página
+
+### Backend
+- [x] Criar endpoint executarPrompt que envia o prompt para LLM e retorna documento
+- [x] Permitir escolha de modelo/provedor para execução (5 providers)
+- [x] Integrar com validação de legislação e histórico
+- [x] Adicionar execucao_prompt ao enum de ações no schema
+
+### Frontend
+- [x] Redesenhar PromptActions com hierarquia: Primárias (Executar IA + Elaborar Doc) / Secundárias compactas
+- [x] Substituir "Testar IA" por "Executar com IA" integrado com ModelSelector
+- [x] Exibir resultado da execução inline com Streamdown + ValidacaoLegislacao
+- [x] Manter "Copiar Prompt" e "Preview" como ações secundárias compactas
+- [x] Adicionar botões de navegação para Documentos e Análise
+- [x] Atualizar PostGenerationGuide com novo fluxo simplificado
+- [x] 17 testes criados (396 totais passando)

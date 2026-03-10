@@ -1,16 +1,16 @@
-import { Copy, Eye, Zap, BookTemplate } from "lucide-react";
+import { PlayCircle, FileText, Shield, Copy } from "lucide-react";
 
 const steps = [
-  { icon: Copy, label: "Copiar", desc: "Copie o prompt gerado" },
-  { icon: Eye, label: "Revisar", desc: "Revise e ajuste se necessário" },
-  { icon: Zap, label: "Usar em IA", desc: "Cole no ChatGPT, Manus ou Perplexity" },
-  { icon: BookTemplate, label: "Salvar", desc: "Salve como template para reusar" },
+  { icon: PlayCircle, label: "Executar", desc: "Execute direto com IA integrada" },
+  { icon: FileText, label: "Documento", desc: "Elabore o documento completo" },
+  { icon: Shield, label: "Analisar", desc: "Analise a qualidade do prompt" },
+  { icon: Copy, label: "Copiar", desc: "Copie para uso externo" },
 ];
 
 export default function PostGenerationGuide({ className = "" }: { className?: string }) {
   return (
     <div className={`p-4 bg-muted/30 rounded-sm ${className}`}>
-      <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">Próximos Passos</p>
+      <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">O que fazer agora</p>
       <div className="grid grid-cols-4 gap-3">
         {steps.map((step, i) => {
           const Icon = step.icon;

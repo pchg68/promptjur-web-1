@@ -146,7 +146,7 @@ export type InsertFonteJuridica = typeof fontesJuridicas.$inferInsert;
 export const historico = mysqlTable("historico", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  acao: mysqlEnum("acao", ["analise", "geracao", "otimizacao", "verificacao", "exportacao_docx", "exportacao_pdf"]).notNull(),
+  acao: mysqlEnum("acao", ["analise", "geracao", "otimizacao", "verificacao", "exportacao_docx", "exportacao_pdf", "execucao_prompt"]).notNull(),
   promptId: int("promptId"),
   detalhes: json("detalhes"), // Informações adicionais sobre a ação
   duracaoMs: int("duracaoMs"), // Tempo de processamento em milissegundos
