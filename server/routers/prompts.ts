@@ -494,4 +494,123 @@ REGRAS OBRIGATÓRIAS:
         throw new Error(`Erro ao executar prompt: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
       }
     }),
+
+  /**
+   * Comparar modelos - executa o mesmo prompt em múltiplos modelos de IA
+   * simultaneamente e retorna os resultados para comparação lado a lado.
+   */
+  compararModelos: protectedProcedure
+    .input(z.object({
+      promptText: z.string().min(10, "O prompt deve ter pelo menos 10 caracteres"),
+      promptId: z.number().optional(),
+      tipoDocumento: z.string().optional(),
+      areaJuridica: z.string().optional(),
+      modelos: z.array(z.object({
+        provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const),
+        model: z.string().optional(),
+      })).min(2, "Selecione pelo menos 2 modelos").max(4, "Máximo de 4 modelos"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const startTime = Date.now();
+      const userPlan = (ctx.user as any).subscriptionPlan || "free";
+
+      // Verificar acesso a todos os modelos selecionados
+      for (const m of input.modelos) {
+        checkModelAccess(userPlan, m.model);
+      }
+
+      const { invokeUnifiedLLM } = await import("../unified-llm");
+
+      const systemPrompt = `Você é um advogado sênior altamente qualificado. Com base no prompt jurídico fornecido pelo usuário, elabore o documento solicitado com excelência técnica.
+
+REGRAS OBRIGATÓRIAS:
+1. Siga RIGOROSAMENTE as instruções do prompt fornecido
+2. Use linguagem técnica jurídica adequada
+3. Cite legislação e jurisprudência quando pertinente
+4. Formate o documento de acordo com as normas da ABNT
+5. NÃO inclua comentários meta sobre o prompt - apenas gere o documento
+6. NÃO inicie com descrições de persona ou contexto do sistema
+7. Comece DIRETAMENTE com o conteúdo do documento (endereçamento, título, etc.)
+8. Use formatação Markdown para estruturar o documento`;
+
+      // Executar todos os modelos em paralelo
+      const resultados = await Promise.allSettled(
+        input.modelos.map(async (m) => {
+          const modelStart = Date.now();
+          try {
+            const response = await invokeUnifiedLLM({
+              provider: (m.provider || "manus") as any,
+              model: m.model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: input.promptText },
+              ],
+              temperature: 0.3,
+            });
+
+            const documento = removerPersonaDoTexto(response.content);
+            const validacaoLegislacao = await validarLegislacao(documento);
+
+            return {
+              status: "success" as const,
+              provider: response.provider,
+              model: response.model,
+              documento,
+              tempoGeracao: Date.now() - modelStart,
+              tamanhoTexto: documento.length,
+              palavras: documento.split(/\s+/).length,
+              paragrafos: documento.split(/\n\n+/).filter(p => p.trim()).length,
+              validacaoLegislacao: {
+                confiabilidadeGeral: validacaoLegislacao.confiabilidadeGeral,
+                totalCitacoes: validacaoLegislacao.totalCitacoes,
+                citacoesValidadas: validacaoLegislacao.citacoesValidadas,
+                citacoes: validacaoLegislacao.citacoes,
+              },
+            };
+          } catch (error) {
+            return {
+              status: "error" as const,
+              provider: m.provider,
+              model: m.model || "default",
+              erro: error instanceof Error ? error.message : "Erro desconhecido",
+              tempoGeracao: Date.now() - modelStart,
+            };
+          }
+        })
+      );
+
+      // Processar resultados
+      const comparacoes = resultados.map((r) => {
+        if (r.status === "fulfilled") return r.value;
+        return {
+          status: "error" as const,
+          provider: "unknown" as const,
+          model: "unknown",
+          erro: "Falha na execução",
+          tempoGeracao: 0,
+        };
+      });
+
+      // Registrar no histórico
+      if (input.promptId) {
+        await db.createHistorico({
+          userId: ctx.user.id,
+          acao: "execucao_prompt",
+          promptId: input.promptId,
+          duracaoMs: Date.now() - startTime,
+          sucesso: true,
+          mensagemErro: `Comparação: ${input.modelos.map(m => `${m.provider}/${m.model || 'default'}`).join(' vs ')}`,
+        }).catch(() => {});
+      }
+
+      await db.incrementUserUsage(ctx.user.id);
+
+      return {
+        comparacoes,
+        tempoTotal: Date.now() - startTime,
+        modelosComparados: input.modelos.length,
+        tipoDocumento: input.tipoDocumento,
+        areaJuridica: input.areaJuridica,
+      };
+    }),
 });

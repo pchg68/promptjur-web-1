@@ -2562,3 +2562,19 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar botões de navegação para Documentos e Análise
 - [x] Atualizar PostGenerationGuide com novo fluxo simplificado
 - [x] 17 testes criados (396 totais passando)
+
+## Comparação Lado a Lado de Modelos de IA
+
+#### Backend
+- [x] Criar endpoint compararModelos com execução paralela via Promise.allSettled
+- [x] Retornar resultados com metadados (modelo, tempo, palavras, parágrafos, validação)
+- [x] Integrar com rate limiting e controle de plano por modelo
+
+### Frontend
+- [x] Criar componente ComparacaoModelos com layout lado a lado (grid responsivo 2/3/2x2)
+- [x] Implementar seletor de 2-4 modelos com checkboxes e controle de acesso por plano
+- [x] Exibir resultados em colunas com Streamdown e badges de destaque
+- [x] Mostrar métricas comparativas (mais rápido, mais detalhado, melhor validação)
+- [x] Adicionar botão "Usar Este Resultado" com incorporação no PromptActions
+- [x] Integrar no fluxo pós-geração de prompt (PromptActions, seção colapsável)
+- [x] 26 testes criados (422 totais passando)

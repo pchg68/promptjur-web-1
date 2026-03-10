@@ -12,6 +12,7 @@ import { trpc } from "@/lib/trpc";
 import { Streamdown } from "streamdown";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
+import { ComparacaoModelos } from "@/components/ComparacaoModelos";
 
 interface PromptActionsProps {
   promptText: string;
@@ -242,6 +243,27 @@ export default function PromptActions({
           </Card>
         </CollapsibleContent>
       </Collapsible>
+
+      {/* ═══ Comparação de Modelos ═══ */}
+      <ComparacaoModelos
+        promptText={promptText}
+        promptId={promptId}
+        tipoDocumento={tipoDocumento}
+        areaJuridica={areaJuridica}
+        titulo={titulo}
+        onIncorporar={(doc) => {
+          setExecResult({
+            documento: doc,
+            provider: "comparação",
+            model: "selecionado",
+            tempoGeracao: 0,
+            tipoDocumento,
+            areaJuridica,
+          });
+          setShowExecucao(true);
+          toast.success("Documento da comparação incorporado!");
+        }}
+      />
 
       {/* ═══ Ações Secundárias (linha compacta) ═══ */}
       <div className="flex items-center gap-2 flex-wrap">
