@@ -77,9 +77,21 @@ export default function TabAnalisar({
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h3 className="text-lg font-semibold text-foreground">Resultado da Análise</h3>
               <PromptActions
-                promptText={JSON.stringify(analiseMutation.data, null, 2)}
+                promptText={promptAnalise}
                 titulo="Análise de Prompt"
-                onPreview={() => onPreview({ titulo: "Análise de Prompt", conteudo: JSON.stringify(analiseMutation.data, null, 2), areaJuridica: analiseMutation.data?.area, tipoDocumento: "Análise" })}
+                onPreview={() => {
+                  const d = analiseMutation.data;
+                  const conteudoFormatado = [
+                    `## Resultado da Análise\n`,
+                    `**Área Jurídica:** ${d?.area || "N/A"}`,
+                    `**Qualidade:** ${d?.qualidade || "N/A"}`,
+                    `**Confiança:** ${d?.confianca || 0}%\n`,
+                    d?.palavrasChave?.length ? `**Palavras-Chave:** ${d.palavrasChave.join(", ")}\n` : "",
+                    d?.sugestoes?.length ? `**Sugestões de Melhoria:**\n${d.sugestoes.map((s: string, i: number) => `${i + 1}. ${s}`).join("\n")}\n` : "",
+                    `---\n\n**Prompt Original:**\n\n${promptAnalise}`,
+                  ].filter(Boolean).join("\n");
+                  onPreview({ titulo: "Análise de Prompt", conteudo: conteudoFormatado, areaJuridica: d?.area, tipoDocumento: "Análise" });
+                }}
                 onSaveTemplate={() => onSaveTemplate(promptAnalise, analiseMutation.data?.area || "Geral")}
               />
             </div>

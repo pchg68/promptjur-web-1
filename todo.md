@@ -2507,3 +2507,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 
 ### Testes
 - [x] 28 testes unitários para mapeamento UF-tribunais (379 testes totais)
+
+## Bug: Cópia de resultado da análise cola JSON bruto
+- [x] Investigar botão de cópia na TabAnalisar que copia JSON ao invés de texto legível
+- [x] Corrigir PromptActions.promptText para passar promptAnalise (texto original) ao invés de JSON.stringify
+- [x] Formatar preview com Markdown legível (área, qualidade, palavras-chave, sugestões + prompt original)
