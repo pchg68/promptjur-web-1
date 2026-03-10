@@ -2520,3 +2520,10 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Garantir troca automática de aba (setActiveTab) e scroll ao topo
 - [x] Corrigir PromptActions no Dashboard para usar promptAnalise ao invés de JSON.stringify
 - [x] Corrigir preview para exibir resultado formatado em Markdown
+
+## Melhoria: Botão "Gerar Documento" na aba Análise
+- [x] Investigar como TabDocumentos recebe dados iniciais (estado interno, sem props)
+- [x] Adicionar props initialContexto/initialArea ao TabDocumentos com useEffect
+- [x] Adicionar botão "Gerar Documento" ao lado de "Otimizar Este Prompt" (grid 2 colunas)
+- [x] Preencher automaticamente o contexto e área jurídica na aba Documentos ao clicar
+- [x] Trocar para aba Documentos e scroll ao topo com toast de confirmação

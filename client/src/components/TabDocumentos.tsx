@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -51,10 +51,15 @@ const TIPOS_DOCUMENTO = [
   { value: "notificacao", label: "Notificação Extrajudicial" },
 ];
 
-export default function TabDocumentos() {
+interface TabDocumentosProps {
+  initialContexto?: string;
+  initialArea?: string;
+}
+
+export default function TabDocumentos({ initialContexto, initialArea }: TabDocumentosProps = {}) {
   const [tipoDocumento, setTipoDocumento] = useState<string>("peticao");
-  const [areaJuridica, setAreaJuridica] = useState<string>("Civil");
-  const [contexto, setContexto] = useState<string>("");
+  const [areaJuridica, setAreaJuridica] = useState<string>(initialArea || "Civil");
+  const [contexto, setContexto] = useState<string>(initialContexto || "");
   const [objetivo, setObjetivo] = useState<string>("");
   const [partesEnvolvidas, setPartesEnvolvidas] = useState<string>("");
   const [legislacao, setLegislacao] = useState<string>("");
@@ -65,6 +70,14 @@ export default function TabDocumentos() {
   });
   // Estado para o documento com jurisprudência incorporada
   const [documentoComJurisprudencia, setDocumentoComJurisprudencia] = useState<string>("");
+
+  // Atualizar campos quando props iniciais mudam (navegação da aba Análise)
+  useEffect(() => {
+    if (initialContexto) setContexto(initialContexto);
+  }, [initialContexto]);
+  useEffect(() => {
+    if (initialArea) setAreaJuridica(initialArea);
+  }, [initialArea]);
 
   const handleModelChange = (value: string) => {
     setSelectedModel(value);

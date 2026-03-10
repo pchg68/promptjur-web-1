@@ -188,6 +188,10 @@ export default function Dashboard() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<{ titulo: string; conteudo: string; areaJuridica?: string; tipoDocumento?: string; promptId?: number } | null>(null);
 
+  // Estado para preencher TabDocumentos ao navegar da aba Análise
+  const [documentosInitialContexto, setDocumentosInitialContexto] = useState<string>("");
+  const [documentosInitialArea, setDocumentosInitialArea] = useState<string>("");
+
   // Modelos
   const [filtroTipoModelo, setFiltroTipoModelo] = useState<string | undefined>(undefined);
   const [filtroAreaModelo, setFiltroAreaModelo] = useState<string | undefined>(undefined);
@@ -478,21 +482,38 @@ export default function Dashboard() {
 
                       <PostGenerationGuide className="mt-4" />
 
-                      {/* Botão Otimizar Este Prompt */}
+                      {/* Botões de navegação */}
                       <div className="pt-4 border-t border-border space-y-3">
-                        <Button
-                          onClick={() => {
-                            setPromptOtimizacao(promptAnalise);
-                            setActiveTab("otimizar");
-                            toast.info("Prompt carregado na aba Otimizar!");
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          className="w-full"
-                          size="lg"
-                        >
-                          <Shield className="w-4 h-4 mr-2" />
-                          Otimizar Este Prompt
-                        </Button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <Button
+                            onClick={() => {
+                              setPromptOtimizacao(promptAnalise);
+                              setActiveTab("otimizar");
+                              toast.info("Prompt carregado na aba Otimizar!");
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            size="lg"
+                            variant="default"
+                          >
+                            <Shield className="w-4 h-4 mr-2" />
+                            Otimizar Este Prompt
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setDocumentosInitialContexto(promptAnalise);
+                              setDocumentosInitialArea(analiseMutation.data?.area || "Civil");
+                              setActiveTab("documentos");
+                              toast.info("Prompt carregado na aba Documentos!");
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            size="lg"
+                            variant="outline"
+                            className="bg-primary/10 hover:bg-primary/20 border-primary/30"
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Gerar Documento
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -584,7 +605,7 @@ export default function Dashboard() {
 
             {/* ═══════════════ Tab: Documentos ═══════════════ */}
             <TabsContent value="documentos" className="space-y-6">
-              <TabDocumentos />
+              <TabDocumentos initialContexto={documentosInitialContexto} initialArea={documentosInitialArea} />
             </TabsContent>
 
             {/* ═══════════════ Tab: Modelos ═══════════════ */}
