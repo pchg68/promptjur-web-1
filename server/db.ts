@@ -1,4 +1,4 @@
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { logger } from './_core/logger';
 import { 
@@ -1217,7 +1217,7 @@ export async function obterEstatisticasFeedback() {
  */
 export async function getHistoricoStats(userId: number) {
   const db = await getDb();
-  if (!db) return {
+  const emptyResult = {
     totalAcoes: 0,
     porAcao: {} as Record<string, number>,
     porArea: {} as Record<string, number>,
@@ -1228,72 +1228,87 @@ export async function getHistoricoStats(userId: number) {
     totalFavoritos: 0,
     ultimaAtividade: null as string | null,
   };
+  if (!db) return emptyResult;
 
-  // Total de ações no histórico
-  const allHistorico = await db.select().from(historico)
-    .where(eq(historico.userId, userId));
+  try {
+    // Usar SQL agregado em vez de carregar todos os registros
+    const [statsRow] = await db.select({
+      totalAcoes: sql<number>`COUNT(*)`,
+      totalSucesso: sql<number>`SUM(CASE WHEN ${historico.sucesso} = 1 THEN 1 ELSE 0 END)`,
+      tempoMedio: sql<number>`COALESCE(AVG(${historico.duracaoMs}), 0)`,
+      ultimaAtividade: sql<string>`MAX(${historico.createdAt})`,
+    }).from(historico).where(eq(historico.userId, userId));
 
-  const totalAcoes = allHistorico.length;
-  const porAcao: Record<string, number> = {};
-  const porModelo: Record<string, number> = {};
-  let totalDuracao = 0;
-  let countDuracao = 0;
-  let totalSucesso = 0;
+    const totalAcoes = Number(statsRow?.totalAcoes) || 0;
+    const totalSucesso = Number(statsRow?.totalSucesso) || 0;
+    const tempoMedio = Math.round(Number(statsRow?.tempoMedio) || 0);
+    const ultimaAtividade = statsRow?.ultimaAtividade
+      ? new Date(statsRow.ultimaAtividade).toISOString()
+      : null;
 
-  allHistorico.forEach(h => {
-    // Por ação
-    porAcao[h.acao] = (porAcao[h.acao] || 0) + 1;
-    
-    // Por modelo (extrair do detalhes)
-    if (h.detalhes && typeof h.detalhes === 'object') {
-      const det = h.detalhes as any;
-      const modelo = det.modelo || det.model || det.modeloId;
-      if (modelo) {
-        porModelo[modelo] = (porModelo[modelo] || 0) + 1;
+    // Contagem por ação (SQL GROUP BY)
+    const acaoRows = await db.select({
+      acao: historico.acao,
+      count: sql<number>`COUNT(*)`,
+    }).from(historico).where(eq(historico.userId, userId)).groupBy(historico.acao);
+
+    const porAcao: Record<string, number> = {};
+    acaoRows.forEach(r => { porAcao[r.acao] = Number(r.count); });
+
+    // Contagem de prompts e favoritos (SQL agregado)
+    const [promptsRow] = await db.select({
+      total: sql<number>`COUNT(*)`,
+      favoritos: sql<number>`SUM(CASE WHEN ${prompts.isFavorito} = 1 THEN 1 ELSE 0 END)`,
+    }).from(prompts).where(eq(prompts.userId, userId));
+
+    const totalPrompts = Number(promptsRow?.total) || 0;
+    const totalFavoritos = Number(promptsRow?.favoritos) || 0;
+
+    // Por área jurídica (SQL GROUP BY)
+    const areaRows = await db.select({
+      area: prompts.areaJuridica,
+      count: sql<number>`COUNT(*)`,
+    }).from(prompts)
+      .where(and(eq(prompts.userId, userId), sql`${prompts.areaJuridica} IS NOT NULL`))
+      .groupBy(prompts.areaJuridica);
+
+    const porArea: Record<string, number> = {};
+    areaRows.forEach(r => { if (r.area) porArea[r.area] = Number(r.count); });
+
+    // Por modelo - manter leitura leve (últimos 200 registros com detalhes)
+    const porModelo: Record<string, number> = {};
+    const recentWithDetails = await db.select({
+      detalhes: historico.detalhes,
+    }).from(historico)
+      .where(and(eq(historico.userId, userId), sql`${historico.detalhes} IS NOT NULL`))
+      .orderBy(desc(historico.createdAt))
+      .limit(200);
+
+    recentWithDetails.forEach(h => {
+      if (h.detalhes && typeof h.detalhes === 'object') {
+        const det = h.detalhes as any;
+        const modelo = det.modelo || det.model || det.modeloId;
+        if (modelo) {
+          porModelo[modelo] = (porModelo[modelo] || 0) + 1;
+        }
       }
-    }
-    
-    // Tempo médio
-    if (h.duracaoMs) {
-      totalDuracao += h.duracaoMs;
-      countDuracao++;
-    }
-    
-    // Taxa de sucesso
-    if (h.sucesso) totalSucesso++;
-  });
+    });
 
-  // Total de prompts salvos
-  const allPrompts = await db.select().from(prompts)
-    .where(eq(prompts.userId, userId));
-
-  const totalPrompts = allPrompts.length;
-  const totalFavoritos = allPrompts.filter(p => p.isFavorito).length;
-
-  // Por área jurídica (dos prompts)
-  const porArea: Record<string, number> = {};
-  allPrompts.forEach(p => {
-    if (p.areaJuridica) {
-      porArea[p.areaJuridica] = (porArea[p.areaJuridica] || 0) + 1;
-    }
-  });
-
-  // Última atividade
-  const ultimaAtividade = allHistorico.length > 0
-    ? allHistorico.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0].createdAt.toISOString()
-    : null;
-
-  return {
-    totalAcoes,
-    porAcao,
-    porArea,
-    porModelo,
-    taxaSucesso: totalAcoes > 0 ? Math.round((totalSucesso / totalAcoes) * 100) : 0,
-    tempoMedio: countDuracao > 0 ? Math.round(totalDuracao / countDuracao) : 0,
-    totalPrompts,
-    totalFavoritos,
-    ultimaAtividade,
-  };
+    return {
+      totalAcoes,
+      porAcao,
+      porArea,
+      porModelo,
+      taxaSucesso: totalAcoes > 0 ? Math.round((totalSucesso / totalAcoes) * 100) : 0,
+      tempoMedio,
+      totalPrompts,
+      totalFavoritos,
+      ultimaAtividade,
+    };
+  } catch (error) {
+    console.error('[getHistoricoStats] Error:', error);
+    return emptyResult;
+  }
 }
 
 /**
@@ -1348,25 +1363,31 @@ export async function getHistoricoUnificado(userId: number, filtros: {
     .limit(limite)
     .offset(offset);
 
-  // Enriquecer com dados do prompt (se existir)
-  const enrichedItems = await Promise.all(items.map(async (item) => {
-    let promptData = null;
-    if (item.promptId) {
-      const p = await db.select().from(prompts)
-        .where(eq(prompts.id, item.promptId))
-        .limit(1);
-      if (p.length > 0) {
-        promptData = {
-          id: p[0].id,
-          tipo: p[0].tipo,
-          areaJuridica: p[0].areaJuridica,
-          promptOriginal: p[0].promptOriginal?.substring(0, 200) + (p[0].promptOriginal && p[0].promptOriginal.length > 200 ? '...' : ''),
-          promptOtimizado: p[0].promptOtimizado?.substring(0, 200) + (p[0].promptOtimizado && p[0].promptOtimizado.length > 200 ? '...' : ''),
-          qualidade: p[0].qualidade,
-          isFavorito: p[0].isFavorito,
-        };
-      }
-    }
+  // Batch: coletar todos os promptIds de uma vez (evita N+1)
+  const promptIdSet = new Set<number>();
+  items.forEach(i => { if (i.promptId) promptIdSet.add(i.promptId); });
+  const promptIds = Array.from(promptIdSet);
+  const promptsMap = new Map<number, any>();
+
+  if (promptIds.length > 0) {
+    const promptRows = await db.select().from(prompts)
+      .where(inArray(prompts.id, promptIds));
+    promptRows.forEach(p => {
+      promptsMap.set(p.id, {
+        id: p.id,
+        tipo: p.tipo,
+        areaJuridica: p.areaJuridica,
+        promptOriginal: p.promptOriginal?.substring(0, 200) + (p.promptOriginal && p.promptOriginal.length > 200 ? '...' : ''),
+        promptOtimizado: p.promptOtimizado?.substring(0, 200) + (p.promptOtimizado && p.promptOtimizado.length > 200 ? '...' : ''),
+        qualidade: p.qualidade,
+        isFavorito: p.isFavorito,
+      });
+    });
+  }
+
+  // Enriquecer e filtrar
+  const enrichedItems = items.map(item => {
+    const promptData = item.promptId ? promptsMap.get(item.promptId) || null : null;
 
     // Filtrar por área (se especificado)
     if (filtros.area && promptData && promptData.areaJuridica !== filtros.area) {
@@ -1397,7 +1418,7 @@ export async function getHistoricoUnificado(userId: number, filtros: {
       createdAt: item.createdAt.toISOString(),
       prompt: promptData,
     };
-  }));
+  });
 
   // Remover nulls (filtrados por área/texto)
   const filteredItems = enrichedItems.filter(Boolean);
@@ -1485,35 +1506,54 @@ export async function getAtividadePorDia(userId: number, dias: number = 30) {
   const db = await getDb();
   if (!db) return [];
 
-  const allHistorico = await db.select().from(historico)
-    .where(eq(historico.userId, userId))
-    .orderBy(historico.createdAt);
+  try {
+    // Calcular data de início
+    const dataInicio = new Date();
+    dataInicio.setDate(dataInicio.getDate() - dias);
+    dataInicio.setHours(0, 0, 0, 0);
 
-  // Agrupar por data
-  const groupedByDate: Record<string, Record<string, number>> = {};
+    // Usar SQL GROUP BY para agregar no banco
+    const rows = await db.select({
+      dateStr: sql<string>`DATE(createdAt)`,
+      acao: historico.acao,
+      count: sql<number>`COUNT(*)`,
+    }).from(historico)
+      .where(and(
+        eq(historico.userId, userId),
+        sql`${historico.createdAt} >= ${dataInicio}`
+      ))
+      .groupBy(sql`DATE(createdAt)`, sql`acao`);
 
-  // Inicializar todos os dias
-  for (let i = 0; i < dias; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - (dias - 1 - i));
-    const dateStr = date.toISOString().split('T')[0];
-    groupedByDate[dateStr] = { analise: 0, geracao: 0, otimizacao: 0, execucao_prompt: 0, verificacao: 0, exportacao_docx: 0, exportacao_pdf: 0 };
-  }
-
-  allHistorico.forEach(item => {
-    const dateStr = new Date(item.createdAt).toISOString().split('T')[0];
-    if (groupedByDate[dateStr]) {
-      groupedByDate[dateStr][item.acao] = (groupedByDate[dateStr][item.acao] || 0) + 1;
+    // Inicializar todos os dias
+    const groupedByDate: Record<string, Record<string, number>> = {};
+    for (let i = 0; i < dias; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - (dias - 1 - i));
+      const dateStr = date.toISOString().split('T')[0];
+      groupedByDate[dateStr] = { analise: 0, geracao: 0, otimizacao: 0, execucao_prompt: 0, verificacao: 0, exportacao_docx: 0, exportacao_pdf: 0 };
     }
-  });
 
-  return Object.entries(groupedByDate).map(([dateStr, counts]) => {
-    const [year, month, day] = dateStr.split('-');
-    return {
-      date: `${day}/${month}`,
-      dateISO: dateStr,
-      ...counts,
-      total: Object.values(counts).reduce((a, b) => a + b, 0),
-    };
-  });
+    // Preencher com dados do banco
+    rows.forEach(row => {
+      const dateStr = typeof row.dateStr === 'string' 
+        ? row.dateStr.split('T')[0] 
+        : new Date(row.dateStr).toISOString().split('T')[0];
+      if (groupedByDate[dateStr]) {
+        groupedByDate[dateStr][row.acao] = Number(row.count);
+      }
+    });
+
+    return Object.entries(groupedByDate).map(([dateStr, counts]) => {
+      const [year, month, day] = dateStr.split('-');
+      return {
+        date: `${day}/${month}`,
+        dateISO: dateStr,
+        ...counts,
+        total: Object.values(counts).reduce((a, b) => a + b, 0),
+      };
+    });
+  } catch (error) {
+    console.error('[getAtividadePorDia] Error:', error);
+    return [];
+  }
 }

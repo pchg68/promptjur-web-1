@@ -2602,3 +2602,21 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Gráfico sparkline de atividade dos últimos 30 dias
 - [x] Distribuição por tipo de ação com botões de filtro rápido
 - [x] 18 testes criados (todos passando)
+
+## Correção de Erros Reportados pelo Usuário de Teste
+- [x] Investigar erros no servidor de produção (logs, status)
+- [x] Testar todas as páginas como usuário não-autenticado
+- [x] Testar todas as páginas como usuário autenticado
+- [x] Corrigir erros de runtime/build encontrados
+- [x] Verificar se todas as rotas estão funcionais
+- [x] Garantir que o site está 100% online para testes
+- [x] Investigar travamento/crash das páginas após login
+- [x] Verificar logs do servidor para erros de runtime
+- [x] Verificar queries pesadas que podem causar timeout
+- [x] Verificar memory leaks ou loops infinitos no frontend
+- [x] Corrigir problemas de estabilidade encontrados
+- [x] Fix auth redirect loop (cooldown + retry + staleTime)
+- [x] Otimizar getHistoricoStats com SQL COUNT/SUM/AVG
+- [x] Otimizar getAtividadePorDia com SQL GROUP BY
+- [x] Fix N+1 query em getHistoricoUnificado (batch com inArray)
+- [x] 12 testes de estabilidade passando

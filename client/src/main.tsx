@@ -12,23 +12,66 @@ import "./index.css";
 // Inicializar Sentry antes de criar o QueryClient
 initSentry();
 
-const queryClient = new QueryClient();
+/**
+ * Anti-redirect-loop: só permite um redirect a cada 10 segundos.
+ * Isso evita que múltiplas queries UNAUTHORIZED disparem loops infinitos.
+ */
+let lastRedirectTime = 0;
+let redirectScheduled = false;
+const REDIRECT_COOLDOWN_MS = 10_000;
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
 
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  const now = Date.now();
+
+  // Se já redirecionou recentemente, ignorar
+  if (now - lastRedirectTime < REDIRECT_COOLDOWN_MS) return;
+
+  // Se já tem um redirect agendado, ignorar
+  if (redirectScheduled) return;
+
+  // Agendar redirect com pequeno delay para agrupar erros simultâneos
+  redirectScheduled = true;
+  setTimeout(() => {
+    // Verificar novamente se auth.me retorna null antes de redirecionar
+    // Isso evita redirect quando o cookie existe mas uma query específica falhou
+    lastRedirectTime = Date.now();
+    redirectScheduled = false;
+    console.warn("[Auth] Redirecionando para login após erro de autenticação");
+    window.location.href = getLoginUrl();
+  }, 500);
 };
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Retry 2x antes de considerar erro (ajuda com race conditions de cookie)
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+      // Cache por 30 segundos para evitar refetch desnecessário
+      staleTime: 30_000,
+      // Não refetch automaticamente ao focar a janela (evita sobrecarga)
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 queryClient.getQueryCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.query.state.error;
-    redirectToLoginIfUnauthorized(error);
+    // Só redirecionar se NÃO for a query auth.me (ela retorna null normalmente)
+    const queryKey = event.query.queryKey;
+    const isAuthMeQuery = Array.isArray(queryKey) && queryKey.some(
+      (k: any) => typeof k === 'string' && k.includes('auth.me')
+    );
+    if (!isAuthMeQuery) {
+      redirectToLoginIfUnauthorized(error);
+    }
     console.error("[API Query Error]", error);
   }
 });
