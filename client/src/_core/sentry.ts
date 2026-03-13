@@ -1,74 +1,117 @@
 /**
  * Configuração do Sentry para monitoramento de erros no frontend (React)
  * 
- * O Sentry captura automaticamente erros não tratados, exceções de componentes React,
- * e erros de promise rejections, enviando para o dashboard do Sentry.
+ * Captura automaticamente:
+ * - Erros de componentes React (via ErrorBoundary e React 19 handlers)
+ * - Erros de rede (fetch/tRPC)
+ * - Unhandled promise rejections
+ * - Breadcrumbs de navegação e interações do usuário
+ * - Session replay em caso de erros
  */
 
 import * as Sentry from "@sentry/react";
 
+let sentryInitialized = false;
+
 /**
- * Inicializa o Sentry no cliente React
- * 
- * Para usar em produção:
- * 1. Crie uma conta em https://sentry.io
- * 2. Crie um novo projeto React
- * 3. Copie o DSN fornecido
- * 4. Adicione VITE_SENTRY_DSN nas variáveis de ambiente via webdev_request_secrets
- * 
- * Exemplo de DSN: https://examplePublicKey@o0.ingest.sentry.io/0
+ * Inicializa o Sentry no cliente React.
+ * Deve ser chamado ANTES de createRoot() no main.tsx.
  */
 export function initSentry() {
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
   
   if (!sentryDsn) {
-    console.warn("[Sentry] VITE_SENTRY_DSN not configured. Error monitoring disabled.");
-    console.warn("[Sentry] To enable: Add VITE_SENTRY_DSN via webdev_request_secrets tool");
+    console.warn("[Sentry] VITE_SENTRY_DSN não configurado. Monitoramento de erros desabilitado.");
     return;
   }
 
-  Sentry.init({
-    dsn: sentryDsn,
-    
-    // Ambiente (development, staging, production)
-    environment: import.meta.env.MODE || "development",
-    
-    // Taxa de amostragem de performance (0.0 a 1.0)
-    tracesSampleRate: import.meta.env.MODE === "production" ? 0.1 : 1.0,
-    
-    // Taxa de amostragem de replay de sessão (0.0 a 1.0)
-    // Captura replays de sessões com erros
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-    
-    // Integração com React Router para rastreamento de navegação
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration({
-        maskAllText: true, // Ocultar todo texto para privacidade
-        blockAllMedia: true, // Bloquear mídia para privacidade
-      }),
-    ],
-    
-    // Filtrar informações sensíveis
-    beforeSend(event) {
-      // Remover dados sensíveis antes de enviar
-      if (event.request) {
-        delete event.request.cookies;
-        delete event.request.headers?.["authorization"];
-        delete event.request.headers?.["cookie"];
-      }
-      return event;
-    },
-  });
+  try {
+    Sentry.init({
+      dsn: sentryDsn,
+      
+      // Ambiente (development, staging, production)
+      environment: import.meta.env.MODE || "development",
+      
+      // Release para rastreamento de versões
+      release: "promptjur-client@1.0.0",
+      
+      // Taxa de amostragem de performance
+      tracesSampleRate: import.meta.env.MODE === "production" ? 0.2 : 1.0,
+      
+      // Session Replay: captura replays apenas quando há erros
+      replaysSessionSampleRate: 0,     // Não capturar sessões normais
+      replaysOnErrorSampleRate: 1.0,   // Capturar 100% das sessões com erros
+      
+      // Integrações
+      integrations: [
+        // Rastreamento de navegação e performance
+        Sentry.browserTracingIntegration(),
+        
+        // Session Replay para reproduzir erros
+        Sentry.replayIntegration({
+          maskAllText: true,     // Ocultar texto para privacidade (LGPD)
+          blockAllMedia: true,   // Bloquear mídia para privacidade
+        }),
+      ],
+      
+      // Filtrar informações sensíveis antes de enviar
+      beforeSend(event) {
+        // Remover dados sensíveis
+        if (event.request) {
+          delete event.request.cookies;
+          if (event.request.headers) {
+            delete event.request.headers["authorization"];
+            delete event.request.headers["cookie"];
+          }
+        }
+        
+        // Filtrar erros de extensões do navegador
+        const frames = event.exception?.values?.[0]?.stacktrace?.frames;
+        if (frames?.some(f => f.filename?.includes("chrome-extension://"))) {
+          return null;
+        }
+        
+        return event;
+      },
+      
+      // Ignorar erros comuns que não são bugs
+      ignoreErrors: [
+        // Erros de rede/conectividade
+        "Failed to fetch",
+        "NetworkError",
+        "Load failed",
+        "ChunkLoadError",
+        // Erros de autenticação (esperados)
+        "UNAUTHORIZED",
+        // Erros de navegação do usuário
+        "ResizeObserver loop",
+        "AbortError",
+      ],
+    });
 
-  console.log("[Sentry] Initialized successfully for environment:", import.meta.env.MODE);
+    sentryInitialized = true;
+    console.log("[Sentry] Inicializado com sucesso para ambiente:", import.meta.env.MODE);
+  } catch (error) {
+    console.error("[Sentry] Falha ao inicializar:", error);
+  }
 }
 
 /**
- * Captura uma exceção manualmente
+ * Verifica se o Sentry está inicializado e ativo
  */
-export function captureException(error: Error, context?: Record<string, any>) {
+export function isSentryActive(): boolean {
+  return sentryInitialized;
+}
+
+/**
+ * Captura uma exceção manualmente com contexto adicional
+ */
+export function captureException(error: Error | unknown, context?: Record<string, any>) {
+  if (!sentryInitialized) {
+    console.error("[Sentry:Offline]", error);
+    return;
+  }
+  
   if (context) {
     Sentry.withScope((scope) => {
       Object.entries(context).forEach(([key, value]) => {
@@ -85,17 +128,21 @@ export function captureException(error: Error, context?: Record<string, any>) {
  * Captura uma mensagem de log
  */
 export function captureMessage(message: string, level: "info" | "warning" | "error" = "info") {
+  if (!sentryInitialized) return;
   Sentry.captureMessage(message, level);
 }
 
 /**
- * Adiciona contexto de usuário para rastreamento
+ * Adiciona contexto de usuário para rastreamento.
+ * Deve ser chamado após o login do usuário.
  */
-export function setUserContext(user: { id: number; email?: string; name?: string }) {
+export function setUserContext(user: { id: number; email?: string | null; name?: string | null; role?: string }) {
+  if (!sentryInitialized) return;
+  
   Sentry.setUser({
     id: user.id.toString(),
-    email: user.email,
-    username: user.name,
+    email: user.email || undefined,
+    username: user.name || undefined,
   });
 }
 
@@ -103,8 +150,40 @@ export function setUserContext(user: { id: number; email?: string; name?: string
  * Limpa contexto de usuário (útil após logout)
  */
 export function clearUserContext() {
+  if (!sentryInitialized) return;
   Sentry.setUser(null);
 }
 
-// Exportar namespace Sentry para uso direto quando necessário
+/**
+ * Adiciona um breadcrumb personalizado para rastreamento de fluxo
+ */
+export function addBreadcrumb(
+  category: string,
+  message: string,
+  data?: Record<string, any>,
+  level: "debug" | "info" | "warning" | "error" = "info"
+) {
+  if (!sentryInitialized) return;
+  
+  Sentry.addBreadcrumb({
+    category,
+    message,
+    data,
+    level,
+    timestamp: Date.now() / 1000,
+  });
+}
+
+/**
+ * Retorna o status do Sentry para o painel de monitoramento
+ */
+export function getSentryStatus() {
+  return {
+    initialized: sentryInitialized,
+    dsn: import.meta.env.VITE_SENTRY_DSN ? "configured" : "not_configured",
+    environment: import.meta.env.MODE || "development",
+  };
+}
+
+// Exportar namespace Sentry para uso direto (ErrorBoundary, etc.)
 export { Sentry };

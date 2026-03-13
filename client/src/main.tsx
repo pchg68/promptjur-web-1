@@ -1,6 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { UNAUTHED_ERR_MSG } from '@shared/const';
-import { initSentry } from "./_core/sentry";
+import { initSentry, Sentry, captureException, addBreadcrumb } from "./_core/sentry";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
@@ -72,6 +72,13 @@ queryClient.getQueryCache().subscribe(event => {
     if (!isAuthMeQuery) {
       redirectToLoginIfUnauthorized(error);
     }
+    // Capturar erros de query no Sentry (exceto auth)
+    if (!isAuthMeQuery) {
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        type: "trpc_query_error",
+        queryKey: JSON.stringify(queryKey),
+      });
+    }
     console.error("[API Query Error]", error);
   }
 });
@@ -80,6 +87,10 @@ queryClient.getMutationCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.mutation.state.error;
     redirectToLoginIfUnauthorized(error);
+    // Capturar erros de mutation no Sentry
+    captureException(error instanceof Error ? error : new Error(String(error)), {
+      type: "trpc_mutation_error",
+    });
     console.error("[API Mutation Error]", error);
   }
 });
@@ -99,7 +110,19 @@ const trpcClient = trpc.createClient({
   ],
 });
 
-createRoot(document.getElementById("root")!).render(
+// React 19 error handlers integrados com Sentry
+const root = createRoot(document.getElementById("root")!, {
+  // Erro não capturado por nenhum ErrorBoundary
+  onUncaughtError: Sentry.reactErrorHandler((error, errorInfo) => {
+    console.warn("[React] Erro não capturado:", error, errorInfo.componentStack);
+  }),
+  // Erro capturado por um ErrorBoundary
+  onCaughtError: Sentry.reactErrorHandler(),
+  // Erro recuperável automaticamente pelo React
+  onRecoverableError: Sentry.reactErrorHandler(),
+});
+
+root.render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
       <App />

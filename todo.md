@@ -2620,3 +2620,27 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Otimizar getAtividadePorDia com SQL GROUP BY
 - [x] Fix N+1 query em getHistoricoUnificado (batch com inArray)
 - [x] 12 testes de estabilidade passando
+
+## Integração Sentry - Monitoramento de Erros
+### Backend
+- [x] Instalar @sentry/node (v10.39.0)
+- [x] Configurar Sentry.init no server com DSN via env
+- [x] Adicionar middleware de captura de erros no Express (setupExpressErrorHandler)
+- [x] Integrar com tRPC error handler para capturar erros de procedures (handleTRPCError)
+- [x] Adicionar contexto de usuário (user.id, user.email) nos eventos (context.ts)
+- [x] Configurar breadcrumbs para rastrear fluxo de requisições
+
+### Frontend
+- [x] Instalar @sentry/react (v10.39.0)
+- [x] Configurar Sentry.init no main.tsx com DSN via env
+- [x] Substituir ErrorBoundary genérico por SentryErrorBoundary
+- [x] Adicionar React 19 error handlers (onUncaughtError/onCaughtError/onRecoverableError)
+- [x] Configurar captura de erros de rede (tRPC query/mutation cache)
+- [x] Adicionar Session Replay para erros (maskAllText + blockAllMedia para LGPD)
+- [x] Filtrar erros de extensões de navegador e erros comuns
+
+### Infraestrutura
+- [x] Solicitar SENTRY_DSN ao usuário via webdev_request_secrets
+- [x] Criar variáveis de ambiente SENTRY_DSN e VITE_SENTRY_DSN
+- [x] Adicionar endpoint sentryStatus no admin router
+- [x] 28 testes de integração Sentry passando

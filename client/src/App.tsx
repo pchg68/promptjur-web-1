@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
-import ErrorBoundary from "./components/ErrorBoundary";
+import { SentryErrorBoundary } from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -40,14 +40,14 @@ function Router() {
 
 function App() {
   return (
-    <ErrorBoundary>
+    <SentryErrorBoundary>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
-    </ErrorBoundary>
+    </SentryErrorBoundary>
   );
 }
 

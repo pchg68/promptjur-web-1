@@ -12,6 +12,7 @@ import { getMetricasPorRota, getStatsPerformance, limparMetricas, registrarMetri
 import { listarFeatures, toggleFeature, criarFeature, inicializarFeatures, limparCacheFeatures } from "./feature-flags";
 import { executarAuditoriaNpm, atualizarDependenciasSeguras } from "./security-audit";
 import { criarBackup, listarBackups, restaurarBackup } from "./backup";
+import { getSentryStatus, isSentryActive } from "./_core/sentry";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -598,5 +599,14 @@ export const adminRouter = router({
       });
       
       return resultado;
-    })
+    }),
+
+  // Status do Sentry
+  sentryStatus: adminProcedure.query(async () => {
+    const status = getSentryStatus();
+    return {
+      ...status,
+      timestamp: new Date().toISOString(),
+    };
+  }),
 });

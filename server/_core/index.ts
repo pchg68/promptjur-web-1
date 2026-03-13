@@ -12,6 +12,7 @@ import { scheduleCacheCleanup } from "../jobs/cache-cleanup";
 import { handleStripeWebhook } from "./stripeWebhook";
 import { tRPCRateLimiter, injectUserMiddleware } from "./rateLimiter";
 import * as Sentry from "@sentry/node";
+import { handleTRPCError, setUserContext } from "./sentry";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -65,6 +66,7 @@ async function startServer() {
     createExpressMiddleware({
       router: appRouter,
       createContext,
+      onError: handleTRPCError,
     })
   );
   // development mode uses Vite, production mode uses static files
