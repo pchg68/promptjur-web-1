@@ -35,24 +35,22 @@ export function initSentry() {
       // Release para rastreamento de versões
       release: "promptjur-client@1.0.0",
       
-      // Taxa de amostragem de performance
-      tracesSampleRate: import.meta.env.MODE === "production" ? 0.2 : 1.0,
+      // Taxa de amostragem de performance (reduzida para evitar memory leak)
+      tracesSampleRate: import.meta.env.MODE === "production" ? 0.1 : 0.3,
       
-      // Session Replay: captura replays apenas quando há erros
-      replaysSessionSampleRate: 0,     // Não capturar sessões normais
-      replaysOnErrorSampleRate: 1.0,   // Capturar 100% das sessões com erros
+      // Session Replay: DESABILITADO para evitar Out of Memory
+      // O replay mantém buffers grandes na memória que acumulam com o tempo
+      replaysSessionSampleRate: 0,
+      replaysOnErrorSampleRate: 0,  // Desabilitado - causa memory leak
       
-      // Integrações
+      // Integrações - REDUZIDAS para evitar memory leak
+      // Session Replay REMOVIDO: mantinha buffers grandes que causavam Out of Memory
       integrations: [
-        // Rastreamento de navegação e performance
         Sentry.browserTracingIntegration(),
-        
-        // Session Replay para reproduzir erros
-        Sentry.replayIntegration({
-          maskAllText: true,     // Ocultar texto para privacidade (LGPD)
-          blockAllMedia: true,   // Bloquear mídia para privacidade
-        }),
       ],
+      
+      // Limitar número de breadcrumbs para evitar acúmulo de memória
+      maxBreadcrumbs: 30,
       
       // Filtrar informações sensíveis antes de enviar
       beforeSend(event) {

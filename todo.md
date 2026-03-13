@@ -2644,3 +2644,20 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Criar variáveis de ambiente SENTRY_DSN e VITE_SENTRY_DSN
 - [x] Adicionar endpoint sentryStatus no admin router
 - [x] 28 testes de integração Sentry passando
+
+## Correção de Memory Leak (Out of Memory) - CONCLUÍDO
+- [x] Investigar memory leak que causa "Out of Memory" no navegador após tempo na página
+- [x] Verificar polling/refetch intervals em queries tRPC
+- [x] Verificar setInterval/setTimeout sem cleanup
+- [x] Verificar re-renders infinitos e referências instáveis
+- [x] Verificar acúmulo de dados em cache do React Query
+- [x] Corrigir todos os memory leaks encontrados
+- [x] Testar estabilidade após correções
+- [x] QueryClient: gcTime 2min, staleTime 30s, refetchOnWindowFocus/Reconnect false
+- [x] Sentry: Replay desabilitado, maxBreadcrumbs 30, tracesSampleRate reduzido
+- [x] getAnalytics: SQL COUNT/AVG/GROUP BY em vez de carregar todos os registros
+- [x] getUsageByDate: filtro por data + SQL GROUP BY em vez de carregar tudo
+- [x] NotificationBell: polling controlado com visibilidade
+- [x] AdminTools: navegação movida para useEffect
+- [x] Historico: query keys estáveis (ISO strings em vez de Date objects)
+- [x] 16 testes de memory leak passando

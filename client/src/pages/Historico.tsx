@@ -62,24 +62,26 @@ export default function Historico() {
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
-  // Calcular datas de filtro
+  // Calcular datas de filtro como ISO strings para estabilidade de query keys
+  // CRITICAL: Usar strings em vez de Date objects evita que cada render crie
+  // uma nova referência, o que causaria acúmulo infinito no cache do React Query
   const dataFiltros = useMemo(() => {
     const now = new Date();
-    let dataInicio: Date | undefined;
-    let dataFim: Date | undefined;
+    let dataInicio: string | undefined;
+    let dataFim: string | undefined;
 
     switch (filtroPeriodo) {
       case "hoje":
-        dataInicio = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        dataInicio = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
         break;
       case "semana":
-        dataInicio = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        dataInicio = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
         break;
       case "mes":
-        dataInicio = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        dataInicio = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
         break;
       case "trimestre":
-        dataInicio = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        dataInicio = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
         break;
     }
 
@@ -88,14 +90,23 @@ export default function Historico() {
 
   // Queries
   const statsQuery = trpc.historico.stats.useQuery();
+  // Debounce do texto de busca para evitar queries a cada tecla
+  const [debouncedTexto, setDebouncedTexto] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedTexto(filtroTexto), 500);
+    return () => clearTimeout(timer);
+  }, [filtroTexto]);
+
   const unificadoQuery = trpc.historico.unificado.useQuery({
     acao: filtroAcao !== "todas" ? filtroAcao : undefined,
     area: filtroArea !== "todas" ? filtroArea : undefined,
-    texto: filtroTexto || undefined,
+    texto: debouncedTexto || undefined,
     dataInicio: dataFiltros.dataInicio,
     dataFim: dataFiltros.dataFim,
     limite,
     offset: page * limite,
+  }, {
+    gcTime: 2 * 60 * 1000, // Limpar cache após 2 minutos
   });
 
   const atividadeQuery = trpc.historico.atividadePorDia.useQuery({ dias: 30 });

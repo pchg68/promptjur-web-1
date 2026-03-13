@@ -10,7 +10,9 @@ export function NotificationBell() {
   
   // Buscar contador de não lidas
   const { data: unreadCount = 0 } = trpc.notifications.unreadCount.useQuery(undefined, {
-    refetchInterval: 30000, // Atualizar a cada 30 segundos
+    refetchInterval: 60000, // Atualizar a cada 60 segundos
+    refetchIntervalInBackground: false, // Não fazer polling com tab em background (evita memory leak)
+    gcTime: 60_000, // Limpar cache rápido
   });
 
   return (

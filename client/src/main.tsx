@@ -55,8 +55,19 @@ const queryClient = new QueryClient({
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
       // Cache por 30 segundos para evitar refetch desnecessário
       staleTime: 30_000,
+      // CRITICAL: Garbage collect queries após 2 minutos (padrão é 5min)
+      // Isso evita acúmulo de dados na memória que causa Out of Memory
+      gcTime: 2 * 60 * 1000,
       // Não refetch automaticamente ao focar a janela (evita sobrecarga)
       refetchOnWindowFocus: false,
+      // Não refetch em background (evita acúmulo quando tab está inativa)
+      refetchIntervalInBackground: false,
+      // Não refetch ao reconectar (evita burst de requisições)
+      refetchOnReconnect: false,
+    },
+    mutations: {
+      // Garbage collect mutations rapidamente
+      gcTime: 60_000,
     },
   },
 });

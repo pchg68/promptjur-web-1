@@ -32,20 +32,28 @@ export const historicoRouter = router({
     }),
 
   // Histórico unificado com filtros avançados
+  // CRITICAL: Usar z.string() para datas em vez de z.date() para evitar
+  // instabilidade de query keys que causa memory leak (Out of Memory)
   unificado: protectedProcedure
     .input(z.object({
       acao: z.string().optional(),
       area: z.string().optional(),
       modelo: z.string().optional(),
       texto: z.string().optional(),
-      dataInicio: z.date().optional(),
-      dataFim: z.date().optional(),
+      dataInicio: z.string().optional(),
+      dataFim: z.string().optional(),
       sucesso: z.boolean().optional(),
       limite: z.number().min(1).max(100).optional(),
       offset: z.number().min(0).optional(),
     }))
     .query(async ({ input, ctx }) => {
-      return db.getHistoricoUnificado(ctx.user.id, input);
+      // Converter strings ISO de volta para Date para a query do banco
+      const params = {
+        ...input,
+        dataInicio: input.dataInicio ? new Date(input.dataInicio) : undefined,
+        dataFim: input.dataFim ? new Date(input.dataFim) : undefined,
+      };
+      return db.getHistoricoUnificado(ctx.user.id, params);
     }),
 
   // Detalhes completos de um item do histórico

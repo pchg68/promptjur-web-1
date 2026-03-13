@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -23,8 +23,15 @@ export default function AdminTools() {
     );
   }
 
+  // CRITICAL: Mover redirect para useEffect para evitar loop de re-render
+  // que causa acúmulo de memória (setState durante render é proibido no React)
+  useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      setLocation('/dashboard');
+    }
+  }, [loading, user, setLocation]);
+
   if (!user || user.role !== 'admin') {
-    setLocation('/dashboard');
     return null;
   }
 

@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, count, avg } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { logger } from './_core/logger';
 import { 
@@ -603,42 +603,44 @@ export async function getAnalytics(userId: number) {
   const db = await getDb();
   if (!db) return null;
   
-  // Obter histórico completo
+  // CRITICAL FIX: Usar SQL agregado em vez de carregar TODOS os registros
+  // A versão anterior carregava todo o histórico na memória, causando Out of Memory
+  
+  // 1. Contagens e médias por tipo via Drizzle ORM (evita carregar todos os registros)
+  const statsRows = await db.select({
+    acao: historico.acao,
+    total: count(),
+    avgDuracao: avg(historico.duracaoMs),
+  }).from(historico)
+    .where(and(
+      eq(historico.userId, userId),
+      eq(historico.sucesso, true)
+    ))
+    .groupBy(historico.acao);
+  
+  const avgTimes = { analise: 0, geracao: 0, otimizacao: 0 };
+  let totalAnalises = 0, totalGeracoes = 0, totalOtimizacoes = 0;
+  
+  for (const row of statsRows) {
+    const acao = row.acao as string;
+    const total = Number(row.total) || 0;
+    const avgVal = Math.round(Number(row.avgDuracao) || 0);
+    
+    if (acao === 'analise') { totalAnalises = total; avgTimes.analise = avgVal; }
+    else if (acao === 'geracao') { totalGeracoes = total; avgTimes.geracao = avgVal; }
+    else if (acao === 'otimizacao') { totalOtimizacoes = total; avgTimes.otimizacao = avgVal; }
+  }
+  
+  // 2. Apenas os 10 registros mais recentes (NÃO todos)
   const recentHistory = await db.select().from(historico)
     .where(and(
       eq(historico.userId, userId),
       eq(historico.sucesso, true)
     ))
-    .orderBy(desc(historico.createdAt));
+    .orderBy(desc(historico.createdAt))
+    .limit(10);
   
-  // Calcular tempo médio por tipo
-  const avgTimes = {
-    analise: 0,
-    geracao: 0,
-    otimizacao: 0
-  };
-  
-  const counts = {
-    analise: 0,
-    geracao: 0,
-    otimizacao: 0
-  };
-  
-  recentHistory.forEach(item => {
-    if (item.duracaoMs && item.acao !== "verificacao") {
-      avgTimes[item.acao as keyof typeof avgTimes] += item.duracaoMs;
-      counts[item.acao as keyof typeof counts]++;
-    }
-  });
-  
-  Object.keys(avgTimes).forEach(tipo => {
-    if (counts[tipo as keyof typeof counts] > 0) {
-      avgTimes[tipo as keyof typeof avgTimes] = Math.round(avgTimes[tipo as keyof typeof avgTimes] / counts[tipo as keyof typeof counts]);
-    }
-  });
-  
-  // Converter recentHistory para formato serializável (evitar erro de transformação do tRPC)
-  const recentHistorySerializable = recentHistory.slice(0, 10).map(item => ({
+  const recentHistorySerializable = recentHistory.map(item => ({
     id: item.id,
     userId: item.userId,
     acao: item.acao,
@@ -647,13 +649,13 @@ export async function getAnalytics(userId: number) {
     promptId: item.promptId,
     detalhes: item.detalhes,
     mensagemErro: item.mensagemErro,
-    createdAt: item.createdAt.toISOString() // Converter Date para string
+    createdAt: item.createdAt.toISOString()
   }));
   
   return {
-    totalAnalises: recentHistory.filter(h => h.acao === "analise").length,
-    totalGeracoes: recentHistory.filter(h => h.acao === "geracao").length,
-    totalOtimizacoes: recentHistory.filter(h => h.acao === "otimizacao").length,
+    totalAnalises,
+    totalGeracoes,
+    totalOtimizacoes,
     avgTimes,
     recentHistory: recentHistorySerializable
   };
@@ -692,13 +694,19 @@ export async function getUsageByDate(userId: number, days: number = 7) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   
-  // Buscar histórico dos últimos N dias
-  const history = await db.select().from(historico)
+  // CRITICAL FIX: Filtrar por data E usar SQL GROUP BY em vez de carregar TODOS os registros
+  // A versão anterior carregava todo o histórico sem filtro de data, causando Out of Memory
+  const history = await db.select({
+    acao: historico.acao,
+    total: count(),
+    dateStr: sql<string>`DATE(createdAt)`.as('dateStr'),
+  }).from(historico)
     .where(and(
       eq(historico.userId, userId),
-      eq(historico.sucesso, true)
+      eq(historico.sucesso, true),
+      sql`${historico.createdAt} >= ${startDate}`
     ))
-    .orderBy(historico.createdAt);
+    .groupBy(sql`DATE(createdAt)`, historico.acao);
   
   // Agrupar por data
   const groupedByDate: Record<string, { analises: number; geracoes: number; otimizacoes: number }> = {};
@@ -711,15 +719,16 @@ export async function getUsageByDate(userId: number, days: number = 7) {
     groupedByDate[dateStr] = { analises: 0, geracoes: 0, otimizacoes: 0 };
   }
   
-  // Contar operações por dia
-  history.forEach(item => {
-    const dateStr = new Date(item.createdAt).toISOString().split('T')[0];
+  // Preencher com dados do SQL
+  for (const row of history) {
+    const dateStr = String(row.dateStr);
     if (groupedByDate[dateStr]) {
-      if (item.acao === 'analise') groupedByDate[dateStr].analises++;
-      else if (item.acao === 'geracao') groupedByDate[dateStr].geracoes++;
-      else if (item.acao === 'otimizacao') groupedByDate[dateStr].otimizacoes++;
+      const total = Number(row.total) || 0;
+      if (row.acao === 'analise') groupedByDate[dateStr].analises = total;
+      else if (row.acao === 'geracao') groupedByDate[dateStr].geracoes = total;
+      else if (row.acao === 'otimizacao') groupedByDate[dateStr].otimizacoes = total;
     }
-  });
+  }
   
   // Converter para array (garantir que date seja string, não Date)
   return Object.entries(groupedByDate).map(([dateStr, counts]) => {
