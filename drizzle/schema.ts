@@ -467,3 +467,21 @@ export const enterpriseLeads = mysqlTable("enterprise_leads", {
 });
 export type EnterpriseLead = typeof enterpriseLeads.$inferSelect;
 export type InsertEnterpriseLead = typeof enterpriseLeads.$inferInsert;
+
+/**
+ * Tabela de interessados no lançamento
+ * Captura e-mails de usuários que querem ser notificados quando os planos pagos forem ativados
+ */
+export const launchInterests = mysqlTable("launch_interests", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  nome: varchar("nome", { length: 255 }),
+  planoInteresse: mysqlEnum("planoInteresse", ["pro", "enterprise", "qualquer"])
+    .default("qualquer")
+    .notNull(),
+  notificado: boolean("notificado").default(false).notNull(),
+  criadoEm: timestamp("criadoEm").defaultNow().notNull(),
+  atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
+});
+export type LaunchInterest = typeof launchInterests.$inferSelect;
+export type InsertLaunchInterest = typeof launchInterests.$inferInsert;

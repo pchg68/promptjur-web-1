@@ -23,6 +23,7 @@ import {
   ChevronDown,
   Clock,
   FlaskConical,
+  Bell,
 } from "lucide-react";
 import {
   Dialog,
@@ -235,6 +236,38 @@ export default function Planos() {
   const searchString = useSearch();
   const [enterpriseModalOpen, setEnterpriseModalOpen] = useState(false);
 
+  // Estado do formulário de captura de interesse
+  const [interesseEmail, setInteresseEmail] = useState("");
+  const [interesseNome, setInteresseNome] = useState("");
+  const [interessePlano, setInteressePlano] = useState<"pro" | "enterprise" | "qualquer">("qualquer");
+  const [interesseEnviado, setInteresseEnviado] = useState(false);
+
+  const registrarInteresseMutation = trpc.stripe.registrarInteresse.useMutation({
+    onSuccess: (data) => {
+      if (data.jaRegistrado) {
+        toast.info("Seu e-mail já está na lista! Você será notificado quando os planos forem ativados.");
+      } else {
+        toast.success("Cadastrado com sucesso! Você será notificado quando os planos forem ativados.");
+      }
+      setInteresseEnviado(true);
+      setInteresseEmail("");
+      setInteresseNome("");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Erro ao registrar. Tente novamente.");
+    },
+  });
+
+  const handleRegistrarInteresse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!interesseEmail) return;
+    registrarInteresseMutation.mutate({
+      email: interesseEmail,
+      nome: interesseNome || undefined,
+      planoInteresse: interessePlano,
+    });
+  };
+
   const { data: plans, isLoading: plansLoading } = trpc.stripe.getPlans.useQuery();
   const { data: pagamentosStatus } = trpc.stripe.getPagamentosAtivos.useQuery();
   const pagamentosAtivos = pagamentosStatus?.ativo ?? false;
@@ -349,21 +382,89 @@ export default function Planos() {
       </header>
 
       <main className="container py-12">
-        {/* Banner: Pagamentos desativados (fase de testes) */}
+        {/* Banner: Pagamentos desativados (fase de testes) + captura de e-mail */}
         {!pagamentosAtivos && (
-          <div className="max-w-5xl mx-auto mb-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/20 flex-shrink-0">
-              <FlaskConical className="w-5 h-5 text-amber-400" />
+          <div className="max-w-5xl mx-auto mb-8 rounded-xl border border-amber-500/30 bg-amber-500/10 overflow-hidden">
+            {/* Cabeçalho do banner */}
+            <div className="p-4 flex items-start gap-3 border-b border-amber-500/20">
+              <div className="p-2 rounded-lg bg-amber-500/20 flex-shrink-0">
+                <FlaskConical className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-300 flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Plataforma em fase de testes — Pagamentos temporariamente desativados
+                </p>
+                <p className="text-xs text-amber-200/70 mt-1">
+                  Os planos pagos estarão disponíveis em breve. Enquanto isso, explore todas as
+                  funcionalidades gratuitamente. Os preços exibidos são para referência.
+                </p>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-amber-300 flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Plataforma em fase de testes — Pagamentos temporariamente desativados
-              </p>
-              <p className="text-xs text-amber-200/70 mt-1">
-                Os planos pagos estarão disponíveis em breve. Enquanto isso, explore todas as
-                funcionalidades gratuitamente. Os preços exibidos são para referência.
-              </p>
+
+            {/* Formulário de captura */}
+            <div className="p-4">
+              {interesseEnviado ? (
+                <div className="flex items-center gap-3 text-amber-300">
+                  <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">Cadastro realizado!</p>
+                    <p className="text-xs text-amber-200/70">
+                      Você será notificado por e-mail assim que os planos pagos forem ativados.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setInteresseEnviado(false)}
+                    className="ml-auto text-xs text-amber-400/60 hover:text-amber-400 underline"
+                  >
+                    Cadastrar outro
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleRegistrarInteresse} className="flex flex-col sm:flex-row gap-3 items-end">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-xs font-medium text-amber-300 mb-1">
+                      <Bell className="w-3 h-3 inline mr-1" />
+                      Seja notificado quando os planos forem ativados
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="seu@email.com.br"
+                      value={interesseEmail}
+                      onChange={(e) => setInteresseEmail(e.target.value)}
+                      className="w-full h-9 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 text-sm text-amber-100 placeholder:text-amber-400/50 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                    />
+                  </div>
+                  <div className="w-full sm:w-36">
+                    <label className="block text-xs font-medium text-amber-300 mb-1">Plano de interesse</label>
+                    <select
+                      value={interessePlano}
+                      onChange={(e) => setInteressePlano(e.target.value as typeof interessePlano)}
+                      className="w-full h-9 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 text-sm text-amber-100 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                    >
+                      <option value="qualquer">Qualquer plano</option>
+                      <option value="pro">Plano Pro</option>
+                      <option value="enterprise">Plano Escritório</option>
+                    </select>
+                  </div>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={registrarInteresseMutation.isPending || !interesseEmail}
+                    className="bg-amber-500 hover:bg-amber-400 text-black font-semibold shrink-0 h-9"
+                  >
+                    {registrarInteresseMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                    ) : (
+                      <Bell className="w-4 h-4 mr-1" />
+                    )}
+                    Avisar-me
+                  </Button>
+                </form>
+              )}
             </div>
           </div>
         )}

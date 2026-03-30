@@ -13,7 +13,7 @@ import { listarFeatures, toggleFeature, criarFeature, inicializarFeatures, limpa
 import { executarAuditoriaNpm, atualizarDependenciasSeguras } from "./security-audit";
 import { criarBackup, listarBackups, restaurarBackup } from "./backup";
 import { getSentryStatus, isSentryActive } from "./_core/sentry";
-import { enterpriseLeads } from "../drizzle/schema";
+import { enterpriseLeads, launchInterests } from "../drizzle/schema";
 import { eq, desc, sql } from "drizzle-orm";
 
 // Middleware para verificar se é admin
@@ -654,6 +654,56 @@ export const adminRouter = router({
         })),
         totalPendentes,
       };
+    }),
+
+  // Listar interessados no lançamento
+  getInteressados: adminProcedure
+    .input(z.object({
+      plano: z.enum(["pro", "enterprise", "qualquer", "todos"]).default("todos"),
+      notificado: z.boolean().optional(),
+      limit: z.number().min(1).max(200).default(50),
+      offset: z.number().min(0).default(0),
+    }))
+    .query(async ({ input }) => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      const conditions: ReturnType<typeof eq>[] = [];
+      if (input.plano !== "todos") conditions.push(eq(launchInterests.planoInteresse, input.plano as "pro" | "enterprise" | "qualquer"));
+      if (input.notificado !== undefined) conditions.push(eq(launchInterests.notificado, input.notificado));
+      const whereClause = conditions.length === 1 ? conditions[0] : conditions.length > 1 ? sql`${conditions[0]} AND ${conditions[1]}` : undefined;
+      const rows = await dbConn
+        .select()
+        .from(launchInterests)
+        .where(whereClause)
+        .orderBy(desc(launchInterests.criadoEm))
+        .limit(input.limit)
+        .offset(input.offset);
+      const totalResult = await dbConn.select({ count: sql<number>`COUNT(*)` }).from(launchInterests).where(whereClause);
+      const naoNotificadosResult = await dbConn.select({ count: sql<number>`COUNT(*)` }).from(launchInterests).where(eq(launchInterests.notificado, false));
+      return {
+        interessados: rows.map(r => ({ ...r, criadoEm: r.criadoEm.toISOString(), atualizadoEm: r.atualizadoEm.toISOString() })),
+        total: Number(totalResult[0]?.count ?? 0),
+        naoNotificados: Number(naoNotificadosResult[0]?.count ?? 0),
+      };
+    }),
+
+  // Marcar interessados como notificados
+  marcarNotificados: adminProcedure
+    .input(z.object({ ids: z.array(z.number()).min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      for (const id of input.ids) {
+        await dbConn.update(launchInterests).set({ notificado: true }).where(eq(launchInterests.id, id));
+      }
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: "marcar_notificados",
+        descricao: `${input.ids.length} interessado(s) marcados como notificados`,
+        metadata: { ids: input.ids },
+        req: ctx.req,
+      });
+      return { success: true };
     }),
 
   // Atualizar status de um lead

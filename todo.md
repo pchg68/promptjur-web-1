@@ -2729,3 +2729,10 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Bloquear `createCheckoutSession` no backend quando flag estiver inativa
 - [x] Exibir banner "Em breve" na página de Planos quando pagamentos desativados
 - [x] Desabilitar botões de checkout na UI quando flag inativa
+
+## Captura de E-mail de Interesse (Banner "Em breve")
+- [x] Adicionar tabela `launch_interests` no schema (email, nome, plano, createdAt)
+- [x] Criar procedure tRPC pública `stripe.registrarInteresse`
+- [x] Atualizar banner da página de Planos com formulário de captura
+- [x] Adicionar painel de gestão de interessados no AdminTools
+- [x] Notificar owner ao receber novo cadastro de interesse

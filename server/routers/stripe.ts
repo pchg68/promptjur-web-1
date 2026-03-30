@@ -2,7 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { stripe } from "../_core/stripe";
 import { getDb } from "../db";
-import { users, enterpriseLeads } from "../../drizzle/schema";
+import { users, enterpriseLeads, launchInterests } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { PLANS, formatPrice } from "../stripe-products";
 import { TRPCError } from "@trpc/server";
@@ -17,6 +17,53 @@ export const stripeRouter = router({
     const ativo = await isFeatureEnabled("pagamentos_ativos");
     return { ativo };
   }),
+
+  /**
+   * Registra interesse de e-mail para notificação de lançamento
+   */
+  registrarInteresse: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email("E-mail inválido"),
+        nome: z.string().optional(),
+        planoInteresse: z.enum(["pro", "enterprise", "qualquer"]).default("qualquer"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database indisponível" });
+
+      try {
+        await db.insert(launchInterests).values({
+          email: input.email,
+          nome: input.nome ?? null,
+          planoInteresse: input.planoInteresse,
+        });
+      } catch (err: unknown) {
+        // Erro de e-mail duplicado (unique constraint) — retorna sucesso silencioso
+        const mysqlErr = err as { code?: string };
+        if (mysqlErr?.code === "ER_DUP_ENTRY") {
+          return { success: true, jaRegistrado: true };
+        }
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao registrar interesse" });
+      }
+
+      // Notificar owner sobre novo interessado
+      try {
+        const { notifyOwner } = await import("../_core/notification");
+        await notifyOwner({
+          title: `📧 Novo interessado no lançamento: ${input.email}`,
+          content: [
+            `**E-mail:** ${input.email}`,
+            input.nome ? `**Nome:** ${input.nome}` : null,
+            `**Plano de interesse:** ${input.planoInteresse}`,
+            `Data: ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}`,
+          ].filter(Boolean).join("\n"),
+        });
+      } catch { /* notificação não crítica */ }
+
+      return { success: true, jaRegistrado: false };
+    }),
 
   /**
    * Retorna os planos disponíveis

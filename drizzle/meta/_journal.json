@@ -218,6 +218,13 @@
       "when": 1774891445303,
       "tag": "0030_burly_revanche",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1774893841226,
+      "tag": "0031_lucky_bishop",
+      "breakpoints": true
     }
   ]
 }
