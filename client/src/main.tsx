@@ -51,7 +51,15 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Retry 2x antes de considerar erro (ajuda com race conditions de cookie)
-      retry: 2,
+      // Mas NÃO retry em erros UNAUTHORIZED (evita HTML response após redirect)
+      retry: (failureCount, error) => {
+        if (error instanceof TRPCClientError) {
+          const code = (error.data as any)?.code;
+          // Não retry em erros de autenticação ou not found
+          if (code === 'UNAUTHORIZED' || code === 'FORBIDDEN' || code === 'NOT_FOUND') return false;
+        }
+        return failureCount < 2;
+      },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
       // Cache por 30 segundos para evitar refetch desnecessário
       staleTime: 30_000,

@@ -81,6 +81,10 @@ export function initSentry() {
         "ChunkLoadError",
         // Erros de autenticação (esperados)
         "UNAUTHORIZED",
+        "Please login",
+        // Erros de JSON inválido causados por redirect de auth (HTML retornado)
+        /Unexpected token '<'/,
+        /is not valid JSON/,
         // Erros de navegação do usuário
         "ResizeObserver loop",
         "AbortError",

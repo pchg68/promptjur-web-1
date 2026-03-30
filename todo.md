@@ -2741,3 +2741,6 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Redesenhar estado de sucesso com ícone animado, título, subtítulo e CTA
 - [x] Exibir e-mail cadastrado na confirmação
 - [x] Diferenciar visualmente novo cadastro vs. e-mail já registrado
+
+## Bug: Erro JSON na página /tutoriais
+- [ ] Corrigir queries protegidas (obterProgresso, obterFeedback) chamadas sem autenticação

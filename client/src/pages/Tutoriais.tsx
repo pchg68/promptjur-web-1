@@ -128,11 +128,15 @@ export default function Tutoriais() {
     { enabled: !!tutorialSelecionado }
   );
 
-  // Query de progresso do usuário
-  const { data: progresso } = trpc.tutoriais.obterProgresso.useQuery();
+  // Query de progresso do usuário (só executa se autenticado)
+  const { data: progresso } = trpc.tutoriais.obterProgresso.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
-  // Query de feedback do usuário
-  const { data: meusFeedbacks } = trpc.tutoriais.obterFeedback.useQuery();
+  // Query de feedback do usuário (só executa se autenticado)
+  const { data: meusFeedbacks } = trpc.tutoriais.obterFeedback.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
   // Query de estatísticas de feedback (pública)
   const { data: estatisticasFeedback } = trpc.tutoriais.estatisticasFeedback.useQuery();
