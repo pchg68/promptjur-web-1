@@ -28,7 +28,8 @@ export interface Plan {
     prioritySupport: boolean;
   };
   popular?: boolean;
-  stripePriceIdMonthly?: string; // Será configurado quando os produtos forem criados no Stripe
+  contactOnly?: boolean; // true = plano sob consulta, sem checkout Stripe
+  stripePriceIdMonthly?: string;
   stripePriceIdYearly?: string;
 }
 
@@ -41,7 +42,7 @@ export const PLANS: Record<string, Plan> = {
     priceYearly: 0,
     currency: "brl",
     features: [
-      { text: "50 prompts por mês", included: true },
+      { text: "20 operações por mês", included: true },
       { text: "Análise básica de prompts", included: true },
       { text: "Geração com GPT-4o-mini", included: true },
       { text: "3 templates salvos", included: true },
@@ -53,7 +54,7 @@ export const PLANS: Record<string, Plan> = {
       { text: "Suporte prioritário", included: false },
     ],
     limits: {
-      promptsPerMonth: 50,
+      promptsPerMonth: 20,
       modelsAvailable: ["gpt-4o-mini", "manus"],
       maxDocumentExports: 5,
       maxTemplates: 3,
@@ -71,7 +72,7 @@ export const PLANS: Record<string, Plan> = {
     currency: "brl",
     popular: true,
     features: [
-      { text: "500 prompts por mês", included: true },
+      { text: "300 operações por mês", included: true },
       { text: "Análise avançada com IA", included: true },
       { text: "GPT-4o + Claude + Gemini", included: true },
       { text: "Templates ilimitados", included: true },
@@ -83,7 +84,7 @@ export const PLANS: Record<string, Plan> = {
       { text: "Suporte por email", included: true },
     ],
     limits: {
-      promptsPerMonth: 500,
+      promptsPerMonth: 300,
       modelsAvailable: ["gpt-4o", "gpt-4o-mini", "claude-sonnet", "gemini-pro", "perplexity", "manus"],
       maxDocumentExports: -1,
       maxTemplates: -1,
@@ -95,21 +96,22 @@ export const PLANS: Record<string, Plan> = {
   enterprise: {
     id: "enterprise",
     name: "Escritório",
-    description: "Para grandes escritórios e departamentos jurídicos",
-    priceMonthly: 14990, // R$ 149,90
-    priceYearly: 143880, // R$ 1.438,80 (R$ 119,90/mês)
+    description: "Para escritórios com múltiplos usuários e necessidades personalizadas",
+    priceMonthly: 0, // Preço sob consulta
+    priceYearly: 0,
     currency: "brl",
+    contactOnly: true, // Plano sob consulta — sem checkout Stripe
     features: [
-      { text: "Prompts ilimitados", included: true },
-      { text: "Análise avançada com IA", included: true },
-      { text: "Todos os provedores de IA", included: true },
-      { text: "Templates ilimitados", included: true },
-      { text: "Exportação ilimitada", included: true },
-      { text: "Todos os modelos profissionais", included: true },
-      { text: "Multi-IA com consenso avançado", included: true },
-      { text: "Knowledge Retrieval completo", included: true },
-      { text: "Validação Planalto + API", included: true },
-      { text: "Suporte prioritário 24h", included: true },
+      { text: "Usuários ilimitados (multi-seat)", included: true },
+      { text: "Operações sob medida para o escritório", included: true },
+      { text: "Todos os provedores de IA premium", included: true },
+      { text: "Templates e workflows personalizados", included: true },
+      { text: "Exportação ilimitada DOCX/PDF/ABNT", included: true },
+      { text: "Integração com sistemas do escritório", included: true },
+      { text: "SLA e uptime garantidos por contrato", included: true },
+      { text: "Knowledge Retrieval completo + API", included: true },
+      { text: "Treinamento e onboarding dedicado", included: true },
+      { text: "Gerente de conta exclusivo", included: true },
     ],
     limits: {
       promptsPerMonth: -1,

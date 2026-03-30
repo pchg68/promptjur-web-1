@@ -2661,3 +2661,16 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] AdminTools: navegação movida para useEffect
 - [x] Historico: query keys estáveis (ISO strings em vez de Date objects)
 - [x] 16 testes de memory leak passando
+
+## Plano Escritório → Enterprise (Contato Comercial) - CONCLUÍDO
+- [x] Remover preço fixo R$ 149,90 do Plano Escritório
+- [x] Transformar card do Escritório em plano Enterprise com "Consulte-nos"
+- [x] Adicionar lista de benefícios Enterprise (multi-usuário, SLA, suporte dedicado, gerente de conta)
+- [x] Criar modal/formulário de contato comercial com campos: nome, email, escritório, nº de advogados, áreas, mensagem
+- [x] Criar endpoint tRPC enviarLeadEnterprise com notificação ao dono
+- [x] Remover botão de checkout Stripe do plano Escritório
+- [x] Corrigir discrepância de limites anunciados (50→20 ops gratuito, 500→300 ops Pro)
+- [x] Adicionar faixa informativa "Precificação Personalizada" com botão de solicitação
+- [x] Adicionar FAQ sobre Plano Escritório e operações
+- [x] Badge "Sob Consulta" no card Enterprise
+- [x] 0 erros TypeScript

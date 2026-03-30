@@ -24,6 +24,7 @@ export const stripeRouter = router({
       features: plan.features,
       limits: plan.limits,
       popular: plan.popular || false,
+      contactOnly: plan.contactOnly || false,
     }));
   }),
 
@@ -148,6 +149,44 @@ export const stripeRouter = router({
       });
     }
   }),
+
+  /**
+   * Recebe lead comercial para o plano Enterprise
+   */
+  enviarLeadEnterprise: publicProcedure
+    .input(
+      z.object({
+        nome: z.string().min(2, "Nome obrigatório"),
+        email: z.string().email("Email inválido"),
+        escritorio: z.string().min(2, "Nome do escritório obrigatório"),
+        numeroAdvogados: z.enum(["1-5", "6-20", "21-50", "51-100", "100+"]),
+        areasPrincipais: z.string().optional(),
+        mensagem: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { notifyOwner } = await import("../_core/notification");
+      const conteudo = [
+        `**Novo lead Enterprise recebido!**`,
+        ``,
+        `**Nome:** ${input.nome}`,
+        `**Email:** ${input.email}`,
+        `**Escritório:** ${input.escritorio}`,
+        `**Nº de advogados:** ${input.numeroAdvogados}`,
+        input.areasPrincipais ? `**Áreas principais:** ${input.areasPrincipais}` : null,
+        input.mensagem ? `**Mensagem:** ${input.mensagem}` : null,
+        ``,
+        `Data: ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}`,
+      ].filter(Boolean).join("\n");
+
+      await notifyOwner({
+        title: `🏢 Novo Lead Enterprise: ${input.escritorio}`,
+        content: conteudo,
+      });
+
+      console.log(`[Enterprise Lead] ${input.escritorio} (${input.email}) - ${input.numeroAdvogados} advogados`);
+      return { success: true };
+    }),
 
   /**
    * Cancela a assinatura do usuário
