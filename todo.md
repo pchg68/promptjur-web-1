@@ -2722,3 +2722,10 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Persistir consentimento no localStorage
 - [x] Integrar ao App.tsx (exibir em todas as páginas)
 - [x] Link para /privacidade e /termos no banner
+
+## Controle de Pagamentos via Feature Flag
+- [x] Adicionar flag `pagamentos_ativos` no banco (inativa por padrão em fase de testes)
+- [x] Expor endpoint público `stripe.getPagamentosAtivos` para o frontend
+- [x] Bloquear `createCheckoutSession` no backend quando flag estiver inativa
+- [x] Exibir banner "Em breve" na página de Planos quando pagamentos desativados
+- [x] Desabilitar botões de checkout na UI quando flag inativa

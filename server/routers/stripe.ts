@@ -6,8 +6,18 @@ import { users, enterpriseLeads } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { PLANS, formatPrice } from "../stripe-products";
 import { TRPCError } from "@trpc/server";
+import { isFeatureEnabled } from "../feature-flags";
 
 export const stripeRouter = router({
+  /**
+   * Retorna se os pagamentos estão ativos (feature flag `pagamentos_ativos`)
+   * Usado pelo frontend para mostrar/ocultar botões de checkout
+   */
+  getPagamentosAtivos: publicProcedure.query(async () => {
+    const ativo = await isFeatureEnabled("pagamentos_ativos");
+    return { ativo };
+  }),
+
   /**
    * Retorna os planos disponíveis
    */
@@ -49,6 +59,15 @@ export const stripeRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Verificar se pagamentos estão ativos via feature flag
+      const pagamentosAtivos = await isFeatureEnabled("pagamentos_ativos");
+      if (!pagamentosAtivos) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "O sistema de pagamentos está temporariamente desativado. Em breve estará disponível!",
+        });
+      }
+
       const plan = PLANS[input.planId];
       if (!plan) {
         throw new TRPCError({

@@ -21,6 +21,8 @@ import {
   MessageSquare,
   Users,
   ChevronDown,
+  Clock,
+  FlaskConical,
 } from "lucide-react";
 import {
   Dialog,
@@ -234,6 +236,8 @@ export default function Planos() {
   const [enterpriseModalOpen, setEnterpriseModalOpen] = useState(false);
 
   const { data: plans, isLoading: plansLoading } = trpc.stripe.getPlans.useQuery();
+  const { data: pagamentosStatus } = trpc.stripe.getPagamentosAtivos.useQuery();
+  const pagamentosAtivos = pagamentosStatus?.ativo ?? false;
   const { data: currentPlan } = trpc.stripe.getCurrentPlan.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -277,6 +281,10 @@ export default function Planos() {
   }, [searchString]);
 
   const handleSubscribe = (planId: string) => {
+    if (!pagamentosAtivos) {
+      toast.info("Os pagamentos estão temporariamente desativados. Em breve disponível!");
+      return;
+    }
     if (!isAuthenticated) {
       window.location.href = getLoginUrl();
       return;
@@ -341,6 +349,25 @@ export default function Planos() {
       </header>
 
       <main className="container py-12">
+        {/* Banner: Pagamentos desativados (fase de testes) */}
+        {!pagamentosAtivos && (
+          <div className="max-w-5xl mx-auto mb-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-amber-500/20 flex-shrink-0">
+              <FlaskConical className="w-5 h-5 text-amber-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-300 flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Plataforma em fase de testes — Pagamentos temporariamente desativados
+              </p>
+              <p className="text-xs text-amber-200/70 mt-1">
+                Os planos pagos estarão disponíveis em breve. Enquanto isso, explore todas as
+                funcionalidades gratuitamente. Os preços exibidos são para referência.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Title Section */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
@@ -527,17 +554,19 @@ export default function Planos() {
                     </Button>
                   ) : (
                     <Button
-                      className={`w-full ${isPopular ? "bg-primary hover:bg-primary/90" : ""}`}
-                      variant={isPopular ? "default" : "outline"}
+                      className={`w-full ${isPopular && pagamentosAtivos ? "bg-primary hover:bg-primary/90" : ""}`}
+                      variant={isPopular && pagamentosAtivos ? "default" : "outline"}
                       onClick={() => handleSubscribe(plan.id)}
                       disabled={checkoutMutation.isPending}
                     >
                       {checkoutMutation.isPending ? (
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : !pagamentosAtivos ? (
+                        <Clock className="w-4 h-4 mr-2" />
                       ) : (
                         <ExternalLink className="w-4 h-4 mr-2" />
                       )}
-                      Assinar {plan.name}
+                      {pagamentosAtivos ? `Assinar ${plan.name}` : "Em breve"}
                     </Button>
                   )}
                 </div>
