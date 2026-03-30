@@ -444,3 +444,26 @@ export const tutorialFeedback = mysqlTable("tutorial_feedback", {
 });
 export type TutorialFeedback = typeof tutorialFeedback.$inferSelect;
 export type InsertTutorialFeedback = typeof tutorialFeedback.$inferInsert;
+
+/**
+ * Tabela de leads Enterprise
+ * Armazena formulários de contato do Plano Escritório para gestão comercial
+ */
+export const enterpriseLeads = mysqlTable("enterprise_leads", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  escritorio: varchar("escritorio", { length: 255 }).notNull(),
+  numeroAdvogados: varchar("numeroAdvogados", { length: 20 }).notNull(),
+  areasPrincipais: text("areasPrincipais"),
+  mensagem: text("mensagem"),
+  status: mysqlEnum("status", ["pendente", "contatado", "convertido", "descartado"])
+    .default("pendente")
+    .notNull(),
+  notasInternas: text("notasInternas"),
+  contatadoEm: timestamp("contatadoEm"),
+  criadoEm: timestamp("criadoEm").defaultNow().notNull(),
+  atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
+});
+export type EnterpriseLead = typeof enterpriseLeads.$inferSelect;
+export type InsertEnterpriseLead = typeof enterpriseLeads.$inferInsert;

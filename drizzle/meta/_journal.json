@@ -211,6 +211,13 @@
       "when": 1773152720569,
       "tag": "0029_magical_electro",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1774891445303,
+      "tag": "0030_burly_revanche",
+      "breakpoints": true
     }
   ]
 }

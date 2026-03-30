@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Copy, Download, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { Streamdown } from "streamdown";
+import LazyStreamdown from "@/components/LazyStreamdown";
 import { Link } from "wouter";
 
 export default function TemplatePublico() {
@@ -107,7 +107,7 @@ export default function TemplatePublico() {
             <div>
               <h3 className="font-semibold mb-3">Conteúdo do Template</h3>
               <div className="bg-muted rounded-lg p-4 prose prose-sm dark:prose-invert max-w-none">
-                <Streamdown>{template.template}</Streamdown>
+                <LazyStreamdown>{template.template}</LazyStreamdown>
               </div>
             </div>
 

@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { Streamdown } from "streamdown";
+import LazyStreamdown from "@/components/LazyStreamdown";
 import { copyToClipboard, exportAsMarkdown } from "@/utils/dashboardUtils";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -447,7 +447,7 @@ export function ComparacaoModelos({
                               className={`p-3 ${expandedResults[index] ? "max-h-[500px]" : "max-h-[200px]"} overflow-y-auto transition-all`}
                             >
                               <div className="prose prose-sm max-w-none dark:prose-invert abnt-document">
-                                <Streamdown>{resultado.documento || ""}</Streamdown>
+                                <LazyStreamdown>{resultado.documento || ""}</LazyStreamdown>
                               </div>
                             </div>
 

@@ -13,6 +13,8 @@ import { listarFeatures, toggleFeature, criarFeature, inicializarFeatures, limpa
 import { executarAuditoriaNpm, atualizarDependenciasSeguras } from "./security-audit";
 import { criarBackup, listarBackups, restaurarBackup } from "./backup";
 import { getSentryStatus, isSentryActive } from "./_core/sentry";
+import { enterpriseLeads } from "../drizzle/schema";
+import { eq, desc, sql } from "drizzle-orm";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -609,4 +611,79 @@ export const adminRouter = router({
       timestamp: new Date().toISOString(),
     };
   }),
+
+  // ===== LEADS ENTERPRISE =====
+
+  // Listar leads Enterprise com filtros
+  getLeads: adminProcedure
+    .input(z.object({
+      status: z.enum(["pendente", "contatado", "convertido", "descartado", "todos"]).optional().default("todos"),
+      limit: z.number().min(1).max(100).optional().default(50),
+      offset: z.number().min(0).optional().default(0),
+    }))
+    .query(async ({ input }) => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+      const whereClause = input.status !== "todos"
+        ? eq(enterpriseLeads.status, input.status as "pendente" | "contatado" | "convertido" | "descartado")
+        : undefined;
+
+      const leads = await dbConn
+        .select()
+        .from(enterpriseLeads)
+        .where(whereClause)
+        .orderBy(desc(enterpriseLeads.criadoEm))
+        .limit(input.limit)
+        .offset(input.offset);
+
+      // Contagem de pendentes para badge
+      const pendentesResult = await dbConn
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(enterpriseLeads)
+        .where(eq(enterpriseLeads.status, "pendente"));
+
+      const totalPendentes = Number(pendentesResult[0]?.count ?? 0);
+
+      return {
+        leads: leads.map(l => ({
+          ...l,
+          criadoEm: l.criadoEm.toISOString(),
+          atualizadoEm: l.atualizadoEm.toISOString(),
+          contatadoEm: l.contatadoEm ? l.contatadoEm.toISOString() : null,
+        })),
+        totalPendentes,
+      };
+    }),
+
+  // Atualizar status de um lead
+  updateLeadStatus: adminProcedure
+    .input(z.object({
+      id: z.number(),
+      status: z.enum(["pendente", "contatado", "convertido", "descartado"]),
+      notasInternas: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+      const updateData: Record<string, unknown> = { status: input.status };
+      if (input.notasInternas !== undefined) updateData.notasInternas = input.notasInternas;
+      if (input.status === "contatado") updateData.contatadoEm = new Date();
+
+      await dbConn
+        .update(enterpriseLeads)
+        .set(updateData)
+        .where(eq(enterpriseLeads.id, input.id));
+
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: "update_lead_status",
+        descricao: `Lead #${input.id} atualizado para status: ${input.status}`,
+        metadata: { leadId: input.id, novoStatus: input.status },
+        req: ctx.req,
+      });
+
+      return { success: true };
+    }),
 });

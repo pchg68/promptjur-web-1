@@ -32,7 +32,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Streamdown } from "streamdown";
+import LazyStreamdown from "@/components/LazyStreamdown";
 
 // ============================================================================
 // TIPOS
@@ -941,7 +941,7 @@ export function PesquisaJurisprudencial({
 
                       {/* Texto do resumo */}
                       <div className="p-4 bg-card border border-border rounded-sm prose prose-sm max-w-none dark:prose-invert">
-                        <Streamdown>{resumoMutation.data.resumo}</Streamdown>
+                        <LazyStreamdown>{resumoMutation.data.resumo}</LazyStreamdown>
                       </div>
 
                       {/* Ações do resumo */}

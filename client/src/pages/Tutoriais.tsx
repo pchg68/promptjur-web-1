@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, BookOpen, Clock, Tag, X, ThumbsUp, ThumbsDown, Play, PlayCircle, ExternalLink, ArrowLeft, Scale, Home, GraduationCap, Video, FileText } from "lucide-react";
-import { Streamdown } from "streamdown";
+import LazyStreamdown from "@/components/LazyStreamdown";
 import { CATEGORIAS_NOMES, CATEGORIAS_DESCRICOES, NIVEIS_NOMES, type CategoriaTutorial, type NivelTutorial } from "@shared/tutoriais";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -773,7 +773,7 @@ export default function Tutoriais() {
 
                 {/* Conteúdo do Tutorial */}
                 <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
-                  <Streamdown>{tutorialDetalhado.conteudo}</Streamdown>
+                  <LazyStreamdown>{tutorialDetalhado.conteudo}</LazyStreamdown>
                 </div>
 
                 {/* Tags */}

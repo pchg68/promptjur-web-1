@@ -2689,3 +2689,30 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Tempo de build: 1min 18s → 28s
 - [x] Build local completando sem erros em 28s
 - [ ] Publicar no ambiente de produção (aguardando usuário clicar Publish)
+
+## Lazy Loading do markdown-vendor
+- [ ] Criar wrapper lazy para Streamdown com React.lazy() e Suspense
+- [ ] Substituir import direto do Streamdown nos componentes por versao lazy
+- [ ] Adicionar fallback skeleton durante carregamento do chunk
+
+## Painel de Leads Enterprise no AdminTools
+- [ ] Criar tabela enterprise_leads no schema Drizzle
+- [ ] Migrar schema com pnpm db:push
+- [ ] Criar endpoint tRPC admin.getLeads com filtros (status, data)
+- [ ] Criar endpoint tRPC admin.updateLeadStatus
+- [ ] Criar componente TabLeads no AdminTools com tabela de leads
+- [ ] Adicionar badge de contagem de leads pendentes
+- [ ] Atualizar enviarLeadEnterprise para salvar no banco
+
+## Paginas LGPD
+- [ ] Criar pagina /privacidade com Politica de Privacidade (LGPD)
+- [ ] Criar pagina /termos com Termos de Uso
+- [ ] Adicionar links no rodape da landing page
+- [ ] Registrar rotas no App.tsx
+
+## Melhorias Implementadas (30/03/2026)
+- [x] Lazy loading do Streamdown (chunk markdown-vendor carregado sob demanda)
+- [x] Painel de Leads Enterprise no AdminTools (tabela enterprise_leads no banco, endpoints tRPC admin.getLeads e admin.updateLeadStatus, componente TabLeads com filtros e modal de atualização)
+- [x] Página de Política de Privacidade (/privacidade) — LGPD completa com 12 seções
+- [x] Página de Termos de Uso (/termos) — 13 seções incluindo aviso legal jurídico
+- [x] Links no footer da Home e no menu do DashboardLayout

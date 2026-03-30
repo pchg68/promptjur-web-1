@@ -224,9 +224,9 @@ export default function Home() {
               <span className="text-sm">© 2025 {APP_TITLE}. Todos os direitos reservados.</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Termos de Uso</a>
-              <a href="#" className="hover:text-foreground transition-colors">Privacidade</a>
-              <a href="#" className="hover:text-foreground transition-colors">Contato</a>
+              <Link href="/termos" className="hover:text-foreground transition-colors">Termos de Uso</Link>
+              <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
+              <a href="mailto:contato@promptjur.com" className="hover:text-foreground transition-colors">Contato</a>
             </div>
           </div>
         </div>

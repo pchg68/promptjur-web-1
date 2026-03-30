@@ -9,7 +9,7 @@ import { Copy, Eye, FileText, MoreHorizontal, Zap, BookTemplate, Loader2, CheckC
 import { copyToClipboard, exportAsMarkdown } from "@/utils/dashboardUtils";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { Streamdown } from "streamdown";
+import LazyStreamdown from "@/components/LazyStreamdown";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 import { ComparacaoModelos } from "@/components/ComparacaoModelos";
@@ -203,7 +203,7 @@ export default function PromptActions({
                   {/* Documento renderizado */}
                   <div className="p-4 bg-background rounded-sm border max-h-[500px] overflow-y-auto">
                     <div className="prose prose-sm max-w-none dark:prose-invert abnt-document">
-                      <Streamdown>{execResult.documento}</Streamdown>
+                      <LazyStreamdown>{execResult.documento}</LazyStreamdown>
                     </div>
                   </div>
 

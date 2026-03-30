@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Search, BookOpen, Clock, Tag, X, ThumbsUp, ThumbsDown, Play } from "lucide-react";
-import { Streamdown } from "streamdown";
+import LazyStreamdown from "@/components/LazyStreamdown";
 import { CATEGORIAS_NOMES, CATEGORIAS_DESCRICOES, NIVEIS_NOMES, type CategoriaTutorial, type NivelTutorial } from "@shared/tutoriais";
 import { toast } from "sonner";
 
@@ -370,7 +370,7 @@ export default function TabTutoriais() {
 
                 {/* Conteúdo do Tutorial */}
                 <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
-                  <Streamdown>{tutorialDetalhado.conteudo}</Streamdown>
+                  <LazyStreamdown>{tutorialDetalhado.conteudo}</LazyStreamdown>
                 </div>
 
                 {/* Tags */}

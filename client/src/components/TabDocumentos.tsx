@@ -10,7 +10,7 @@ import { Loader2, FileText, Sparkles, Brain, BookOpen, Save, Download, ArrowLeft
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { AREAS_JURIDICAS } from "@shared/juridico";
-import { Streamdown } from "streamdown";
+import LazyStreamdown from "@/components/LazyStreamdown";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 import { PesquisaJurisprudencial } from "@/components/PesquisaJurisprudencial";
 
@@ -485,7 +485,7 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
 
               {/* Documento */}
               <div className="p-6 bg-card border border-border rounded-lg">
-                <Streamdown>{documentoComJurisprudencia || geracaoMutation.data.documento}</Streamdown>
+                <LazyStreamdown>{documentoComJurisprudencia || geracaoMutation.data.documento}</LazyStreamdown>
               </div>
             </div>
           )}

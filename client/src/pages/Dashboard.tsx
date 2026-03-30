@@ -14,7 +14,7 @@ import { Scale, Sparkles, Zap, Shield, Loader2, Copy, CheckCircle2, History, Boo
 import { trpc } from "@/lib/trpc";
 import { AREAS_JURIDICAS } from "@/const";
 import { toast } from "sonner";
-import { Streamdown } from 'streamdown';
+import LazyStreamdown from "@/components/LazyStreamdown";
 import TabDocumentos from '@/components/TabDocumentos';
 import { exportAsTextABNT } from "@/utils/exportABNT";
 import { exportAsDOCXABNT } from "@/utils/exportDOCX";

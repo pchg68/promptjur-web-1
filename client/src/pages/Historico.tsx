@@ -20,7 +20,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
 import { AREAS_JURIDICAS } from "@/const";
-import { Streamdown } from "streamdown";
+import LazyStreamdown from "@/components/LazyStreamdown";
 import DashboardHeader2 from "@/components/DashboardHeader2";
 
 // Mapeamento de ações para labels e ícones
@@ -869,7 +869,7 @@ function DetalhesModal({ data, formatDate, onCopy, onReutilizar, onClose }: {
               </Button>
             </div>
             <div className="p-4 bg-muted/20 rounded-sm border border-border max-h-60 overflow-y-auto">
-              <Streamdown>{data.prompt.promptOriginal}</Streamdown>
+              <LazyStreamdown>{data.prompt.promptOriginal}</LazyStreamdown>
             </div>
           </div>
         )}
@@ -885,7 +885,7 @@ function DetalhesModal({ data, formatDate, onCopy, onReutilizar, onClose }: {
               </Button>
             </div>
             <div className="p-4 bg-muted/20 rounded-sm border border-primary/20 max-h-60 overflow-y-auto">
-              <Streamdown>{data.prompt.promptOtimizado}</Streamdown>
+              <LazyStreamdown>{data.prompt.promptOtimizado}</LazyStreamdown>
             </div>
           </div>
         )}

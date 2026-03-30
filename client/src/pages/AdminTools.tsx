@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle } from "lucide-react";
+import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle, Building2 } from "lucide-react";
+import TabLeads from "@/components/TabLeads";
 import { useLocation } from "wouter";
 
 export default function AdminTools() {
@@ -183,6 +184,11 @@ export default function AdminTools() {
             <h1 className="text-3xl font-bold">Ferramentas Administrativas</h1>
             <p className="text-muted-foreground">Acesso restrito a administradores</p>
           </div>
+        </div>
+
+        {/* Painel de Leads Enterprise */}
+        <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
+          <TabLeads />
         </div>
 
         {/* Grid de Cards */}

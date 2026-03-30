@@ -2,7 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { stripe } from "../_core/stripe";
 import { getDb } from "../db";
-import { users } from "../../drizzle/schema";
+import { users, enterpriseLeads } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { PLANS, formatPrice } from "../stripe-products";
 import { TRPCError } from "@trpc/server";
@@ -166,6 +166,23 @@ export const stripeRouter = router({
     )
     .mutation(async ({ input }) => {
       const { notifyOwner } = await import("../_core/notification");
+      // Salvar lead no banco de dados para gestão comercial
+      const db = await getDb();
+      if (db) {
+        try {
+          await db.insert(enterpriseLeads).values({
+            nome: input.nome,
+            email: input.email,
+            escritorio: input.escritorio,
+            numeroAdvogados: input.numeroAdvogados,
+            areasPrincipais: input.areasPrincipais ?? null,
+            mensagem: input.mensagem ?? null,
+            status: "pendente",
+          });
+        } catch (err) {
+          console.error("[Enterprise Lead] Erro ao salvar no banco:", err);
+        }
+      }
       const conteudo = [
         `**Novo lead Enterprise recebido!**`,
         ``,

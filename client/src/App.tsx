@@ -16,6 +16,8 @@ import BibliotecaTemplates from "./pages/BibliotecaTemplates";
 import AdminTools from "./pages/AdminTools";
 import Configuracoes from "./pages/Configuracoes";
 import Planos from "./pages/Planos";
+import Privacidade from "./pages/Privacidade";
+import Termos from "./pages/Termos";
 
 function Router() {
   return (
@@ -32,6 +34,8 @@ function Router() {
       <Route path={"/admin-tools"} component={AdminTools} />
       <Route path={"/configuracoes"} component={Configuracoes} />
       <Route path={"/planos"} component={Planos} />
+      <Route path={"/privacidade"} component={Privacidade} />
+      <Route path={"/termos"} component={Termos} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
