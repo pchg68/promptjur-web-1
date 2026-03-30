@@ -2674,3 +2674,18 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar FAQ sobre Plano Escritório e operações
 - [x] Badge "Sob Consulta" no card Enterprise
 - [x] 0 erros TypeScript
+
+## Correção de Erro de Deploy (Node.js/Vite/OOM) - CONCLUÍDO
+- [x] Downgrade Vite 7.1.9 → 6.4.1 (compatível com Node.js 20.x)
+- [x] Remover @builder.io/vite-plugin-jsx-loc (incompatível com Vite 6)
+- [x] Identificar causa do vendor chunk de 12MB: streamdown → mermaid (65MB)
+- [x] Separar mermaid/shiki/katex/remark/rehype em markdown-vendor
+- [x] Separar @radix-ui em radix-vendor (99KB)
+- [x] Separar lucide-react em icons-vendor (41KB)
+- [x] Separar docx/jspdf em docs-vendor
+- [x] Separar react-hook-form/embla/date-fns em forms-vendor
+- [x] Separar framer-motion em animation-vendor
+- [x] vendor chunk: 12.4MB → 1.8MB (redução de 85%)
+- [x] Tempo de build: 1min 18s → 28s
+- [x] Build local completando sem erros em 28s
+- [ ] Publicar no ambiente de produção (aguardando usuário clicar Publish)
