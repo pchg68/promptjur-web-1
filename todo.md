@@ -2736,3 +2736,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Atualizar banner da página de Planos com formulário de captura
 - [x] Adicionar painel de gestão de interessados no AdminTools
 - [x] Notificar owner ao receber novo cadastro de interesse
+
+## Mensagem de Sucesso Elaborada no Banner de Lançamento
+- [x] Redesenhar estado de sucesso com ícone animado, título, subtítulo e CTA
+- [x] Exibir e-mail cadastrado na confirmação
+- [x] Diferenciar visualmente novo cadastro vs. e-mail já registrado

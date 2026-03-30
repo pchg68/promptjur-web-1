@@ -241,14 +241,15 @@ export default function Planos() {
   const [interesseNome, setInteresseNome] = useState("");
   const [interessePlano, setInteressePlano] = useState<"pro" | "enterprise" | "qualquer">("qualquer");
   const [interesseEnviado, setInteresseEnviado] = useState(false);
+  const [interesseJaRegistrado, setInteresseJaRegistrado] = useState(false);
+  const [emailConfirmado, setEmailConfirmado] = useState("");
+  const [planoConfirmado, setPlanoConfirmado] = useState<"pro" | "enterprise" | "qualquer">("qualquer");
 
   const registrarInteresseMutation = trpc.stripe.registrarInteresse.useMutation({
     onSuccess: (data) => {
-      if (data.jaRegistrado) {
-        toast.info("Seu e-mail já está na lista! Você será notificado quando os planos forem ativados.");
-      } else {
-        toast.success("Cadastrado com sucesso! Você será notificado quando os planos forem ativados.");
-      }
+      setInteresseJaRegistrado(data.jaRegistrado);
+      setEmailConfirmado(interesseEmail);
+      setPlanoConfirmado(interessePlano);
       setInteresseEnviado(true);
       setInteresseEmail("");
       setInteresseNome("");
@@ -405,21 +406,73 @@ export default function Planos() {
             {/* Formulário de captura */}
             <div className="p-4">
               {interesseEnviado ? (
-                <div className="flex items-center gap-3 text-amber-300">
-                  <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-4 h-4" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  {/* Ícone de confirmação */}
+                  <div className="flex-shrink-0">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      interesseJaRegistrado
+                        ? "bg-blue-500/20 ring-2 ring-blue-500/40"
+                        : "bg-green-500/20 ring-2 ring-green-500/40"
+                    }`}>
+                      <Check className={`w-6 h-6 ${interesseJaRegistrado ? "text-blue-400" : "text-green-400"}`} />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold">Cadastro realizado!</p>
-                    <p className="text-xs text-amber-200/70">
-                      Você será notificado por e-mail assim que os planos pagos forem ativados.
+
+                  {/* Texto principal */}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-bold ${
+                      interesseJaRegistrado ? "text-blue-300" : "text-green-300"
+                    }`}>
+                      {interesseJaRegistrado
+                        ? "📧 Você já está na lista!"
+                        : "🎉 Cadastro confirmado!"}
                     </p>
+                    <p className="text-xs text-amber-200/80 mt-0.5">
+                      {interesseJaRegistrado ? (
+                        <>
+                          O e-mail <span className="font-semibold text-amber-300">{emailConfirmado}</span> já
+                          estava cadastrado. Fique tranquilo — você será um dos primeiros a saber quando
+                          os planos forem ativados.
+                        </>
+                      ) : (
+                        <>
+                          Enviamos uma confirmação para{" "}
+                          <span className="font-semibold text-amber-300">{emailConfirmado}</span>.
+                          Assim que os planos{" "}
+                          <span className="font-semibold">
+                            {planoConfirmado === "pro" ? "Pro" : planoConfirmado === "enterprise" ? "Escritório" : "pagos"}
+                          </span>{" "}
+                          forem ativados, você será notificado imediatamente.
+                        </>
+                      )}
+                    </p>
+                    {/* Itens de reação */}
+                    <div className="flex flex-wrap gap-3 mt-2">
+                      <span className="inline-flex items-center gap-1 text-xs text-amber-400/70">
+                        <Bell className="w-3 h-3" />
+                        Notificação por e-mail
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-xs text-amber-400/70">
+                        <Sparkles className="w-3 h-3" />
+                        Acesso antecipado garantido
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-xs text-amber-400/70">
+                        <Zap className="w-3 h-3" />
+                        Continue explorando gratuitamente
+                      </span>
+                    </div>
                   </div>
+
+                  {/* Botão de reset */}
                   <button
-                    onClick={() => setInteresseEnviado(false)}
-                    className="ml-auto text-xs text-amber-400/60 hover:text-amber-400 underline"
+                    onClick={() => {
+                      setInteresseEnviado(false);
+                      setInteresseJaRegistrado(false);
+                      setEmailConfirmado("");
+                    }}
+                    className="flex-shrink-0 text-xs text-amber-400/50 hover:text-amber-400 underline transition-colors"
                   >
-                    Cadastrar outro
+                    Cadastrar outro e-mail
                   </button>
                 </div>
               ) : (
