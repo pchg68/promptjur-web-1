@@ -2716,3 +2716,9 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Página de Política de Privacidade (/privacidade) — LGPD completa com 12 seções
 - [x] Página de Termos de Uso (/termos) — 13 seções incluindo aviso legal jurídico
 - [x] Links no footer da Home e no menu do DashboardLayout
+
+## Banner de Consentimento de Cookies (LGPD)
+- [x] Criar componente CookieBanner com opções aceitar/recusar
+- [x] Persistir consentimento no localStorage
+- [x] Integrar ao App.tsx (exibir em todas as páginas)
+- [x] Link para /privacidade e /termos no banner
