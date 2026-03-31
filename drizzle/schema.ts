@@ -485,3 +485,19 @@ export const launchInterests = mysqlTable("launch_interests", {
 });
 export type LaunchInterest = typeof launchInterests.$inferSelect;
 export type InsertLaunchInterest = typeof launchInterests.$inferInsert;
+
+/**
+ * Tabela de whitelist de acesso
+ * Controla quais e-mails têm permissão de acesso durante a fase de testes
+ */
+export const accessWhitelist = mysqlTable("access_whitelist", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  nome: varchar("nome", { length: 255 }),
+  adicionadoPor: varchar("adicionadoPor", { length: 320 }),
+  ativo: boolean("ativo").default(true).notNull(),
+  criadoEm: timestamp("criadoEm").defaultNow().notNull(),
+  atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
+});
+export type AccessWhitelist = typeof accessWhitelist.$inferSelect;
+export type InsertAccessWhitelist = typeof accessWhitelist.$inferInsert;

@@ -2756,3 +2756,11 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Auditar todas as queries protegidas sem enabled: isAuthenticated
 - [x] Adicionar estado visual "faça login" para não autenticados na seção de progresso
 - [x] Criar teste Vitest para queries protegidas na página de tutoriais
+
+## Sistema de Whitelist de E-mails (Controle de Acesso)
+- [ ] Criar tabela `access_whitelist` no schema
+- [ ] Adicionar owner automaticamente na whitelist
+- [ ] Implementar middleware de verificação no servidor
+- [ ] Criar página /acesso-restrito para usuários bloqueados
+- [ ] Criar painel de gestão da whitelist no AdminTools
+- [ ] Adicionar feature flag `whitelist_ativa` para ligar/desligar

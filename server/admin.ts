@@ -13,7 +13,8 @@ import { listarFeatures, toggleFeature, criarFeature, inicializarFeatures, limpa
 import { executarAuditoriaNpm, atualizarDependenciasSeguras } from "./security-audit";
 import { criarBackup, listarBackups, restaurarBackup } from "./backup";
 import { getSentryStatus, isSentryActive } from "./_core/sentry";
-import { enterpriseLeads, launchInterests } from "../drizzle/schema";
+import { enterpriseLeads, launchInterests, accessWhitelist } from "../drizzle/schema";
+import { addToWhitelist, removeFromWhitelist, listWhitelist } from "./whitelist";
 import { eq, desc, sql } from "drizzle-orm";
 
 // Middleware para verificar se é admin
@@ -735,5 +736,63 @@ export const adminRouter = router({
       });
 
       return { success: true };
+    }),
+
+  // ==================== WHITELIST ====================
+
+  getWhitelist: adminProcedure
+    .query(async () => {
+      return listWhitelist();
+    }),
+
+  addWhitelist: adminProcedure
+    .input(z.object({
+      email: z.string().email(),
+      nome: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      await addToWhitelist(input.email, input.nome, ctx.user.email ?? undefined);
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: "add_whitelist",
+        descricao: `E-mail adicionado à whitelist: ${input.email}`,
+        metadata: { email: input.email },
+        req: ctx.req,
+      });
+      return { success: true };
+    }),
+
+  removeWhitelist: adminProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input, ctx }) => {
+      await removeFromWhitelist(input.email);
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: "remove_whitelist",
+        descricao: `E-mail removido da whitelist: ${input.email}`,
+        metadata: { email: input.email },
+        req: ctx.req,
+      });
+      return { success: true };
+    }),
+
+  importWhitelist: adminProcedure
+    .input(z.object({
+      emails: z.array(z.string().email()).min(1).max(100),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      let adicionados = 0;
+      for (const email of input.emails) {
+        await addToWhitelist(email, undefined, ctx.user.email ?? undefined);
+        adicionados++;
+      }
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: "import_whitelist",
+        descricao: `${adicionados} e-mail(s) importados para a whitelist`,
+        metadata: { total: adicionados },
+        req: ctx.req,
+      });
+      return { success: true, adicionados };
     }),
 });

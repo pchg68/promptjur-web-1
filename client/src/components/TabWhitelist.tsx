@@ -1,0 +1,283 @@
+import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import {
+  Shield,
+  Plus,
+  Trash2,
+  Upload,
+  Users,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  Info,
+} from "lucide-react";
+
+/**
+ * Painel de gestão da whitelist de acesso — AdminTools
+ */
+export default function TabWhitelist() {
+  const [novoEmail, setNovoEmail] = useState("");
+  const [novoNome, setNovoNome] = useState("");
+  const [emailsImportar, setEmailsImportar] = useState("");
+  const [mostrarImportar, setMostrarImportar] = useState(false);
+
+  const utils = trpc.useUtils();
+
+  const { data: whitelist, isLoading, refetch } = trpc.admin.getWhitelist.useQuery();
+
+  const addMutation = trpc.admin.addWhitelist.useMutation({
+    onSuccess: () => {
+      toast.success("E-mail adicionado à whitelist");
+      setNovoEmail("");
+      setNovoNome("");
+      utils.admin.getWhitelist.invalidate();
+    },
+    onError: (err) => toast.error(`Erro: ${err.message}`),
+  });
+
+  const removeMutation = trpc.admin.removeWhitelist.useMutation({
+    onSuccess: () => {
+      toast.success("E-mail removido da whitelist");
+      utils.admin.getWhitelist.invalidate();
+    },
+    onError: (err) => toast.error(`Erro: ${err.message}`),
+  });
+
+  const importMutation = trpc.admin.importWhitelist.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.adicionados} e-mail(s) importados com sucesso`);
+      setEmailsImportar("");
+      setMostrarImportar(false);
+      utils.admin.getWhitelist.invalidate();
+    },
+    onError: (err) => toast.error(`Erro na importação: ${err.message}`),
+  });
+
+  const handleAdd = () => {
+    if (!novoEmail.trim()) return;
+    addMutation.mutate({ email: novoEmail.trim(), nome: novoNome.trim() || undefined });
+  };
+
+  const handleImport = () => {
+    const emails = emailsImportar
+      .split(/[\n,;]/)
+      .map((e) => e.trim())
+      .filter((e) => e.includes("@"));
+    if (emails.length === 0) {
+      toast.error("Nenhum e-mail válido encontrado");
+      return;
+    }
+    importMutation.mutate({ emails });
+  };
+
+  const ativos = whitelist?.filter((w) => w.ativo) ?? [];
+  const inativos = whitelist?.filter((w) => !w.ativo) ?? [];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center">
+            <Shield className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold">Whitelist de Acesso</h3>
+            <p className="text-slate-400 text-xs">
+              Controle quais e-mails têm acesso durante a fase de testes
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => refetch()}
+          className="text-slate-400 hover:text-white"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* Aviso sobre feature flag */}
+      <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 flex gap-3">
+        <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+        <p className="text-amber-300 text-xs leading-relaxed">
+          A whitelist só é aplicada quando a feature flag{" "}
+          <code className="bg-amber-500/10 px-1 rounded">whitelist_ativa</code>{" "}
+          estiver <strong>ativa</strong>. Gerencie-a na seção{" "}
+          <strong>Feature Flags</strong> acima.
+        </p>
+      </div>
+
+      {/* Cards de resumo */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4 text-center">
+          <Users className="w-5 h-5 text-slate-400 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-white">{whitelist?.length ?? 0}</p>
+          <p className="text-slate-400 text-xs">Total</p>
+        </div>
+        <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4 text-center">
+          <CheckCircle className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-emerald-400">{ativos.length}</p>
+          <p className="text-slate-400 text-xs">Ativos</p>
+        </div>
+        <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4 text-center">
+          <XCircle className="w-5 h-5 text-red-400 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-red-400">{inativos.length}</p>
+          <p className="text-slate-400 text-xs">Removidos</p>
+        </div>
+      </div>
+
+      {/* Formulário de adição */}
+      <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4 space-y-3">
+        <p className="text-slate-300 text-sm font-medium">Adicionar e-mail</p>
+        <div className="flex gap-2">
+          <Input
+            placeholder="nome@exemplo.com"
+            value={novoEmail}
+            onChange={(e) => setNovoEmail(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 flex-1"
+          />
+          <Input
+            placeholder="Nome (opcional)"
+            value={novoNome}
+            onChange={(e) => setNovoNome(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 w-40"
+          />
+          <Button
+            onClick={handleAdd}
+            disabled={!novoEmail.trim() || addMutation.isPending}
+            className="bg-blue-600 hover:bg-blue-700 gap-1 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar
+          </Button>
+        </div>
+
+        {/* Importação em massa */}
+        <div>
+          <button
+            onClick={() => setMostrarImportar(!mostrarImportar)}
+            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+          >
+            <Upload className="w-3 h-3" />
+            Importar múltiplos e-mails
+          </button>
+          {mostrarImportar && (
+            <div className="mt-3 space-y-2">
+              <textarea
+                placeholder={"email1@exemplo.com\nemail2@exemplo.com\nemail3@exemplo.com"}
+                value={emailsImportar}
+                onChange={(e) => setEmailsImportar(e.target.value)}
+                rows={4}
+                className="w-full bg-slate-900/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              <p className="text-slate-500 text-xs">
+                Separe os e-mails por linha, vírgula ou ponto-e-vírgula
+              </p>
+              <Button
+                onClick={handleImport}
+                disabled={!emailsImportar.trim() || importMutation.isPending}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 gap-1"
+              >
+                <Upload className="w-3 h-3" />
+                {importMutation.isPending ? "Importando..." : "Importar"}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Lista de e-mails */}
+      <div className="space-y-2">
+        <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">
+          E-mails autorizados ({ativos.length})
+        </p>
+
+        {isLoading ? (
+          <div className="text-center py-8 text-slate-500 text-sm">Carregando...</div>
+        ) : ativos.length === 0 ? (
+          <div className="text-center py-8 text-slate-500 text-sm">
+            Nenhum e-mail na whitelist. Adicione o primeiro acima.
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {ativos.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between bg-slate-800/30 border border-slate-700/20 rounded-lg px-4 py-3 group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-white text-sm truncate">{item.email}</p>
+                    {item.nome && (
+                      <p className="text-slate-500 text-xs truncate">{item.nome}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {item.adicionadoPor && (
+                    <span className="text-slate-600 text-xs hidden group-hover:block">
+                      por {item.adicionadoPor}
+                    </span>
+                  )}
+                  <Badge variant="outline" className="text-emerald-400 border-emerald-500/30 text-xs">
+                    Ativo
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeMutation.mutate({ email: item.email })}
+                    disabled={removeMutation.isPending}
+                    className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 h-7 w-7 p-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* E-mails removidos (colapsável) */}
+        {inativos.length > 0 && (
+          <details className="mt-4">
+            <summary className="text-slate-500 text-xs cursor-pointer hover:text-slate-400">
+              {inativos.length} e-mail(s) removido(s)
+            </summary>
+            <div className="mt-2 space-y-1">
+              {inativos.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between bg-slate-800/20 border border-slate-700/10 rounded-lg px-4 py-2 opacity-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <XCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    <p className="text-slate-400 text-sm">{item.email}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => addMutation.mutate({ email: item.email, nome: item.nome ?? undefined })}
+                    disabled={addMutation.isPending}
+                    className="text-slate-500 hover:text-emerald-400 text-xs h-7"
+                  >
+                    Reativar
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+      </div>
+    </div>
+  );
+}

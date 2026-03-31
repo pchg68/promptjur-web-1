@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle, Building2 } from "lucide-react";
 import TabLeads from "@/components/TabLeads";
 import TabInteressados from "@/components/TabInteressados";
+import TabWhitelist from "@/components/TabWhitelist";
 import { useLocation } from "wouter";
 
 export default function AdminTools() {
@@ -195,6 +196,11 @@ export default function AdminTools() {
         {/* Painel de Interessados no Lançamento */}
         <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
           <TabInteressados />
+        </div>
+
+        {/* Whitelist de Acesso */}
+        <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
+          <TabWhitelist />
         </div>
 
         {/* Grid de Cards */}

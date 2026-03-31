@@ -225,6 +225,13 @@
       "when": 1774893841226,
       "tag": "0031_lucky_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1774985094820,
+      "tag": "0032_unique_wrecker",
+      "breakpoints": true
     }
   ]
 }
