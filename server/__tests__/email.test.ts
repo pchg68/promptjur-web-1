@@ -87,4 +87,24 @@ describe("Email module", () => {
       expect(result.enviados + result.falhas + result.pulados).toBe(3);
     });
   });
+
+  describe("sendLaunchNotificationEmail — sem RESEND_API_KEY", () => {
+    beforeEach(() => {
+      delete process.env.RESEND_API_KEY;
+      vi.resetModules();
+    });
+
+    it("deve retornar skipped=true quando RESEND_API_KEY não está configurada", async () => {
+      const { sendLaunchNotificationEmail } = await import("../email");
+      const result = await sendLaunchNotificationEmail({ email: "interessado@exemplo.com" });
+      expect(result.success).toBe(true);
+      expect(result.skipped).toBe(true);
+    });
+
+    it("deve retornar objeto com campo success", async () => {
+      const { sendLaunchNotificationEmail } = await import("../email");
+      const result = await sendLaunchNotificationEmail({ email: "teste@ex.com" });
+      expect(result).toHaveProperty("success");
+    });
+  });
 });

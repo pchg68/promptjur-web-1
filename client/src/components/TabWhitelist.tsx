@@ -17,21 +17,32 @@ import {
   RefreshCw,
   Info,
   Mail,
+  Download,
+  Clock,
+  CalendarDays,
 } from "lucide-react";
 
 /**
  * Painel de gestão da whitelist de acesso — AdminTools
+ * Funcionalidades: adicionar/remover e-mails, importação em massa,
+ * data de expiração por entrada, exportação CSV e envio de e-mail de boas-vindas.
  */
 export default function TabWhitelist() {
   const [novoEmail, setNovoEmail] = useState("");
   const [novoNome, setNovoNome] = useState("");
+  const [novoExpira, setNovoExpira] = useState(""); // YYYY-MM-DD
   const [emailsImportar, setEmailsImportar] = useState("");
+  const [expiraImportar, setExpiraImportar] = useState(""); // YYYY-MM-DD para importação em lote
   const [mostrarImportar, setMostrarImportar] = useState(false);
   const [enviarEmail, setEnviarEmail] = useState(true);
 
   const utils = trpc.useUtils();
 
   const { data: whitelist, isLoading, refetch } = trpc.admin.getWhitelist.useQuery();
+  const { data: csvData, refetch: fetchCsv } = trpc.admin.exportWhitelistCsv.useQuery(
+    undefined,
+    { enabled: false } // só busca quando o usuário clicar
+  );
 
   const addMutation = trpc.admin.addWhitelist.useMutation({
     onSuccess: (data) => {
@@ -50,6 +61,7 @@ export default function TabWhitelist() {
       }
       setNovoEmail("");
       setNovoNome("");
+      setNovoExpira("");
       utils.admin.getWhitelist.invalidate();
     },
     onError: (err) => toast.error(`Erro: ${err.message}`),
@@ -67,7 +79,7 @@ export default function TabWhitelist() {
     onSuccess: (data) => {
       if (data.emailsEnviados > 0) {
         toast.success(`${data.adicionados} e-mail(s) importados`, {
-          description: `${data.emailsEnviados} e-mail(s) de boas-vindas enviados${data.emailsFalha > 0 ? `, ${data.emailsFalha} falha(s)` : ''}`,
+          description: `${data.emailsEnviados} e-mail(s) de boas-vindas enviados${data.emailsFalha > 0 ? `, ${data.emailsFalha} falha(s)` : ""}`,
         });
       } else if (data.emailsFalha > 0) {
         toast.warning(`${data.adicionados} e-mail(s) importados`, {
@@ -79,15 +91,46 @@ export default function TabWhitelist() {
         });
       }
       setEmailsImportar("");
+      setExpiraImportar("");
       setMostrarImportar(false);
       utils.admin.getWhitelist.invalidate();
     },
     onError: (err) => toast.error(`Erro na importação: ${err.message}`),
   });
 
+  // ── helpers ──────────────────────────────────────────────────────────────
+
+  /** Converte "YYYY-MM-DD" para ISO datetime string (fim do dia UTC) */
+  function dateToIso(dateStr: string): string | null {
+    if (!dateStr) return null;
+    return new Date(`${dateStr}T23:59:59Z`).toISOString();
+  }
+
+  /** Formata timestamp ISO para exibição amigável */
+  function formatExpiry(iso: string | Date | null): string | null {
+    if (!iso) return null;
+    const d = new Date(iso);
+    const now = new Date();
+    const expired = d < now;
+    const formatted = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return expired ? `Expirado em ${formatted}` : `Expira em ${formatted}`;
+  }
+
+  function isExpired(iso: string | Date | null): boolean {
+    if (!iso) return false;
+    return new Date(iso) < new Date();
+  }
+
+  // ── handlers ─────────────────────────────────────────────────────────────
+
   const handleAdd = () => {
     if (!novoEmail.trim()) return;
-    addMutation.mutate({ email: novoEmail.trim(), nome: novoNome.trim() || undefined, enviarEmail });
+    addMutation.mutate({
+      email: novoEmail.trim(),
+      nome: novoNome.trim() || undefined,
+      enviarEmail,
+      expiresAt: dateToIso(novoExpira),
+    });
   };
 
   const handleImport = () => {
@@ -99,11 +142,37 @@ export default function TabWhitelist() {
       toast.error("Nenhum e-mail válido encontrado");
       return;
     }
-    importMutation.mutate({ emails, enviarEmail });
+    importMutation.mutate({
+      emails,
+      enviarEmail,
+      expiresAt: dateToIso(expiraImportar),
+    });
   };
 
-  const ativos = whitelist?.filter((w) => w.ativo) ?? [];
+  const handleExportCsv = async () => {
+    const result = await fetchCsv();
+    const csv = result.data?.csv;
+    if (!csv) {
+      toast.error("Nenhum dado para exportar");
+      return;
+    }
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `whitelist_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`CSV exportado (${result.data?.total ?? 0} registros)`);
+  };
+
+  // ── dados ─────────────────────────────────────────────────────────────────
+
+  const ativos = whitelist?.filter((w) => w.ativo && !isExpired(w.expiresAt)) ?? [];
+  const expirados = whitelist?.filter((w) => w.ativo && isExpired(w.expiresAt)) ?? [];
   const inativos = whitelist?.filter((w) => !w.ativo) ?? [];
+
+  // ── render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
@@ -120,14 +189,26 @@ export default function TabWhitelist() {
             </p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => refetch()}
-          className="text-slate-400 hover:text-white"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleExportCsv}
+            className="text-slate-400 hover:text-emerald-400 gap-1 text-xs"
+            title="Exportar whitelist como CSV"
+          >
+            <Download className="w-4 h-4" />
+            CSV
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            className="text-slate-400 hover:text-white"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Aviso sobre feature flag */}
@@ -142,7 +223,7 @@ export default function TabWhitelist() {
       </div>
 
       {/* Cards de resumo */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-3">
         <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4 text-center">
           <Users className="w-5 h-5 text-slate-400 mx-auto mb-1" />
           <p className="text-2xl font-bold text-white">{whitelist?.length ?? 0}</p>
@@ -152,6 +233,11 @@ export default function TabWhitelist() {
           <CheckCircle className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
           <p className="text-2xl font-bold text-emerald-400">{ativos.length}</p>
           <p className="text-slate-400 text-xs">Ativos</p>
+        </div>
+        <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4 text-center">
+          <Clock className="w-5 h-5 text-orange-400 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-orange-400">{expirados.length}</p>
+          <p className="text-slate-400 text-xs">Expirados</p>
         </div>
         <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4 text-center">
           <XCircle className="w-5 h-5 text-red-400 mx-auto mb-1" />
@@ -165,7 +251,10 @@ export default function TabWhitelist() {
         <div className="flex items-center gap-3">
           <Mail className="w-4 h-4 text-blue-400" />
           <div>
-            <Label className="text-slate-200 text-sm font-medium cursor-pointer" htmlFor="toggle-email">
+            <Label
+              className="text-slate-200 text-sm font-medium cursor-pointer"
+              htmlFor="toggle-email"
+            >
               Enviar e-mail de boas-vindas
             </Label>
             <p className="text-slate-500 text-xs">
@@ -183,21 +272,31 @@ export default function TabWhitelist() {
       {/* Formulário de adição */}
       <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4 space-y-3">
         <p className="text-slate-300 text-sm font-medium">Adicionar e-mail</p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Input
             placeholder="nome@exemplo.com"
             value={novoEmail}
             onChange={(e) => setNovoEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 flex-1"
+            className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 flex-1 min-w-40"
           />
           <Input
             placeholder="Nome (opcional)"
             value={novoNome}
             onChange={(e) => setNovoNome(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 w-40"
+            className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 w-36"
           />
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs w-44">
+            <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+            <Input
+              type="date"
+              value={novoExpira}
+              onChange={(e) => setNovoExpira(e.target.value)}
+              title="Data de expiração (opcional)"
+              className="bg-slate-900/50 border-slate-700 text-white text-xs h-9 px-2"
+            />
+          </div>
           <Button
             onClick={handleAdd}
             disabled={!novoEmail.trim() || addMutation.isPending}
@@ -207,6 +306,9 @@ export default function TabWhitelist() {
             Adicionar
           </Button>
         </div>
+        <p className="text-slate-600 text-xs">
+          Deixe a data em branco para acesso permanente.
+        </p>
 
         {/* Importação em massa */}
         <div>
@@ -226,6 +328,19 @@ export default function TabWhitelist() {
                 rows={4}
                 className="w-full bg-slate-900/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <Input
+                  type="date"
+                  value={expiraImportar}
+                  onChange={(e) => setExpiraImportar(e.target.value)}
+                  title="Data de expiração para todos os e-mails importados (opcional)"
+                  className="bg-slate-900/50 border-slate-700 text-white text-xs h-8 px-2 w-40"
+                />
+                <p className="text-slate-500 text-xs">
+                  Expiração para todos (opcional)
+                </p>
+              </div>
               <p className="text-slate-500 text-xs">
                 Separe os e-mails por linha, vírgula ou ponto-e-vírgula
               </p>
@@ -243,7 +358,7 @@ export default function TabWhitelist() {
         </div>
       </div>
 
-      {/* Lista de e-mails */}
+      {/* Lista de e-mails ativos */}
       <div className="space-y-2">
         <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">
           E-mails autorizados ({ativos.length})
@@ -253,51 +368,106 @@ export default function TabWhitelist() {
           <div className="text-center py-8 text-slate-500 text-sm">Carregando...</div>
         ) : ativos.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-sm">
-            Nenhum e-mail na whitelist. Adicione o primeiro acima.
+            Nenhum e-mail ativo na whitelist. Adicione o primeiro acima.
           </div>
         ) : (
           <div className="space-y-1">
-            {ativos.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between bg-slate-800/30 border border-slate-700/20 rounded-lg px-4 py-3 group"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-white text-sm truncate">{item.email}</p>
-                    {item.nome && (
-                      <p className="text-slate-500 text-xs truncate">{item.nome}</p>
+            {ativos.map((item) => {
+              const expiry = formatExpiry(item.expiresAt);
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between bg-slate-800/30 border border-slate-700/20 rounded-lg px-4 py-3 group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-white text-sm truncate">{item.email}</p>
+                      {item.nome && (
+                        <p className="text-slate-500 text-xs truncate">{item.nome}</p>
+                      )}
+                      {expiry && (
+                        <p className="text-slate-500 text-xs flex items-center gap-1 mt-0.5">
+                          <Clock className="w-3 h-3" />
+                          {expiry}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {item.adicionadoPor && (
+                      <span className="text-slate-600 text-xs hidden group-hover:block">
+                        por {item.adicionadoPor}
+                      </span>
                     )}
+                    <Badge
+                      variant="outline"
+                      className="text-emerald-400 border-emerald-500/30 text-xs"
+                    >
+                      {item.expiresAt ? "Com expiração" : "Permanente"}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeMutation.mutate({ email: item.email })}
+                      disabled={removeMutation.isPending}
+                      className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 h-7 w-7 p-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {item.adicionadoPor && (
-                    <span className="text-slate-600 text-xs hidden group-hover:block">
-                      por {item.adicionadoPor}
-                    </span>
-                  )}
-                  <Badge variant="outline" className="text-emerald-400 border-emerald-500/30 text-xs">
-                    Ativo
-                  </Badge>
+              );
+            })}
+          </div>
+        )}
+
+        {/* E-mails expirados */}
+        {expirados.length > 0 && (
+          <details className="mt-4">
+            <summary className="text-orange-500 text-xs cursor-pointer hover:text-orange-400 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {expirados.length} e-mail(s) com acesso expirado
+            </summary>
+            <div className="mt-2 space-y-1">
+              {expirados.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between bg-slate-800/20 border border-orange-500/10 rounded-lg px-4 py-2 opacity-60"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Clock className="w-4 h-4 text-orange-400 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-slate-300 text-sm truncate">{item.email}</p>
+                      <p className="text-slate-500 text-xs">
+                        {formatExpiry(item.expiresAt)}
+                      </p>
+                    </div>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeMutation.mutate({ email: item.email })}
-                    disabled={removeMutation.isPending}
-                    className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 h-7 w-7 p-0"
+                    onClick={() =>
+                      addMutation.mutate({
+                        email: item.email,
+                        nome: item.nome ?? undefined,
+                        expiresAt: null,
+                      })
+                    }
+                    disabled={addMutation.isPending}
+                    className="text-slate-500 hover:text-emerald-400 text-xs h-7"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    Renovar
                   </Button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </details>
         )}
 
         {/* E-mails removidos (colapsável) */}
         {inativos.length > 0 && (
-          <details className="mt-4">
+          <details className="mt-2">
             <summary className="text-slate-500 text-xs cursor-pointer hover:text-slate-400">
               {inativos.length} e-mail(s) removido(s)
             </summary>
@@ -314,7 +484,12 @@ export default function TabWhitelist() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => addMutation.mutate({ email: item.email, nome: item.nome ?? undefined })}
+                    onClick={() =>
+                      addMutation.mutate({
+                        email: item.email,
+                        nome: item.nome ?? undefined,
+                      })
+                    }
                     disabled={addMutation.isPending}
                     className="text-slate-500 hover:text-emerald-400 text-xs h-7"
                   >

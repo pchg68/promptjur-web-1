@@ -1,0 +1,1 @@
+ALTER TABLE `access_whitelist` ADD `expiresAt` timestamp;

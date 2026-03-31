@@ -7,7 +7,6 @@ import { eq } from "drizzle-orm";
 import { accessWhitelist } from "../drizzle/schema";
 import { getDb } from "./db";
 import { isFeatureEnabled } from "./feature-flags";
-import { ENV } from "./_core/env";
 
 // Cache simples para evitar queries repetidas
 const whitelistCache = new Map<string, boolean>();
@@ -20,8 +19,8 @@ function invalidateCache() {
 }
 
 /**
- * Verifica se um e-mail está na whitelist
- * Retorna true se a whitelist estiver desativada (acesso liberado para todos)
+ * Verifica se um e-mail está na whitelist e se o acesso não expirou.
+ * Retorna true se a whitelist estiver desativada (acesso liberado para todos).
  */
 export async function isEmailAllowed(email: string | null | undefined): Promise<boolean> {
   // Se não há e-mail, bloquear
@@ -29,7 +28,7 @@ export async function isEmailAllowed(email: string | null | undefined): Promise<
 
   // Verificar se a feature whitelist está ativa
   const whitelistAtiva = await isFeatureEnabled("whitelist_ativa");
-  
+
   // Se whitelist desativada, permitir todos
   if (!whitelistAtiva) return true;
 
@@ -49,7 +48,15 @@ export async function isEmailAllowed(email: string | null | undefined): Promise<
     .where(eq(accessWhitelist.email, cacheKey))
     .limit(1);
 
-  const permitido = resultado.length > 0 && resultado[0].ativo;
+  const entrada = resultado[0];
+  let permitido = false;
+
+  if (entrada && entrada.ativo) {
+    // Verificar expiração: null = sem expiração (acesso permanente)
+    if (!entrada.expiresAt || entrada.expiresAt > new Date()) {
+      permitido = true;
+    }
+  }
 
   // Atualizar cache
   whitelistCache.set(cacheKey, permitido);
@@ -59,12 +66,13 @@ export async function isEmailAllowed(email: string | null | undefined): Promise<
 }
 
 /**
- * Adiciona e-mail à whitelist
+ * Adiciona e-mail à whitelist com data de expiração opcional
  */
 export async function addToWhitelist(
   email: string,
   nome?: string,
-  adicionadoPor?: string
+  adicionadoPor?: string,
+  expiresAt?: Date | null
 ): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível");
@@ -76,9 +84,15 @@ export async function addToWhitelist(
       nome: nome ?? null,
       adicionadoPor: adicionadoPor ?? null,
       ativo: true,
+      expiresAt: expiresAt ?? null,
     })
     .onDuplicateKeyUpdate({
-      set: { ativo: true, nome: nome ?? null, atualizadoEm: new Date() },
+      set: {
+        ativo: true,
+        nome: nome ?? null,
+        expiresAt: expiresAt ?? null,
+        atualizadoEm: new Date(),
+      },
     });
 
   invalidateCache();
@@ -117,5 +131,5 @@ export async function listWhitelist() {
  */
 export async function initOwnerWhitelist(ownerEmail: string): Promise<void> {
   if (!ownerEmail) return;
-  await addToWhitelist(ownerEmail, "Owner (admin)", "sistema");
+  await addToWhitelist(ownerEmail, "Owner (admin)", "sistema", null);
 }

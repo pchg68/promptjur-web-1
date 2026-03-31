@@ -232,6 +232,13 @@
       "when": 1774985094820,
       "tag": "0032_unique_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1774986938650,
+      "tag": "0033_shallow_sleeper",
+      "breakpoints": true
     }
   ]
 }

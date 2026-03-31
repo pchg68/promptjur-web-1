@@ -270,6 +270,184 @@ export async function sendWelcomeEmail(opts: {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Template HTML de notificação de lançamento
+// ─────────────────────────────────────────────────────────────────────────────
+function buildLaunchEmailHtml(opts: {
+  email: string;
+  appUrl: string;
+}): string {
+  const ano = new Date().getFullYear();
+  const planosUrl = `${opts.appUrl}/planos`;
+
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptJur — Planos pagos disponíveis!</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0a0f1a;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0f1a;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+          <!-- Header com logo -->
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <table cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#1e40af,#3b82f6);border-radius:12px;padding:12px 20px;">
+                    <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.5px;">
+                      ⚖️ PromptJur
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Card principal -->
+          <tr>
+            <td style="background-color:#111827;border-radius:16px;border:1px solid #1f2937;overflow:hidden;">
+
+              <!-- Banner superior -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#14532d 0%,#166534 100%);padding:40px 40px 32px;">
+                    <p style="margin:0 0 8px;color:#86efac;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">
+                      🎉 Novidade
+                    </p>
+                    <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;line-height:1.2;">
+                      Os planos pagos do PromptJur estão disponíveis!
+                    </h1>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Corpo -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:32px 40px;">
+
+                    <p style="margin:0 0 20px;color:#d1d5db;font-size:15px;line-height:1.6;">
+                      Você demonstrou interesse nos planos pagos do <strong style="color:#ffffff;">PromptJur</strong>.
+                      Temos o prazer de informar que os planos <strong style="color:#ffffff;">Pro</strong> e
+                      <strong style="color:#ffffff;">Escritório</strong> já estão disponíveis para contratação.
+                    </p>
+
+                    <!-- CTA Button -->
+                    <table cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#15803d,#22c55e);border-radius:10px;">
+                          <a href="${planosUrl}"
+                             style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.3px;">
+                            Ver Planos e Preços →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Divisor -->
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                      <tr>
+                        <td style="border-top:1px solid #1f2937;"></td>
+                      </tr>
+                    </table>
+
+                    <!-- Planos -->
+                    <p style="margin:0 0 16px;color:#9ca3af;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">
+                      Planos disponíveis
+                    </p>
+
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:12px 0;border-bottom:1px solid #1f2937;">
+                          <strong style="color:#f3f4f6;font-size:14px;">⚡ Plano Pro</strong>
+                          <p style="margin:4px 0 0;color:#6b7280;font-size:13px;">
+                            300 operações/mês, modelos profissionais, exportação DOCX/PDF
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:12px 0;">
+                          <strong style="color:#f3f4f6;font-size:14px;">🏢 Plano Escritório</strong>
+                          <p style="margin:4px 0 0;color:#6b7280;font-size:13px;">
+                            Operações ilimitadas, múltiplos usuários, suporte dedicado
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <p style="margin:24px 0 0;color:#6b7280;font-size:12px;line-height:1.5;">
+                      Você recebeu este e-mail porque demonstrou interesse nos planos pagos do PromptJur.
+                      Se não deseja mais receber comunicações, entre em contato conosco.
+                    </p>
+
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Rodapé -->
+          <tr>
+            <td style="padding:24px 0 0;text-align:center;">
+              <p style="margin:0 0 8px;color:#4b5563;font-size:12px;">
+                Este e-mail foi enviado para <strong style="color:#6b7280;">${opts.email}</strong>
+              </p>
+              <p style="margin:0;color:#374151;font-size:12px;">
+                © ${ano} PromptJur — Sistema de Engenharia de Prompts Jurídicos
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+/**
+ * Envia e-mail de notificação de lançamento para um interessado
+ */
+export async function sendLaunchNotificationEmail(opts: {
+  email: string;
+}): Promise<SendWelcomeEmailResult> {
+  const resend = getResend();
+
+  if (!resend) {
+    console.log(`[Email] Skipped launch notification to ${opts.email} — API key not set`);
+    return { success: true, skipped: true };
+  }
+
+  const appUrl = getAppUrl();
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: getFromAddress(),
+      to: [opts.email],
+      subject: "🎉 PromptJur — Os planos pagos estão disponíveis!",
+      html: buildLaunchEmailHtml({ email: opts.email, appUrl }),
+    });
+
+    if (error) {
+      console.error(`[Email] Failed to send launch notification to ${opts.email}:`, error);
+      return { success: false, error: error.message };
+    }
+
+    console.log(`[Email] Launch notification sent to ${opts.email} — ID: ${data?.id}`);
+    return { success: true, messageId: data?.id };
+  } catch (err: any) {
+    console.error(`[Email] Exception sending launch notification to ${opts.email}:`, err);
+    return { success: false, error: err?.message ?? "Unknown error" };
+  }
+}
+
 /**
  * Envia e-mails de boas-vindas em lote (importação em massa)
  * Aguarda 200ms entre cada envio para evitar rate limiting

@@ -496,6 +496,8 @@ export const accessWhitelist = mysqlTable("access_whitelist", {
   nome: varchar("nome", { length: 255 }),
   adicionadoPor: varchar("adicionadoPor", { length: 320 }),
   ativo: boolean("ativo").default(true).notNull(),
+  /** Data de expiração do acesso. null = sem expiração (acesso permanente) */
+  expiresAt: timestamp("expiresAt"),
   criadoEm: timestamp("criadoEm").defaultNow().notNull(),
   atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
 });

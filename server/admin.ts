@@ -15,7 +15,7 @@ import { criarBackup, listarBackups, restaurarBackup } from "./backup";
 import { getSentryStatus, isSentryActive } from "./_core/sentry";
 import { enterpriseLeads, launchInterests, accessWhitelist } from "../drizzle/schema";
 import { addToWhitelist, removeFromWhitelist, listWhitelist } from "./whitelist";
-import { sendWelcomeEmail, sendWelcomeEmailBatch } from "./email";
+import { sendWelcomeEmail, sendWelcomeEmailBatch, sendLaunchNotificationEmail } from "./email";
 import { eq, desc, sql } from "drizzle-orm";
 
 // Middleware para verificar se é admin
@@ -355,7 +355,56 @@ export const adminRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       const resultado = await toggleFeature(input.nome);
-      
+
+      // Hook especial: quando `pagamentos_ativos` é ativado, notificar todos os interessados
+      if (resultado.nome === 'pagamentos_ativos' && resultado.isAtivo) {
+        (async () => {
+          try {
+            const dbConn = await db.getDb();
+            if (!dbConn) return;
+
+            // Buscar todos os interessados ainda não notificados
+            const interessados = await dbConn
+              .select()
+              .from(launchInterests)
+              .where(eq(launchInterests.notificado, false));
+
+            if (interessados.length === 0) return;
+
+            let enviados = 0;
+            let falhas = 0;
+
+            for (const interessado of interessados) {
+              const result = await sendLaunchNotificationEmail({ email: interessado.email });
+              if (result.success && !result.skipped) {
+                enviados++;
+                // Marcar como notificado
+                await dbConn
+                  .update(launchInterests)
+                  .set({ notificado: true })
+                  .where(eq(launchInterests.id, interessado.id));
+              } else if (!result.skipped) {
+                falhas++;
+              }
+              // Delay entre envios para evitar rate limiting
+              await new Promise(r => setTimeout(r, 200));
+            }
+
+            console.log(`[Admin] Launch notification: ${enviados} enviados, ${falhas} falhas de ${interessados.length} interessados`);
+
+            await logAuditoria({
+              userId: ctx.user.id,
+              acao: 'notificar_lancamento',
+              descricao: `Notificações de lançamento enviadas: ${enviados}/${interessados.length}`,
+              metadata: { total: interessados.length, enviados, falhas },
+              req: ctx.req,
+            });
+          } catch (err) {
+            console.error('[Admin] Erro ao enviar notificações de lançamento:', err);
+          }
+        })(); // fire-and-forget — não bloqueia a resposta ao admin
+      }
+
       // Registrar no log de auditoria
       await logAuditoria({
         userId: ctx.user.id,
@@ -751,9 +800,11 @@ export const adminRouter = router({
       email: z.string().email(),
       nome: z.string().optional(),
       enviarEmail: z.boolean().default(true),
+      expiresAt: z.string().datetime().optional().nullable(), // ISO string ou null
     }))
     .mutation(async ({ input, ctx }) => {
-      await addToWhitelist(input.email, input.nome, ctx.user.email ?? undefined);
+      const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+      await addToWhitelist(input.email, input.nome, ctx.user.email ?? undefined, expiresAt);
 
       // Enviar e-mail de boas-vindas (não bloqueia em caso de falha)
       let emailResult: { success: boolean; skipped?: boolean } = { success: false, skipped: true };
@@ -787,17 +838,43 @@ export const adminRouter = router({
       return { success: true };
     }),
 
+  exportWhitelistCsv: adminProcedure
+    .query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+      const rows = await dbConn
+        .select()
+        .from(accessWhitelist)
+        .orderBy(desc(accessWhitelist.criadoEm));
+
+      // Gerar CSV em memória
+      const header = "email,nome,adicionadoPor,ativo,expiresAt,criadoEm";
+      const lines = rows.map(r => [
+        `"${r.email}"`,
+        `"${r.nome ?? ""}"`,
+        `"${r.adicionadoPor ?? ""}"`,
+        r.ativo ? "sim" : "não",
+        r.expiresAt ? r.expiresAt.toISOString() : "",
+        r.criadoEm.toISOString(),
+      ].join(","));
+
+      return { csv: [header, ...lines].join("\n"), total: rows.length };
+    }),
+
   importWhitelist: adminProcedure
     .input(z.object({
       emails: z.array(z.string().email()).min(1).max(100),
       enviarEmail: z.boolean().default(true),
+      expiresAt: z.string().datetime().optional().nullable(),
     }))
     .mutation(async ({ input, ctx }) => {
       let adicionados = 0;
       const recipients: Array<{ email: string }> = [];
+      const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
 
       for (const email of input.emails) {
-        await addToWhitelist(email, undefined, ctx.user.email ?? undefined);
+        await addToWhitelist(email, undefined, ctx.user.email ?? undefined, expiresAt);
         adicionados++;
         if (input.enviarEmail) recipients.push({ email });
       }
