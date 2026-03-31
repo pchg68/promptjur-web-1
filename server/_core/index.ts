@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { scheduleCacheCleanup } from "../jobs/cache-cleanup";
+import { scheduleWhitelistExpiry } from "../jobs/whitelist-expiry";
 import { handleStripeWebhook } from "./stripeWebhook";
 import { tRPCRateLimiter, injectUserMiddleware } from "./rateLimiter";
 import * as Sentry from "@sentry/node";
@@ -93,6 +94,8 @@ async function startServer() {
     
     // Agendar job de limpeza de cache
     scheduleCacheCleanup();
+    // Agendar job de expiração automática da whitelist (a cada hora)
+    scheduleWhitelistExpiry();
   });
 }
 

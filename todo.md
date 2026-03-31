@@ -2764,3 +2764,9 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [ ] Criar página /acesso-restrito para usuários bloqueados
 - [ ] Criar painel de gestão da whitelist no AdminTools
 - [ ] Adicionar feature flag `whitelist_ativa` para ligar/desligar
+
+## Sugestões de acompanhamento (31/03/2026)
+
+- [x] Verificação de domínio Resend: procedure de diagnóstico no backend + card de status no AdminTools
+- [x] Painel de interessados (launchInterests) no AdminTools: tabela com email, plano, notificado, data; ações de reenvio e remoção
+- [x] Job agendado para desativar automaticamente entradas da whitelist com expiresAt vencido (cron a cada hora)

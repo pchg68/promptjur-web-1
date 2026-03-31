@@ -1,6 +1,6 @@
 /**
  * TabInteressados — Painel de gestão de interessados no lançamento dos planos pagos
- * Exibido no AdminTools para visualizar e gerenciar a lista de e-mails capturados
+ * Inclui: tabela de interessados com ações, diagnóstico do Resend e notificação em lote
  */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
@@ -14,7 +14,17 @@ import {
   Loader2,
   Mail,
   RefreshCw,
+  Send,
+  Trash2,
   Users,
+  Wifi,
+  WifiOff,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  ExternalLink,
+  Copy,
+  Shield,
 } from "lucide-react";
 
 const PLANO_LABELS: Record<string, string> = {
@@ -29,50 +39,244 @@ const PLANO_COLORS: Record<string, string> = {
   qualquer: "bg-blue-500/20 text-blue-400 border-blue-500/30",
 };
 
-export default function TabInteressados() {
-  const [filtroPlano, setFiltroPlano] = useState<"todos" | "pro" | "enterprise" | "qualquer">("todos");
-  const [filtroNotificado, setFiltroNotificado] = useState<boolean | undefined>(undefined);
-  const [selecionados, setSelecionados] = useState<number[]>([]);
+// ─── Card de diagnóstico Resend ───────────────────────────────────────────────
 
-  const { data, isLoading, refetch } = trpc.admin.getInteressados.useQuery({
-    plano: filtroPlano,
-    notificado: filtroNotificado,
-    limit: 100,
-    offset: 0,
-  });
+function CardDiagnosticoResend() {
+  const { data, isLoading, refetch } = trpc.admin.diagnosticoResend.useQuery();
 
-  const marcarMutation = trpc.admin.marcarNotificados.useMutation({
-    onSuccess: () => {
-      toast.success(`${selecionados.length} interessado(s) marcados como notificados.`);
-      setSelecionados([]);
-      refetch();
-    },
-    onError: (err) => toast.error(err.message || "Erro ao marcar como notificados"),
-  });
-
-  const toggleSelecionado = (id: number) => {
-    setSelecionados((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => toast.success("Copiado!"));
   };
 
-  const toggleTodos = () => {
-    if (!data?.interessados) return;
-    const naoNotificados = data.interessados.filter((i) => !i.notificado).map((i) => i.id);
-    if (selecionados.length === naoNotificados.length) {
-      setSelecionados([]);
-    } else {
-      setSelecionados(naoNotificados);
-    }
+  const statusIcon = () => {
+    if (isLoading) return <Loader2 className="w-4 h-4 animate-spin text-slate-400" />;
+    if (!data?.configurado) return <WifiOff className="w-4 h-4 text-red-400" />;
+    if (data.conectividade === "ok") return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
+    if (data.conectividade === "erro") return <AlertTriangle className="w-4 h-4 text-orange-400" />;
+    return <Wifi className="w-4 h-4 text-slate-400" />;
   };
 
-  const interessados = data?.interessados ?? [];
-  const naoNotificados = interessados.filter((i) => !i.notificado);
+  const statusLabel = () => {
+    if (isLoading) return "Verificando...";
+    if (!data?.configurado) return "Não configurado";
+    if (data.conectividade === "ok") return "Conectado";
+    if (data.conectividade === "erro") return "Erro de conexão";
+    return "Sem chave";
+  };
+
+  const statusColor = () => {
+    if (!data?.configurado || data?.conectividade === "erro") return "border-red-500/20 bg-red-500/5";
+    if (data?.conectividade === "ok") return "border-emerald-500/20 bg-emerald-500/5";
+    return "border-slate-700/30 bg-slate-800/30";
+  };
+
+  const dominioLabel = () => {
+    if (!data?.dominioStatus || data.dominioStatus === "nao_configurado") return null;
+    if (data.dominioStatus === "onboarding") return { label: "Onboarding (dev)", color: "text-amber-400" };
+    return { label: "Domínio personalizado", color: "text-emerald-400" };
+  };
+
+  const domInfo = dominioLabel();
 
   return (
-    <div>
+    <div className={`rounded-xl border p-4 mb-6 ${statusColor()}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-slate-800/60 flex items-center justify-center shrink-0">
+            <Mail className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-white text-sm font-semibold">Diagnóstico Resend</h3>
+              <div className="flex items-center gap-1">
+                {statusIcon()}
+                <span className="text-xs text-slate-400">{statusLabel()}</span>
+              </div>
+            </div>
+            <p className="text-slate-500 text-xs mt-0.5">
+              Configuração do serviço de e-mail transacional
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => refetch()}
+          className="text-slate-400 hover:text-white shrink-0"
+          title="Atualizar diagnóstico"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+
+      {data && (
+        <div className="mt-4 space-y-3">
+          {/* Chave API */}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="bg-slate-900/40 rounded-lg p-3">
+              <p className="text-slate-500 mb-1">RESEND_API_KEY</p>
+              {data.configurado ? (
+                <div className="flex items-center gap-2">
+                  <code className="text-emerald-400 font-mono">{data.chavePreview}</code>
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                </div>
+              ) : (
+                <span className="text-red-400">Não configurada</span>
+              )}
+            </div>
+            <div className="bg-slate-900/40 rounded-lg p-3">
+              <p className="text-slate-500 mb-1">EMAIL_FROM</p>
+              {data.fromAddress ? (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <code className="text-slate-300 font-mono text-xs truncate max-w-[160px]">
+                    {data.fromAddress}
+                  </code>
+                  {domInfo && (
+                    <span className={`text-xs ${domInfo.color}`}>({domInfo.label})</span>
+                  )}
+                </div>
+              ) : (
+                <span className="text-amber-400">Usando padrão</span>
+              )}
+            </div>
+          </div>
+
+          {/* Erro de conectividade */}
+          {data.erroConectividade && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-xs text-red-300">
+              <strong>Erro:</strong> {data.erroConectividade}
+            </div>
+          )}
+
+          {/* Instruções */}
+          {data.instrucoes && (
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 flex gap-2">
+              <Info className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <p className="text-amber-300 text-xs leading-relaxed">{data.instrucoes}</p>
+            </div>
+          )}
+
+          {/* Ações rápidas */}
+          {!data.configurado && (
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="https://resend.com/signup"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Criar conta no Resend
+              </a>
+              <span className="text-slate-600 text-xs">·</span>
+              <button
+                onClick={() => copyToClipboard("RESEND_API_KEY")}
+                className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white"
+              >
+                <Copy className="w-3 h-3" />
+                Copiar nome da variável
+              </button>
+            </div>
+          )}
+
+          {data.dominioStatus === "onboarding" && (
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="https://resend.com/domains"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Verificar domínio no Resend
+              </a>
+              <span className="text-slate-600 text-xs">·</span>
+              <button
+                onClick={() => copyToClipboard("EMAIL_FROM")}
+                className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white"
+              >
+                <Copy className="w-3 h-3" />
+                Copiar nome da variável EMAIL_FROM
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
+
+export default function TabInteressados() {
+  const [filtroPlano, setFiltroPlano] = useState<"todos" | "pro" | "enterprise" | "qualquer">("todos");
+  const [filtroNotificado, setFiltroNotificado] = useState<"todos" | "sim" | "nao">("todos");
+
+  const utils = trpc.useUtils();
+
+  const { data, isLoading, refetch } = trpc.admin.listarInteressados.useQuery({
+    limit: 200,
+    apenasNaoNotificados: false,
+  });
+
+  const removerMutation = trpc.admin.removerInteressado.useMutation({
+    onSuccess: () => {
+      toast.success("Interessado removido");
+      utils.admin.listarInteressados.invalidate();
+    },
+    onError: (err) => toast.error(`Erro: ${err.message}`),
+  });
+
+  const reenviarMutation = trpc.admin.reenviarNotificacaoInteressado.useMutation({
+    onSuccess: (d) => {
+      if (d.skipped) {
+        toast.warning(`E-mail pulado para ${d.email}`, {
+          description: "Configure RESEND_API_KEY para enviar e-mails",
+        });
+      } else {
+        toast.success(`Notificação reenviada para ${d.email}`);
+      }
+      utils.admin.listarInteressados.invalidate();
+    },
+    onError: (err) => toast.error(`Erro: ${err.message}`),
+  });
+
+  const notificarTodosMutation = trpc.admin.notificarTodosInteressados.useMutation({
+    onSuccess: (d) => {
+      if (d.pulados > 0) {
+        toast.warning(`${d.total} processados — configure RESEND_API_KEY para enviar`, {
+          description: `${d.pulados} pulados (sem API key)`,
+        });
+      } else {
+        toast.success(`${d.enviados} notificações enviadas`, {
+          description: d.falhas > 0 ? `${d.falhas} falha(s)` : "Todos notificados com sucesso",
+        });
+      }
+      utils.admin.listarInteressados.invalidate();
+    },
+    onError: (err) => toast.error(`Erro: ${err.message}`),
+  });
+
+  // Filtragem local
+  const todos = data?.items ?? [];
+  const filtrados = todos.filter((i) => {
+    const planoOk = filtroPlano === "todos" || i.planoInteresse === filtroPlano;
+    const notifOk =
+      filtroNotificado === "todos" ||
+      (filtroNotificado === "sim" && i.notificado) ||
+      (filtroNotificado === "nao" && !i.notificado);
+    return planoOk && notifOk;
+  });
+
+  const naoNotificados = todos.filter((i) => !i.notificado).length;
+
+  return (
+    <div className="space-y-4">
+      {/* Card de diagnóstico Resend */}
+      <CardDiagnosticoResend />
+
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center">
             <Bell className="w-5 h-5 text-blue-400" />
@@ -84,43 +288,62 @@ export default function TabInteressados() {
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="border-[#1e3a5f] text-slate-300 hover:bg-[#1e3a5f]"
-        >
-          <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          {naoNotificados > 0 && (
+            <Button
+              size="sm"
+              onClick={() => notificarTodosMutation.mutate()}
+              disabled={notificarTodosMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700 gap-1 text-xs"
+            >
+              {notificarTodosMutation.isPending ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Send className="w-3 h-3" />
+              )}
+              Notificar {naoNotificados} pendente(s)
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="text-slate-400 hover:text-white"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       {/* Cards de resumo */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="rounded-lg bg-[#0a1628] border border-[#1e3a5f] p-3 text-center">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-xl bg-slate-800/40 border border-slate-700/30 p-4 text-center">
+          <Users className="w-5 h-5 text-slate-400 mx-auto mb-1" />
           <p className="text-2xl font-bold text-white">{data?.total ?? 0}</p>
-          <p className="text-xs text-slate-400 mt-0.5">Total cadastrados</p>
+          <p className="text-slate-400 text-xs">Total cadastrados</p>
         </div>
-        <div className="rounded-lg bg-[#0a1628] border border-[#1e3a5f] p-3 text-center">
+        <div className="rounded-xl bg-slate-800/40 border border-slate-700/30 p-4 text-center">
+          <BellOff className="w-5 h-5 text-amber-400 mx-auto mb-1" />
           <p className="text-2xl font-bold text-amber-400">{data?.naoNotificados ?? 0}</p>
-          <p className="text-xs text-slate-400 mt-0.5">Aguardando notificação</p>
+          <p className="text-slate-400 text-xs">Aguardando notificação</p>
         </div>
-        <div className="rounded-lg bg-[#0a1628] border border-[#1e3a5f] p-3 text-center">
-          <p className="text-2xl font-bold text-green-400">
+        <div className="rounded-xl bg-slate-800/40 border border-slate-700/30 p-4 text-center">
+          <Check className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-emerald-400">
             {(data?.total ?? 0) - (data?.naoNotificados ?? 0)}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">Já notificados</p>
+          <p className="text-slate-400 text-xs">Já notificados</p>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2">
         <div className="relative">
           <select
             value={filtroPlano}
             onChange={(e) => setFiltroPlano(e.target.value as typeof filtroPlano)}
-            className="h-8 rounded-md border border-[#1e3a5f] bg-[#0a1628] px-3 pr-7 text-xs text-slate-300 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+            className="h-8 rounded-md border border-slate-700 bg-slate-900/50 px-3 pr-7 text-xs text-slate-300 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500/50"
           >
             <option value="todos">Todos os planos</option>
             <option value="pro">Plano Pro</option>
@@ -131,12 +354,9 @@ export default function TabInteressados() {
         </div>
         <div className="relative">
           <select
-            value={filtroNotificado === undefined ? "todos" : filtroNotificado ? "sim" : "nao"}
-            onChange={(e) => {
-              const v = e.target.value;
-              setFiltroNotificado(v === "todos" ? undefined : v === "sim");
-            }}
-            className="h-8 rounded-md border border-[#1e3a5f] bg-[#0a1628] px-3 pr-7 text-xs text-slate-300 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+            value={filtroNotificado}
+            onChange={(e) => setFiltroNotificado(e.target.value as typeof filtroNotificado)}
+            className="h-8 rounded-md border border-slate-700 bg-slate-900/50 px-3 pr-7 text-xs text-slate-300 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500/50"
           >
             <option value="todos">Todos os status</option>
             <option value="nao">Aguardando notificação</option>
@@ -144,22 +364,9 @@ export default function TabInteressados() {
           </select>
           <ChevronDown className="absolute right-2 top-2 w-3 h-3 text-slate-400 pointer-events-none" />
         </div>
-
-        {selecionados.length > 0 && (
-          <Button
-            size="sm"
-            className="h-8 bg-green-600 hover:bg-green-500 text-white text-xs"
-            onClick={() => marcarMutation.mutate({ ids: selecionados })}
-            disabled={marcarMutation.isPending}
-          >
-            {marcarMutation.isPending ? (
-              <Loader2 className="w-3 h-3 animate-spin mr-1" />
-            ) : (
-              <Check className="w-3 h-3 mr-1" />
-            )}
-            Marcar {selecionados.length} como notificado(s)
-          </Button>
-        )}
+        <span className="text-slate-600 text-xs self-center ml-1">
+          {filtrados.length} resultado(s)
+        </span>
       </div>
 
       {/* Tabela */}
@@ -167,55 +374,39 @@ export default function TabInteressados() {
         <div className="flex items-center justify-center py-10">
           <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
         </div>
-      ) : interessados.length === 0 ? (
+      ) : filtrados.length === 0 ? (
         <div className="text-center py-10 text-slate-500">
           <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">Nenhum interessado encontrado com os filtros aplicados.</p>
+          <p className="text-sm">Nenhum interessado encontrado.</p>
         </div>
       ) : (
-        <div className="rounded-lg border border-[#1e3a5f] overflow-hidden">
-          {/* Cabeçalho da tabela */}
-          <div className="grid grid-cols-[32px_1fr_120px_100px_100px] gap-2 px-4 py-2 bg-[#0a1628] border-b border-[#1e3a5f] text-xs font-medium text-slate-400">
-            <div>
-              <input
-                type="checkbox"
-                checked={selecionados.length === naoNotificados.length && naoNotificados.length > 0}
-                onChange={toggleTodos}
-                className="rounded"
-              />
-            </div>
+        <div className="rounded-xl border border-slate-700/30 overflow-hidden">
+          {/* Cabeçalho */}
+          <div className="grid grid-cols-[1fr_120px_100px_100px_80px] gap-2 px-4 py-2 bg-slate-900/60 border-b border-slate-700/30 text-xs font-medium text-slate-400">
             <div>E-mail / Nome</div>
             <div>Plano</div>
             <div>Status</div>
             <div>Cadastrado em</div>
+            <div className="text-right">Ações</div>
           </div>
 
           {/* Linhas */}
-          <div className="divide-y divide-[#1e3a5f]">
-            {interessados.map((item) => (
+          <div className="divide-y divide-slate-700/20">
+            {filtrados.map((item) => (
               <div
                 key={item.id}
-                className="grid grid-cols-[32px_1fr_120px_100px_100px] gap-2 px-4 py-3 items-center hover:bg-[#0a1628]/60 transition-colors"
+                className="grid grid-cols-[1fr_120px_100px_100px_80px] gap-2 px-4 py-3 items-center hover:bg-slate-800/30 transition-colors group"
               >
-                <div>
-                  {!item.notificado && (
-                    <input
-                      type="checkbox"
-                      checked={selecionados.includes(item.id)}
-                      onChange={() => toggleSelecionado(item.id)}
-                      className="rounded"
-                    />
-                  )}
-                </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span className="text-sm text-white truncate">{item.email}</span>
                   </div>
                   {item.nome && (
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">{item.nome}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">{item.nome}</p>
                   )}
                 </div>
+
                 <div>
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border ${
@@ -225,9 +416,10 @@ export default function TabInteressados() {
                     {PLANO_LABELS[item.planoInteresse] ?? item.planoInteresse}
                   </span>
                 </div>
+
                 <div>
                   {item.notificado ? (
-                    <span className="inline-flex items-center gap-1 text-xs text-green-400">
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
                       <Check className="w-3 h-3" />
                       Notificado
                     </span>
@@ -238,12 +430,36 @@ export default function TabInteressados() {
                     </span>
                   )}
                 </div>
+
                 <div className="text-xs text-slate-400">
                   {new Date(item.criadoEm).toLocaleDateString("pt-BR", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "2-digit",
                   })}
+                </div>
+
+                <div className="flex items-center justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => reenviarMutation.mutate({ id: item.id })}
+                    disabled={reenviarMutation.isPending}
+                    className="h-7 w-7 p-0 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10"
+                    title="Reenviar notificação"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removerMutation.mutate({ id: item.id })}
+                    disabled={removerMutation.isPending}
+                    className="h-7 w-7 p-0 text-slate-500 hover:text-red-400 hover:bg-red-500/10"
+                    title="Remover interessado"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
               </div>
             ))}
