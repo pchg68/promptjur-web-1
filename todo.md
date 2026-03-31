@@ -2743,4 +2743,16 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Diferenciar visualmente novo cadastro vs. e-mail já registrado
 
 ## Bug: Erro JSON na página /tutoriais
-- [ ] Corrigir queries protegidas (obterProgresso, obterFeedback) chamadas sem autenticação
+- [x] Corrigir queries protegidas (obterProgresso, obterFeedback) chamadas sem autenticação
+
+## Scripts de Vídeo Tutorial (5 vídeos)
+- [x] Script Vídeo 1: Introdução ao PromptJur (visão geral, cadastro, navegação)
+- [x] Script Vídeo 2: Analisando Prompts Jurídicos (passo a passo da análise)
+- [x] Script Vídeo 3: Gerando Prompts Profissionais (geração do zero)
+- [x] Script Vídeo 4: Otimizando Prompts Existentes (fluxo de otimização)
+- [x] Script Vídeo 5: Recursos Avançados e Dicas Finais (modelos, histórico, exportação)
+
+## Melhorias Técnicas (sugestões anteriores)
+- [x] Auditar todas as queries protegidas sem enabled: isAuthenticated
+- [x] Adicionar estado visual "faça login" para não autenticados na seção de progresso
+- [x] Criar teste Vitest para queries protegidas na página de tutoriais

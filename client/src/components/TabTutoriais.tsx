@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ export default function TabTutoriais() {
 
   // Hook de utils para invalidação de cache
   const utils = trpc.useUtils();
+  const { isAuthenticated } = useAuth();
 
   // Query com filtros
   const { data: tutoriais, isLoading } = trpc.tutoriais.listar.useQuery({
@@ -34,11 +36,15 @@ export default function TabTutoriais() {
     { enabled: !!tutorialSelecionado }
   );
 
-  // Query de progresso do usuário
-  const { data: progresso } = trpc.tutoriais.obterProgresso.useQuery();
+  // Query de progresso do usuário (apenas para autenticados)
+  const { data: progresso } = trpc.tutoriais.obterProgresso.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
-  // Query de feedback do usuário
-  const { data: meusFeedbacks } = trpc.tutoriais.obterFeedback.useQuery();
+  // Query de feedback do usuário (apenas para autenticados)
+  const { data: meusFeedbacks } = trpc.tutoriais.obterFeedback.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
   // Query de estatísticas de feedback (pública)
   const { data: estatisticasFeedback } = trpc.tutoriais.estatisticasFeedback.useQuery();
@@ -113,6 +119,28 @@ export default function TabTutoriais() {
           Aprenda a usar o PromptJur com nossos tutoriais organizados por categoria e nível
         </p>
       </div>
+
+      {/* Barra de Progresso — estado para não autenticados */}
+      {!isAuthenticated && (
+        <Card className="border-dashed border-muted-foreground/30 bg-muted/30">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4 text-muted-foreground">
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                <BookOpen className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Acompanhe seu progresso</p>
+                <p className="text-sm">
+                  <a href="#" onClick={(e) => { e.preventDefault(); window.location.href = '/dashboard'; }} className="underline underline-offset-2 hover:text-foreground">
+                    Faça login
+                  </a>{" "}
+                  para salvar seu progresso e ver quantos tutoriais você já concluiu.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Barra de Progresso */}
       {progresso && (
