@@ -2770,3 +2770,6 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Verificação de domínio Resend: procedure de diagnóstico no backend + card de status no AdminTools
 - [x] Painel de interessados (launchInterests) no AdminTools: tabela com email, plano, notificado, data; ações de reenvio e remoção
 - [x] Job agendado para desativar automaticamente entradas da whitelist com expiresAt vencido (cron a cada hora)
+
+## Correção Crítica - Página em Branco (31/03/2026)
+- [x] Fix página em branco em produção — dependências circulares no manualChunks do Vite removidas; script pós-build fix-vite-map-deps.mjs adicionado
