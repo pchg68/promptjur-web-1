@@ -15,6 +15,7 @@ import { criarBackup, listarBackups, restaurarBackup } from "./backup";
 import { getSentryStatus, isSentryActive } from "./_core/sentry";
 import { enterpriseLeads, launchInterests, accessWhitelist } from "../drizzle/schema";
 import { addToWhitelist, removeFromWhitelist, listWhitelist } from "./whitelist";
+import { sendWelcomeEmail, sendWelcomeEmailBatch } from "./email";
 import { eq, desc, sql } from "drizzle-orm";
 
 // Middleware para verificar se é admin
@@ -749,17 +750,27 @@ export const adminRouter = router({
     .input(z.object({
       email: z.string().email(),
       nome: z.string().optional(),
+      enviarEmail: z.boolean().default(true),
     }))
     .mutation(async ({ input, ctx }) => {
       await addToWhitelist(input.email, input.nome, ctx.user.email ?? undefined);
+
+      // Enviar e-mail de boas-vindas (não bloqueia em caso de falha)
+      let emailResult: { success: boolean; skipped?: boolean } = { success: false, skipped: true };
+      if (input.enviarEmail) {
+        emailResult = await sendWelcomeEmail({ email: input.email, nome: input.nome });
+      }
+
       await logAuditoria({
         userId: ctx.user.id,
         acao: "add_whitelist",
-        descricao: `E-mail adicionado à whitelist: ${input.email}`,
-        metadata: { email: input.email },
+        descricao: `E-mail adicionado à whitelist: ${input.email}${
+          emailResult.skipped ? '' : emailResult.success ? ' (e-mail enviado)' : ' (falha no e-mail)'
+        }`,
+        metadata: { email: input.email, emailEnviado: emailResult.success, emailPulado: emailResult.skipped },
         req: ctx.req,
       });
-      return { success: true };
+      return { success: true, emailEnviado: emailResult.success && !emailResult.skipped, emailPulado: emailResult.skipped };
     }),
 
   removeWhitelist: adminProcedure
@@ -779,20 +790,31 @@ export const adminRouter = router({
   importWhitelist: adminProcedure
     .input(z.object({
       emails: z.array(z.string().email()).min(1).max(100),
+      enviarEmail: z.boolean().default(true),
     }))
     .mutation(async ({ input, ctx }) => {
       let adicionados = 0;
+      const recipients: Array<{ email: string }> = [];
+
       for (const email of input.emails) {
         await addToWhitelist(email, undefined, ctx.user.email ?? undefined);
         adicionados++;
+        if (input.enviarEmail) recipients.push({ email });
       }
+
+      // Envio em lote (não bloqueia em caso de falha parcial)
+      let emailStats = { enviados: 0, falhas: 0, pulados: adicionados };
+      if (recipients.length > 0) {
+        emailStats = await sendWelcomeEmailBatch(recipients);
+      }
+
       await logAuditoria({
         userId: ctx.user.id,
         acao: "import_whitelist",
-        descricao: `${adicionados} e-mail(s) importados para a whitelist`,
-        metadata: { total: adicionados },
+        descricao: `${adicionados} e-mail(s) importados para a whitelist (${emailStats.enviados} e-mails enviados)`,
+        metadata: { total: adicionados, emailsEnviados: emailStats.enviados, emailsFalha: emailStats.falhas },
         req: ctx.req,
       });
-      return { success: true, adicionados };
+      return { success: true, adicionados, emailsEnviados: emailStats.enviados, emailsFalha: emailStats.falhas };
     }),
 });

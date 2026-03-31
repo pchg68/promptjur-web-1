@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Shield,
   Plus,
@@ -14,6 +16,7 @@ import {
   XCircle,
   RefreshCw,
   Info,
+  Mail,
 } from "lucide-react";
 
 /**
@@ -24,14 +27,27 @@ export default function TabWhitelist() {
   const [novoNome, setNovoNome] = useState("");
   const [emailsImportar, setEmailsImportar] = useState("");
   const [mostrarImportar, setMostrarImportar] = useState(false);
+  const [enviarEmail, setEnviarEmail] = useState(true);
 
   const utils = trpc.useUtils();
 
   const { data: whitelist, isLoading, refetch } = trpc.admin.getWhitelist.useQuery();
 
   const addMutation = trpc.admin.addWhitelist.useMutation({
-    onSuccess: () => {
-      toast.success("E-mail adicionado à whitelist");
+    onSuccess: (data) => {
+      if (data.emailPulado) {
+        toast.success("E-mail adicionado à whitelist", {
+          description: "Configure RESEND_API_KEY para enviar e-mails automáticos",
+        });
+      } else if (data.emailEnviado) {
+        toast.success("E-mail adicionado e boas-vindas enviado!", {
+          description: "O usuário receberá o link de acesso por e-mail",
+        });
+      } else {
+        toast.warning("E-mail adicionado, mas falha ao enviar boas-vindas", {
+          description: "Verifique as configurações do Resend no painel",
+        });
+      }
       setNovoEmail("");
       setNovoNome("");
       utils.admin.getWhitelist.invalidate();
@@ -49,7 +65,19 @@ export default function TabWhitelist() {
 
   const importMutation = trpc.admin.importWhitelist.useMutation({
     onSuccess: (data) => {
-      toast.success(`${data.adicionados} e-mail(s) importados com sucesso`);
+      if (data.emailsEnviados > 0) {
+        toast.success(`${data.adicionados} e-mail(s) importados`, {
+          description: `${data.emailsEnviados} e-mail(s) de boas-vindas enviados${data.emailsFalha > 0 ? `, ${data.emailsFalha} falha(s)` : ''}`,
+        });
+      } else if (data.emailsFalha > 0) {
+        toast.warning(`${data.adicionados} e-mail(s) importados`, {
+          description: `Falha ao enviar ${data.emailsFalha} e-mail(s) de boas-vindas`,
+        });
+      } else {
+        toast.success(`${data.adicionados} e-mail(s) importados`, {
+          description: "Configure RESEND_API_KEY para enviar e-mails automáticos",
+        });
+      }
       setEmailsImportar("");
       setMostrarImportar(false);
       utils.admin.getWhitelist.invalidate();
@@ -59,7 +87,7 @@ export default function TabWhitelist() {
 
   const handleAdd = () => {
     if (!novoEmail.trim()) return;
-    addMutation.mutate({ email: novoEmail.trim(), nome: novoNome.trim() || undefined });
+    addMutation.mutate({ email: novoEmail.trim(), nome: novoNome.trim() || undefined, enviarEmail });
   };
 
   const handleImport = () => {
@@ -71,7 +99,7 @@ export default function TabWhitelist() {
       toast.error("Nenhum e-mail válido encontrado");
       return;
     }
-    importMutation.mutate({ emails });
+    importMutation.mutate({ emails, enviarEmail });
   };
 
   const ativos = whitelist?.filter((w) => w.ativo) ?? [];
@@ -130,6 +158,26 @@ export default function TabWhitelist() {
           <p className="text-2xl font-bold text-red-400">{inativos.length}</p>
           <p className="text-slate-400 text-xs">Removidos</p>
         </div>
+      </div>
+
+      {/* Toggle envio de e-mail */}
+      <div className="flex items-center justify-between bg-slate-800/40 border border-slate-700/30 rounded-xl p-4">
+        <div className="flex items-center gap-3">
+          <Mail className="w-4 h-4 text-blue-400" />
+          <div>
+            <Label className="text-slate-200 text-sm font-medium cursor-pointer" htmlFor="toggle-email">
+              Enviar e-mail de boas-vindas
+            </Label>
+            <p className="text-slate-500 text-xs">
+              Envia automaticamente o link de acesso ao adicionar e-mails
+            </p>
+          </div>
+        </div>
+        <Switch
+          id="toggle-email"
+          checked={enviarEmail}
+          onCheckedChange={setEnviarEmail}
+        />
       </div>
 
       {/* Formulário de adição */}
