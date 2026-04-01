@@ -19,6 +19,7 @@ import Planos from "./pages/Planos";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 import AcessoRestrito from "./pages/AcessoRestrito";
+import Contato from "./pages/Contato";
 import CookieBanner from "./components/CookieBanner";
 
 function Router() {
@@ -39,6 +40,7 @@ function Router() {
       <Route path={"/privacidade"} component={Privacidade} />
       <Route path={"/termos"} component={Termos} />
       <Route path={"/acesso-restrito"} component={AcessoRestrito} />
+      <Route path={"/contato"} component={Contato} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

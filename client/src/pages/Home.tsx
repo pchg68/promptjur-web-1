@@ -1,8 +1,9 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Scale, Sparkles, Shield, Zap, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Scale, Sparkles, Shield, Zap, ArrowRight, CheckCircle2, MessageSquare } from "lucide-react";
 import { APP_TITLE, getLoginUrl } from "@/const";
 import { Link } from "wouter";
+import FormContato from "@/components/FormContato";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -20,6 +21,9 @@ export default function Home() {
             <nav className="flex items-center gap-4">
               <Link href="/tutoriais">
                 <Button variant="ghost">Tutoriais</Button>
+              </Link>
+              <Link href="/contato">
+                <Button variant="ghost">Contato</Button>
               </Link>
               {isAuthenticated ? (
                 <>
@@ -215,6 +219,45 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Seção de Contato */}
+      <section className="py-20 px-6 bg-card/30" id="contato">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Texto */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
+                <MessageSquare className="w-4 h-4" />
+                Fale Conosco
+              </div>
+              <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Tem alguma dúvida ou sugestão?
+              </h3>
+              <p className="text-lg text-muted-foreground mb-6">
+                Nossa equipe está pronta para ajudar. Envie sua mensagem e
+                retornaremos em até 2 dias úteis.
+              </p>
+              <ul className="space-y-3">
+                {[
+                  "Dúvidas sobre planos e funcionalidades",
+                  "Suporte técnico e resolução de problemas",
+                  "Propostas de parceria e integração",
+                  "Feedback e sugestões de melhoria",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {/* Formulário */}
+            <div className="bg-card border border-border rounded-sm p-6 md:p-8">
+              <FormContato compact />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-border/50 py-8 px-6 mt-auto">
         <div className="container mx-auto">
@@ -226,7 +269,7 @@ export default function Home() {
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/termos" className="hover:text-foreground transition-colors">Termos de Uso</Link>
               <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
-              <a href="mailto:contato@promptjur.com" className="hover:text-foreground transition-colors">Contato</a>
+              <Link href="/contato" className="hover:text-foreground transition-colors">Contato</Link>
             </div>
           </div>
         </div>

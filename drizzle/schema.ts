@@ -503,3 +503,34 @@ export const accessWhitelist = mysqlTable("access_whitelist", {
 });
 export type AccessWhitelist = typeof accessWhitelist.$inferSelect;
 export type InsertAccessWhitelist = typeof accessWhitelist.$inferInsert;
+
+/**
+ * Tabela de mensagens de contato
+ * Armazena perguntas e feedback enviados pelos visitantes do site
+ */
+export const contactMessages = mysqlTable("contact_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  assunto: mysqlEnum("assunto", [
+    "duvida",
+    "feedback",
+    "suporte",
+    "parceria",
+    "outro",
+  ])
+    .default("duvida")
+    .notNull(),
+  mensagem: text("mensagem").notNull(),
+  /** IP do visitante para rate limiting */
+  ipAddress: varchar("ipAddress", { length: 64 }),
+  /** Status de leitura pelo admin */
+  lido: boolean("lido").default(false).notNull(),
+  /** Resposta enviada pelo admin (opcional) */
+  respostaAdmin: text("respostaAdmin"),
+  respondidoEm: timestamp("respondidoEm"),
+  criadoEm: timestamp("criadoEm").defaultNow().notNull(),
+});
+
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type InsertContactMessage = typeof contactMessages.$inferInsert;

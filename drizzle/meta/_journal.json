@@ -239,6 +239,13 @@
       "when": 1774986938650,
       "tag": "0033_shallow_sleeper",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1775008596618,
+      "tag": "0034_curious_carlie_cooper",
+      "breakpoints": true
     }
   ]
 }

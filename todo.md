@@ -2773,3 +2773,14 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 
 ## Correção Crítica - Página em Branco (31/03/2026)
 - [x] Fix página em branco em produção — dependências circulares no manualChunks do Vite removidas; script pós-build fix-vite-map-deps.mjs adicionado
+
+## Formulário de Contato
+- [ ] Tabela contact_messages no schema Drizzle
+- [ ] Migração do banco de dados (pnpm db:push)
+- [ ] Procedure tRPC: contato.enviar (validação Zod + e-mail + notificação admin)
+- [ ] Procedure tRPC: admin.listarMensagensContato (protegida)
+- [ ] Componente FormContato com campos: nome, e-mail, assunto, mensagem
+- [ ] Seção de contato na landing page (Home.tsx)
+- [ ] Rota /contato com página dedicada
+- [ ] Aba "Mensagens" no AdminTools para visualizar contatos recebidos
+- [ ] Testes Vitest para a procedure de contato
