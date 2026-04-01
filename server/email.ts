@@ -29,7 +29,7 @@ function getFromAddress(): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Template HTML de boas-vindas
+// Template HTML de boas-vindas (versão personalizada)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildWelcomeEmailHtml(opts: {
   nome?: string;
@@ -37,140 +37,111 @@ function buildWelcomeEmailHtml(opts: {
   appUrl: string;
 }): string {
   const nomeExibido = opts.nome ?? opts.email.split("@")[0];
+  const primeiroNome = nomeExibido.split(" ")[0];
   const ano = new Date().getFullYear();
+  const dashboardUrl = `${opts.appUrl}/dashboard`;
+  const contatoUrl = `${opts.appUrl}/contato`;
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
   <title>Bem-vindo ao PromptJur</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0a0f1a;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0f1a;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#060d1a;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#060d1a;padding:48px 16px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
 
-          <!-- Header com logo -->
+          <!-- ── Logo ── -->
           <tr>
-            <td align="center" style="padding-bottom:32px;">
-              <table cellpadding="0" cellspacing="0">
+            <td align="center" style="padding-bottom:36px;">
+              <table cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
-                  <td style="background:linear-gradient(135deg,#1e40af,#3b82f6);border-radius:12px;padding:12px 20px;">
-                    <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.5px;">
-                      ⚖️ PromptJur
-                    </span>
+                  <td style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);border-radius:14px;padding:13px 22px;">
+                    <span style="color:#ffffff;font-size:21px;font-weight:800;letter-spacing:-0.5px;">⚖️&nbsp; PromptJur</span>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Card principal -->
+          <!-- ── Card principal ── -->
           <tr>
-            <td style="background-color:#111827;border-radius:16px;border:1px solid #1f2937;overflow:hidden;">
+            <td style="background-color:#0f172a;border-radius:20px;border:1px solid #1e293b;overflow:hidden;">
 
-              <!-- Banner superior -->
-              <table width="100%" cellpadding="0" cellspacing="0">
+              <!-- Banner hero -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
-                  <td style="background:linear-gradient(135deg,#1e3a5f 0%,#1e40af 100%);padding:40px 40px 32px;">
-                    <p style="margin:0 0 8px;color:#93c5fd;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">
-                      Acesso Liberado
-                    </p>
-                    <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;line-height:1.2;">
-                      Bem-vindo ao PromptJur,<br/>${nomeExibido}!
+                  <td style="background:linear-gradient(135deg,#0f2d5c 0%,#1e40af 60%,#2563eb 100%);padding:44px 44px 36px;">
+                    <p style="margin:0 0 10px;color:#93c5fd;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">✅ Acesso Liberado</p>
+                    <h1 style="margin:0 0 14px;color:#ffffff;font-size:30px;font-weight:800;line-height:1.25;">
+                      Olá, ${primeiroNome}!<br/>
+                      <span style="color:#93c5fd;">Seu acesso ao PromptJur</span><br/>
+                      está liberado.
                     </h1>
+                    <p style="margin:0;color:#bfdbfe;font-size:14px;line-height:1.6;">
+                      Você foi selecionado(a) para acessar a plataforma de engenharia
+                      de prompts jurídicos com inteligência artificial.
+                    </p>
                   </td>
                 </tr>
               </table>
 
               <!-- Corpo -->
-              <table width="100%" cellpadding="0" cellspacing="0">
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
-                  <td style="padding:32px 40px;">
+                  <td style="padding:36px 44px;">
 
-                    <p style="margin:0 0 20px;color:#d1d5db;font-size:15px;line-height:1.6;">
-                      Seu e-mail foi adicionado à lista de acesso autorizado do
-                      <strong style="color:#ffffff;">PromptJur</strong> — a plataforma de
-                      engenharia de prompts jurídicos com inteligência artificial.
+                    <!-- Saudação personalizada -->
+                    <p style="margin:0 0 10px;color:#e2e8f0;font-size:15px;line-height:1.7;">
+                      Caro(a) <strong style="color:#ffffff;">${nomeExibido}</strong>,
+                    </p>
+                    <p style="margin:0 0 28px;color:#94a3b8;font-size:15px;line-height:1.7;">
+                      É com satisfação que informamos que seu e-mail
+                      <strong style="color:#cbd5e1;">${opts.email}</strong>
+                      foi adicionado à lista de acesso autorizado do PromptJur.
+                      A partir de agora, você pode acessar todos os recursos da plataforma
+                      e começar a transformar seus prompts jurídicos em peças profissionais
+                      com precisão e agilidade.
                     </p>
 
-                    <p style="margin:0 0 28px;color:#d1d5db;font-size:15px;line-height:1.6;">
-                      Você já pode acessar a plataforma e começar a transformar seus
-                      prompts jurídicos em peças profissionais.
-                    </p>
-
-                    <!-- CTA Button -->
-                    <table cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                    <!-- CTA principal -->
+                    <table cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:36px;">
                       <tr>
-                        <td style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:10px;">
-                          <a href="${opts.appUrl}"
-                             style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.3px;">
-                            Acessar o PromptJur →
+                        <td style="background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 100%);border-radius:12px;box-shadow:0 4px 14px rgba(59,130,246,0.4);">
+                          <a href="${dashboardUrl}"
+                             style="display:inline-block;padding:15px 36px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;letter-spacing:0.2px;">
+                            Acessar o Dashboard →
                           </a>
                         </td>
                       </tr>
                     </table>
 
                     <!-- Divisor -->
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-                      <tr>
-                        <td style="border-top:1px solid #1f2937;"></td>
-                      </tr>
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr><td style="border-top:1px solid #1e293b;"></td></tr>
                     </table>
 
-                    <!-- Funcionalidades -->
-                    <p style="margin:0 0 16px;color:#9ca3af;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">
-                      O que você pode fazer
-                    </p>
+                    <!-- Primeiros passos -->
+                    <p style="margin:0 0 20px;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Primeiros Passos</p>
 
-                    <table width="100%" cellpadding="0" cellspacing="0">
+                    <!-- Passo 1 -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:14px;">
                       <tr>
-                        <td style="padding:10px 0;border-bottom:1px solid #1f2937;">
-                          <table cellpadding="0" cellspacing="0">
+                        <td style="background-color:#0f1f3d;border:1px solid #1e3a5f;border-radius:12px;padding:16px 20px;">
+                          <table cellpadding="0" cellspacing="0" role="presentation">
                             <tr>
-                              <td style="width:32px;vertical-align:top;padding-top:2px;">
-                                <span style="color:#3b82f6;font-size:16px;">🔍</span>
+                              <td style="width:36px;vertical-align:top;padding-top:1px;">
+                                <span style="display:inline-block;width:26px;height:26px;background:#1d4ed8;border-radius:50%;text-align:center;line-height:26px;color:#ffffff;font-size:12px;font-weight:700;">1</span>
                               </td>
-                              <td>
-                                <strong style="color:#f3f4f6;font-size:14px;">Analisar Prompts</strong>
-                                <p style="margin:2px 0 0;color:#6b7280;font-size:13px;">
-                                  Avalie clareza, precisão jurídica e qualidade técnica
-                                </p>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:10px 0;border-bottom:1px solid #1f2937;">
-                          <table cellpadding="0" cellspacing="0">
-                            <tr>
-                              <td style="width:32px;vertical-align:top;padding-top:2px;">
-                                <span style="color:#3b82f6;font-size:16px;">✨</span>
-                              </td>
-                              <td>
-                                <strong style="color:#f3f4f6;font-size:14px;">Gerar Prompts Profissionais</strong>
-                                <p style="margin:2px 0 0;color:#6b7280;font-size:13px;">
-                                  Crie prompts otimizados para petições, contratos e pareceres
-                                </p>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:10px 0;">
-                          <table cellpadding="0" cellspacing="0">
-                            <tr>
-                              <td style="width:32px;vertical-align:top;padding-top:2px;">
-                                <span style="color:#3b82f6;font-size:16px;">🚀</span>
-                              </td>
-                              <td>
-                                <strong style="color:#f3f4f6;font-size:14px;">Otimizar e Salvar Templates</strong>
-                                <p style="margin:2px 0 0;color:#6b7280;font-size:13px;">
-                                  Refine prompts existentes e salve na sua biblioteca pessoal
+                              <td style="padding-left:12px;">
+                                <strong style="color:#e2e8f0;font-size:14px;">Faça login com sua conta Manus</strong>
+                                <p style="margin:4px 0 0;color:#64748b;font-size:13px;line-height:1.5;">
+                                  Acesse <a href="${opts.appUrl}" style="color:#60a5fa;text-decoration:none;">promptjur.com</a> e clique em <em>"Acessar Dashboard"</em>. Use o mesmo e-mail deste convite.
                                 </p>
                               </td>
                             </tr>
@@ -179,14 +150,93 @@ function buildWelcomeEmailHtml(opts: {
                       </tr>
                     </table>
 
-                    <!-- Nota de fase de testes -->
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;">
+                    <!-- Passo 2 -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:14px;">
                       <tr>
-                        <td style="background-color:#1c2a1a;border:1px solid #166534;border-radius:8px;padding:14px 16px;">
-                          <p style="margin:0;color:#86efac;font-size:13px;line-height:1.5;">
-                            <strong>Fase de Testes:</strong> Você está entre os primeiros usuários
-                            selecionados. Seu feedback é muito valioso para aprimorarmos a plataforma.
+                        <td style="background-color:#0f1f3d;border:1px solid #1e3a5f;border-radius:12px;padding:16px 20px;">
+                          <table cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                              <td style="width:36px;vertical-align:top;padding-top:1px;">
+                                <span style="display:inline-block;width:26px;height:26px;background:#1d4ed8;border-radius:50%;text-align:center;line-height:26px;color:#ffffff;font-size:12px;font-weight:700;">2</span>
+                              </td>
+                              <td style="padding-left:12px;">
+                                <strong style="color:#e2e8f0;font-size:14px;">Explore o Gerador de Prompts</strong>
+                                <p style="margin:4px 0 0;color:#64748b;font-size:13px;line-height:1.5;">
+                                  No menu lateral, clique em <em>"Gerar Prompt"</em>. Selecione o tipo de peça jurídica, preencha os dados e gere seu primeiro prompt profissional.
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Passo 3 -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr>
+                        <td style="background-color:#0f1f3d;border:1px solid #1e3a5f;border-radius:12px;padding:16px 20px;">
+                          <table cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                              <td style="width:36px;vertical-align:top;padding-top:1px;">
+                                <span style="display:inline-block;width:26px;height:26px;background:#1d4ed8;border-radius:50%;text-align:center;line-height:26px;color:#ffffff;font-size:12px;font-weight:700;">3</span>
+                              </td>
+                              <td style="padding-left:12px;">
+                                <strong style="color:#e2e8f0;font-size:14px;">Salve seus Templates Favoritos</strong>
+                                <p style="margin:4px 0 0;color:#64748b;font-size:13px;line-height:1.5;">
+                                  Após gerar um prompt, clique em <em>"Salvar"</em> para adicioná-lo à sua biblioteca pessoal e reutilizá-lo a qualquer momento.
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Divisor -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:28px;">
+                      <tr><td style="border-top:1px solid #1e293b;"></td></tr>
+                    </table>
+
+                    <!-- Dica em destaque -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border:1px solid #2563eb;border-left:4px solid #3b82f6;border-radius:12px;padding:18px 20px;">
+                          <p style="margin:0 0 6px;color:#60a5fa;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">💡 Dica de Uso</p>
+                          <p style="margin:0;color:#cbd5e1;font-size:14px;line-height:1.6;">
+                            Para melhores resultados, seja específico ao descrever o contexto da peça jurídica:
+                            informe a <strong style="color:#e2e8f0;">área do direito</strong>, o
+                            <strong style="color:#e2e8f0;">tipo de documento</strong> e os
+                            <strong style="color:#e2e8f0;">pontos principais</strong> que devem constar.
+                            Quanto mais detalhes, mais preciso será o prompt gerado.
                           </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Fase de testes -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr>
+                        <td style="background-color:#0d2218;border:1px solid #166534;border-radius:12px;padding:16px 20px;">
+                          <p style="margin:0 0 4px;color:#4ade80;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">🧪 Fase de Acesso Antecipado</p>
+                          <p style="margin:0;color:#86efac;font-size:13px;line-height:1.6;">
+                            Você está entre os primeiros usuários selecionados do PromptJur.
+                            Sua experiência e feedback são fundamentais para aprimorarmos a plataforma.
+                            Encontrou algo a melhorar?
+                            <a href="${contatoUrl}" style="color:#4ade80;text-decoration:underline;">Envie sua sugestão aqui</a>.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Assinatura -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                      <tr>
+                        <td style="border-top:1px solid #1e293b;padding-top:24px;">
+                          <p style="margin:0 0 4px;color:#94a3b8;font-size:14px;line-height:1.6;">
+                            Atenciosamente,
+                          </p>
+                          <p style="margin:0 0 2px;color:#e2e8f0;font-size:15px;font-weight:700;">Equipe PromptJur</p>
+                          <p style="margin:0;color:#475569;font-size:13px;">Sistema de Engenharia de Prompts Jurídicos</p>
                         </td>
                       </tr>
                     </table>
@@ -200,11 +250,18 @@ function buildWelcomeEmailHtml(opts: {
 
           <!-- Rodapé -->
           <tr>
-            <td style="padding:24px 0 0;text-align:center;">
-              <p style="margin:0 0 8px;color:#4b5563;font-size:12px;">
-                Este e-mail foi enviado para <strong style="color:#6b7280;">${opts.email}</strong>
+            <td style="padding:28px 0 0;text-align:center;">
+              <p style="margin:0 0 10px;">
+                <a href="${opts.appUrl}" style="color:#3b82f6;text-decoration:none;font-size:13px;margin:0 10px;">Site</a>
+                <span style="color:#334155;">·</span>
+                <a href="${dashboardUrl}" style="color:#3b82f6;text-decoration:none;font-size:13px;margin:0 10px;">Dashboard</a>
+                <span style="color:#334155;">·</span>
+                <a href="${contatoUrl}" style="color:#3b82f6;text-decoration:none;font-size:13px;margin:0 10px;">Contato</a>
               </p>
-              <p style="margin:0;color:#374151;font-size:12px;">
+              <p style="margin:0 0 6px;color:#334155;font-size:12px;">
+                Este e-mail foi enviado para <strong style="color:#475569;">${opts.email}</strong> porque seu endereço foi adicionado à lista de acesso do PromptJur.
+              </p>
+              <p style="margin:0;color:#1e293b;font-size:12px;">
                 © ${ano} PromptJur — Sistema de Engenharia de Prompts Jurídicos
               </p>
             </td>
@@ -216,6 +273,68 @@ function buildWelcomeEmailHtml(opts: {
   </table>
 </body>
 </html>`;
+}
+
+// Versão texto simples do e-mail de boas-vindas (melhora entregabilidade)
+// ─────────────────────────────────────────────────────────────────────────────
+function buildWelcomeEmailText(opts: {
+  nome?: string;
+  email: string;
+  appUrl: string;
+}): string {
+  const nomeExibido = opts.nome ?? opts.email.split("@")[0];
+  const primeiroNome = nomeExibido.split(" ")[0];
+  const dashboardUrl = `${opts.appUrl}/dashboard`;
+  const contatoUrl = `${opts.appUrl}/contato`;
+  const ano = new Date().getFullYear();
+
+  return `Olá, ${primeiroNome}!
+
+Seu acesso ao PromptJur foi liberado.
+
+Caro(a) ${nomeExibido},
+
+É com satisfação que informamos que seu e-mail (${opts.email}) foi adicionado à lista de acesso autorizado do PromptJur — a plataforma de engenharia de prompts jurídicos com inteligência artificial.
+
+ACESSE AGORA
+${dashboardUrl}
+
+──────────────────────────────
+PRIMEIROS PASSOS
+──────────────────────────────
+
+1. Faça login com sua conta Manus
+   Acesse ${opts.appUrl} e clique em "Acessar Dashboard".
+   Use o mesmo e-mail deste convite.
+
+2. Explore o Gerador de Prompts
+   No menu lateral, clique em "Gerar Prompt".
+   Selecione o tipo de peça jurídica e gere seu primeiro prompt profissional.
+
+3. Salve seus Templates Favoritos
+   Após gerar um prompt, clique em "Salvar" para adicioná-lo à sua biblioteca pessoal.
+
+──────────────────────────────
+DICA DE USO
+──────────────────────────────
+
+Para melhores resultados, seja específico ao descrever o contexto da peça jurídica: informe a área do direito, o tipo de documento e os pontos principais que devem constar. Quanto mais detalhes, mais preciso será o prompt gerado.
+
+──────────────────────────────
+FASE DE ACESSO ANTECIPADO
+──────────────────────────────
+
+Você está entre os primeiros usuários selecionados do PromptJur. Sua experiência e feedback são fundamentais para aprimorarmos a plataforma. Encontrou algo a melhorar? Envie sua sugestão em: ${contatoUrl}
+
+──────────────────────────────
+
+Atenciosamente,
+Equipe PromptJur
+Sistema de Engenharia de Prompts Jurídicos
+
+© ${ano} PromptJur — ${opts.appUrl}
+Este e-mail foi enviado para ${opts.email} porque seu endereço foi adicionado à lista de acesso do PromptJur.
+`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -246,11 +365,18 @@ export async function sendWelcomeEmail(opts: {
   const appUrl = getAppUrl();
 
   try {
+    const nomeExibido = opts.nome ?? opts.email.split("@")[0];
+    const primeiroNome = nomeExibido.split(" ")[0];
     const { data, error } = await resend.emails.send({
       from: getFromAddress(),
       to: [opts.email],
-      subject: "🎉 Seu acesso ao PromptJur foi liberado!",
+      subject: `✅ ${primeiroNome}, seu acesso ao PromptJur foi liberado!`,
       html: buildWelcomeEmailHtml({
+        nome: opts.nome,
+        email: opts.email,
+        appUrl,
+      }),
+      text: buildWelcomeEmailText({
         nome: opts.nome,
         email: opts.email,
         appUrl,
