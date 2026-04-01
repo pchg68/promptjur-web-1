@@ -2784,3 +2784,9 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [ ] Rota /contato com página dedicada
 - [ ] Aba "Mensagens" no AdminTools para visualizar contatos recebidos
 - [ ] Testes Vitest para a procedure de contato
+
+## SEO
+- [x] Adicionar meta description na página inicial
+- [x] Adicionar meta keywords na página inicial
+- [x] Adicionar Open Graph tags (og:title, og:description, og:type, og:url)
+- [x] Corrigir lang="en" para lang="pt-BR" no index.html

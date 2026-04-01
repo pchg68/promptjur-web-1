@@ -1,12 +1,22 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Scale, Sparkles, Shield, Zap, ArrowRight, CheckCircle2, MessageSquare } from "lucide-react";
+import { Scale, Sparkles, Shield, Zap, ArrowRight, CheckCircle2, MessageSquare, LogOut, LayoutDashboard, User } from "lucide-react";
 import { APP_TITLE, getLoginUrl } from "@/const";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import FormContato from "@/components/FormContato";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Home() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [, setLocation] = useLocation();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -26,12 +36,58 @@ export default function Home() {
                 <Button variant="ghost">Contato</Button>
               </Link>
               {isAuthenticated ? (
-                <>
-                  <span className="text-sm text-muted-foreground">Olá, {user?.name}</span>
-                  <Link href="/dashboard">
-                    <Button variant="default">Dashboard</Button>
-                  </Link>
-                </>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-accent/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                      <Avatar className="h-8 w-8 border">
+                        <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
+                          {user?.name?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-foreground hidden sm:block">{user?.name}</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user?.name || "-"}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {user?.role === 'admin' && (
+                      <DropdownMenuItem
+                        onClick={() => setLocation('/admin-tools')}
+                        className="cursor-pointer"
+                      >
+                        <Shield className="mr-2 h-4 w-4 text-primary" />
+                        <span className="font-medium">Admin Tools</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      onClick={() => setLocation('/dashboard')}
+                      className="cursor-pointer"
+                    >
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setLocation('/configuracoes')}
+                      className="cursor-pointer"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Meu Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={logout}
+                      className="cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sair</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <>
                   <a href={getLoginUrl()}>

@@ -7,6 +7,13 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   Shield,
   Plus,
   Trash2,
@@ -20,6 +27,7 @@ import {
   Download,
   Clock,
   CalendarDays,
+  Eye,
 } from "lucide-react";
 
 /**
@@ -35,6 +43,7 @@ export default function TabWhitelist() {
   const [expiraImportar, setExpiraImportar] = useState(""); // YYYY-MM-DD para importação em lote
   const [mostrarImportar, setMostrarImportar] = useState(false);
   const [enviarEmail, setEnviarEmail] = useState(true);
+  const [mostrarPrevia, setMostrarPrevia] = useState(false);
 
   const utils = trpc.useUtils();
 
@@ -190,6 +199,16 @@ export default function TabWhitelist() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMostrarPrevia(true)}
+            className="text-slate-400 hover:text-blue-400 gap-1 text-xs"
+            title="Visualizar e-mail de boas-vindas"
+          >
+            <Eye className="w-4 h-4" />
+            Prévia
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -501,6 +520,110 @@ export default function TabWhitelist() {
           </details>
         )}
       </div>
+
+      {/* Modal de prévia do e-mail de boas-vindas */}
+      <Dialog open={mostrarPrevia} onOpenChange={setMostrarPrevia}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-[#0a1628] border-[#1e3a5f]">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Eye className="w-5 h-5 text-blue-400" />
+              Prévia do E-mail de Boas-vindas
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Este é o e-mail enviado automaticamente ao adicionar um novo usuário à whitelist.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 space-y-3">
+            <div className="bg-[#060d1a] border border-[#1e3a5f] rounded-lg p-3 text-xs text-slate-400 space-y-1">
+              <p><span className="text-slate-500">De:</span> <span className="text-white">PromptJur &lt;onboarding@resend.dev&gt;</span></p>
+              <p><span className="text-slate-500">Para:</span> <span className="text-white">nome@exemplo.com.br</span></p>
+              <p><span className="text-slate-500">Assunto:</span> <span className="text-white">✅ [Nome], seu acesso ao PromptJur foi liberado!</span></p>
+            </div>
+            <div className="rounded-xl overflow-hidden border border-[#1e3a5f]">
+              <iframe
+                srcDoc={getEmailPreviewHtml()}
+                title="Prévia do e-mail"
+                className="w-full"
+                style={{ height: '520px', border: 'none' }}
+                sandbox="allow-same-origin"
+              />
+            </div>
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+              <p className="text-amber-300 text-xs">
+                ⚠️ O remetente atual é <code className="bg-amber-500/10 px-1 rounded">onboarding@resend.dev</code> (domínio de teste).
+                Para usar <code className="bg-amber-500/10 px-1 rounded">noreply@promptjur.com</code>, verifique o domínio no painel do Resend.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+}
+
+// Gera o HTML de prévia do e-mail de boas-vindas (versão simplificada para iframe)
+function getEmailPreviewHtml(): string {
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { margin: 0; padding: 0; background: #0a0f1e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .container { max-width: 600px; margin: 0 auto; background: #0a0f1e; }
+  .hero { background: linear-gradient(135deg, #1a3a6b 0%, #0d2040 50%, #0a0f1e 100%); padding: 40px 32px 32px; text-align: center; }
+  .logo { font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .logo span { color: #60a5fa; }
+  .tagline { color: #93c5fd; font-size: 13px; }
+  .badge { display: inline-block; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; font-size: 11px; padding: 4px 12px; border-radius: 20px; margin-top: 16px; }
+  .body { padding: 32px; }
+  .greeting { font-size: 22px; font-weight: 700; color: #ffffff; margin-bottom: 12px; }
+  .text { color: #94a3b8; font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
+  .steps { background: #0f1f3d; border: 1px solid #1e3a5f; border-radius: 12px; padding: 20px; margin: 20px 0; }
+  .steps h3 { color: #60a5fa; font-size: 13px; font-weight: 600; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num { width: 24px; height: 24px; background: #1d4ed8; border-radius: 50%; color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-text { color: #cbd5e1; font-size: 13px; line-height: 1.5; }
+  .cta { text-align: center; margin: 24px 0; }
+  .btn { display: inline-block; background: linear-gradient(135deg, #1d4ed8, #1e40af); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px; }
+  .tip { background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05)); border: 1px solid rgba(16,185,129,0.2); border-radius: 12px; padding: 16px; margin: 20px 0; }
+  .tip-title { color: #34d399; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+  .tip-text { color: #6ee7b7; font-size: 13px; line-height: 1.5; }
+  .footer { background: #060d1a; padding: 24px 32px; text-align: center; border-top: 1px solid #1e293b; }
+  .footer p { color: #475569; font-size: 12px; margin: 4px 0; }
+  .footer a { color: #60a5fa; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <div class="logo">Prompt<span>Jur</span></div>
+    <div class="tagline">Engenharia de Prompts Jurídicos com IA</div>
+    <div class="badge">✨ Acesso Antecipado Liberado</div>
+  </div>
+  <div class="body">
+    <div class="greeting">Olá, [Nome]! 🙌</div>
+    <p class="text">Seu acesso ao <strong style="color:#60a5fa">PromptJur</strong> foi liberado! Você agora faz parte de um grupo seleto de profissionais jurídicos que estão moldando o futuro da advocacia com inteligência artificial.</p>
+    <div class="steps">
+      <h3>🚀 Primeiros Passos</h3>
+      <div class="step"><div class="step-num">1</div><div class="step-text"><strong style="color:#e2e8f0">Acesse o Dashboard</strong> — clique no botão abaixo e faça login com sua conta</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text"><strong style="color:#e2e8f0">Explore os Prompts</strong> — navegue pela biblioteca de prompts jurídicos prontos para usar</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text"><strong style="color:#e2e8f0">Crie seus Prompts</strong> — personalize e salve seus próprios templates jurídicos</div></div>
+    </div>
+    <div class="cta"><a href="https://promptjur.com/dashboard" class="btn">🔑 Acessar o PromptJur</a></div>
+    <div class="tip">
+      <div class="tip-title">💡 Dica de Uso</div>
+      <div class="tip-text">Use os prompts de <strong>petição inicial</strong> como ponto de partida. Eles já incluem a estrutura completa exigida pelo CPC e podem ser adaptados para qualquer área do direito em segundos.</div>
+    </div>
+    <p class="text" style="font-size:13px">Qualquer dúvida, responda este e-mail ou acesse nossa <a href="https://promptjur.com/contato" style="color:#60a5fa">página de contato</a>. Estamos aqui para ajudar!</p>
+    <p class="text" style="font-size:13px">Com gratidão,<br><strong style="color:#e2e8f0">Equipe PromptJur</strong></p>
+  </div>
+  <div class="footer">
+    <p>PromptJur &mdash; Engenharia de Prompts Jurídicos</p>
+    <p><a href="https://promptjur.com">promptjur.com</a> &bull; <a href="https://promptjur.com/contato">Contato</a> &bull; <a href="https://promptjur.com/privacidade">Privacidade</a></p>
+    <p style="margin-top:12px;color:#334155">Você recebeu este e-mail porque seu endereço foi adicionado à lista de acesso do PromptJur.</p>
+  </div>
+</div>
+</body>
+</html>`;
 }

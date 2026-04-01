@@ -9,6 +9,7 @@ import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2
 import TabLeads from "@/components/TabLeads";
 import TabInteressados from "@/components/TabInteressados";
 import TabWhitelist from "@/components/TabWhitelist";
+import TabMensagens from "@/components/TabMensagens";
 import { useLocation } from "wouter";
 
 export default function AdminTools() {
@@ -186,6 +187,11 @@ export default function AdminTools() {
             <h1 className="text-3xl font-bold">Ferramentas Administrativas</h1>
             <p className="text-muted-foreground">Acesso restrito a administradores</p>
           </div>
+        </div>
+
+        {/* Mensagens de Contato */}
+        <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
+          <TabMensagens />
         </div>
 
         {/* Painel de Leads Enterprise */}

@@ -4,6 +4,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -250,16 +251,30 @@ function DashboardLayoutContent({
                   </div>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user?.name || "-"}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 {user?.role === 'admin' && (
                   <DropdownMenuItem
                     onClick={() => setLocation('/admin-tools')}
                     className="cursor-pointer"
                   >
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>Admin Tools</span>
+                    <Shield className="mr-2 h-4 w-4 text-primary" />
+                    <span className="font-medium">Admin Tools</span>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem
+                  onClick={() => setLocation('/configuracoes')}
+                  className="cursor-pointer"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  <span>Meu Perfil</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setLocation('/termos')}
                   className="cursor-pointer"
@@ -280,7 +295,7 @@ function DashboardLayoutContent({
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
