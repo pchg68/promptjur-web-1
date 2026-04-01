@@ -25,7 +25,15 @@ function getAppUrl(): string {
 
 /** Remetente padrão — deve ser um domínio verificado no Resend */
 function getFromAddress(): string {
-  return process.env.EMAIL_FROM ?? "PromptJur <noreply@promptjur.com>";
+  // Se EMAIL_FROM estiver configurado com domínio verificado no Resend, usa-o.
+  // Caso contrário, usa o domínio padrão do Resend (onboarding@resend.dev),
+  // que funciona sem verificação de domínio e é aceito em qualquer conta Resend.
+  const configured = process.env.EMAIL_FROM;
+  if (configured && !configured.includes("promptjur.com")) {
+    return configured;
+  }
+  // Fallback seguro: domínio padrão do Resend (não requer verificação)
+  return "PromptJur <onboarding@resend.dev>";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -402,32 +410,34 @@ export async function sendWelcomeEmail(opts: {
 function buildLaunchEmailHtml(opts: {
   email: string;
   appUrl: string;
+  nome?: string;
 }): string {
   const ano = new Date().getFullYear();
   const planosUrl = `${opts.appUrl}/planos`;
+  const contatoUrl = `${opts.appUrl}/contato`;
+  const nomeDisplay = opts.nome ? opts.nome.split(' ')[0] : 'Advogado(a)';
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
   <title>PromptJur — Planos pagos disponíveis!</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0a0f1a;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0f1a;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#060d1a;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#060d1a;padding:48px 16px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
 
-          <!-- Header com logo -->
+          <!-- Logo -->
           <tr>
-            <td align="center" style="padding-bottom:32px;">
-              <table cellpadding="0" cellspacing="0">
+            <td align="center" style="padding-bottom:36px;">
+              <table cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
-                  <td style="background:linear-gradient(135deg,#1e40af,#3b82f6);border-radius:12px;padding:12px 20px;">
-                    <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.5px;">
-                      ⚖️ PromptJur
-                    </span>
+                  <td style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);border-radius:14px;padding:13px 22px;">
+                    <span style="color:#ffffff;font-size:21px;font-weight:800;letter-spacing:-0.5px;">⚖️&nbsp; PromptJur</span>
                   </td>
                 </tr>
               </table>
@@ -436,39 +446,46 @@ function buildLaunchEmailHtml(opts: {
 
           <!-- Card principal -->
           <tr>
-            <td style="background-color:#111827;border-radius:16px;border:1px solid #1f2937;overflow:hidden;">
+            <td style="background-color:#0f172a;border-radius:20px;border:1px solid #1e293b;overflow:hidden;">
 
-              <!-- Banner superior -->
-              <table width="100%" cellpadding="0" cellspacing="0">
+              <!-- Banner hero verde (lançamento) -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
-                  <td style="background:linear-gradient(135deg,#14532d 0%,#166534 100%);padding:40px 40px 32px;">
-                    <p style="margin:0 0 8px;color:#86efac;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">
-                      🎉 Novidade
-                    </p>
-                    <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;line-height:1.2;">
-                      Os planos pagos do PromptJur estão disponíveis!
+                  <td style="background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);padding:44px 44px 36px;">
+                    <p style="margin:0 0 10px;color:#86efac;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">🎉 Grande Novidade</p>
+                    <h1 style="margin:0 0 14px;color:#ffffff;font-size:30px;font-weight:800;line-height:1.25;">
+                      Olá, ${nomeDisplay}!<br/>
+                      <span style="color:#86efac;">Os planos pagos do PromptJur</span><br/>
+                      estão disponíveis!
                     </h1>
+                    <p style="margin:0;color:#bbf7d0;font-size:14px;line-height:1.6;">
+                      Você foi um dos primeiros a demonstrar interesse. Agora é a hora de dar o próximo passo.
+                    </p>
                   </td>
                 </tr>
               </table>
 
               <!-- Corpo -->
-              <table width="100%" cellpadding="0" cellspacing="0">
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
-                  <td style="padding:32px 40px;">
+                  <td style="padding:36px 44px;">
 
-                    <p style="margin:0 0 20px;color:#d1d5db;font-size:15px;line-height:1.6;">
-                      Você demonstrou interesse nos planos pagos do <strong style="color:#ffffff;">PromptJur</strong>.
-                      Temos o prazer de informar que os planos <strong style="color:#ffffff;">Pro</strong> e
-                      <strong style="color:#ffffff;">Escritório</strong> já estão disponíveis para contratação.
+                    <p style="margin:0 0 10px;color:#e2e8f0;font-size:15px;line-height:1.7;">
+                      Caro(a) <strong style="color:#ffffff;">${opts.nome ?? opts.email.split('@')[0]}</strong>,
+                    </p>
+                    <p style="margin:0 0 28px;color:#94a3b8;font-size:15px;line-height:1.7;">
+                      Você demonstrou interesse nos planos pagos do <strong style="color:#cbd5e1;">PromptJur</strong>
+                      e chegou a hora de transformar sua prática jurídica com inteligência artificial.
+                      Os planos <strong style="color:#cbd5e1;">Pro</strong> e <strong style="color:#cbd5e1;">Escritório</strong>
+                      já estão disponíveis para contratação.
                     </p>
 
-                    <!-- CTA Button -->
-                    <table cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                    <!-- CTA principal -->
+                    <table cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:36px;">
                       <tr>
-                        <td style="background:linear-gradient(135deg,#15803d,#22c55e);border-radius:10px;">
+                        <td style="background:linear-gradient(135deg,#15803d 0%,#22c55e 100%);border-radius:12px;box-shadow:0 4px 14px rgba(34,197,94,0.35);">
                           <a href="${planosUrl}"
-                             style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.3px;">
+                             style="display:inline-block;padding:15px 36px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;letter-spacing:0.2px;">
                             Ver Planos e Preços →
                           </a>
                         </td>
@@ -476,39 +493,61 @@ function buildLaunchEmailHtml(opts: {
                     </table>
 
                     <!-- Divisor -->
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-                      <tr>
-                        <td style="border-top:1px solid #1f2937;"></td>
-                      </tr>
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr><td style="border-top:1px solid #1e293b;"></td></tr>
                     </table>
 
-                    <!-- Planos -->
-                    <p style="margin:0 0 16px;color:#9ca3af;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">
-                      Planos disponíveis
-                    </p>
+                    <!-- Planos disponíveis -->
+                    <p style="margin:0 0 16px;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Planos Disponíveis</p>
 
-                    <table width="100%" cellpadding="0" cellspacing="0">
+                    <!-- Plano Pro -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:12px;">
                       <tr>
-                        <td style="padding:12px 0;border-bottom:1px solid #1f2937;">
-                          <strong style="color:#f3f4f6;font-size:14px;">⚡ Plano Pro</strong>
-                          <p style="margin:4px 0 0;color:#6b7280;font-size:13px;">
-                            300 operações/mês, modelos profissionais, exportação DOCX/PDF
-                          </p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:12px 0;">
-                          <strong style="color:#f3f4f6;font-size:14px;">🏢 Plano Escritório</strong>
-                          <p style="margin:4px 0 0;color:#6b7280;font-size:13px;">
-                            Operações ilimitadas, múltiplos usuários, suporte dedicado
+                        <td style="background-color:#0f1f3d;border:1px solid #1e3a5f;border-radius:12px;padding:16px 20px;">
+                          <strong style="color:#60a5fa;font-size:14px;">⚡ Plano Pro</strong>
+                          <p style="margin:6px 0 0;color:#64748b;font-size:13px;line-height:1.5;">
+                            300 operações/mês · Modelos profissionais · Exportação DOCX/PDF · Suporte prioritário
                           </p>
                         </td>
                       </tr>
                     </table>
 
-                    <p style="margin:24px 0 0;color:#6b7280;font-size:12px;line-height:1.5;">
-                      Você recebeu este e-mail porque demonstrou interesse nos planos pagos do PromptJur.
-                      Se não deseja mais receber comunicações, entre em contato conosco.
+                    <!-- Plano Escritório -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr>
+                        <td style="background-color:#0f1f3d;border:1px solid #1e3a5f;border-radius:12px;padding:16px 20px;">
+                          <strong style="color:#a78bfa;font-size:14px;">🏢 Plano Escritório</strong>
+                          <p style="margin:6px 0 0;color:#64748b;font-size:13px;line-height:1.5;">
+                            Operações ilimitadas · Múltiplos usuários · Suporte dedicado · Integração com sistemas
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Divisor -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:28px;">
+                      <tr><td style="border-top:1px solid #1e293b;"></td></tr>
+                    </table>
+
+                    <!-- Dica de uso -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr>
+                        <td style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(5,150,105,0.04));border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:20px 24px;">
+                          <p style="margin:0 0 6px;color:#34d399;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">💡 Dica de Uso</p>
+                          <p style="margin:0;color:#6ee7b7;font-size:13px;line-height:1.6;">
+                            Comece pelo gerador de <strong>petições iniciais</strong>: preencha os dados do caso,
+                            selecione o tipo de ação e o PromptJur gera um prompt estruturado pronto para usar
+                            no ChatGPT, Claude ou qualquer outro modelo de IA.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Assinatura -->
+                    <p style="margin:0 0 4px;color:#94a3b8;font-size:14px;line-height:1.6;">Com gratidão,</p>
+                    <p style="margin:0 0 4px;color:#ffffff;font-size:14px;font-weight:700;">Equipe PromptJur</p>
+                    <p style="margin:0;color:#475569;font-size:13px;">
+                      Dúvidas? <a href="${contatoUrl}" style="color:#60a5fa;text-decoration:none;">Entre em contato</a>
                     </p>
 
                   </td>
@@ -520,11 +559,16 @@ function buildLaunchEmailHtml(opts: {
 
           <!-- Rodapé -->
           <tr>
-            <td style="padding:24px 0 0;text-align:center;">
-              <p style="margin:0 0 8px;color:#4b5563;font-size:12px;">
-                Este e-mail foi enviado para <strong style="color:#6b7280;">${opts.email}</strong>
+            <td style="padding:28px 0 0;text-align:center;">
+              <p style="margin:0 0 6px;color:#334155;font-size:12px;">
+                Este e-mail foi enviado para <strong style="color:#475569;">${opts.email}</strong>
               </p>
-              <p style="margin:0;color:#374151;font-size:12px;">
+              <p style="margin:0 0 6px;color:#1e293b;font-size:12px;">
+                <a href="${opts.appUrl}" style="color:#334155;text-decoration:none;">promptjur.com</a>
+                &nbsp;·&nbsp;
+                <a href="${contatoUrl}" style="color:#334155;text-decoration:none;">Contato</a>
+              </p>
+              <p style="margin:0;color:#1e293b;font-size:11px;">
                 © ${ano} PromptJur — Sistema de Engenharia de Prompts Jurídicos
               </p>
             </td>
