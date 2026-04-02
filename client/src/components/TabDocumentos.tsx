@@ -13,6 +13,7 @@ import { AREAS_JURIDICAS } from "@shared/juridico";
 import LazyStreamdown from "@/components/LazyStreamdown";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 import { PesquisaJurisprudencial } from "@/components/PesquisaJurisprudencial";
+import DocumentGenerationSkeleton from "@/components/DocumentGenerationSkeleton";
 
 type EstrategiaIA = "direct" | "chain_of_thought" | "knowledge_retrieval";
 
@@ -388,18 +389,17 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
                 className="w-full"
                 size="lg"
               >
-                {geracaoMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 w-5 h-5 animate-spin" />
-                    Gerando documento com {ESTRATEGIAS[estrategia].nome}...
-                  </>
-                ) : (
-                  <>
-                    {ESTRATEGIAS[estrategia].icone}
-                    <span className="ml-2">Gerar Documento Jurídico</span>
-                  </>
-                )}
+                {ESTRATEGIAS[estrategia].icone}
+                <span className="ml-2">Gerar Documento Jurídico</span>
               </Button>
+
+              {/* Skeleton de geração com feedback visual detalhado */}
+              {geracaoMutation.isPending && (
+                <DocumentGenerationSkeleton
+                  estrategia={estrategia}
+                  tipoDocumento={tipoDocumento}
+                />
+              )}
             </>
           ) : (
             /* Resultado */

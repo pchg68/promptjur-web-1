@@ -2793,3 +2793,9 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 
 ## Bugs Críticos de Produção
 - [x] Corrigir erro "Unable to preload CSS for //assets/index-CyAuISp2.css" (caminho com barra dupla gerado pelo script pós-build) - RESOLVIDO: removido script fix-vite-map-deps.mjs que duplicava a barra (a função aje do Vite já adiciona /)
+
+## Melhorias de Resiliência e UX
+
+- [x] Handler gracioso para vite:preloadError no main.tsx (recarregar página automaticamente)
+- [x] Feedback visual melhorado na geração de documentos (skeleton/loading com estimativa de tempo)
+- [x] Cache de chunks JS/CSS via Service Worker para conexões instáveis

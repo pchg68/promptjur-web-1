@@ -13,6 +13,40 @@ import "./index.css";
 initSentry();
 
 /**
+ * Handler gracioso para erros de preload do Vite.
+ * Quando o browser falha ao carregar um chunk JS/CSS (ex: deploy novo invalidou hashes,
+ * conexão instável, ou paths incorretos), o Vite dispara o evento 'vite:preloadError'.
+ * Em vez de mostrar a tela de erro do ErrorBoundary, recarregamos a página automaticamente
+ * para que o browser baixe os novos assets. Um flag no sessionStorage evita loops infinitos.
+ */
+const PRELOAD_RELOAD_KEY = 'promptjur_preload_reload';
+
+window.addEventListener('vite:preloadError', (event: Event) => {
+  const payload = (event as any).payload ?? (event as any).detail;
+  const lastReload = sessionStorage.getItem(PRELOAD_RELOAD_KEY);
+  const now = Date.now();
+  
+  // Se já recarregou nos últimos 30 segundos, não recarregar novamente (evita loop)
+  if (lastReload && now - parseInt(lastReload, 10) < 30_000) {
+    console.error('[Preload] Erro de preload persistente após reload:', payload);
+    addBreadcrumb('preload_error_persistent', String(payload));
+    return;
+  }
+  
+  // Prevenir o comportamento padrão (que lançaria o erro para o ErrorBoundary)
+  event.preventDefault();
+  
+  console.warn('[Preload] Erro de preload detectado, recarregando página...', payload);
+  addBreadcrumb('preload_error_reload', String(payload));
+  
+  // Marcar que estamos recarregando por causa de preload
+  sessionStorage.setItem(PRELOAD_RELOAD_KEY, String(now));
+  
+  // Recarregar a página para obter os assets atualizados
+  window.location.reload();
+});
+
+/**
  * Anti-redirect-loop: só permite um redirect a cada 10 segundos.
  * Isso evita que múltiplas queries UNAUTHORIZED disparem loops infinitos.
  */
@@ -148,3 +182,29 @@ root.render(
     </QueryClientProvider>
   </trpc.Provider>
 );
+
+/**
+ * Registrar Service Worker para cache de chunks JS/CSS.
+ * O SW usa estratégia Cache-First para assets com hash (imutáveis),
+ * garantindo carregamento instantâneo e resiliência em conexões instáveis.
+ */
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.log('[SW] Service Worker registrado com sucesso:', registration.scope);
+        
+        // Limpar cache antigo periodicamente (a cada 24h)
+        const CLEANUP_INTERVAL = 24 * 60 * 60 * 1000;
+        setInterval(() => {
+          if (registration.active) {
+            registration.active.postMessage({ type: 'CLEANUP_CACHE' });
+          }
+        }, CLEANUP_INTERVAL);
+      })
+      .catch((error) => {
+        console.warn('[SW] Falha ao registrar Service Worker:', error);
+      });
+  });
+}
