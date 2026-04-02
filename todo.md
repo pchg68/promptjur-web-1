@@ -2807,3 +2807,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Componente de UI para visualização e comparação lado a lado de versões
 - [x] Integração do histórico no fluxo de geração de documentos (TabDocumentos)
 - [x] Testes vitest para as procedures do histórico (12 testes passando)
+
+## Busca e Filtros no Histórico de Versões
+
+- [x] Campo de busca textual (por título, contexto, conteúdo do documento)
+- [x] Filtro por tipo de documento (petição, parecer, contrato, etc.)
+- [x] Filtro por área jurídica
+- [x] Filtro por período (últimos 7 dias, 30 dias, 90 dias, todos)
+- [x] Botão de limpar filtros
+- [x] Filtragem em tempo real nos grupos e versões

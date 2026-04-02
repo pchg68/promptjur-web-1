@@ -1,8 +1,16 @@
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -30,10 +38,15 @@ import {
   Loader2,
   Eye,
   ArrowLeftRight,
+  Search,
+  X,
+  Filter,
+  CalendarDays,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import LazyStreamdown from "@/components/LazyStreamdown";
+import { AREAS_JURIDICAS } from "@shared/juridico";
 
 const ESTRATEGIA_LABELS: Record<string, string> = {
   direct: "Resposta Direta",
@@ -50,6 +63,15 @@ const TIPO_DOC_LABELS: Record<string, string> = {
   memorando: "Memorando",
   procuracao: "Procuração",
   notificacao: "Notificação Extrajudicial",
+};
+
+type PeriodoFiltro = "todos" | "7dias" | "30dias" | "90dias";
+
+const PERIODO_LABELS: Record<PeriodoFiltro, string> = {
+  todos: "Todos os períodos",
+  "7dias": "Últimos 7 dias",
+  "30dias": "Últimos 30 dias",
+  "90dias": "Últimos 90 dias",
 };
 
 interface HistoricoVersoesProps {
@@ -71,6 +93,13 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
   const [viewingVersionId, setViewingVersionId] = useState<number | null>(null);
   const [editingNotesId, setEditingNotesId] = useState<number | null>(null);
   const [notesText, setNotesText] = useState("");
+
+  // Filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filtroTipoDoc, setFiltroTipoDoc] = useState<string>("todos");
+  const [filtroArea, setFiltroArea] = useState<string>("todos");
+  const [filtroPeriodo, setFiltroPeriodo] = useState<PeriodoFiltro>("todos");
+  const [showFilters, setShowFilters] = useState(false);
 
   const utils = trpc.useUtils();
 
@@ -112,6 +141,60 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
     onError: () => toast.error("Erro ao excluir grupo"),
   });
 
+  // Verificar se há filtros ativos
+  const hasActiveFilters = searchTerm !== "" || filtroTipoDoc !== "todos" || filtroArea !== "todos" || filtroPeriodo !== "todos";
+
+  // Limpar todos os filtros
+  const limparFiltros = () => {
+    setSearchTerm("");
+    setFiltroTipoDoc("todos");
+    setFiltroArea("todos");
+    setFiltroPeriodo("todos");
+  };
+
+  // Calcular data limite do período
+  const getDataLimite = (periodo: PeriodoFiltro): Date | null => {
+    if (periodo === "todos") return null;
+    const now = new Date();
+    const dias = periodo === "7dias" ? 7 : periodo === "30dias" ? 30 : 90;
+    return new Date(now.getTime() - dias * 24 * 60 * 60 * 1000);
+  };
+
+  // Filtrar grupos
+  const gruposFiltrados = useMemo(() => {
+    if (!gruposQuery.data) return [];
+
+    let filtered = [...gruposQuery.data];
+    const dataLimite = getDataLimite(filtroPeriodo);
+
+    filtered = filtered.filter((grupo) => {
+      // Filtro de busca textual
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const matchTitulo = grupo.titulo?.toLowerCase().includes(term);
+        const matchTipo = (TIPO_DOC_LABELS[grupo.tipoDocumento] || grupo.tipoDocumento).toLowerCase().includes(term);
+        const matchArea = grupo.areaJuridica?.toLowerCase().includes(term);
+        if (!matchTitulo && !matchTipo && !matchArea) return false;
+      }
+
+      // Filtro por tipo de documento
+      if (filtroTipoDoc !== "todos" && grupo.tipoDocumento !== filtroTipoDoc) return false;
+
+      // Filtro por área jurídica
+      if (filtroArea !== "todos" && grupo.areaJuridica !== filtroArea) return false;
+
+      // Filtro por período
+      if (dataLimite && grupo.ultimaCriacao) {
+        const dataCriacao = typeof grupo.ultimaCriacao === "string" ? new Date(grupo.ultimaCriacao) : grupo.ultimaCriacao;
+        if (dataCriacao < dataLimite) return false;
+      }
+
+      return true;
+    });
+
+    return filtered;
+  }, [gruposQuery.data, searchTerm, filtroTipoDoc, filtroArea, filtroPeriodo]);
+
   // Dados para comparação
   const versaoA = useMemo(() => {
     if (!compareVersions[0] || !versoesQuery.data) return null;
@@ -149,6 +232,20 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
     });
   };
 
+  // Tipos de documento disponíveis nos dados
+  const tiposDocDisponiveis = useMemo(() => {
+    if (!gruposQuery.data) return [];
+    const tipos = new Set(gruposQuery.data.map((g) => g.tipoDocumento));
+    return Array.from(tipos);
+  }, [gruposQuery.data]);
+
+  // Áreas jurídicas disponíveis nos dados
+  const areasDisponiveis = useMemo(() => {
+    if (!gruposQuery.data) return [];
+    const areas = new Set(gruposQuery.data.map((g) => g.areaJuridica).filter(Boolean));
+    return Array.from(areas) as string[];
+  }, [gruposQuery.data]);
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
@@ -174,15 +271,170 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
             </div>
           )}
 
+          {/* Barra de Busca e Filtros — visível quando há dados e não está dentro de um grupo */}
+          {!selectedGroupId && gruposQuery.data && gruposQuery.data.length > 0 && (
+            <div className="space-y-2 px-1">
+              {/* Busca + botão filtros */}
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por título, tipo ou área..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 h-9 text-sm"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <Button
+                  variant={showFilters ? "default" : "outline"}
+                  size="sm"
+                  className="h-9 px-3"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Filter className="w-4 h-4 mr-1" />
+                  Filtros
+                  {hasActiveFilters && !showFilters && (
+                    <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">
+                      {[filtroTipoDoc !== "todos", filtroArea !== "todos", filtroPeriodo !== "todos"].filter(Boolean).length}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
+
+              {/* Painel de filtros expansível */}
+              {showFilters && (
+                <div className="p-3 bg-muted/30 rounded-lg border border-border space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {/* Tipo de Documento */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                        <FileText className="w-3 h-3" /> Tipo de Documento
+                      </label>
+                      <Select value={filtroTipoDoc} onValueChange={setFiltroTipoDoc}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todos os tipos</SelectItem>
+                          {tiposDocDisponiveis.map((tipo) => (
+                            <SelectItem key={tipo} value={tipo}>
+                              {TIPO_DOC_LABELS[tipo] || tipo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Área Jurídica */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                        <FileText className="w-3 h-3" /> Área Jurídica
+                      </label>
+                      <Select value={filtroArea} onValueChange={setFiltroArea}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todas as áreas</SelectItem>
+                          {areasDisponiveis.map((area) => (
+                            <SelectItem key={area} value={area}>
+                              {area}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Período */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                        <CalendarDays className="w-3 h-3" /> Período
+                      </label>
+                      <Select value={filtroPeriodo} onValueChange={(v) => setFiltroPeriodo(v as PeriodoFiltro)}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PERIODO_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Limpar filtros */}
+                  {hasActiveFilters && (
+                    <div className="flex items-center justify-between pt-1">
+                      <p className="text-xs text-muted-foreground">
+                        {gruposFiltrados.length} de {gruposQuery.data.length} grupo{gruposQuery.data.length !== 1 ? "s" : ""}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                        onClick={limparFiltros}
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        Limpar filtros
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Indicador de filtros ativos (quando o painel está fechado) */}
+              {hasActiveFilters && !showFilters && (
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-xs text-muted-foreground">
+                    Mostrando {gruposFiltrados.length} de {gruposQuery.data.length} grupo{gruposQuery.data.length !== 1 ? "s" : ""}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-xs text-muted-foreground hover:text-foreground px-2"
+                    onClick={limparFiltros}
+                  >
+                    <X className="w-3 h-3 mr-1" />
+                    Limpar
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {gruposQuery.data && gruposQuery.data.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">
               Nenhum documento salvo no histórico ainda. Gere um documento e ele será salvo automaticamente.
             </p>
           )}
 
+          {/* Nenhum resultado com filtros */}
+          {!selectedGroupId && gruposQuery.data && gruposQuery.data.length > 0 && gruposFiltrados.length === 0 && (
+            <div className="text-center py-6 space-y-2">
+              <Search className="w-8 h-8 text-muted-foreground mx-auto opacity-50" />
+              <p className="text-sm text-muted-foreground">
+                Nenhum grupo encontrado com os filtros atuais.
+              </p>
+              <Button variant="outline" size="sm" onClick={limparFiltros}>
+                Limpar filtros
+              </Button>
+            </div>
+          )}
+
           {/* Lista de Grupos */}
           {!selectedGroupId &&
-            gruposQuery.data?.map((grupo) => (
+            gruposFiltrados.map((grupo) => (
               <Card
                 key={grupo.groupId}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
@@ -269,7 +521,7 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                           ) : (
                             <Trash2 className="w-4 h-4 mr-1" />
                           )}
-                          Excluir Tudo
+                          Excluir tudo
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -277,30 +529,32 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                 </div>
               </div>
 
-              {compareMode && (
-                <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                  Selecione 2 versões para comparar lado a lado. Clique nas versões desejadas.
-                </p>
-              )}
-
               {versoesQuery.isLoading && (
-                <div className="flex items-center justify-center py-8">
+                <div className="flex items-center justify-center py-6">
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                 </div>
               )}
 
+              {/* Instrução do modo comparação */}
+              {compareMode && (
+                <p className="text-xs text-muted-foreground text-center bg-muted/30 rounded-lg py-2">
+                  Selecione duas versões para comparar lado a lado
+                </p>
+              )}
+
               {versoesQuery.data?.map((versao) => {
-                const isSelectedForCompare =
-                  compareVersions[0] === versao.id || compareVersions[1] === versao.id;
+                const isSelectedA = compareVersions[0] === versao.id;
+                const isSelectedB = compareVersions[1] === versao.id;
+                const isSelected = isSelectedA || isSelectedB;
 
                 return (
                   <Card
                     key={versao.id}
                     className={`transition-colors ${
-                      isSelectedForCompare
-                        ? "border-primary bg-primary/5"
-                        : compareMode
-                        ? "cursor-pointer hover:border-primary/50"
+                      compareMode
+                        ? isSelected
+                          ? "border-primary ring-1 ring-primary/30"
+                          : "cursor-pointer hover:border-primary/50"
                         : ""
                     }`}
                     onClick={compareMode ? () => handleToggleCompare(versao.id) : undefined}
@@ -309,29 +563,28 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs flex-shrink-0">
+                            <Badge variant="outline" className="text-xs">
                               v{versao.versao}
                             </Badge>
-                            <span className="text-sm font-medium truncate">
+                            <span className="text-sm font-medium">
                               {ESTRATEGIA_LABELS[versao.estrategia] || versao.estrategia}
                             </span>
+                            {isSelectedA && <Badge className="text-[10px]">A</Badge>}
+                            {isSelectedB && <Badge className="text-[10px]">B</Badge>}
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {formatDate(versao.createdAt)}
-                            </span>
-                            {versao.tempoGeracaoMs && (
-                              <span>{versao.tempoGeracaoMs}ms</span>
-                            )}
-                          </div>
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatDate(versao.createdAt)}
+                            {versao.tempoGeracaoMs ? ` · ${(versao.tempoGeracaoMs / 1000).toFixed(1)}s` : ""}
+                          </p>
                           {versao.notas && (
-                            <p className="text-xs text-muted-foreground mt-1 italic flex items-center gap-1">
-                              <StickyNote className="w-3 h-3" />
+                            <p className="text-xs italic mt-1 text-muted-foreground line-clamp-1">
+                              <StickyNote className="w-3 h-3 inline mr-1" />
                               {versao.notas}
                             </p>
                           )}
                         </div>
+
                         {!compareMode && (
                           <div className="flex items-center gap-1 flex-shrink-0">
                             {/* Visualizar */}
@@ -341,46 +594,61 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                                   variant="ghost"
                                   size="sm"
                                   className="h-8 w-8 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setViewingVersionId(versao.id);
-                                  }}
+                                  onClick={() => setViewingVersionId(versao.id)}
                                 >
                                   <Eye className="w-4 h-4" />
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                              <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
                                 <DialogHeader>
                                   <DialogTitle className="flex items-center gap-2">
                                     <FileText className="w-5 h-5" />
-                                    Versão {versao.versao} — {ESTRATEGIA_LABELS[versao.estrategia] || versao.estrategia}
+                                    {versao.titulo} — v{versao.versao}
                                   </DialogTitle>
                                   <DialogDescription>
-                                    Gerado em {formatDate(versao.createdAt)}
-                                    {versao.tempoGeracaoMs ? ` (${versao.tempoGeracaoMs}ms)` : ""}
+                                    {ESTRATEGIA_LABELS[versao.estrategia] || versao.estrategia} · {formatDate(versao.createdAt)}
                                   </DialogDescription>
                                 </DialogHeader>
-                                <div className="p-4 bg-card border border-border rounded-lg mt-2">
-                                  <LazyStreamdown>{versao.documento}</LazyStreamdown>
-                                </div>
-                                <DialogFooter className="mt-4">
-                                  {onCarregarVersao && (
-                                    <Button
-                                      onClick={() => {
-                                        onCarregarVersao({
-                                          documento: versao.documento,
-                                          tipoDocumento: versao.tipoDocumento,
-                                          areaJuridica: versao.areaJuridica,
-                                          estrategia: versao.estrategia,
-                                          contexto: versao.contexto,
-                                        });
-                                        toast.success("Versão carregada no editor");
-                                      }}
-                                    >
-                                      Carregar no Editor
-                                    </Button>
-                                  )}
-                                </DialogFooter>
+                                {versaoVisualizando && versaoVisualizando.id === versao.id && (
+                                  <div className="space-y-4">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <Badge variant="outline">{TIPO_DOC_LABELS[versaoVisualizando.tipoDocumento] || versaoVisualizando.tipoDocumento}</Badge>
+                                      <Badge variant="secondary">{versaoVisualizando.areaJuridica}</Badge>
+                                      {versaoVisualizando.tempoGeracaoMs && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {(versaoVisualizando.tempoGeracaoMs / 1000).toFixed(1)}s
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {versaoVisualizando.contexto && (
+                                      <div className="p-3 bg-muted/30 rounded-lg">
+                                        <p className="text-xs font-medium text-muted-foreground mb-1">Contexto do caso:</p>
+                                        <p className="text-sm">{versaoVisualizando.contexto}</p>
+                                      </div>
+                                    )}
+                                    <div className="p-4 bg-card border border-border rounded-lg">
+                                      <LazyStreamdown>{versaoVisualizando.documento}</LazyStreamdown>
+                                    </div>
+                                    {onCarregarVersao && (
+                                      <DialogClose asChild>
+                                        <Button
+                                          onClick={() =>
+                                            onCarregarVersao({
+                                              documento: versaoVisualizando.documento,
+                                              tipoDocumento: versaoVisualizando.tipoDocumento,
+                                              areaJuridica: versaoVisualizando.areaJuridica || "",
+                                              estrategia: versaoVisualizando.estrategia,
+                                              contexto: versaoVisualizando.contexto || "",
+                                            })
+                                          }
+                                        >
+                                          <FileText className="w-4 h-4 mr-2" />
+                                          Carregar no Editor
+                                        </Button>
+                                      </DialogClose>
+                                    )}
+                                  </div>
+                                )}
                               </DialogContent>
                             </Dialog>
 
@@ -391,8 +659,7 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                                   variant="ghost"
                                   size="sm"
                                   className="h-8 w-8 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
+                                  onClick={() => {
                                     setEditingNotesId(versao.id);
                                     setNotesText(versao.notas || "");
                                   }}
@@ -402,16 +669,16 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
-                                  <DialogTitle>Notas — Versão {versao.versao}</DialogTitle>
+                                  <DialogTitle>Notas da versão {versao.versao}</DialogTitle>
                                   <DialogDescription>
-                                    Adicione anotações sobre esta versão do documento.
+                                    Adicione anotações para identificar esta versão
                                   </DialogDescription>
                                 </DialogHeader>
                                 <Textarea
                                   value={notesText}
                                   onChange={(e) => setNotesText(e.target.value)}
-                                  placeholder="Ex: Versão com argumentação mais forte sobre danos morais..."
-                                  className="min-h-[100px]"
+                                  placeholder="Ex: Versão com argumentação mais forte sobre prescrição..."
+                                  rows={4}
                                 />
                                 <DialogFooter>
                                   <DialogClose asChild>
@@ -438,21 +705,14 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                             {/* Excluir */}
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive">
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
                                   <DialogTitle>Excluir versão {versao.versao}</DialogTitle>
-                                  <DialogDescription>
-                                    Esta versão será excluída permanentemente.
-                                  </DialogDescription>
+                                  <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
                                 </DialogHeader>
                                 <DialogFooter>
                                   <DialogClose asChild>
@@ -476,28 +736,25 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                 );
               })}
 
-              {/* Botão de comparar quando 2 versões selecionadas */}
+              {/* Botão de comparar */}
               {compareMode && compareVersions[0] && compareVersions[1] && (
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="w-full" size="lg">
-                      <ArrowLeftRight className="w-5 h-5 mr-2" />
-                      Comparar Versões Selecionadas
+                    <Button className="w-full">
+                      <ArrowLeftRight className="w-4 h-4 mr-2" />
+                      Comparar versões selecionadas
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-[95vw] max-h-[85vh] overflow-y-auto">
+                  <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
                         <GitCompare className="w-5 h-5" />
                         Comparação de Versões
                       </DialogTitle>
-                      <DialogDescription>
-                        Visualização lado a lado das versões selecionadas
-                      </DialogDescription>
+                      <DialogDescription>Visualize as diferenças entre as duas versões selecionadas</DialogDescription>
                     </DialogHeader>
                     {versaoA && versaoB && (
                       <div className="space-y-4">
-                        {/* Metadados comparados */}
                         <div className="grid grid-cols-2 gap-4">
                           <div className="p-3 bg-muted/30 rounded-lg">
                             <div className="flex items-center gap-2 mb-2">
@@ -508,7 +765,7 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                             </div>
                             <p className="text-xs text-muted-foreground">
                               {formatDate(versaoA.createdAt)}
-                              {versaoA.tempoGeracaoMs ? ` · ${versaoA.tempoGeracaoMs}ms` : ""}
+                              {versaoA.tempoGeracaoMs ? ` · ${(versaoA.tempoGeracaoMs / 1000).toFixed(1)}s` : ""}
                             </p>
                             {versaoA.notas && (
                               <p className="text-xs italic mt-1 text-muted-foreground">{versaoA.notas}</p>
@@ -523,7 +780,7 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                             </div>
                             <p className="text-xs text-muted-foreground">
                               {formatDate(versaoB.createdAt)}
-                              {versaoB.tempoGeracaoMs ? ` · ${versaoB.tempoGeracaoMs}ms` : ""}
+                              {versaoB.tempoGeracaoMs ? ` · ${(versaoB.tempoGeracaoMs / 1000).toFixed(1)}s` : ""}
                             </p>
                             {versaoB.notas && (
                               <p className="text-xs italic mt-1 text-muted-foreground">{versaoB.notas}</p>
