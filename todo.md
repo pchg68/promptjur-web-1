@@ -2790,3 +2790,6 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar meta keywords na página inicial
 - [x] Adicionar Open Graph tags (og:title, og:description, og:type, og:url)
 - [x] Corrigir lang="en" para lang="pt-BR" no index.html
+
+## Bugs Críticos de Produção
+- [x] Corrigir erro "Unable to preload CSS for //assets/index-CyAuISp2.css" (caminho com barra dupla gerado pelo script pós-build)

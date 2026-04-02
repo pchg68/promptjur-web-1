@@ -58,6 +58,15 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // Normalize double slashes in URLs before serving static files
+  // This fixes the "Unable to preload CSS for //assets/..." error
+  app.use((req, _res, next) => {
+    if (req.url.includes("//")) {
+      req.url = req.url.replace(/\/\/+/g, "/");
+    }
+    next();
+  });
+
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist
