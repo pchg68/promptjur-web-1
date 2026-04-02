@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import LazyStreamdown from "@/components/LazyStreamdown";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 import { PesquisaJurisprudencial } from "@/components/PesquisaJurisprudencial";
 import DocumentGenerationSkeleton from "@/components/DocumentGenerationSkeleton";
+import HistoricoVersoes from "@/components/HistoricoVersoes";
 
 type EstrategiaIA = "direct" | "chain_of_thought" | "knowledge_retrieval";
 
@@ -71,6 +72,8 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
   });
   // Estado para o documento com jurisprudência incorporada
   const [documentoComJurisprudencia, setDocumentoComJurisprudencia] = useState<string>("");
+  // Estado para o groupId do histórico de versões (persiste entre gerações do mesmo caso)
+  const [currentGroupId, setCurrentGroupId] = useState<string>(() => crypto.randomUUID());
 
   // Atualizar campos quando props iniciais mudam (navegação da aba Análise)
   useEffect(() => {
@@ -85,11 +88,43 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
     localStorage.setItem('promptjur_selected_model', value);
   };
 
+  // Utils para invalidar cache
+  const utils = trpc.useUtils();
+
+  // Mutation para salvar versão no histórico
+  const salvarVersaoMutation = trpc.documentVersions.salvar.useMutation({
+    onSuccess: () => {
+      // Invalidar cache do histórico silenciosamente
+      utils.documentVersions.listarGrupos.invalidate();
+    },
+  });
+
   const geracaoMutation = trpc.documentos.gerar.useMutation({
     onSuccess: (data) => {
       toast.success("Documento gerado com sucesso!");
       // Inicializar o documento editável com o resultado
       setDocumentoComJurisprudencia(data.documento);
+
+      // Salvar automaticamente no histórico de versões
+      const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento;
+      salvarVersaoMutation.mutate({
+        groupId: currentGroupId,
+        titulo: `${tipoLabel} — ${areaJuridica}`,
+        tipoDocumento,
+        areaJuridica,
+        estrategia: data.estrategiaUsada,
+        contexto,
+        objetivo: objetivo || undefined,
+        partesEnvolvidas: partesEnvolvidas || undefined,
+        legislacao: legislacao || undefined,
+        detalhes: detalhes || undefined,
+        documento: data.documento,
+        tempoGeracaoMs: data.tempoGeracao,
+        metadata: {
+          validacaoLegislacao: data.validacaoLegislacao,
+          metadados: data.metadados,
+        },
+      });
     },
     onError: (error) => {
       toast.error(`Erro ao gerar documento: ${error.message}`);
@@ -122,6 +157,34 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
     setDocumentoComJurisprudencia("");
     toast.info("Resultado limpo. Você pode ajustar os campos e gerar novamente.");
   };
+
+  // Iniciar novo grupo (novo caso)
+  const handleNovoGrupo = () => {
+    setCurrentGroupId(crypto.randomUUID());
+    setContexto("");
+    setObjetivo("");
+    setPartesEnvolvidas("");
+    setLegislacao("");
+    setDetalhes("");
+    setDocumentoComJurisprudencia("");
+    geracaoMutation.reset();
+    toast.info("Novo caso iniciado. As próximas gerações serão agrupadas separadamente.");
+  };
+
+  // Callback para carregar versão do histórico
+  const handleCarregarVersao = useCallback((versao: {
+    documento: string;
+    tipoDocumento: string;
+    areaJuridica: string;
+    estrategia: string;
+    contexto: string;
+  }) => {
+    setTipoDocumento(versao.tipoDocumento);
+    setAreaJuridica(versao.areaJuridica);
+    setEstrategia(versao.estrategia as EstrategiaIA);
+    setContexto(versao.contexto);
+    setDocumentoComJurisprudencia(versao.documento);
+  }, []);
 
   const handleIncorporarJurisprudencia = (citacao: string) => {
     setDocumentoComJurisprudencia(prev => prev + citacao);
@@ -243,6 +306,11 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
 
   return (
     <div className="space-y-6">
+      {/* Histórico de Versões — recolhível por padrão */}
+      <Card>
+        <HistoricoVersoes onCarregarVersao={handleCarregarVersao} />
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

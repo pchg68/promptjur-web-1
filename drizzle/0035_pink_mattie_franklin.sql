@@ -1,0 +1,21 @@
+CREATE TABLE `document_versions` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`groupId` varchar(64) NOT NULL,
+	`versao` int NOT NULL,
+	`titulo` varchar(255) NOT NULL,
+	`tipoDocumento` varchar(50) NOT NULL,
+	`areaJuridica` varchar(100) NOT NULL,
+	`estrategia` varchar(50) NOT NULL,
+	`contexto` text NOT NULL,
+	`objetivo` text,
+	`partesEnvolvidas` text,
+	`legislacao` text,
+	`detalhes` text,
+	`documento` text NOT NULL,
+	`tempoGeracaoMs` int,
+	`metadata` json,
+	`notas` text,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `document_versions_id` PRIMARY KEY(`id`)
+);

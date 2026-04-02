@@ -2799,3 +2799,11 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Handler gracioso para vite:preloadError no main.tsx (recarregar página automaticamente)
 - [x] Feedback visual melhorado na geração de documentos (skeleton/loading com estimativa de tempo)
 - [x] Cache de chunks JS/CSS via Service Worker para conexões instáveis
+
+## Histórico de Versões de Documentos
+
+- [x] Schema de banco de dados para histórico de versões (tabela document_versions)
+- [x] Queries e procedures tRPC para salvar, listar e comparar versões
+- [x] Componente de UI para visualização e comparação lado a lado de versões
+- [x] Integração do histórico no fluxo de geração de documentos (TabDocumentos)
+- [x] Testes vitest para as procedures do histórico (12 testes passando)

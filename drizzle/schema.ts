@@ -534,3 +534,47 @@ export const contactMessages = mysqlTable("contact_messages", {
 
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = typeof contactMessages.$inferInsert;
+
+/**
+ * Tabela de versões de documentos gerados
+ * Armazena cada geração de documento para histórico e comparação de versões.
+ * Agrupa versões pelo mesmo "grupo" (mesmo contexto/tipo/área) para facilitar comparação.
+ */
+export const documentVersions = mysqlTable("document_versions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  /** Identificador do grupo de versões (UUID gerado no frontend para agrupar gerações do mesmo caso) */
+  groupId: varchar("groupId", { length: 64 }).notNull(),
+  /** Número da versão dentro do grupo (1, 2, 3...) */
+  versao: int("versao").notNull(),
+  /** Título descritivo (ex: "Petição Inicial - Civil") */
+  titulo: varchar("titulo", { length: 255 }).notNull(),
+  /** Tipo de documento (peticao, parecer, contrato, etc.) */
+  tipoDocumento: varchar("tipoDocumento", { length: 50 }).notNull(),
+  /** Área jurídica */
+  areaJuridica: varchar("areaJuridica", { length: 100 }).notNull(),
+  /** Estratégia de IA usada */
+  estrategia: varchar("estrategia", { length: 50 }).notNull(),
+  /** Contexto do caso (input do usuário) */
+  contexto: text("contexto").notNull(),
+  /** Objetivo do documento */
+  objetivo: text("objetivo"),
+  /** Partes envolvidas */
+  partesEnvolvidas: text("partesEnvolvidas"),
+  /** Legislação relevante */
+  legislacao: text("legislacao"),
+  /** Detalhes adicionais */
+  detalhes: text("detalhes"),
+  /** Documento gerado (conteúdo completo em markdown) */
+  documento: text("documento").notNull(),
+  /** Tempo de geração em milissegundos */
+  tempoGeracaoMs: int("tempoGeracaoMs"),
+  /** Metadados adicionais (validação de legislação, etc.) */
+  metadata: json("metadata"),
+  /** Notas do usuário sobre esta versão */
+  notas: text("notas"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DocumentVersion = typeof documentVersions.$inferSelect;
+export type InsertDocumentVersion = typeof documentVersions.$inferInsert;
