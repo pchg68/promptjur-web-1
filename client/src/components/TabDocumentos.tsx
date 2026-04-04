@@ -6,7 +6,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, FileText, Sparkles, Brain, BookOpen, Save, Download, ArrowLeft } from "lucide-react";
+import { Loader2, FileText, Sparkles, Brain, BookOpen, Save, Download, ArrowLeft, HardDrive, Mail, Send } from "lucide-react";
+import { useState as useStateDialog } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { AREAS_JURIDICAS } from "@shared/juridico";
@@ -283,6 +294,78 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
     });
   };
 
+  // Integrações Google
+  const [showGmailDialog, setShowGmailDialog] = useStateDialog(false);
+  const [gmailTo, setGmailTo] = useStateDialog("");
+
+  const exportarDriveMutation = trpc.integracoes.exportarParaDrive.useMutation({
+    onSuccess: (data) => {
+      toast.success(
+        <span>
+          Documento enviado para o Google Drive!{" "}
+          <a href={data.webViewLink} target="_blank" rel="noopener noreferrer" className="underline">
+            Abrir no Drive
+          </a>
+        </span>
+      );
+    },
+    onError: (err) => {
+      if (err.message.includes("não configurada")) {
+        toast.error("Conecte o Google Drive em Configurações → Integrações");
+      } else {
+        toast.error(`Erro ao exportar para Drive: ${err.message}`);
+      }
+    },
+  });
+
+  const enviarGmailMutation = trpc.integracoes.enviarPorGmail.useMutation({
+    onSuccess: () => {
+      toast.success("Documento enviado por Gmail com sucesso!");
+      setShowGmailDialog(false);
+      setGmailTo("");
+    },
+    onError: (err) => {
+      if (err.message.includes("não configurada")) {
+        toast.error("Conecte o Gmail em Configurações → Integrações");
+      } else {
+        toast.error(`Erro ao enviar por Gmail: ${err.message}`);
+      }
+    },
+  });
+
+  const handleExportarDrive = () => {
+    if (!geracaoMutation.data) {
+      toast.error("Nenhum documento gerado para exportar");
+      return;
+    }
+    const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento;
+    exportarDriveMutation.mutate({
+      fileName: `PromptJur - ${tipoLabel} - ${new Date().toLocaleDateString('pt-BR')}.txt`,
+      content: documentoComJurisprudencia || geracaoMutation.data.documento,
+    });
+  };
+
+  const handleEnviarGmail = () => {
+    if (!geracaoMutation.data) {
+      toast.error("Nenhum documento gerado para enviar");
+      return;
+    }
+    setShowGmailDialog(true);
+  };
+
+  const confirmarEnvioGmail = () => {
+    if (!gmailTo.trim() || !geracaoMutation.data) return;
+    const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento;
+    const conteudo = documentoComJurisprudencia || geracaoMutation.data.documento;
+    enviarGmailMutation.mutate({
+      to: gmailTo.trim(),
+      subject: `PromptJur - ${tipoLabel} - ${new Date().toLocaleDateString('pt-BR')}`,
+      body: `<pre style="font-family: Georgia, serif; white-space: pre-wrap;">${conteudo}</pre>`,
+      attachmentName: `documento-juridico.txt`,
+      attachmentContent: conteudo,
+    });
+  };
+
   const handleExportarPdf = () => {
     if (!geracaoMutation.data) {
       toast.error("Nenhum documento gerado para exportar");
@@ -529,6 +612,32 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
                       </>
                     )}
                   </Button>
+                  <Button
+                    onClick={handleExportarDrive}
+                    variant="outline"
+                    size="sm"
+                    disabled={exportarDriveMutation.isPending}
+                    title="Exportar para Google Drive"
+                  >
+                    {exportarDriveMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <HardDrive className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <Button
+                    onClick={handleEnviarGmail}
+                    variant="outline"
+                    size="sm"
+                    disabled={enviarGmailMutation.isPending}
+                    title="Enviar por Gmail"
+                  >
+                    {enviarGmailMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Mail className="w-4 h-4" />
+                    )}
+                  </Button>
                 </div>
               </div>
 
@@ -559,6 +668,53 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
           )}
         </CardContent>
       </Card>
+      {/* Dialog: Enviar por Gmail */}
+      <Dialog open={showGmailDialog} onOpenChange={(o) => !o && setShowGmailDialog(false)}>
+        <DialogContent className="bg-[#1a2332] border-[#d4af37]/20 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#d4af37] flex items-center gap-2">
+              <Mail className="w-5 h-5" />
+              Enviar Documento por Gmail
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              O documento será enviado como corpo do e-mail e também como anexo em formato .txt.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-gray-300 text-sm">Destinatário</Label>
+              <Input
+                type="email"
+                value={gmailTo}
+                onChange={(e) => setGmailTo(e.target.value)}
+                placeholder="destinatario@exemplo.com"
+                className="bg-[#0a0e1a] border-[#d4af37]/20 text-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowGmailDialog(false)}
+              className="border-[#d4af37]/20 text-gray-300"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmarEnvioGmail}
+              disabled={!gmailTo.trim() || enviarGmailMutation.isPending}
+              className="bg-[#d4af37] hover:bg-[#b8962e] text-black"
+            >
+              {enviarGmailMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

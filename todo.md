@@ -2816,3 +2816,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Filtro por período (últimos 7 dias, 30 dias, 90 dias, todos)
 - [x] Botão de limpar filtros
 - [x] Filtragem em tempo real nos grupos e versões
+
+## Integrações de API no Webapp (Alta Relevância)
+
+- [x] Seleção de modelo de IA (OpenAI GPT-4o, Anthropic Claude, Google Gemini) na geração de documentos (já existia via ModelSelector)
+- [x] Pesquisa jurídica em tempo real com Perplexity integrada à elaboração de documentos (já existia via PesquisaJurisprudencial)
+- [x] Exportação de documentos para Google Drive (OAuth2 + botão na aba Documentos)
+- [x] Envio de documentos por Gmail diretamente do webapp (OAuth2 + Dialog de destinatário)
+- [x] Painel de configuração de integrações pelo usuário (IntegracoesPanel em Configurações)
+- [x] Testes vitest para as novas integrações (router integracoes coberto)

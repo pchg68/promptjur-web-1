@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { IntegracoesPanel } from "@/components/IntegracoesPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -267,6 +268,10 @@ export default function Configuracoes() {
             </div>
           </CardContent>
         </Card>
+        {/* Painel de Integrações */}
+        <div className="mt-6">
+          <IntegracoesPanel />
+        </div>
       </main>
     </div>
   );

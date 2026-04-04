@@ -578,3 +578,33 @@ export const documentVersions = mysqlTable("document_versions", {
 
 export type DocumentVersion = typeof documentVersions.$inferSelect;
 export type InsertDocumentVersion = typeof documentVersions.$inferInsert;
+
+/**
+ * Tabela de integrações do usuário (API Keys e tokens OAuth)
+ * Armazena chaves de API e tokens de acesso para serviços externos.
+ * IMPORTANTE: As API Keys são armazenadas em texto — em produção, considere
+ * criptografia adicional no campo apiKey antes de persistir.
+ */
+export const userIntegrations = mysqlTable("user_integrations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  /** Provedor: 'openai' | 'anthropic' | 'gemini' | 'perplexity' | 'google_drive' | 'gmail' */
+  provider: varchar("provider", { length: 50 }).notNull(),
+  /** Chave de API do provedor (para OpenAI, Anthropic, Gemini, Perplexity) */
+  apiKey: text("apiKey"),
+  /** Token OAuth2 de acesso (para Google Drive, Gmail) */
+  accessToken: text("accessToken"),
+  /** Token OAuth2 de renovação (para Google Drive, Gmail) */
+  refreshToken: text("refreshToken"),
+  /** Expiração do token OAuth2 */
+  tokenExpiry: timestamp("tokenExpiry"),
+  /** Se a integração está ativa */
+  isActive: boolean("isActive").default(true).notNull(),
+  /** Metadados adicionais (email da conta Google, nome, etc.) */
+  metadata: json("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserIntegration = typeof userIntegrations.$inferSelect;
+export type InsertUserIntegration = typeof userIntegrations.$inferInsert;
