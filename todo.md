@@ -2825,3 +2825,15 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Envio de documentos por Gmail diretamente do webapp (OAuth2 + Dialog de destinatário)
 - [x] Painel de configuração de integrações pelo usuário (IntegracoesPanel em Configurações)
 - [x] Testes vitest para as novas integrações (router integracoes coberto)
+## Histórico de Prompts Salvos (Meus Prompts)
+- [x] Schema de banco de dados para prompts salvos (tabela prompts_salvos com estratégia, área, favorito, usoCount)
+- [x] Migração do banco executada com sucesso (drizzle/0038_minor_karen_page.sql)
+- [x] Queries do banco em db-prompts-salvos.ts (salvar, listar, buscar, atualizar, toggleFavorito, deletar, listarAreas)
+- [x] Router tRPC em server/routers/prompts-salvos.ts (salvar, listar, buscar, atualizar, toggleFavorito, registrarUso, deletar, listarAreas)
+- [x] Página MeusPrompts com grid de cards, filtros por área/estratégia/favorito, busca textual e paginação
+- [x] Ações nos cards: favoritar, copiar, editar notas/título, deletar, usar no Documentos
+- [x] Item "Meus Prompts" adicionado ao menu lateral do DashboardLayout
+- [x] Rota /meus-prompts registrada no App.tsx
+- [x] Salvamento automático ao clicar em "Usar este" nas sugestões do assistente JurIA
+- [x] Título gerado automaticamente a partir de estratégia + tipo de documento + área jurídica
+- [x] 20 testes vitest passando para o módulo de prompts salvos

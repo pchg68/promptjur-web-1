@@ -431,12 +431,48 @@ export default function Assistente() {
     }
   };
 
-  // Usar prompt selecionado — salvar no sessionStorage e navegar para Documentos
+  // Mutation para salvar prompt no banco
+  const salvarPromptMutation = trpc.promptsSalvos.salvar.useMutation({
+    onSuccess: () => {
+      // Silencioso — o toast principal já informa o usuário
+    },
+    onError: () => {
+      // Falha silenciosa — o prompt ainda vai para sessionStorage
+    },
+  });
+
+  // Usar prompt selecionado — salvar no banco + sessionStorage e navegar para Documentos
   const handleUsarPrompt = (prompt: string, estrategia: EstrategiaPrompt) => {
     setPromptSelecionado(prompt);
     sessionStorage.setItem("promptJur_promptSelecionado", prompt);
     sessionStorage.setItem("promptJur_estrategiaSelecionada", estrategia);
-    toast.success("Prompt salvo! Acesse a aba Documentos para gerar seu documento.", {
+
+    // Salvar no histórico do banco de dados
+    if (sessaoAtiva) {
+      const estrategiaLabel: Record<EstrategiaPrompt, string> = {
+        direta: "Estratégia Direta",
+        raciocinio: "Raciocínio em Cadeia",
+        recuperacao: "Recuperação de Fontes",
+      };
+      const titulo = [
+        estrategiaLabel[estrategia],
+        sessaoAtiva.tipoDocumento,
+        sessaoAtiva.areaJuridica,
+      ]
+        .filter(Boolean)
+        .join(" — ");
+
+      salvarPromptMutation.mutate({
+        titulo,
+        estrategia,
+        areaJuridica: sessaoAtiva.areaJuridica ?? undefined,
+        tipoDocumento: sessaoAtiva.tipoDocumento ?? undefined,
+        conteudo: prompt,
+        sessionId: sessaoAtiva.id,
+      });
+    }
+
+    toast.success("Prompt salvo em Meus Prompts! Acesse a aba Documentos para gerar seu documento.", {
       duration: 5000,
       action: {
         label: "Ir para Documentos",

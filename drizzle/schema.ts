@@ -652,3 +652,39 @@ export type ChatSession = typeof chatSessions.$inferSelect;
 export type InsertChatSession = typeof chatSessions.$inferInsert;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = typeof chatMessages.$inferInsert;
+
+// ============================================================
+// HISTÓRICO DE PROMPTS SALVOS (JurIA — Meus Prompts)
+// ============================================================
+
+/**
+ * Tabela de prompts salvos pelo usuário a partir das sugestões do assistente JurIA.
+ * Cada registro representa um prompt que o usuário escolheu salvar/usar.
+ */
+export const promptsSalvos = mysqlTable("prompts_salvos", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  /** ID da sessão do assistente que originou o prompt */
+  sessionId: int("sessionId"),
+  /** Título descritivo gerado automaticamente ou editado pelo usuário */
+  titulo: varchar("titulo", { length: 255 }).notNull(),
+  /** Estratégia usada para gerar o prompt */
+  estrategia: mysqlEnum("estrategia_ps", ["direta", "raciocinio", "recuperacao", "manual"]).notNull().default("manual"),
+  /** Área jurídica associada (ex: Direito Civil, Trabalhista) */
+  areaJuridica: varchar("areaJuridica", { length: 100 }),
+  /** Tipo de documento (ex: Petição Inicial, Recurso) */
+  tipoDocumento: varchar("tipoDocumento", { length: 100 }),
+  /** Conteúdo completo do prompt */
+  conteudo: text("conteudo").notNull(),
+  /** Notas pessoais do usuário sobre este prompt */
+  notas: text("notas"),
+  /** Se o prompt está marcado como favorito */
+  isFavorito: boolean("isFavorito").default(false).notNull(),
+  /** Número de vezes que o prompt foi copiado/usado */
+  usoCount: int("usoCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PromptSalvo = typeof promptsSalvos.$inferSelect;
+export type InsertPromptSalvo = typeof promptsSalvos.$inferInsert;

@@ -26,6 +26,7 @@ import { contatoRouter } from "./routers/contato";
 import { documentVersionsRouter } from "./routers/document-versions";
 import { integracoesRouter } from "./routers/integracoes";
 import { assistenteRouter } from "./routers/assistente";
+import { promptsSalvosRouter } from "./routers/prompts-salvos";
 
 export const appRouter = router({
   // Core system routers
@@ -152,6 +153,7 @@ export const appRouter = router({
   documentVersions: documentVersionsRouter,
   integracoes: integracoesRouter,
   assistente: assistenteRouter,
+  promptsSalvos: promptsSalvosRouter,
 });
 
 export type AppRouter = typeof appRouter;

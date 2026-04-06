@@ -21,6 +21,7 @@ import Termos from "./pages/Termos";
 import AcessoRestrito from "./pages/AcessoRestrito";
 import Contato from "./pages/Contato";
 import Assistente from "./pages/Assistente";
+import MeusPrompts from "./pages/MeusPrompts";
 import CookieBanner from "./components/CookieBanner";
 
 function Router() {
@@ -43,6 +44,7 @@ function Router() {
       <Route path={"/acesso-restrito"} component={AcessoRestrito} />
       <Route path={"/contato"} component={Contato} />
       <Route path={"/assistente"} component={Assistente} />
+      <Route path={"/meus-prompts"} component={MeusPrompts} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
