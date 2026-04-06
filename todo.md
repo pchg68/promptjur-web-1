@@ -2837,3 +2837,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Salvamento automático ao clicar em "Usar este" nas sugestões do assistente JurIA
 - [x] Título gerado automaticamente a partir de estratégia + tipo de documento + área jurídica
 - [x] 20 testes vitest passando para o módulo de prompts salvos
+## Correção do Sistema de Backup
+- [x] Remover dependência do binário mysqldump (não disponível no ambiente de produção)
+- [x] Reescrever criarBackup usando mysql2 nativo para exportar dados via SQL gerado em Node.js
+- [x] Manter criptografia AES-256-GCM e upload para S3
+- [x] 22 testes vitest passando para o módulo de backup
