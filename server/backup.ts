@@ -14,10 +14,11 @@
 
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
 import mysql from "mysql2/promise";
-import { storagePut } from "./storage";
+import { storagePut, storageDelete } from "./storage";
 import { getDb } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, lt } from "drizzle-orm";
 import { mysqlTable, int, varchar, timestamp, bigint } from "drizzle-orm/mysql-core";
+import { notifyOwner } from "./_core/notification";
 
 // ─── Tabela de controle de backups ────────────────────────────────────────────
 
@@ -281,9 +282,33 @@ export async function criarBackup(userId: number): Promise<BackupResult> {
       });
     }
 
+    const tamanhoKB = (originalSize / 1024).toFixed(1);
+    const tamanhoMB = (originalSize / (1024 * 1024)).toFixed(2);
     console.log(
-      `[Backup] Sucesso: ${tablesExported} tabelas, ${(originalSize / 1024).toFixed(1)} KB`
+      `[Backup] Sucesso: ${tablesExported} tabelas, ${tamanhoKB} KB`
     );
+
+    // 5. Notifica o owner sobre o sucesso
+    try {
+      await notifyOwner({
+        title: `✅ Backup concluído — ${new Date().toLocaleDateString("pt-BR")}`,
+        content: [
+          `**Backup automático realizado com sucesso.**`,
+          ``,
+          `| Campo | Valor |`,
+          `|---|---|`,
+          `| Arquivo | \`${filename}.enc\` |`,
+          `| Tabelas exportadas | ${tablesExported} |`,
+          `| Tamanho original | ${tamanhoMB} MB (${tamanhoKB} KB) |`,
+          `| Tamanho criptografado | ${(encryptedData.length / 1024).toFixed(1)} KB |`,
+          `| Armazenamento | S3 (criptografado AES-256-GCM) |`,
+          `| Horário | ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} (Brasília) |`,
+        ].join("\n"),
+      });
+    } catch (notifyErr) {
+      // Falha na notificação não deve cancelar o backup
+      console.warn("[Backup] Falha ao notificar owner:", notifyErr);
+    }
 
     return {
       success: true,
@@ -294,6 +319,25 @@ export async function criarBackup(userId: number): Promise<BackupResult> {
     };
   } catch (error: any) {
     console.error("[Backup] Falha ao criar backup:", error);
+
+    // Notifica o owner sobre a falha
+    try {
+      await notifyOwner({
+        title: `❌ Falha no backup — ${new Date().toLocaleDateString("pt-BR")}`,
+        content: [
+          `**O backup automático falhou.**`,
+          ``,
+          `**Erro:** ${error.message}`,
+          ``,
+          `Verifique os logs do servidor e tente criar um backup manual pelo painel admin.`,
+          ``,
+          `Horário: ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} (Brasília)`,
+        ].join("\n"),
+      });
+    } catch (notifyErr) {
+      console.warn("[Backup] Falha ao notificar owner sobre erro:", notifyErr);
+    }
+
     return {
       success: false,
       error: error.message,
@@ -390,12 +434,79 @@ export async function restaurarBackup(backupId: number): Promise<{
 }
 
 /**
- * Remove backups com mais de 30 dias (metadados no banco; S3 não gerenciado aqui)
+ * Remove backups com mais de 30 dias:
+ * 1. Busca backups antigos no banco
+ * 2. Deleta cada objeto do S3
+ * 3. Remove os registros do banco
+ * 4. Notifica o owner com o resultado
  */
-export async function limparBackupsAntigos(): Promise<{ removed: number }> {
+export async function limparBackupsAntigos(
+  diasRetencao = 30
+): Promise<{ removed: number; errors: number }> {
   const db = await getDb();
-  if (!db) return { removed: 0 };
+  if (!db) return { removed: 0, errors: 0 };
 
-  // TODO: Implementar remoção de objetos no S3 via API
-  return { removed: 0 };
+  const dataLimite = new Date();
+  dataLimite.setDate(dataLimite.getDate() - diasRetencao);
+
+  // Busca backups mais antigos que o limite de retenção
+  const backupsAntigos = await db
+    .select()
+    .from(backups)
+    .where(lt(backups.createdAt, dataLimite))
+    .orderBy(backups.createdAt);
+
+  if (backupsAntigos.length === 0) {
+    console.log(`[Backup] Limpeza: nenhum backup com mais de ${diasRetencao} dias encontrado.`);
+    return { removed: 0, errors: 0 };
+  }
+
+  console.log(`[Backup] Limpeza: ${backupsAntigos.length} backup(s) antigo(s) encontrado(s).`);
+
+  let removed = 0;
+  let errors = 0;
+
+  for (const backup of backupsAntigos) {
+    try {
+      // 1. Deleta do S3
+      const deletadoS3 = await storageDelete(backup.s3Key);
+      if (!deletadoS3) {
+        console.warn(`[Backup] Não foi possível deletar do S3: ${backup.s3Key}`);
+      }
+
+      // 2. Remove do banco (mesmo que o S3 falhe, remove o registro)
+      await db.delete(backups).where(eq(backups.id, backup.id));
+
+      removed++;
+      console.log(`[Backup] Removido: ${backup.filename} (criado em ${backup.createdAt})`);
+    } catch (err) {
+      errors++;
+      console.error(`[Backup] Erro ao remover backup #${backup.id}:`, err);
+    }
+  }
+
+  console.log(`[Backup] Limpeza concluída: ${removed} removido(s), ${errors} erro(s).`);
+
+  // Notifica o owner sobre a limpeza
+  if (removed > 0 || errors > 0) {
+    try {
+      await notifyOwner({
+        title: `🗑️ Limpeza de backups antigos — ${new Date().toLocaleDateString("pt-BR")}`,
+        content: [
+          `**Limpeza automática de backups concluída.**`,
+          ``,
+          `| Campo | Valor |`,
+          `|---|---|`,
+          `| Backups removidos | ${removed} |`,
+          `| Erros | ${errors} |`,
+          `| Política de retenção | ${diasRetencao} dias |`,
+          `| Horário | ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} (Brasília) |`,
+        ].join("\n"),
+      });
+    } catch (notifyErr) {
+      console.warn("[Backup] Falha ao notificar owner sobre limpeza:", notifyErr);
+    }
+  }
+
+  return { removed, errors };
 }

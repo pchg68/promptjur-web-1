@@ -100,3 +100,26 @@ export async function storageGet(relKey: string): Promise<{ key: string; url: st
     url: await buildDownloadUrl(baseUrl, key, apiKey),
   };
 }
+
+/**
+ * Deleta um objeto do S3 via proxy de storage.
+ * Retorna true se deletado com sucesso, false se não encontrado ou erro.
+ */
+export async function storageDelete(relKey: string): Promise<boolean> {
+  const { baseUrl, apiKey } = getStorageConfig();
+  const key = normalizeKey(relKey);
+  const deleteUrl = new URL("v1/storage/delete", ensureTrailingSlash(baseUrl));
+  deleteUrl.searchParams.set("path", key);
+
+  try {
+    const response = await fetch(deleteUrl, {
+      method: "DELETE",
+      headers: buildAuthHeaders(apiKey),
+    });
+    // 200 ou 204 = sucesso; 404 = já não existe (aceitar como sucesso)
+    return response.ok || response.status === 404;
+  } catch (error) {
+    console.warn(`[Storage] Erro ao deletar objeto ${key}:`, error);
+    return false;
+  }
+}

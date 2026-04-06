@@ -2842,3 +2842,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Reescrever criarBackup usando mysql2 nativo para exportar dados via SQL gerado em Node.js
 - [x] Manter criptografia AES-256-GCM e upload para S3
 - [x] 22 testes vitest passando para o módulo de backup
+## Melhorias do Sistema de Backup
+- [x] Limpeza automática de backups antigos no S3 (retenção de 30 dias) com storageDelete
+- [x] Notificação ao owner após cada backup (sucesso com tamanho/tabelas, ou falha com erro)
+- [x] Agendamento automático diário via cron (02h da manhã, horário de Brasília)
+- [x] 20 testes vitest passando para as 3 novas funcionalidades

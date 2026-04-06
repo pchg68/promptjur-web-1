@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { scheduleCacheCleanup } from "../jobs/cache-cleanup";
 import { scheduleWhitelistExpiry } from "../jobs/whitelist-expiry";
+import { scheduleBackupAutomatico } from "../jobs/backup-automatico";
 import { handleStripeWebhook } from "./stripeWebhook";
 import { handleGoogleOAuthCallback } from "../google-oauth-callback";
 import { assistenteSSEHandler } from "../assistente-sse";
@@ -105,6 +106,8 @@ async function startServer() {
     scheduleCacheCleanup();
     // Agendar job de expiração automática da whitelist (a cada hora)
     scheduleWhitelistExpiry();
+    // Agendar backup automático diário às 02h00 (Brasília)
+    scheduleBackupAutomatico();
   });
 }
 
