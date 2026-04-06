@@ -12,6 +12,7 @@ import { scheduleCacheCleanup } from "../jobs/cache-cleanup";
 import { scheduleWhitelistExpiry } from "../jobs/whitelist-expiry";
 import { handleStripeWebhook } from "./stripeWebhook";
 import { handleGoogleOAuthCallback } from "../google-oauth-callback";
+import { assistenteSSEHandler } from "../assistente-sse";
 import { tRPCRateLimiter, injectUserMiddleware } from "./rateLimiter";
 import * as Sentry from "@sentry/node";
 import { handleTRPCError, setUserContext } from "./sentry";
@@ -59,6 +60,8 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Google OAuth2 callback para Drive e Gmail
   app.get("/api/google/callback", handleGoogleOAuthCallback);
+  // Assistente jurídico SSE (streaming de respostas da IA)
+  app.get("/api/assistente/stream", assistenteSSEHandler);
   // Middleware do Sentry para capturar requisições (versão 10.x não requer handlers manuais)
   // O Sentry 10.x captura automaticamente via integração expressIntegration()
   

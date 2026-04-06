@@ -608,3 +608,47 @@ export const userIntegrations = mysqlTable("user_integrations", {
 
 export type UserIntegration = typeof userIntegrations.$inferSelect;
 export type InsertUserIntegration = typeof userIntegrations.$inferInsert;
+
+// ============================================================
+// ASSISTENTE CONVERSACIONAL GUIADO (JurIA)
+// ============================================================
+
+/**
+ * Sessões de conversa com o assistente jurídico guiado.
+ * Cada sessão representa uma conversa completa com o assistente.
+ */
+export const chatSessions = mysqlTable("chat_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  titulo: varchar("titulo", { length: 255 }),
+  etapaAtual: int("etapaAtual").default(1).notNull(),
+  etapaConcluida: boolean("etapaConcluida").default(false).notNull(),
+  /** Contexto acumulado das respostas do usuário nas etapas guiadas */
+  contextoAcumulado: json("contextoAcumulado").$type<Record<string, string>>(),
+  /** Prompt final gerado ao fim do wizard */
+  promptGerado: text("promptGerado"),
+  areaJuridica: varchar("areaJuridica", { length: 100 }),
+  tipoDocumento: varchar("tipoDocumento", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * Mensagens individuais de cada sessão de chat.
+ */
+export const chatMessages = mysqlTable("chat_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  role: mysqlEnum("role_chat", ["user", "assistant", "system"]).notNull(),
+  content: text("content").notNull(),
+  /** Etapa do wizard em que a mensagem foi gerada (null = chat livre) */
+  etapa: int("etapa"),
+  /** Metadados extras (sugestões de prompt, fontes citadas, etc.) */
+  metadata: json("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ChatSession = typeof chatSessions.$inferSelect;
+export type InsertChatSession = typeof chatSessions.$inferInsert;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = typeof chatMessages.$inferInsert;

@@ -23,15 +23,19 @@ import {
 } from "@/components/ui/sidebar";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock, Bot, History, BookOpen, Settings } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Bot, label: "JurIA — Assistente", path: "/assistente" },
+  { icon: History, label: "Histórico", path: "/historico" },
+  { icon: FileText, label: "Templates", path: "/templates" },
+  { icon: BookOpen, label: "Tutoriais", path: "/tutoriais" },
+  { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

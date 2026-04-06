@@ -25,6 +25,7 @@ import { pesquisaJurisprudencialRouter } from "./routers/pesquisa-jurisprudencia
 import { contatoRouter } from "./routers/contato";
 import { documentVersionsRouter } from "./routers/document-versions";
 import { integracoesRouter } from "./routers/integracoes";
+import { assistenteRouter } from "./routers/assistente";
 
 export const appRouter = router({
   // Core system routers
@@ -150,6 +151,7 @@ export const appRouter = router({
   contato: contatoRouter,
   documentVersions: documentVersionsRouter,
   integracoes: integracoesRouter,
+  assistente: assistenteRouter,
 });
 
 export type AppRouter = typeof appRouter;
