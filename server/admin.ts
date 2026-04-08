@@ -1401,7 +1401,7 @@ export const adminRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const { listarAccessLogs } = await import("../db-access-logs");
+      const { listarAccessLogs } = await import("./db-access-logs");
       return listarAccessLogs({
         ...input,
         dataInicio: input.dataInicio ? new Date(input.dataInicio) : undefined,
@@ -1410,7 +1410,7 @@ export const adminRouter = router({
     }),
 
   statsAccessLogs: adminProcedure.query(async () => {
-    const { statsAccessLogs } = await import("../db-access-logs");
+    const { statsAccessLogs } = await import("./db-access-logs");
     return statsAccessLogs();
   }),
 
@@ -1426,7 +1426,7 @@ export const adminRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const { exportarAccessLogsCsv } = await import("../db-access-logs");
+      const { exportarAccessLogsCsv } = await import("./db-access-logs");
       const csv = await exportarAccessLogsCsv({
         ...input,
         dataInicio: input.dataInicio ? new Date(input.dataInicio) : undefined,
