@@ -18,28 +18,17 @@ export default function AdminTools() {
   const [, setLocation] = useLocation();
   const [auditando, setAuditando] = useState(false);
   const [resultadoAuditoria, setResultadoAuditoria] = useState<any>(null);
+  const [auditandoDeps, setAuditandoDeps] = useState(false);
+  const [resultadoAuditoriaDeps, setResultadoAuditoriaDeps] = useState<any>(null);
 
-  // Verificar se é admin
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // CRITICAL: Mover redirect para useEffect para evitar loop de re-render
-  // que causa acúmulo de memória (setState durante render é proibido no React)
+  // Redirect para não-admins — DEVE estar antes dos returns condicionais
   useEffect(() => {
     if (!loading && (!user || user.role !== 'admin')) {
       setLocation('/dashboard');
     }
   }, [loading, user, setLocation]);
 
-  if (!user || user.role !== 'admin') {
-    return null;
-  }
-
+  // Todos os hooks tRPC DEVEM ser declarados aqui, antes de qualquer return condicional
   const auditarSerializacao = trpc.admin.auditarSerializacao.useMutation({
     onSuccess: (data) => {
       setResultadoAuditoria(data);
@@ -122,8 +111,6 @@ export default function AdminTools() {
   });
 
   // Auditoria de Dependências
-  const [auditandoDeps, setAuditandoDeps] = useState(false);
-  const [resultadoAuditoriaDeps, setResultadoAuditoriaDeps] = useState<any>(null);
   const auditarDependenciasMutation = trpc.admin.auditarDependencias.useMutation({
     onSuccess: (data) => {
       setResultadoAuditoriaDeps(data);
@@ -177,6 +164,19 @@ export default function AdminTools() {
       toast.error("Erro ao restaurar: " + error.message);
     }
   });
+
+  // Returns condicionais DEVEM vir depois de todos os hooks
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user || user.role !== 'admin') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background p-6">

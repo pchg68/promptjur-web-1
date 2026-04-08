@@ -2933,3 +2933,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Componente TabLogAcessos com tabela, filtros, paginação e exportação CSV
 - [x] Seção colapsável integrada no AdminTools.tsx
 - [x] 12 testes vitest passando
+
+## Correção Bug React #310
+- [x] Identificado: hooks tRPC chamados após returns condicionais no AdminTools.tsx
+- [x] Corrigido: todos os hooks movidos para antes dos returns condicionais (loading/admin check)
+- [x] Verificado: Dashboard.tsx, Assistente.tsx e TabLogAcessos.tsx não têm o mesmo problema
