@@ -84,6 +84,37 @@ export default function TabWhitelist() {
     onError: (err) => toast.error(`Erro: ${err.message}`),
   });
 
+  // Rastreia qual e-mail está sendo reenviado (para feedback visual individual)
+  const [reenviando, setReenviando] = useState<string | null>(null);
+
+  const reenviarMutation = trpc.admin.reenviarConviteWhitelist.useMutation({
+    onSuccess: (data) => {
+      setReenviando(null);
+      if (data.skipped) {
+        toast.warning(`Convite não enviado para ${data.email}`, {
+          description: "Configure RESEND_API_KEY nas configurações para habilitar o envio de e-mails",
+        });
+      } else if (data.success) {
+        toast.success(`Convite reenviado para ${data.email}!`, {
+          description: data.nome ? `Destinatário: ${data.nome}` : undefined,
+        });
+      } else {
+        toast.error(`Falha ao reenviar convite para ${data.email}`, {
+          description: "Verifique as configurações do Resend no painel de diagnóstico",
+        });
+      }
+    },
+    onError: (err) => {
+      setReenviando(null);
+      toast.error(`Erro ao reenviar: ${err.message}`);
+    },
+  });
+
+  const handleReenviarConvite = (email: string) => {
+    setReenviando(email);
+    reenviarMutation.mutate({ email });
+  };
+
   const importMutation = trpc.admin.importWhitelist.useMutation({
     onSuccess: (data) => {
       if (data.emailsEnviados > 0) {
@@ -425,6 +456,24 @@ export default function TabWhitelist() {
                     >
                       {item.expiresAt ? "Com expiração" : "Permanente"}
                     </Badge>
+                    {/* Botão Reenviar Convite — visível ao passar o mouse */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleReenviarConvite(item.email)}
+                      disabled={reenviando === item.email || reenviarMutation.isPending}
+                      title="Reenviar e-mail de convite"
+                      className="text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 h-7 px-2 gap-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      {reenviando === item.email ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Mail className="w-3.5 h-3.5" />
+                      )}
+                      <span className="hidden sm:inline">
+                        {reenviando === item.email ? "Enviando..." : "Reenviar"}
+                      </span>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"

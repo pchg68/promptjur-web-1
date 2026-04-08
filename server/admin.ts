@@ -1126,6 +1126,52 @@ export const adminRouter = router({
   // ===== MANUTENÇÃO DA WHITELIST =====
 
   /**
+   * Reenvia o e-mail de convite/boas-vindas para um e-mail específico da whitelist.
+   * Útil quando o envio original falhou ou o usuário não recebeu o e-mail.
+   */
+  reenviarConviteWhitelist: adminProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input, ctx }) => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+
+      // Verificar se o e-mail existe na whitelist
+      const [entry] = await dbConn
+        .select()
+        .from(accessWhitelist)
+        .where(eq(accessWhitelist.email, input.email))
+        .limit(1);
+
+      if (!entry) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: `E-mail ${input.email} não encontrado na whitelist` });
+      }
+
+      if (!entry.ativo) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: `E-mail ${input.email} está inativo na whitelist` });
+      }
+
+      // Reenviar e-mail de boas-vindas
+      const result = await sendWelcomeEmail({ email: entry.email, nome: entry.nome ?? undefined });
+
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'reenviar_convite_whitelist',
+        descricao: `Convite reenviado para: ${entry.email} — ${
+          result.skipped ? 'pulado (sem API key)' : result.success ? 'enviado com sucesso' : 'falhou'
+        }`,
+        metadata: { email: entry.email, success: result.success, skipped: result.skipped },
+        req: ctx.req,
+      });
+
+      return {
+        success: result.success,
+        skipped: result.skipped ?? false,
+        email: entry.email,
+        nome: entry.nome,
+      };
+    }),
+
+  /**
    * Desativa manualmente todas as entradas da whitelist com expiresAt vencido
    * (Complementa o job automático para uso manual pelo admin)
    */

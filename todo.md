@@ -2852,3 +2852,9 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] BUG: backup.ts definia tabela local com nomes snake_case (s3_key, created_at) divergindo do banco (s3Key, createdAt) — corrigido para usar schema centralizado do drizzle/schema.ts
 - [x] Testes de regressão adicionados para getFromAddress (9 testes passando no email.test.ts)
 - [x] 42 testes de backup passando com schema corrigido
+## Botão Reenviar Convite na Whitelist (2026-04-08)
+- [x] Procedure tRPC reenviarConviteWhitelist no admin router (valida existência, ativo, envia e-mail, registra auditoria)
+- [x] Botão "Reenviar" na lista de e-mails ativos (aparece ao hover, ícone Mail + spinner durante envio)
+- [x] Feedback visual individual por e-mail (estado reenviando separado por e-mail, não bloqueia outros botões)
+- [x] Toast com 3 estados: enviado com sucesso, pulado (sem API key), falhou (com instrução de diagnóstico)
+- [x] 12 testes vitest passando para a procedure reenviarConviteWhitelist
