@@ -2880,3 +2880,21 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Procedure reenviarTodosWhitelist com pausa anti-rate-limit (150ms)
 - [x] Incremento de convitesEnviados e ultimoEnvio em addWhitelist, importWhitelist e reenviarConviteWhitelist
 - [x] 12 testes vitest passando para as melhorias de gestão de e-mails
+
+## Filtro "Sem Convite Enviado" na Whitelist
+- [ ] Toggle de filtro para exibir apenas e-mails com convitesEnviados = 0
+- [ ] Contagem de pendentes no badge do toggle
+- [ ] Integração com botão "Reenviar todos" (reenviar apenas os filtrados)
+- [ ] Testes vitest para a lógica de filtragem
+
+## Filtro Sem Convite Enviado na Whitelist
+- [ ] Toggle de filtro para exibir apenas e-mails com convitesEnviados = 0
+- [ ] Contagem de pendentes no badge do toggle
+- [ ] Integracao com botao Reenviar todos (reenviar apenas os filtrados)
+- [ ] Testes vitest para a logica de filtragem
+
+## Filtro Sem Convite Enviado (Whitelist)
+- [x] Toggle visual 'Sem convite' com badge de contagem no cabeçalho da lista
+- [x] Filtrar ativosExibidos por convitesEnviados === 0
+- [x] Mensagem de sucesso quando todos já receberam convite
+- [x] 14 testes vitest passando para a lógica de filtragem

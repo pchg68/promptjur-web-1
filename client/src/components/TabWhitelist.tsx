@@ -172,7 +172,7 @@ export default function TabWhitelist() {
     onError: (err) => toast.error(`Erro na importação: ${err.message}`),
   });
 
-  // ── helpers ──────────────────────────────────────────────────────────────
+  // helpers
 
   /** Converte "YYYY-MM-DD" para ISO datetime string (fim do dia UTC) */
   function dateToIso(dateStr: string): string | null {
@@ -195,7 +195,7 @@ export default function TabWhitelist() {
     return new Date(iso) < new Date();
   }
 
-  // ── handlers ─────────────────────────────────────────────────────────────
+  // handlers
 
   const handleAdd = () => {
     if (!novoEmail.trim()) return;
@@ -240,13 +240,18 @@ export default function TabWhitelist() {
     toast.success(`CSV exportado (${result.data?.total ?? 0} registros)`);
   };
 
-  // ── dados ─────────────────────────────────────────────────────────────────
+  // dados
 
   const ativos = whitelist?.filter((w) => w.ativo && !isExpired(w.expiresAt)) ?? [];
   const expirados = whitelist?.filter((w) => w.ativo && isExpired(w.expiresAt)) ?? [];
   const inativos = whitelist?.filter((w) => !w.ativo) ?? [];
 
-  // ── render ────────────────────────────────────────────────────────────────
+  // Filtro: apenas e-mails sem convite enviado (convitesEnviados === 0)
+  const [filtrarSemConvite, setFiltrarSemConvite] = useState(false);
+  const semConvitePendentes = ativos.filter((w) => (w.convitesEnviados ?? 0) === 0);
+  const ativosExibidos = filtrarSemConvite ? semConvitePendentes : ativos;
+
+  // render
 
   return (
     <div className="space-y-6">
@@ -462,9 +467,42 @@ export default function TabWhitelist() {
 
       {/* Lista de e-mails ativos */}
       <div className="space-y-2">
-        <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">
-          E-mails autorizados ({ativos.length})
-        </p>
+        {/* Barra de filtros */}
+        <div className="flex items-center justify-between">
+          <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">
+            E-mails autorizados ({ativos.length})
+          </p>
+          {/* Toggle: Sem convite enviado */}
+          {ativos.length > 0 && (
+            <button
+              onClick={() => setFiltrarSemConvite((v) => !v)}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border transition-colors ${
+                filtrarSemConvite
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-400'
+                  : 'bg-slate-800/40 border-slate-700/30 text-slate-500 hover:text-slate-300 hover:border-slate-600'
+              }`}
+              title={filtrarSemConvite ? 'Mostrar todos os e-mails' : 'Mostrar apenas e-mails sem convite enviado'}
+            >
+              <AlertTriangle className="w-3 h-3" />
+              Sem convite
+              {semConvitePendentes.length > 0 && (
+                <span className={`rounded-full px-1.5 py-0 text-xs font-semibold ${
+                  filtrarSemConvite ? 'bg-amber-500/30 text-amber-300' : 'bg-slate-700 text-slate-400'
+                }`}>
+                  {semConvitePendentes.length}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Mensagem quando filtro ativo e sem resultados */}
+        {filtrarSemConvite && semConvitePendentes.length === 0 && !isLoading && (
+          <div className="flex items-center gap-2 py-4 px-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+            <p className="text-emerald-400 text-sm">Todos os e-mails já receberam convite!</p>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="text-center py-8 text-slate-500 text-sm">Carregando...</div>
@@ -474,7 +512,7 @@ export default function TabWhitelist() {
           </div>
         ) : (
           <div className="space-y-1">
-            {ativos.map((item) => {
+            {ativosExibidos.map((item) => {
               const expiry = formatExpiry(item.expiresAt);
               return (
                 <div
