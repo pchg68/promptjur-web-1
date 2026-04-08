@@ -2898,3 +2898,18 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Filtrar ativosExibidos por convitesEnviados === 0
 - [x] Mensagem de sucesso quando todos já receberam convite
 - [x] 14 testes vitest passando para a lógica de filtragem
+
+## Sugestões de Gestão de E-mails (Fase 2)
+- [ ] Histórico de envios por e-mail (tabela convite_logs + modal de detalhes)
+- [ ] Agendamento de reenvio automático semanal com toggle no painel admin
+- [ ] Exportação CSV filtrada (respeitar filtro ativo ao exportar)
+
+## Skill PromptJur
+- [ ] Criar skill do Manus com workflows, padrões de arquitetura e convenções do projeto
+
+## Gestão de E-mails - 3 Melhorias (Fase 2)
+- [x] Histórico de envios por e-mail (tabela convite_logs + modal de detalhes na UI)
+- [x] Agendamento de reenvio automático semanal (job + toggle no painel admin)
+- [x] Exportação CSV filtrada (respeita filtro ativo ao exportar)
+- [x] Badge de contagem clicável para abrir modal de histórico
+- [x] Skill promptjur-dev criada e validada

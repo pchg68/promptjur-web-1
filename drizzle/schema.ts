@@ -692,3 +692,59 @@ export const promptsSalvos = mysqlTable("prompts_salvos", {
 
 export type PromptSalvo = typeof promptsSalvos.$inferSelect;
 export type InsertPromptSalvo = typeof promptsSalvos.$inferInsert;
+
+// ============================================================
+// HISTÓRICO DE ENVIOS DE CONVITE (convite_logs)
+// ============================================================
+/**
+ * Registra cada tentativa de envio de convite para e-mails da whitelist.
+ * Permite auditoria completa e visualização do histórico por e-mail.
+ */
+export const conviteLogs = mysqlTable("convite_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** E-mail destinatário do convite */
+  email: varchar("email", { length: 320 }).notNull(),
+  /** Nome do destinatário no momento do envio */
+  nome: varchar("nome", { length: 255 }),
+  /** Resultado do envio */
+  resultado: mysqlEnum("resultado_cl", ["enviado", "falha", "pulado"]).notNull(),
+  /** Mensagem de erro, se houver */
+  erroMsg: text("erroMsg"),
+  /** IP do admin que disparou o envio (null = automático) */
+  adminIp: varchar("adminIp", { length: 64 }),
+  /** Identificador do admin que disparou (null = job automático) */
+  adminId: int("adminId"),
+  /** Tipo de disparo: manual (botão), lote (reenviar todos), automatico (job) */
+  tipoDisparo: mysqlEnum("tipo_disparo_cl", ["manual", "lote", "automatico"]).notNull().default("manual"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ConviteLog = typeof conviteLogs.$inferSelect;
+export type InsertConviteLog = typeof conviteLogs.$inferInsert;
+
+// ============================================================
+// CONFIGURAÇÕES DE REENVIO AUTOMÁTICO
+// ============================================================
+/**
+ * Configurações do job de reenvio automático de convites.
+ * Apenas um registro ativo por vez (id = 1).
+ */
+export const configReenvioAuto = mysqlTable("config_reenvio_auto", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Se o job está habilitado */
+  habilitado: boolean("habilitado").default(false).notNull(),
+  /** Dia da semana para execução (0=Dom, 1=Seg, ..., 6=Sáb) */
+  diaSemana: int("diaSemana").default(1).notNull(),
+  /** Hora de execução (0-23, horário de Brasília) */
+  hora: int("hora").default(9).notNull(),
+  /** Reenviar apenas para quem ainda não acessou o sistema */
+  apenasNaoAcessaram: boolean("apenasNaoAcessaram").default(true).notNull(),
+  /** Data/hora da última execução do job */
+  ultimaExecucao: timestamp("ultimaExecucao"),
+  /** Resultado da última execução */
+  ultimoResultado: varchar("ultimoResultado", { length: 500 }),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ConfigReenvioAuto = typeof configReenvioAuto.$inferSelect;
+export type InsertConfigReenvioAuto = typeof configReenvioAuto.$inferInsert;

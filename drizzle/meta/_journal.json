@@ -281,6 +281,13 @@
       "when": 1775654227021,
       "tag": "0039_concerned_franklin_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1775671310755,
+      "tag": "0040_flawless_goliath",
+      "breakpoints": true
     }
   ]
 }

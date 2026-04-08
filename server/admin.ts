@@ -17,6 +17,13 @@ import { enterpriseLeads, launchInterests, accessWhitelist } from "../drizzle/sc
 import { addToWhitelist, removeFromWhitelist, listWhitelist } from "./whitelist";
 import { sendWelcomeEmail, sendWelcomeEmailBatch, sendLaunchNotificationEmail } from "./email";
 import { eq, desc, sql } from "drizzle-orm";
+import {
+  registrarConviteLog,
+  buscarHistoricoConvite,
+  buscarUltimosConviteLogs,
+  buscarConfigReenvioAuto,
+  salvarConfigReenvioAuto,
+} from "./db-convite-logs";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -1280,6 +1287,63 @@ export const adminRouter = router({
 
     return { enviados, falhas, pulados, total: ativos.length };
   }),
+
+  /**
+   * Busca o histórico de envios de convite para um e-mail específico
+   */
+  historicoConviteEmail: adminProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input }) => {
+      return buscarHistoricoConvite(input.email, 30);
+    }),
+
+  /**
+   * Busca os últimos envios de convite (todos os e-mails)
+   */
+  ultimosConviteLogs: adminProcedure
+    .input(z.object({ limite: z.number().min(1).max(200).optional().default(50) }))
+    .query(async ({ input }) => {
+      return buscarUltimosConviteLogs(input.limite);
+    }),
+
+  /**
+   * Busca a configuração atual de reenvio automático
+   */
+  getConfigReenvioAuto: adminProcedure.query(async () => {
+    const config = await buscarConfigReenvioAuto();
+    return config ?? {
+      id: 1,
+      habilitado: false,
+      diaSemana: 1,
+      hora: 9,
+      apenasNaoAcessaram: true,
+      ultimaExecucao: null,
+      ultimoResultado: null,
+      updatedAt: new Date(),
+    };
+  }),
+
+  /**
+   * Salva a configuração de reenvio automático
+   */
+  salvarConfigReenvioAuto: adminProcedure
+    .input(z.object({
+      habilitado: z.boolean(),
+      diaSemana: z.number().min(0).max(6),
+      hora: z.number().min(0).max(23),
+      apenasNaoAcessaram: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await salvarConfigReenvioAuto(input);
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'salvar_config_reenvio_auto',
+        descricao: `Configuração de reenvio automático atualizada: habilitado=${input.habilitado}, dia=${input.diaSemana}, hora=${input.hora}h`,
+        metadata: input,
+        req: ctx.req,
+      });
+      return { sucesso: true };
+    }),
 
   /**
    * Desativa manualmente todas as entradas da whitelist com expiresAt vencido

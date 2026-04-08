@@ -224,6 +224,26 @@ export default function TabWhitelist() {
   };
 
   const handleExportCsv = async () => {
+    // Se o filtro "Sem convite" está ativo, exportar apenas os filtrados
+    if (filtrarSemConvite && semConvitePendentes.length > 0) {
+      const headers = "email,nome,convitesEnviados,criadoEm";
+      const rows = semConvitePendentes.map((w) => {
+        const nome = (w.nome ?? "").replace(/,/g, " ");
+        const criado = w.createdAt ? new Date(w.createdAt).toLocaleDateString("pt-BR") : "";
+        return `${w.email},${nome},${w.convitesEnviados ?? 0},${criado}`;
+      });
+      const csv = [headers, ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `whitelist_sem_convite_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`CSV filtrado exportado (${semConvitePendentes.length} e-mails sem convite)`);
+      return;
+    }
+    // Exportar todos via API
     const result = await fetchCsv();
     const csv = result.data?.csv;
     if (!csv) {
@@ -239,6 +259,43 @@ export default function TabWhitelist() {
     URL.revokeObjectURL(url);
     toast.success(`CSV exportado (${result.data?.total ?? 0} registros)`);
   };
+
+  // Estado para modal de histórico de envios
+  const [emailHistorico, setEmailHistorico] = useState<string | null>(null);
+  const { data: historicoConvite, isLoading: carregandoHistorico } =
+    trpc.admin.historicoConviteEmail.useQuery(
+      { email: emailHistorico ?? "" },
+      { enabled: !!emailHistorico }
+    );
+
+  // Estado para modal de configuração de reenvio automático
+  const [mostrarConfigReenvio, setMostrarConfigReenvio] = useState(false);
+  const { data: configReenvio, refetch: refetchConfig } = trpc.admin.getConfigReenvioAuto.useQuery(
+    undefined,
+    { enabled: mostrarConfigReenvio }
+  );
+  const [configHabilitado, setConfigHabilitado] = useState(false);
+  const [configDia, setConfigDia] = useState(1);
+  const [configHora, setConfigHora] = useState(9);
+  const [configApenasNaoAcessaram, setConfigApenasNaoAcessaram] = useState(true);
+
+  // Sincronizar estado do form com dados do banco quando o modal abre
+  const prevConfigReenvio = configReenvio;
+  if (configReenvio && configReenvio !== prevConfigReenvio) {
+    setConfigHabilitado(configReenvio.habilitado);
+    setConfigDia(configReenvio.diaSemana);
+    setConfigHora(configReenvio.hora);
+    setConfigApenasNaoAcessaram(configReenvio.apenasNaoAcessaram);
+  }
+
+  const salvarConfigMutation = trpc.admin.salvarConfigReenvioAuto.useMutation({
+    onSuccess: () => {
+      toast.success("Configuração de reenvio automático salva!");
+      setMostrarConfigReenvio(false);
+      refetchConfig();
+    },
+    onError: (err) => toast.error(`Erro: ${err.message}`),
+  });
 
   // dados
 
@@ -287,6 +344,16 @@ export default function TabWhitelist() {
               {reenviarTodosAtivo ? "Enviando..." : "Reenviar todos"}
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMostrarConfigReenvio(true)}
+            className="text-slate-400 hover:text-purple-400 gap-1 text-xs"
+            title="Configurar reenvio automático semanal"
+          >
+            <Clock className="w-4 h-4" />
+            Auto
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -560,12 +627,13 @@ export default function TabWhitelist() {
                     >
                       {item.expiresAt ? "Com expiração" : "Permanente"}
                     </Badge>
-                    {/* Badge de contagem de convites enviados */}
+                    {/* Badge de contagem de convites enviados — clícavel para ver histórico */}
                     {item.convitesEnviados > 0 ? (
                       <Badge
                         variant="outline"
-                        className="text-blue-400 border-blue-500/30 text-xs gap-1"
-                        title={`${item.convitesEnviados} convite(s) enviado(s)`}
+                        className="text-blue-400 border-blue-500/30 text-xs gap-1 cursor-pointer hover:bg-blue-500/10 transition-colors"
+                        title={`${item.convitesEnviados} convite(s) enviado(s) — clique para ver histórico`}
+                        onClick={() => setEmailHistorico(item.email)}
                       >
                         <Mail className="w-3 h-3" />
                         {item.convitesEnviados}
@@ -573,8 +641,9 @@ export default function TabWhitelist() {
                     ) : (
                       <Badge
                         variant="outline"
-                        className="text-amber-500/60 border-amber-500/20 text-xs gap-1"
-                        title="Nenhum convite enviado ainda"
+                        className="text-amber-500/60 border-amber-500/20 text-xs gap-1 cursor-pointer hover:bg-amber-500/10 transition-colors"
+                        title="Nenhum convite enviado ainda — clique para ver histórico"
+                        onClick={() => setEmailHistorico(item.email)}
                       >
                         <AlertTriangle className="w-3 h-3" />
                         0
@@ -775,6 +844,163 @@ export default function TabWhitelist() {
                 ⚠️ O remetente atual é <code className="bg-amber-500/10 px-1 rounded">onboarding@resend.dev</code> (domínio de teste).
                 Para usar <code className="bg-amber-500/10 px-1 rounded">noreply@promptjur.com</code>, verifique o domínio no painel do Resend.
               </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Histórico de Envios de Convite */}
+      <Dialog open={!!emailHistorico} onOpenChange={(open) => !open && setEmailHistorico(null)}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Mail className="w-4 h-4 text-blue-400" />
+              Histórico de Envios
+            </DialogTitle>
+            <DialogDescription className="text-slate-400 text-xs">
+              {emailHistorico}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {carregandoHistorico ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="w-5 h-5 text-slate-400 animate-spin" />
+              </div>
+            ) : !historicoConvite || historicoConvite.length === 0 ? (
+              <div className="text-center py-8">
+                <Mail className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-slate-400 text-sm">Nenhum envio registrado</p>
+              </div>
+            ) : (
+              historicoConvite.map((log: any) => (
+                <div key={log.id} className="flex items-start gap-3 p-3 bg-slate-800/40 rounded-lg border border-slate-700/30">
+                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                    log.resultado === 'enviado' ? 'bg-emerald-400' :
+                    log.resultado === 'falha' ? 'bg-red-400' : 'bg-amber-400'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-xs font-medium ${
+                        log.resultado === 'enviado' ? 'text-emerald-400' :
+                        log.resultado === 'falha' ? 'text-red-400' : 'text-amber-400'
+                      }`}>
+                        {log.resultado === 'enviado' ? 'Enviado' :
+                         log.resultado === 'falha' ? 'Falha' : 'Pulado'}
+                        {log.tipoDisparo === 'automatico' && (
+                          <span className="ml-1 text-slate-500">(auto)</span>
+                        )}
+                      </span>
+                      <span className="text-slate-500 text-xs">
+                        {log.enviadoEm ? new Date(log.enviadoEm).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
+                      </span>
+                    </div>
+                    {log.erroMsg && (
+                      <p className="text-red-400 text-xs mt-0.5 truncate">{log.erroMsg}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Configuração de Reenvio Automático */}
+      <Dialog open={mostrarConfigReenvio} onOpenChange={setMostrarConfigReenvio}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Clock className="w-4 h-4 text-purple-400" />
+              Reenvio Automático de Convites
+            </DialogTitle>
+            <DialogDescription className="text-slate-400 text-xs">
+              Configure o envio semanal automático de convites para e-mails ativos
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-700/30">
+              <div>
+                <p className="text-white text-sm font-medium">Habilitar reenvio automático</p>
+                <p className="text-slate-400 text-xs">Envia convites semanalmente de forma automática</p>
+              </div>
+              <Switch
+                checked={configHabilitado}
+                onCheckedChange={setConfigHabilitado}
+              />
+            </div>
+            {configHabilitado && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-slate-300 text-xs mb-1 block">Dia da semana</Label>
+                    <select
+                      value={configDia}
+                      onChange={(e) => setConfigDia(Number(e.target.value))}
+                      className="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2"
+                    >
+                      {['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'].map((d, i) => (
+                        <option key={i} value={i}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 text-xs mb-1 block">Horário (Brasília)</Label>
+                    <select
+                      value={configHora}
+                      onChange={(e) => setConfigHora(Number(e.target.value))}
+                      className="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2"
+                    >
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-700/30">
+                  <div>
+                    <p className="text-white text-sm">Apenas quem não acessou</p>
+                    <p className="text-slate-400 text-xs">Pula e-mails de usuários que já fizeram login</p>
+                  </div>
+                  <Switch
+                    checked={configApenasNaoAcessaram}
+                    onCheckedChange={setConfigApenasNaoAcessaram}
+                  />
+                </div>
+              </>
+            )}
+            {configReenvio?.ultimaExecucao && (
+              <div className="text-xs text-slate-500 flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" />
+                Última execução: {new Date(configReenvio.ultimaExecucao).toLocaleString('pt-BR')}
+                {configReenvio.ultimoResultado && (
+                  <span className="ml-1 text-slate-600">— {configReenvio.ultimoResultado}</span>
+                )}
+              </div>
+            )}
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMostrarConfigReenvio(false)}
+                className="flex-1 text-slate-400"
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => salvarConfigMutation.mutate({
+                  habilitado: configHabilitado,
+                  diaSemana: configDia,
+                  hora: configHora,
+                  apenasNaoAcessaram: configApenasNaoAcessaram,
+                })}
+                disabled={salvarConfigMutation.isPending}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {salvarConfigMutation.isPending ? (
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                ) : 'Salvar'}
+              </Button>
             </div>
           </div>
         </DialogContent>
