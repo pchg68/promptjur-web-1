@@ -17,21 +17,9 @@ import mysql from "mysql2/promise";
 import { storagePut, storageDelete } from "./storage";
 import { getDb } from "./db";
 import { eq, desc, lt } from "drizzle-orm";
-import { mysqlTable, int, varchar, timestamp, bigint } from "drizzle-orm/mysql-core";
 import { notifyOwner } from "./_core/notification";
-
-// ─── Tabela de controle de backups ────────────────────────────────────────────
-
-export const backups = mysqlTable("backups", {
-  id: int("id").autoincrement().primaryKey(),
-  filename: varchar("filename", { length: 255 }).notNull(),
-  s3Key: varchar("s3_key", { length: 512 }).notNull(),
-  s3Url: varchar("s3_url", { length: 1024 }).notNull(),
-  size: bigint("size", { mode: "number" }).notNull(),
-  isEncrypted: int("is_encrypted").notNull().default(1),
-  createdBy: int("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// Usa o schema centralizado para garantir que os nomes das colunas sejam consistentes
+import { backups } from "../drizzle/schema";
 
 export type Backup = typeof backups.$inferSelect;
 

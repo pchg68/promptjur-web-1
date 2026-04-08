@@ -4,6 +4,14 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// Mock do Resend no nível do módulo (obrigatório para hoisting do Vitest)
+const mockEmailSend = vi.fn();
+vi.mock("resend", () => ({
+  Resend: vi.fn().mockImplementation(() => ({
+    emails: { send: mockEmailSend },
+  })),
+}));
+
 describe("Email module", () => {
   describe("sendWelcomeEmail — sem RESEND_API_KEY", () => {
     beforeEach(() => {
@@ -85,6 +93,55 @@ describe("Email module", () => {
       ]);
       expect(result.pulados).toBe(3);
       expect(result.enviados + result.falhas + result.pulados).toBe(3);
+    });
+  });
+
+  describe("getFromAddress — seleção do remetente", () => {
+    // Estes testes verificam a lógica de seleção do remetente (bug fix)
+    // Usam vi.resetModules() para forçar recarga do módulo com novas env vars
+    afterEach(() => {
+      delete process.env.EMAIL_FROM;
+      delete process.env.RESEND_API_KEY;
+      vi.resetModules();
+    });
+
+    it("deve usar EMAIL_FROM quando configurado com domínio promptjur.com (bug fix)", async () => {
+      // BUG CORRIGIDO: antes, EMAIL_FROM com 'promptjur.com' era ignorado
+      // e o sistema usava onboarding@resend.dev (que só funciona para o owner)
+      process.env.RESEND_API_KEY = "re_test_mock_key";
+      process.env.EMAIL_FROM = "noreply@promptjur.com";
+      vi.resetModules();
+
+      const localMock = vi.fn().mockResolvedValue({ data: { id: "msg_123" }, error: null });
+      vi.doMock("resend", () => ({
+        Resend: vi.fn().mockImplementation(() => ({ emails: { send: localMock } })),
+      }));
+
+      const { sendWelcomeEmail } = await import("../email");
+      await sendWelcomeEmail({ email: "usuario@exemplo.com" });
+
+      // Deve ter chamado o Resend com o remetente correto (promptjur.com)
+      expect(localMock).toHaveBeenCalledWith(
+        expect.objectContaining({ from: "noreply@promptjur.com" })
+      );
+    });
+
+    it("deve usar onboarding@resend.dev como fallback quando EMAIL_FROM não está definido", async () => {
+      process.env.RESEND_API_KEY = "re_test_mock_key";
+      delete process.env.EMAIL_FROM;
+      vi.resetModules();
+
+      const localMock = vi.fn().mockResolvedValue({ data: { id: "msg_456" }, error: null });
+      vi.doMock("resend", () => ({
+        Resend: vi.fn().mockImplementation(() => ({ emails: { send: localMock } })),
+      }));
+
+      const { sendWelcomeEmail } = await import("../email");
+      await sendWelcomeEmail({ email: "usuario@exemplo.com" });
+
+      expect(localMock).toHaveBeenCalledWith(
+        expect.objectContaining({ from: "PromptJur <onboarding@resend.dev>" })
+      );
     });
   });
 

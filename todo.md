@@ -2847,3 +2847,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Notificação ao owner após cada backup (sucesso com tamanho/tabelas, ou falha com erro)
 - [x] Agendamento automático diário via cron (02h da manhã, horário de Brasília)
 - [x] 20 testes vitest passando para as 3 novas funcionalidades
+## Correção de Bugs — E-mail e Backup (2026-04-08)
+- [x] BUG: getFromAddress ignorava EMAIL_FROM quando continha "promptjur.com" — lógica condicional invertida corrigida
+- [x] BUG: backup.ts definia tabela local com nomes snake_case (s3_key, created_at) divergindo do banco (s3Key, createdAt) — corrigido para usar schema centralizado do drizzle/schema.ts
+- [x] Testes de regressão adicionados para getFromAddress (9 testes passando no email.test.ts)
+- [x] 42 testes de backup passando com schema corrigido

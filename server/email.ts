@@ -25,14 +25,15 @@ function getAppUrl(): string {
 
 /** Remetente padrão — deve ser um domínio verificado no Resend */
 function getFromAddress(): string {
-  // Se EMAIL_FROM estiver configurado com domínio verificado no Resend, usa-o.
-  // Caso contrário, usa o domínio padrão do Resend (onboarding@resend.dev),
-  // que funciona sem verificação de domínio e é aceito em qualquer conta Resend.
+  // Usa EMAIL_FROM se configurado (qualquer domínio, inclusive promptjur.com).
+  // Fallback para onboarding@resend.dev apenas quando EMAIL_FROM não está definido.
+  // NOTA: onboarding@resend.dev só funciona para o e-mail do dono da conta Resend;
+  //       para enviar a qualquer destinatário, é obrigatório usar um domínio verificado.
   const configured = process.env.EMAIL_FROM;
-  if (configured && !configured.includes("promptjur.com")) {
-    return configured;
+  if (configured && configured.trim().length > 0) {
+    return configured.trim();
   }
-  // Fallback seguro: domínio padrão do Resend (não requer verificação)
+  // Fallback: domínio padrão do Resend (restrito ao e-mail do owner da conta)
   return "PromptJur <onboarding@resend.dev>";
 }
 
