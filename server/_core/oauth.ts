@@ -5,6 +5,7 @@ import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
 import { isEmailAllowed } from "../whitelist";
 import { notifyOwner } from "./notification";
+import { registrarAcesso } from "../db-access-logs";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -57,6 +58,26 @@ export function registerOAuthRoutes(app: Express) {
         res.redirect(302, "/acesso-restrito");
         return;
       }
+
+      // Registrar log de acesso (fire-and-forget)
+      const ipOrigem =
+        (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+        req.socket?.remoteAddress ||
+        undefined;
+      const userAgent = (req.headers["user-agent"] as string) || undefined;
+
+      registrarAcesso({
+        openId: userInfo.openId,
+        nome: userInfo.name || null,
+        email: userInfo.email ?? null,
+        loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
+        ipOrigem: ipOrigem ?? null,
+        userAgent: userAgent ? userAgent.substring(0, 512) : null,
+        primeiroAcesso: isPrimeiroAcesso,
+        acessoPermitido: true,
+      }).catch((err) =>
+        console.error("[OAuth] Falha ao registrar log de acesso:", err)
+      );
 
       // Notificar owner no primeiro acesso de usuário da whitelist
       if (isPrimeiroAcesso) {

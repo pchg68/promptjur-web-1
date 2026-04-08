@@ -1384,4 +1384,54 @@ export const adminRouter = router({
 
     return { desativados: expirados.length, emails: expirados.map(e => e.email) };
   }),
+
+  // ===== LOG DE ACESSOS =====
+
+  listarAccessLogs: adminProcedure
+    .input(
+      z.object({
+        email: z.string().optional(),
+        nome: z.string().optional(),
+        dataInicio: z.string().optional(),
+        dataFim: z.string().optional(),
+        apenasNegados: z.boolean().optional(),
+        apenasPrimeiros: z.boolean().optional(),
+        page: z.number().int().min(1).default(1),
+        limit: z.number().int().min(1).max(200).default(50),
+      })
+    )
+    .query(async ({ input }) => {
+      const { listarAccessLogs } = await import("../db-access-logs");
+      return listarAccessLogs({
+        ...input,
+        dataInicio: input.dataInicio ? new Date(input.dataInicio) : undefined,
+        dataFim: input.dataFim ? new Date(input.dataFim) : undefined,
+      });
+    }),
+
+  statsAccessLogs: adminProcedure.query(async () => {
+    const { statsAccessLogs } = await import("../db-access-logs");
+    return statsAccessLogs();
+  }),
+
+  exportarAccessLogsCsv: adminProcedure
+    .input(
+      z.object({
+        email: z.string().optional(),
+        nome: z.string().optional(),
+        dataInicio: z.string().optional(),
+        dataFim: z.string().optional(),
+        apenasNegados: z.boolean().optional(),
+        apenasPrimeiros: z.boolean().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { exportarAccessLogsCsv } = await import("../db-access-logs");
+      const csv = await exportarAccessLogsCsv({
+        ...input,
+        dataInicio: input.dataInicio ? new Date(input.dataInicio) : undefined,
+        dataFim: input.dataFim ? new Date(input.dataFim) : undefined,
+      });
+      return { csv };
+    }),
 });

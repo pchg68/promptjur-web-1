@@ -288,6 +288,13 @@
       "when": 1775671310755,
       "tag": "0040_flawless_goliath",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1775674436137,
+      "tag": "0041_reflective_blue_shield",
+      "breakpoints": true
     }
   ]
 }

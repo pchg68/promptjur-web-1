@@ -2924,3 +2924,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Detectar primeiro acesso no callback OAuth
 - [x] Notificar owner com nome, e-mail e horário (fuso Brasília)
 - [x] 9 testes vitest passando
+
+## Log de Acessos no Painel Admin
+- [x] Tabela access_logs criada no banco (migração 0041)
+- [x] Queries db-access-logs.ts: registrarAcesso, listarAccessLogs, statsAccessLogs, exportarAccessLogsCsv
+- [x] Procedures tRPC: admin.listarAccessLogs, admin.statsAccessLogs, admin.exportarAccessLogsCsv
+- [x] Registro automático no callback OAuth a cada login (fire-and-forget)
+- [x] Componente TabLogAcessos com tabela, filtros, paginação e exportação CSV
+- [x] Seção colapsável integrada no AdminTools.tsx
+- [x] 12 testes vitest passando

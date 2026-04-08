@@ -10,6 +10,7 @@ import TabLeads from "@/components/TabLeads";
 import TabInteressados from "@/components/TabInteressados";
 import TabWhitelist from "@/components/TabWhitelist";
 import TabMensagens from "@/components/TabMensagens";
+import TabLogAcessos from "@/components/TabLogAcessos";
 import { useLocation } from "wouter";
 
 export default function AdminTools() {
@@ -207,6 +208,11 @@ export default function AdminTools() {
         {/* Whitelist de Acesso */}
         <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
           <TabWhitelist />
+        </div>
+
+        {/* Log de Acessos */}
+        <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
+          <TabLogAcessos />
         </div>
 
         {/* Grid de Cards */}

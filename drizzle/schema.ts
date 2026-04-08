@@ -748,3 +748,33 @@ export const configReenvioAuto = mysqlTable("config_reenvio_auto", {
 
 export type ConfigReenvioAuto = typeof configReenvioAuto.$inferSelect;
 export type InsertConfigReenvioAuto = typeof configReenvioAuto.$inferInsert;
+
+/**
+ * Tabela de log de acessos — registra cada login de usuário no sistema.
+ * Permite auditoria e monitoramento de atividade no painel admin.
+ */
+export const accessLogs = mysqlTable("access_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID do usuário no banco (null se for primeiro acesso e ainda não existia) */
+  userId: int("userId"),
+  /** OpenId do usuário (sempre disponível no callback OAuth) */
+  openId: varchar("openId", { length: 64 }).notNull(),
+  /** Nome do usuário no momento do login */
+  nome: text("nome"),
+  /** E-mail do usuário no momento do login */
+  email: varchar("email", { length: 320 }),
+  /** Método de autenticação utilizado (email, google, github etc.) */
+  loginMethod: varchar("loginMethod", { length: 64 }),
+  /** IP de origem da requisição */
+  ipOrigem: varchar("ipOrigem", { length: 64 }),
+  /** User-Agent do navegador */
+  userAgent: varchar("userAgent", { length: 512 }),
+  /** Se foi o primeiro acesso do usuário */
+  primeiroAcesso: boolean("primeiroAcesso").default(false).notNull(),
+  /** Se o acesso foi permitido (false = bloqueado pela whitelist) */
+  acessoPermitido: boolean("acessoPermitido").default(true).notNull(),
+  /** Data/hora do acesso */
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AccessLog = typeof accessLogs.$inferSelect;
+export type InsertAccessLog = typeof accessLogs.$inferInsert;
