@@ -4,6 +4,7 @@ import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
 import { isEmailAllowed } from "../whitelist";
+import { notifyOwner } from "./notification";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -29,6 +30,10 @@ export function registerOAuthRoutes(app: Express) {
         return;
       }
 
+      // Verificar se é o primeiro acesso ANTES de criar/atualizar o usuário
+      const usuarioExistente = await db.getUserByOpenId(userInfo.openId);
+      const isPrimeiroAcesso = !usuarioExistente;
+
       await db.upsertUser({
         openId: userInfo.openId,
         name: userInfo.name || null,
@@ -51,6 +56,27 @@ export function registerOAuthRoutes(app: Express) {
         console.log(`[Whitelist] Acesso negado para: ${userInfo.email}`);
         res.redirect(302, "/acesso-restrito");
         return;
+      }
+
+      // Notificar owner no primeiro acesso de usuário da whitelist
+      if (isPrimeiroAcesso) {
+        const agora = new Date();
+        const horario = agora.toLocaleString("pt-BR", {
+          timeZone: "America/Sao_Paulo",
+          dateStyle: "short",
+          timeStyle: "short",
+        });
+        const nome = userInfo.name || "(sem nome)";
+        const email = userInfo.email || "(sem e-mail)";
+
+        notifyOwner({
+          title: `Novo usuário: ${nome}`,
+          content: `**${nome}** (${email}) acessou o PromptJur pela primeira vez em ${horario}.`,
+        }).catch((err) =>
+          console.error("[OAuth] Falha ao notificar owner sobre primeiro acesso:", err)
+        );
+
+        console.log(`[OAuth] Primeiro acesso registrado: ${email} (${nome}) em ${horario}`);
       }
 
       res.redirect(302, "/");

@@ -2913,3 +2913,14 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Exportação CSV filtrada (respeita filtro ativo ao exportar)
 - [x] Badge de contagem clicável para abrir modal de histórico
 - [x] Skill promptjur-dev criada e validada
+
+## Notificação de Primeiro Acesso
+- [x] Detectar primeiro acesso no callback OAuth (getUserByOpenId antes do upsertUser)
+- [x] Enviar notificação ao owner com nome, e-mail e horário (fuso Brasília)
+- [x] Padrão fire-and-forget (.catch) para não bloquear o redirect
+- [x] 9 testes vitest passando
+
+## Notificação de Primeiro Acesso
+- [x] Detectar primeiro acesso no callback OAuth
+- [x] Notificar owner com nome, e-mail e horário (fuso Brasília)
+- [x] 9 testes vitest passando
