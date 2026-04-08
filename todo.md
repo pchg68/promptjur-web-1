@@ -2858,3 +2858,25 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Feedback visual individual por e-mail (estado reenviando separado por e-mail, não bloqueia outros botões)
 - [x] Toast com 3 estados: enviado com sucesso, pulado (sem API key), falhou (com instrução de diagnóstico)
 - [x] 12 testes vitest passando para a procedure reenviarConviteWhitelist
+
+## Melhorias de Gestão de E-mails na Whitelist (2026-04-08)
+- [ ] Adicionar colunas convitesEnviados e ultimoEnvio na tabela access_whitelist
+- [ ] Migrar banco de dados com pnpm db:push
+- [ ] Atualizar procedure reenviarConviteWhitelist para incrementar contador e registrar data
+- [ ] Atualizar addWhitelist e importWhitelist para registrar envio inicial
+- [ ] Criar procedure reenviarTodosWhitelist para reenvio em lote com progresso
+- [ ] Exibir badge de contagem de envios na lista de e-mails ativos
+- [ ] Exibir data do último envio em cada linha da whitelist
+- [ ] Adicionar botão "Reenviar para todos" no cabeçalho com barra de progresso e resumo
+- [ ] Testes vitest para as novas funcionalidades
+
+## Melhorias de Gestão de E-mails na Whitelist
+- [x] Coluna convitesEnviados na tabela accessWhitelist (migração aplicada)
+- [x] Coluna ultimoEnvio na tabela accessWhitelist (migração aplicada)
+- [x] Badge de contagem de envios em cada linha da whitelist
+- [x] Data do último envio exibida em cada linha (com ícone de alerta para sem envio)
+- [x] Botão "Reenviar todos" no cabeçalho com spinner durante envio
+- [x] Painel de resultado do lote com contagem de enviados/falhas/pulados
+- [x] Procedure reenviarTodosWhitelist com pausa anti-rate-limit (150ms)
+- [x] Incremento de convitesEnviados e ultimoEnvio em addWhitelist, importWhitelist e reenviarConviteWhitelist
+- [x] 12 testes vitest passando para as melhorias de gestão de e-mails

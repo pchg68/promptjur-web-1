@@ -812,6 +812,20 @@ export const adminRouter = router({
         emailResult = await sendWelcomeEmail({ email: input.email, nome: input.nome });
       }
 
+      // Atualizar contador e data do último envio se o e-mail foi enviado com sucesso
+      if (emailResult.success && !emailResult.skipped) {
+        const dbConn = await db.getDb();
+        if (dbConn) {
+          await dbConn
+            .update(accessWhitelist)
+            .set({
+              convitesEnviados: sql`${accessWhitelist.convitesEnviados} + 1`,
+              ultimoEnvio: new Date(),
+            })
+            .where(eq(accessWhitelist.email, input.email));
+        }
+      }
+
       await logAuditoria({
         userId: ctx.user.id,
         acao: "add_whitelist",
@@ -883,6 +897,23 @@ export const adminRouter = router({
       let emailStats = { enviados: 0, falhas: 0, pulados: adicionados };
       if (recipients.length > 0) {
         emailStats = await sendWelcomeEmailBatch(recipients);
+      }
+
+      // Atualizar contador e data do último envio para os e-mails enviados com sucesso
+      if (emailStats.enviados > 0) {
+        const dbConn = await db.getDb();
+        if (dbConn) {
+          const agora = new Date();
+          for (const recipient of recipients) {
+            await dbConn
+              .update(accessWhitelist)
+              .set({
+                convitesEnviados: sql`${accessWhitelist.convitesEnviados} + 1`,
+                ultimoEnvio: agora,
+              })
+              .where(eq(accessWhitelist.email, recipient.email));
+          }
+        }
       }
 
       await logAuditoria({
@@ -1153,6 +1184,17 @@ export const adminRouter = router({
       // Reenviar e-mail de boas-vindas
       const result = await sendWelcomeEmail({ email: entry.email, nome: entry.nome ?? undefined });
 
+      // Atualizar contador e data do último envio se o e-mail foi enviado com sucesso
+      if (result.success && !result.skipped) {
+        await dbConn
+          .update(accessWhitelist)
+          .set({
+            convitesEnviados: sql`${accessWhitelist.convitesEnviados} + 1`,
+            ultimoEnvio: new Date(),
+          })
+          .where(eq(accessWhitelist.email, entry.email));
+      }
+
       await logAuditoria({
         userId: ctx.user.id,
         acao: 'reenviar_convite_whitelist',
@@ -1168,8 +1210,76 @@ export const adminRouter = router({
         skipped: result.skipped ?? false,
         email: entry.email,
         nome: entry.nome,
+        convitesEnviados: result.success && !result.skipped ? (entry.convitesEnviados + 1) : entry.convitesEnviados,
       };
     }),
+
+  /**
+   * Reenvia o e-mail de convite para TODOS os e-mails ativos da whitelist.
+   * Retorna progresso detalhado: enviados, falhas, pulados.
+   */
+  reenviarTodosWhitelist: adminProcedure.mutation(async ({ ctx }) => {
+    const dbConn = await db.getDb();
+    if (!dbConn) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+
+    // Buscar todos os e-mails ativos
+    const ativos = await dbConn
+      .select()
+      .from(accessWhitelist)
+      .where(eq(accessWhitelist.ativo, true));
+
+    if (ativos.length === 0) {
+      return { enviados: 0, falhas: 0, pulados: 0, total: 0 };
+    }
+
+    let enviados = 0;
+    let falhas = 0;
+    let pulados = 0;
+    const agora = new Date();
+
+    for (const entry of ativos) {
+      try {
+        const result = await sendWelcomeEmail({ email: entry.email, nome: entry.nome ?? undefined });
+
+        if (result.skipped) {
+          pulados++;
+          // Se pulado, ainda assim conta como pulado (sem API key)
+          break; // Se não tem API key, todos serão pulados — interrompe o loop
+        } else if (result.success) {
+          enviados++;
+          // Atualizar contador e data do último envio
+          await dbConn
+            .update(accessWhitelist)
+            .set({
+              convitesEnviados: sql`${accessWhitelist.convitesEnviados} + 1`,
+              ultimoEnvio: agora,
+            })
+            .where(eq(accessWhitelist.id, entry.id));
+        } else {
+          falhas++;
+        }
+      } catch {
+        falhas++;
+      }
+      // Pequena pausa para não sobrecarregar a API do Resend
+      await new Promise(r => setTimeout(r, 150));
+    }
+
+    // Se pulado na primeira iteração, todos os demais também seriam pulados
+    if (pulados > 0 && enviados === 0 && falhas === 0) {
+      pulados = ativos.length;
+    }
+
+    await logAuditoria({
+      userId: ctx.user.id,
+      acao: 'reenviar_todos_whitelist',
+      descricao: `Reenvio em lote: ${enviados} enviados, ${falhas} falhas, ${pulados} pulados de ${ativos.length} ativos`,
+      metadata: { total: ativos.length, enviados, falhas, pulados },
+      req: ctx.req,
+    });
+
+    return { enviados, falhas, pulados, total: ativos.length };
+  }),
 
   /**
    * Desativa manualmente todas as entradas da whitelist com expiresAt vencido

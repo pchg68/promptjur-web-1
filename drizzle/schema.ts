@@ -498,6 +498,10 @@ export const accessWhitelist = mysqlTable("access_whitelist", {
   ativo: boolean("ativo").default(true).notNull(),
   /** Data de expiração do acesso. null = sem expiração (acesso permanente) */
   expiresAt: timestamp("expiresAt"),
+  /** Número total de e-mails de convite enviados para este endereço */
+  convitesEnviados: int("convitesEnviados").default(0).notNull(),
+  /** Data e hora do último envio de e-mail de convite */
+  ultimoEnvio: timestamp("ultimoEnvio"),
   criadoEm: timestamp("criadoEm").defaultNow().notNull(),
   atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
 });

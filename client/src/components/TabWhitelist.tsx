@@ -28,6 +28,8 @@ import {
   Clock,
   CalendarDays,
   Eye,
+  SendHorizonal,
+  AlertTriangle,
 } from "lucide-react";
 
 /**
@@ -86,6 +88,38 @@ export default function TabWhitelist() {
 
   // Rastreia qual e-mail está sendo reenviado (para feedback visual individual)
   const [reenviando, setReenviando] = useState<string | null>(null);
+  // Controle do reenvio em lote
+  const [reenviarTodosAtivo, setReenviarTodosAtivo] = useState(false);
+  const [progressoLote, setProgressoLote] = useState<{ enviados: number; falhas: number; pulados: number; total: number } | null>(null);
+
+  const reenviarTodosMutation = trpc.admin.reenviarTodosWhitelist.useMutation({
+    onMutate: () => {
+      setReenviarTodosAtivo(true);
+      setProgressoLote(null);
+    },
+    onSuccess: (data) => {
+      setReenviarTodosAtivo(false);
+      setProgressoLote(data);
+      if (data.pulados === data.total) {
+        toast.warning("Nenhum e-mail enviado", {
+          description: "Configure RESEND_API_KEY nas configurações para habilitar o envio de e-mails",
+        });
+      } else if (data.falhas > 0) {
+        toast.warning(`${data.enviados} enviados, ${data.falhas} falha(s)`, {
+          description: `Reenvio concluído com erros. Verifique o diagnóstico Resend.`,
+        });
+      } else {
+        toast.success(`${data.enviados} convite(s) reenviados com sucesso!`, {
+          description: `Total de ${data.total} e-mails ativos processados`,
+        });
+      }
+      utils.admin.getWhitelist.invalidate();
+    },
+    onError: (err) => {
+      setReenviarTodosAtivo(false);
+      toast.error(`Erro no reenvio em lote: ${err.message}`);
+    },
+  });
 
   const reenviarMutation = trpc.admin.reenviarConviteWhitelist.useMutation({
     onSuccess: (data) => {
@@ -230,6 +264,24 @@ export default function TabWhitelist() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Botão Reenviar para todos */}
+          {ativos.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => reenviarTodosMutation.mutate()}
+              disabled={reenviarTodosAtivo}
+              className="text-slate-400 hover:text-blue-400 gap-1 text-xs"
+              title={`Reenviar convite para todos os ${ativos.length} e-mails ativos`}
+            >
+              {reenviarTodosAtivo ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <SendHorizonal className="w-4 h-4" />
+              )}
+              {reenviarTodosAtivo ? "Enviando..." : "Reenviar todos"}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -436,12 +488,26 @@ export default function TabWhitelist() {
                       {item.nome && (
                         <p className="text-slate-500 text-xs truncate">{item.nome}</p>
                       )}
-                      {expiry && (
-                        <p className="text-slate-500 text-xs flex items-center gap-1 mt-0.5">
-                          <Clock className="w-3 h-3" />
-                          {expiry}
-                        </p>
-                      )}
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {expiry && (
+                          <p className="text-slate-500 text-xs flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {expiry}
+                          </p>
+                        )}
+                        {/* Data do último envio */}
+                        {item.ultimoEnvio ? (
+                          <p className="text-slate-600 text-xs flex items-center gap-1" title="Data do último envio de convite">
+                            <Mail className="w-3 h-3 text-blue-500/60" />
+                            {new Date(item.ultimoEnvio).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                          </p>
+                        ) : (
+                          <p className="text-slate-700 text-xs flex items-center gap-1" title="Nenhum convite enviado ainda">
+                            <AlertTriangle className="w-3 h-3 text-amber-600/50" />
+                            Sem envio
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -456,6 +522,26 @@ export default function TabWhitelist() {
                     >
                       {item.expiresAt ? "Com expiração" : "Permanente"}
                     </Badge>
+                    {/* Badge de contagem de convites enviados */}
+                    {item.convitesEnviados > 0 ? (
+                      <Badge
+                        variant="outline"
+                        className="text-blue-400 border-blue-500/30 text-xs gap-1"
+                        title={`${item.convitesEnviados} convite(s) enviado(s)`}
+                      >
+                        <Mail className="w-3 h-3" />
+                        {item.convitesEnviados}
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="text-amber-500/60 border-amber-500/20 text-xs gap-1"
+                        title="Nenhum convite enviado ainda"
+                      >
+                        <AlertTriangle className="w-3 h-3" />
+                        0
+                      </Badge>
+                    )}
                     {/* Botão Reenviar Convite — visível ao passar o mouse */}
                     <Button
                       variant="ghost"
@@ -487,6 +573,55 @@ export default function TabWhitelist() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Painel de resultado do reenvio em lote */}
+        {progressoLote && (
+          <div className={`mt-3 rounded-xl p-4 border flex items-start gap-3 ${
+            progressoLote.falhas > 0
+              ? 'bg-amber-500/5 border-amber-500/20'
+              : progressoLote.pulados === progressoLote.total
+              ? 'bg-slate-800/40 border-slate-700/30'
+              : 'bg-emerald-500/5 border-emerald-500/20'
+          }`}>
+            {progressoLote.falhas > 0 ? (
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            ) : progressoLote.pulados === progressoLote.total ? (
+              <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+            ) : (
+              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white">Resultado do reenvio em lote</p>
+              <div className="flex items-center gap-4 mt-1 flex-wrap">
+                <span className="text-xs text-emerald-400 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  {progressoLote.enviados} enviados
+                </span>
+                {progressoLote.falhas > 0 && (
+                  <span className="text-xs text-red-400 flex items-center gap-1">
+                    <XCircle className="w-3 h-3" />
+                    {progressoLote.falhas} falha(s)
+                  </span>
+                )}
+                {progressoLote.pulados > 0 && (
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    {progressoLote.pulados} pulado(s)
+                  </span>
+                )}
+                <span className="text-xs text-slate-500">
+                  Total: {progressoLote.total}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setProgressoLote(null)}
+              className="text-slate-600 hover:text-slate-400 text-xs shrink-0"
+            >
+              ×
+            </button>
           </div>
         )}
 
