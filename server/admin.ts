@@ -12,6 +12,7 @@ import { getMetricasPorRota, getStatsPerformance, limparMetricas, registrarMetri
 import { listarFeatures, toggleFeature, criarFeature, inicializarFeatures, limparCacheFeatures } from "./feature-flags";
 import { executarAuditoriaNpm, atualizarDependenciasSeguras } from "./security-audit";
 import { criarBackup, listarBackups, restaurarBackup } from "./backup";
+import { storageGet } from "./storage";
 import { getSentryStatus, isSentryActive } from "./_core/sentry";
 import { enterpriseLeads, launchInterests, accessWhitelist } from "../drizzle/schema";
 import { addToWhitelist, removeFromWhitelist, listWhitelist } from "./whitelist";
@@ -659,6 +660,41 @@ export const adminRouter = router({
       });
       
       return resultado;
+    }),
+
+  // Gerar link de download pré-assinado para um backup (validade: 15 minutos)
+  gerarLinkDownloadBackup: adminProcedure
+    .input(z.object({
+      backupId: z.number()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await (await import('./db')).getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Banco de dados indisponível' });
+
+      const { backups } = await import('../drizzle/schema');
+      const { eq } = await import('drizzle-orm');
+      const rows = await db.select().from(backups).where(eq(backups.id, input.backupId)).limit(1);
+      if (rows.length === 0) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Backup não encontrado' });
+      }
+
+      const backup = rows[0];
+      const { url } = await storageGet(backup.s3Key);
+
+      // Registrar no log de auditoria
+      await logAuditoria({
+        userId: ctx.user.id,
+        acao: 'download_backup',
+        descricao: `Link de download gerado para backup #${input.backupId}: ${backup.filename}`,
+        metadata: { backupId: input.backupId, filename: backup.filename },
+        req: ctx.req
+      });
+
+      return {
+        url,
+        filename: backup.filename,
+        expiresInMinutes: 15,
+      };
     }),
 
   // Status do Sentry

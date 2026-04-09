@@ -20,6 +20,7 @@ export default function AdminTools() {
   const [resultadoAuditoria, setResultadoAuditoria] = useState<any>(null);
   const [auditandoDeps, setAuditandoDeps] = useState(false);
   const [resultadoAuditoriaDeps, setResultadoAuditoriaDeps] = useState<any>(null);
+  const [downloadingBackupId, setDownloadingBackupId] = useState<number | null>(null);
 
   // Redirect para não-admins — DEVE estar antes dos returns condicionais
   useEffect(() => {
@@ -162,6 +163,25 @@ export default function AdminTools() {
     },
     onError: (error) => {
       toast.error("Erro ao restaurar: " + error.message);
+    }
+  });
+  const gerarLinkDownloadBackupMutation = trpc.admin.gerarLinkDownloadBackup.useMutation({
+    onSuccess: (data) => {
+      setDownloadingBackupId(null);
+      // Abre o link de download em nova aba
+      const a = document.createElement('a');
+      a.href = data.url;
+      a.download = data.filename;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success(`✅ Download iniciado: ${data.filename}`);
+    },
+    onError: (error) => {
+      setDownloadingBackupId(null);
+      toast.error("Erro ao gerar link de download: " + error.message);
     }
   });
 
@@ -686,28 +706,50 @@ export default function AdminTools() {
                     </p>
                   </div>
 
-                  <div className="max-h-48 overflow-y-auto space-y-2">
+                  <div className="max-h-64 overflow-y-auto space-y-2">
                     {backupsQuery.data.slice(0, 10).map((backup: any) => (
                       <div key={backup.id} className="p-2 bg-muted rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{backup.filename}</p>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{backup.filename}</p>
                             <p className="text-xs text-muted-foreground">
-                              {new Date(backup.createdAt).toLocaleString('pt-BR')} • {Math.round(backup.size / 1024 / 1024)}MB
+                              {new Date(backup.createdAt).toLocaleString('pt-BR')} &bull; {Math.round(backup.size / 1024 / 1024)}MB
                             </p>
                           </div>
-                          <Button
-                            onClick={() => {
-                              if (confirm('Tem certeza? Esta ação substituirá todos os dados atuais!')) {
-                                restaurarBackupMutation.mutate({ backupId: backup.id });
-                              }
-                            }}
-                            disabled={restaurarBackupMutation.isPending}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {/* Botão de Download */}
+                            <Button
+                              onClick={() => {
+                                setDownloadingBackupId(backup.id);
+                                gerarLinkDownloadBackupMutation.mutate({ backupId: backup.id });
+                              }}
+                              disabled={downloadingBackupId === backup.id || gerarLinkDownloadBackupMutation.isPending}
+                              variant="outline"
+                              size="sm"
+                              title="Baixar backup criptografado"
+                            >
+                              {downloadingBackupId === backup.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Download className="w-4 h-4" />
+                              )}
+                            </Button>
+                            {/* Botão de Restaurar */}
+                            <Button
+                              onClick={() => {
+                                if (confirm('Tem certeza? Esta ação substituirá todos os dados atuais!')) {
+                                  restaurarBackupMutation.mutate({ backupId: backup.id });
+                                }
+                              }}
+                              disabled={restaurarBackupMutation.isPending}
+                              variant="outline"
+                              size="sm"
+                              title="Restaurar banco de dados a partir deste backup"
+                              className="text-amber-600 hover:text-amber-700 hover:border-amber-600"
+                            >
+                              <Upload className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
