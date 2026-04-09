@@ -328,6 +328,68 @@ export const adminRouter = router({
     return getMetricasPorRota();
   }),
   
+  // Métricas de conversão de convites vs logins
+  metricasConversao: adminProcedure.query(async () => {
+    const dbConn = await (await import('./db')).getDb();
+    if (!dbConn) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Banco de dados indisponível' });
+
+    // Totais gerais
+    const totalConvitesRes = await dbConn.execute(
+      sql`SELECT COALESCE(SUM(convitesEnviados), 0) as total, COUNT(*) as emails FROM access_whitelist WHERE ativo = 1`
+    );
+    const totalLoginsRes = await dbConn.execute(
+      sql`SELECT COUNT(*) as total FROM access_logs WHERE acessoPermitido = 1`
+    );
+    const convertidosRes = await dbConn.execute(
+      sql`SELECT COUNT(DISTINCT al.email) as total FROM access_logs al INNER JOIN access_whitelist aw ON al.email = aw.email WHERE al.acessoPermitido = 1 AND aw.ativo = 1`
+    );
+    const pendentesRes = await dbConn.execute(
+      sql`SELECT COUNT(*) as total FROM access_whitelist aw WHERE aw.ativo = 1 AND NOT EXISTS (SELECT 1 FROM access_logs al WHERE al.email = aw.email AND al.acessoPermitido = 1)`
+    );
+
+    const row0 = (totalConvitesRes as any)[0]?.[0] ?? {};
+    const totalConvites = Number(row0.total ?? 0);
+    const totalEmails = Number(row0.emails ?? 0);
+    const totalLogins = Number(((totalLoginsRes as any)[0]?.[0] ?? {}).total ?? 0);
+    const convertidos = Number(((convertidosRes as any)[0]?.[0] ?? {}).total ?? 0);
+    const pendentes = Number(((pendentesRes as any)[0]?.[0] ?? {}).total ?? 0);
+    const taxaConversao = totalEmails > 0 ? Math.round((convertidos / totalEmails) * 100) : 0;
+
+    // Dados semanais (últimas 8 semanas)
+    const convitesSemanaRes = await dbConn.execute(
+      sql`SELECT YEARWEEK(ultimoEnvio, 1) as semana, DATE_FORMAT(MIN(ultimoEnvio), '%d/%m') as label, COUNT(*) as convites FROM access_whitelist WHERE ultimoEnvio >= DATE_SUB(NOW(), INTERVAL 8 WEEK) GROUP BY YEARWEEK(ultimoEnvio, 1) ORDER BY semana ASC`
+    );
+    const loginsSemanaRes = await dbConn.execute(
+      sql`SELECT YEARWEEK(createdAt, 1) as semana, DATE_FORMAT(MIN(createdAt), '%d/%m') as label, COUNT(*) as logins FROM access_logs WHERE acessoPermitido = 1 AND createdAt >= DATE_SUB(NOW(), INTERVAL 8 WEEK) GROUP BY YEARWEEK(createdAt, 1) ORDER BY semana ASC`
+    );
+
+    const semanasMap = new Map<number, { label: string; convites: number; logins: number }>();
+    for (const row of ((convitesSemanaRes as any)[0] as any[])) {
+      semanasMap.set(Number(row.semana), { label: String(row.label), convites: Number(row.convites), logins: 0 });
+    }
+    for (const row of ((loginsSemanaRes as any)[0] as any[])) {
+      const semana = Number(row.semana);
+      if (semanasMap.has(semana)) {
+        semanasMap.get(semana)!.logins = Number(row.logins);
+      } else {
+        semanasMap.set(semana, { label: String(row.label), convites: 0, logins: Number(row.logins) });
+      }
+    }
+    const graficoSemanal = Array.from(semanasMap.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([, v]) => v);
+
+    return {
+      totalConvites,
+      totalEmails,
+      totalLogins,
+      convertidos,
+      pendentes,
+      taxaConversao,
+      graficoSemanal,
+    };
+  }),
+
   // Estatísticas gerais de performance
   statsPerformance: adminProcedure.query(async () => {
     return getStatsPerformance();

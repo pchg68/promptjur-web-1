@@ -74,6 +74,9 @@ export default function AdminTools() {
   const logsQuery = trpc.admin.listarLogs.useQuery({ limit: 50 });
   const statsAuditoriaQuery = trpc.admin.statsAuditoria.useQuery();
 
+  // Métricas de Conversão de Convites
+  const metricasConversaoQuery = trpc.admin.metricasConversao.useQuery();
+
   // Performance
   const metricasPorRotaQuery = trpc.admin.metricasPorRota.useQuery();
   const statsPerformanceQuery = trpc.admin.statsPerformance.useQuery();
@@ -245,6 +248,91 @@ export default function AdminTools() {
         <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
           <TabLogAcessos />
         </div>
+
+        {/* Card de Métricas de Conversão de Convites */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              Taxa de Conversão de Convites
+            </CardTitle>
+            <CardDescription>
+              Convites enviados vs. logins realizados — últimas 8 semanas
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {metricasConversaoQuery.isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : metricasConversaoQuery.data ? (
+              <div className="space-y-6">
+                {/* KPIs */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-primary/10 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-primary">{metricasConversaoQuery.data.taxaConversao}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">Taxa de Conversão</p>
+                  </div>
+                  <div className="p-4 bg-muted/50 rounded-lg text-center">
+                    <p className="text-2xl font-bold">{metricasConversaoQuery.data.totalEmails}</p>
+                    <p className="text-xs text-muted-foreground mt-1">E-mails Convidados</p>
+                  </div>
+                  <div className="p-4 bg-green-500/10 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-green-500">{metricasConversaoQuery.data.convertidos}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Convertidos</p>
+                  </div>
+                  <div className="p-4 bg-amber-500/10 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-amber-500">{metricasConversaoQuery.data.pendentes}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Aguardando Login</p>
+                  </div>
+                </div>
+                {/* Gráfico de barras semanal */}
+                {metricasConversaoQuery.data.graficoSemanal.length > 0 ? (
+                  <div>
+                    <p className="text-sm font-medium mb-3 text-muted-foreground">Atividade Semanal</p>
+                    <div className="flex items-end gap-3 h-32">
+                      {metricasConversaoQuery.data.graficoSemanal.map((semana: any, i: number) => {
+                        const maxVal = Math.max(
+                          ...metricasConversaoQuery.data!.graficoSemanal.flatMap((s: any) => [s.convites, s.logins]),
+                          1
+                        );
+                        return (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                            <div className="w-full flex gap-0.5 items-end h-24">
+                              <div
+                                className="flex-1 bg-primary/70 rounded-t transition-all"
+                                style={{ height: `${Math.round((semana.convites / maxVal) * 100)}%`, minHeight: semana.convites > 0 ? '4px' : '0' }}
+                                title={`Convites: ${semana.convites}`}
+                              />
+                              <div
+                                className="flex-1 bg-green-500/70 rounded-t transition-all"
+                                style={{ height: `${Math.round((semana.logins / maxVal) * 100)}%`, minHeight: semana.logins > 0 ? '4px' : '0' }}
+                                title={`Logins: ${semana.logins}`}
+                              />
+                            </div>
+                            <span className="text-xs text-muted-foreground">{semana.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center gap-4 mt-3">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded-sm bg-primary/70" />
+                        <span className="text-xs text-muted-foreground">Convites enviados</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded-sm bg-green-500/70" />
+                        <span className="text-xs text-muted-foreground">Logins realizados</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">Nenhuma atividade nas últimas 8 semanas.</p>
+                )}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
 
         {/* Grid de Cards */}
         <div className="grid gap-6 md:grid-cols-2">
