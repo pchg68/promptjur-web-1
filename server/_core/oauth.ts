@@ -6,6 +6,7 @@ import { sdk } from "./sdk";
 import { isEmailAllowed } from "../whitelist";
 import { notifyOwner } from "./notification";
 import { registrarAcesso } from "../db-access-logs";
+import { ENV } from "./env";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -52,11 +53,16 @@ export function registerOAuthRoutes(app: Express) {
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
       // Verificar whitelist de acesso (apenas quando whitelist_ativa estiver ligada)
-      const emailPermitido = await isEmailAllowed(userInfo.email ?? null);
+      // O owner/admin sempre tem acesso garantido, independente da whitelist
+      const isOwner = userInfo.openId === ENV.ownerOpenId;
+      const emailPermitido = isOwner || await isEmailAllowed(userInfo.email ?? null);
       if (!emailPermitido) {
         console.log(`[Whitelist] Acesso negado para: ${userInfo.email}`);
         res.redirect(302, "/acesso-restrito");
         return;
+      }
+      if (isOwner) {
+        console.log(`[Whitelist] Acesso garantido para owner: ${userInfo.email}`);
       }
 
       // Registrar log de acesso (fire-and-forget)

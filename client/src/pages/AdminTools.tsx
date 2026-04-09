@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle, Building2 } from "lucide-react";
+import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle, Building2, ArrowLeft } from "lucide-react";
 import TabLeads from "@/components/TabLeads";
 import TabInteressados from "@/components/TabInteressados";
 import TabWhitelist from "@/components/TabWhitelist";
@@ -202,12 +202,23 @@ export default function AdminTools() {
     <div className="min-h-screen bg-background p-6">
       <div className="container max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <Shield className="w-8 h-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">Ferramentas Administrativas</h1>
-            <p className="text-muted-foreground">Acesso restrito a administradores</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <Shield className="w-8 h-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold">Ferramentas Administrativas</h1>
+              <p className="text-muted-foreground">Acesso restrito a administradores</p>
+            </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLocation('/dashboard')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao Dashboard
+          </Button>
         </div>
 
         {/* Mensagens de Contato */}

@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { APP_TITLE, APP_LOGO } from "@/const";
 import { NotificationBell } from "@/components/NotificationBell";
-import { Minimize2, Maximize2, Menu, X } from "lucide-react";
+import { Minimize2, Maximize2, Menu, X, Shield } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 
@@ -49,6 +49,18 @@ export default function DashboardHeader2({ isCompactMode, toggleCompactMode }: D
                 </Link>
               );
             })}
+            {user?.role === 'admin' && (
+              <Link href="/admin-tools">
+                <span className={`px-3 py-2 text-sm rounded-sm transition-colors cursor-pointer flex items-center gap-1 ${
+                  location === '/admin-tools'
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                }`}>
+                  <Shield className="w-3.5 h-3.5" />
+                  Admin
+                </span>
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center gap-3">
@@ -89,6 +101,17 @@ export default function DashboardHeader2({ isCompactMode, toggleCompactMode }: D
                 </Link>
               );
             })}
+            {user?.role === 'admin' && (
+              <Link href="/admin-tools">
+                <span
+                  className="block px-3 py-2 text-sm rounded-sm cursor-pointer text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 flex items-center gap-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  Admin Tools
+                </span>
+              </Link>
+            )}
             <div className="pt-2 px-3 text-sm text-muted-foreground">Olá, {user?.name}</div>
           </nav>
         )}

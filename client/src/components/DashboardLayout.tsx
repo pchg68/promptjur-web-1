@@ -234,6 +234,21 @@ function DashboardLayoutContent({
                   </SidebarMenuItem>
                 );
               })}
+              {user?.role === 'admin' && (
+                <SidebarMenuItem key="/admin-tools">
+                  <SidebarMenuButton
+                    isActive={location === '/admin-tools'}
+                    onClick={() => setLocation('/admin-tools')}
+                    tooltip="Admin Tools"
+                    className={`h-10 transition-all font-normal text-amber-500 hover:text-amber-400`}
+                  >
+                    <Shield
+                      className={`h-4 w-4 ${location === '/admin-tools' ? "text-primary" : "text-amber-500"}`}
+                    />
+                    <span>Admin Tools</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarContent>
 
