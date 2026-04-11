@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
-import { AREAS_JURIDICAS, REFERENCIAS_LEGAIS } from "@shared/juridico";
+import { AREAS_JURIDICAS, REFERENCIAS_LEGAIS, TIPO_DOCUMENTO_VALUES } from "@shared/juridico";
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
 import { validarLegislacao } from "../_core/validacaoLegislacao";
 import { notifyPromptGenerated, notifyPromptOptimized } from "../notification-triggers";
@@ -170,7 +170,7 @@ export const promptsRouter = router({
 
   gerar: protectedProcedure
     .input(z.object({
-      tipoDocumento: z.enum(["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"] as const),
+      tipoDocumento: z.enum(TIPO_DOCUMENTO_VALUES as [string, ...string[]]),
       contextoJuridico: z.string().min(20, "Contexto muito curto"),
       objetivoEspecifico: z.string().min(10, "Objetivo muito curto"),
       area: z.enum(["Civil", "Penal", "Trabalhista", "Tributário", "Administrativo", "Constitucional", "Empresarial", "Consumidor", "Família", "Previdenciário", "Ambiental", "Internacional", "Processo Civil", "Direito Médico", "Direito Digital", "Direito Internacional"] as const),

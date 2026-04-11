@@ -1,28 +1,10 @@
 import { toast } from "sonner";
+import { TIPOS_DOCUMENTO as SHARED_TIPOS_DOCUMENTO, type TipoDocumento as SharedTipoDocumento } from "@shared/juridico";
 
-// Tipos de documento aceitos pelo backend
-export type TipoDocumento = 
-  | "peticao" | "parecer" | "contrato" | "recurso" | "defesa" 
-  | "memorando" | "agravo" | "apelacao" | "contestacao" | "embargos"
-  | "mandado_seguranca" | "habeas_corpus" | "notificacao" | "procuracao" | "outro";
-
-export const TIPOS_DOCUMENTO: { value: TipoDocumento; label: string }[] = [
-  { value: "peticao", label: "Petição" },
-  { value: "parecer", label: "Parecer" },
-  { value: "contrato", label: "Contrato" },
-  { value: "recurso", label: "Recurso" },
-  { value: "defesa", label: "Defesa" },
-  { value: "memorando", label: "Memorando" },
-  { value: "agravo", label: "Agravo" },
-  { value: "apelacao", label: "Apelação" },
-  { value: "contestacao", label: "Contestação" },
-  { value: "embargos", label: "Embargos" },
-  { value: "mandado_seguranca", label: "Mandado de Segurança" },
-  { value: "habeas_corpus", label: "Habeas Corpus" },
-  { value: "notificacao", label: "Notificação Extrajudicial" },
-  { value: "procuracao", label: "Procuração" },
-  { value: "outro", label: "Outro" },
-];
+// Re-export dos tipos de documento — fonte única em shared/juridico.ts
+// para garantir que frontend e backend (Zod) fiquem sincronizados.
+export type TipoDocumento = SharedTipoDocumento;
+export const TIPOS_DOCUMENTO: ReadonlyArray<{ value: TipoDocumento; label: string }> = SHARED_TIPOS_DOCUMENTO;
 
 export function getTipoDocumentoLabel(value: string): string {
   return TIPOS_DOCUMENTO.find(t => t.value === value)?.label || value;

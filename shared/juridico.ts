@@ -23,6 +23,32 @@ export const AREAS_JURIDICAS = [
 export type AreaJuridica = typeof AREAS_JURIDICAS[number];
 
 /**
+ * Tipos de documento jurídico suportados pelo gerador de prompts.
+ * Fonte única de verdade — usada tanto pelo Zod no backend
+ * quanto pelos selects do frontend.
+ */
+export const TIPOS_DOCUMENTO = [
+  { value: "peticao", label: "Petição Inicial" },
+  { value: "contestacao", label: "Contestação" },
+  { value: "recurso", label: "Recurso" },
+  { value: "agravo", label: "Agravo" },
+  { value: "apelacao", label: "Apelação" },
+  { value: "embargos", label: "Embargos" },
+  { value: "mandado_seguranca", label: "Mandado de Segurança" },
+  { value: "habeas_corpus", label: "Habeas Corpus" },
+  { value: "parecer", label: "Parecer Jurídico" },
+  { value: "contrato", label: "Contrato" },
+  { value: "notificacao", label: "Notificação Extrajudicial" },
+  { value: "procuracao", label: "Procuração" },
+  { value: "memorando", label: "Memorando" },
+  { value: "defesa", label: "Defesa" },
+  { value: "outro", label: "Outro" },
+] as const;
+
+export const TIPO_DOCUMENTO_VALUES = TIPOS_DOCUMENTO.map(t => t.value);
+export type TipoDocumento = typeof TIPOS_DOCUMENTO[number]["value"];
+
+/**
  * Palavras-chave por área jurídica para identificação automática
  */
 export const PALAVRAS_CHAVE_AREAS: Record<string, string[]> = {
