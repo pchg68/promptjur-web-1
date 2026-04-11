@@ -367,6 +367,16 @@ export default function TabWhitelist() {
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => setMostrarPrevia(true)}
+            className="text-slate-400 hover:text-blue-400 gap-1 text-xs"
+            title="Visualizar e-mail de boas-vindas"
+          >
+            <Eye className="w-4 h-4" />
+            Prévia
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleExportCsv}
             className="text-slate-400 hover:text-emerald-400 gap-1 text-xs"
             title="Exportar whitelist como CSV"

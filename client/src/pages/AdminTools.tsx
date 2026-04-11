@@ -229,6 +229,11 @@ export default function AdminTools() {
           <TabMensagens />
         </div>
 
+        {/* Mensagens de Contato */}
+        <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
+          <TabMensagens />
+        </div>
+
         {/* Painel de Leads Enterprise */}
         <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
           <TabLeads />

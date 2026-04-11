@@ -18,6 +18,7 @@ import LazyStreamdown from "@/components/LazyStreamdown";
 import TabDocumentos from '@/components/TabDocumentos';
 import { exportAsTextABNT } from "@/utils/exportABNT";
 import { exportAsDOCXABNT } from "@/utils/exportDOCX";
+import { TIPOS_DOCUMENTO, type TipoDocumento } from "@/utils/dashboardUtils";
 import { Link, useLocation } from "wouter";
 import { UsageChart } from "@/components/UsageChart";
 import { DistributionChart } from "@/components/DistributionChart";
@@ -45,17 +46,60 @@ import GenerationStepper from "@/components/GenerationStepper";
 import PromptActions from "@/components/PromptActions";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
 import { ProviderStatus } from "@/components/ProviderStatus";
+import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
+import { ProfPromptChat } from "@/components/ProfPromptChat";
+import { GraduationCap } from "lucide-react";
+
+const ONBOARDING_STORAGE_KEY = "promptjur-onboarding-v1";
+
+const ONBOARDING_STEPS: TourStep[] = [
+  {
+    title: "Bem-vindo ao PromptJur!",
+    body: "Vamos te mostrar em 4 passos como criar prompts jurídicos profissionais. Pode pular a qualquer momento e voltar pelo botão Tour no header.",
+  },
+  {
+    selector: "[data-tour='wizard-toggle']",
+    title: "Modo Assistido (recomendado)",
+    body: "O Modo Assistido te guia passo a passo. Quando ganhar prática, alterne para o Modo Avançado e use os campos completos.",
+    placement: "bottom",
+  },
+  {
+    selector: "[data-tour='tabs-list']",
+    title: "Análise, Otimização e Geração",
+    body: "Use estas abas para analisar um prompt existente, otimizá-lo ou gerar um prompt profissional do zero a partir do seu caso.",
+    placement: "bottom",
+  },
+  {
+    selector: "[data-tour='prof-prompt']",
+    title: "Prof. Prompt — seu tutor",
+    body: "Travado no que escrever? Abra o tutor conversacional. Ele faz perguntas socráticas para refinar seu prompt até ficar pronto.",
+    placement: "top",
+  },
+];
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState("analisar");
-  const [modoWizard, setModoWizard] = useState(false);
-  
-  // Estado para Modo Compacto (persistido no localStorage)
+  // Modo Wizard: ligado por padrão para usuários que ainda não concluíram o onboarding.
+  // Quem já viu o tour fica no modo avançado (preferência preservada).
+  const [modoWizard, setModoWizard] = useState(() => {
+    try {
+      return !localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    } catch {
+      return true;
+    }
+  });
+  // Estado para abrir/fechar o painel do Prof. Prompt
+  const [profPromptOpen, setProfPromptOpen] = useState(false);
+  // Permite reabrir o tour manualmente
+  const [tourForceOpen, setTourForceOpen] = useState(false);
+
+  // Estado para Modo Compacto (persistido no localStorage).
+  // Default true: dashboard começa limpo, sem widgets secundários.
   const [isCompactMode, setIsCompactMode] = useState(() => {
     const saved = localStorage.getItem('promptjur-compact-mode');
-    return saved ? JSON.parse(saved) : false;
+    return saved ? JSON.parse(saved) : true;
   });
   
   // Estado para modelo de IA selecionado (persistido no localStorage)
@@ -122,7 +166,7 @@ export default function Dashboard() {
   });
 
   // Estado para Geração (mantido para compatibilidade com Wizard e usarModelo)
-  const [tipoDocumento, setTipoDocumento] = useState<"peticao" | "parecer" | "contrato" | "recurso" | "defesa" | "memorando" | "outro">("peticao");
+  const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("peticao");
   const [contextoJuridico, setContextoJuridico] = useState("");
   const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
   const [areaGeracao, setAreaGeracao] = useState<"Civil" | "Penal" | "Trabalhista" | "Tributário" | "Administrativo" | "Constitucional" | "Empresarial" | "Consumidor" | "Família" | "Previdenciário" | "Ambiental" | "Internacional" | "Processo Civil" | "Direito Médico" | "Direito Digital" | "Direito Internacional">("Civil");
@@ -334,9 +378,26 @@ export default function Dashboard() {
             <h2 className="text-2xl font-bold text-foreground">Ferramentas de Engenharia de Prompts</h2>
             <p className="text-sm text-muted-foreground">Escolha entre modo avançado ou assistente guiado</p>
           </div>
-          <Button variant={modoWizard ? "default" : "outline"} onClick={() => setModoWizard(!modoWizard)} className="flex items-center gap-2">
-            {modoWizard ? (<><Maximize2 className="w-4 h-4" />Modo Avançado</>) : (<><Sparkles className="w-4 h-4" />Modo Assistido</>)}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTourForceOpen(true)}
+              className="text-muted-foreground"
+              title="Reabrir tour de boas-vindas"
+            >
+              <PlayCircle className="w-4 h-4 mr-1" />
+              Tour
+            </Button>
+            <Button
+              data-tour="wizard-toggle"
+              variant={modoWizard ? "default" : "outline"}
+              onClick={() => setModoWizard(!modoWizard)}
+              className="flex items-center gap-2"
+            >
+              {modoWizard ? (<><Maximize2 className="w-4 h-4" />Modo Avançado</>) : (<><Sparkles className="w-4 h-4" />Modo Assistido</>)}
+            </Button>
+          </div>
         </div>
 
         {modoWizard ? (
@@ -353,7 +414,7 @@ export default function Dashboard() {
             <div className="mb-4">
               <ProviderStatus />
             </div>
-            <TabsList className="grid w-full grid-cols-5 mb-8">
+            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-5 mb-8">
               <TabsTrigger value="analisar" className="flex items-center gap-2"><Sparkles className="w-4 h-4" />Analisar</TabsTrigger>
               <TabsTrigger value="otimizar" className="flex items-center gap-2"><Shield className="w-4 h-4" />Otimizar</TabsTrigger>
               <TabsTrigger value="gerar" className="flex items-center gap-2"><Zap className="w-4 h-4" />Gerar Prompt</TabsTrigger>
@@ -661,20 +722,9 @@ export default function Dashboard() {
                       <Select value={filtroTipoModelo} onValueChange={setFiltroTipoModelo}>
                         <SelectTrigger><SelectValue placeholder="Todos os tipos" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="peticao">Petição</SelectItem>
-                          <SelectItem value="parecer">Parecer</SelectItem>
-                          <SelectItem value="contrato">Contrato</SelectItem>
-                          <SelectItem value="recurso">Recurso</SelectItem>
-                          <SelectItem value="defesa">Defesa</SelectItem>
-                          <SelectItem value="memorando">Memorando</SelectItem>
-                          <SelectItem value="agravo">Agravo</SelectItem>
-                          <SelectItem value="apelacao">Apelação</SelectItem>
-                          <SelectItem value="contestacao">Contestação</SelectItem>
-                          <SelectItem value="embargos">Embargos</SelectItem>
-                          <SelectItem value="mandado_seguranca">Mandado de Segurança</SelectItem>
-                          <SelectItem value="habeas_corpus">Habeas Corpus</SelectItem>
-                          <SelectItem value="notificacao">Notificação Extrajudicial</SelectItem>
-                          <SelectItem value="procuracao">Procuração</SelectItem>
+                          {TIPOS_DOCUMENTO.filter(t => t.value !== "outro").map(t => (
+                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -891,6 +941,25 @@ export default function Dashboard() {
             </div>
           </>
         )}
+
+        {/* ═══════════════ Prof. Prompt — tutor conversacional ═══════════════ */}
+        <div className="mt-8" data-tour="prof-prompt">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setProfPromptOpen(o => !o)}
+            className="mb-4 w-full justify-between"
+          >
+            <span className="flex items-center gap-2">
+              <GraduationCap className="w-4 h-4" />
+              Prof. Prompt — tutor de prompts jurídicos
+            </span>
+            <ChevronRight className={`w-4 h-4 transition-transform ${profPromptOpen ? 'rotate-90' : ''}`} />
+          </Button>
+          {profPromptOpen && (
+            <ProfPromptChat selectedModel={selectedModel} />
+          )}
+        </div>
       </main>
 
       {/* Dialog para Salvar Template */}
@@ -930,6 +999,15 @@ export default function Dashboard() {
       {previewData && (
         <PreviewDocumentoModal open={previewOpen} onOpenChange={setPreviewOpen} titulo={previewData.titulo} conteudo={previewData.conteudo} areaJuridica={previewData.areaJuridica} tipoDocumento={previewData.tipoDocumento} promptId={previewData.promptId} />
       )}
+
+      {/* Onboarding tour: aparece automaticamente para novos usuários,
+          pode ser reaberto manualmente pelo botão "Tour" no header. */}
+      <OnboardingTour
+        steps={ONBOARDING_STEPS}
+        storageKey={ONBOARDING_STORAGE_KEY}
+        forceOpen={tourForceOpen}
+        onClose={() => setTourForceOpen(false)}
+      />
     </div>
   );
 }
