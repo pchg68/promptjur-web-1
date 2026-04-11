@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
-import { AREAS_JURIDICAS, REFERENCIAS_LEGAIS } from "@shared/juridico";
+import { AREAS_JURIDICAS, REFERENCIAS_LEGAIS, TIPO_DOCUMENTO_VALUES, getExemploFewShot, getRubricaQualidade } from "@shared/juridico";
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
 import { validarLegislacao } from "../_core/validacaoLegislacao";
 import { notifyPromptGenerated, notifyPromptOptimized } from "../notification-triggers";
@@ -170,7 +170,7 @@ export const promptsRouter = router({
 
   gerar: protectedProcedure
     .input(z.object({
-      tipoDocumento: z.enum(["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"] as const),
+      tipoDocumento: z.enum(TIPO_DOCUMENTO_VALUES as [string, ...string[]]),
       contextoJuridico: z.string().min(20, "Contexto muito curto"),
       objetivoEspecifico: z.string().min(10, "Objetivo muito curto"),
       area: z.enum(["Civil", "Penal", "Trabalhista", "Tributário", "Administrativo", "Constitucional", "Empresarial", "Consumidor", "Família", "Previdenciário", "Ambiental", "Internacional", "Processo Civil", "Direito Médico", "Direito Digital", "Direito Internacional"] as const),
@@ -200,8 +200,11 @@ export const promptsRouter = router({
         }
         
         const referencias = REFERENCIAS_LEGAIS[areaDetectada] || [];
-        
-        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Exemplos e Formato**: Especificar estrutura esperada\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Pedir raciocínio jurídico passo a passo\n6. **Verificação de Qualidade**: Incluir critérios de revisão\n\nREFERÊNCIAS LEGAIS: ${referencias.join(", ")}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado.\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.`;
+        const exemploFewShot = getExemploFewShot(input.tipoDocumento);
+        const rubricaQualidade = getRubricaQualidade(input.tipoDocumento);
+        const rubricaTexto = rubricaQualidade.map((r, i) => `${i + 1}. ${r}`).join("\n");
+
+        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Few-shot grounding**: Use o exemplo abaixo como referência de estilo, profundidade e formato\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Peça raciocínio jurídico passo a passo no prompt gerado\n6. **Critérios de qualidade explícitos**: Liste os critérios da rubrica abaixo no próprio prompt para guiar a IA-alvo\n\n${exemploFewShot}\n\nRUBRICA DE QUALIDADE — o prompt gerado DEVE garantir que o ${input.tipoDocumento} resultante atenda a estes critérios:\n${rubricaTexto}\n\nREFERÊNCIAS LEGAIS DA ÁREA: ${referencias.join(", ")}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado em seções claras (Contexto, Instruções, Referências, Formato, Critérios de Qualidade).\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- INCLUA uma seção final \"Critérios de Qualidade\" enumerando os critérios da rubrica\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.`;
 
         const userPrompt = `TIPO DE DOCUMENTO: ${input.tipoDocumento.toUpperCase()}\nÁREA JURÍDICA: ${areaDetectada}\n\nCONTEXTO JURÍDICO:\n${input.contextoJuridico}\n\nOBJETIVO ESPECÍFICO:\n${input.objetivoEspecifico}\n\n${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
 
