@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Zap, Loader2, ChevronDown, ChevronUp, Pencil, Check, X, User, FileText, ListChecks, BookOpen, Palette, ShieldCheck } from "lucide-react";
+import { Zap, Loader2, ChevronDown, ChevronUp, Pencil, Check, X, User, FileText, ListChecks, BookOpen, Palette, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { ModelSelector } from "@/components/ModelSelector";
@@ -20,6 +20,7 @@ import PostGenerationGuide from "@/components/PostGenerationGuide";
 import { TIPOS_DOCUMENTO, type TipoDocumento } from "@/utils/dashboardUtils";
 import { AREAS_JURIDICAS } from "@/const";
 import { VoiceInput } from "@/components/VoiceInput";
+import { getStarterPrompts, type StarterPrompt } from "@shared/juridico";
 
 interface TabGerarProps {
   selectedModel: string;
@@ -149,6 +150,16 @@ export default function TabGerar({
   const promptText = isEditing ? editedPrompt : (geracaoMutation.data?.promptProfissional || "");
   const parsedSections = useMemo(() => parsePromptSections(promptText), [promptText]);
 
+  // Starter prompts contextuais à área selecionada (catálogo curado em shared/juridico.ts)
+  const starters = useMemo(() => getStarterPrompts(areaJuridica), [areaJuridica]);
+
+  const applyStarter = (starter: StarterPrompt) => {
+    setTipoDocumento(starter.tipoDocumento);
+    setContexto(starter.contexto);
+    setObjetivo(starter.objetivo);
+    toast.success(`Inspiração carregada: ${starter.titulo}`);
+  };
+
   const startEditing = () => {
     setEditedPrompt(geracaoMutation.data?.promptProfissional || "");
     setIsEditing(true);
@@ -221,6 +232,32 @@ export default function TabGerar({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Inspirações: starter prompts contextuais à área (Sprint 2) */}
+            {!hasResult && starters.length > 0 && (
+              <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Inspirações para {areaJuridica}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Comece a partir de um caso típico — clique para preencher os campos automaticamente.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {starters.map((s, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => applyStarter(s)}
+                      className="text-left text-xs px-2.5 py-1.5 rounded-md bg-background hover:bg-primary/10 border border-border hover:border-primary/40 transition-colors"
+                      title={s.contexto}
+                    >
+                      {s.titulo}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Campos Avançados */}
             <button
