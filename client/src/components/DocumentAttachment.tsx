@@ -1,30 +1,40 @@
 import { useRef, useState, useCallback } from "react";
-import { Paperclip, X, FileText, Loader2, AlertTriangle } from "lucide-react";
+import { Paperclip, X, FileText, Loader2, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 /**
- * Anexo de documento client-side para enriquecer o contexto do gerador
- * de prompts. O texto é extraído INTEIRAMENTE no navegador — nenhum
- * byte do arquivo trafega para o servidor. Após extração, o usuário
- * pode revisar/editar o texto, que então é mesclado ao contexto
- * jurídico pelo componente pai.
+ * Anexo de múltiplos documentos client-side para enriquecer o contexto
+ * do gerador de prompts. O texto é extraído INTEIRAMENTE no navegador —
+ * nenhum byte do arquivo trafega para o servidor. Após extração, o
+ * usuário pode revisar/editar o texto de cada documento, que então é
+ * mesclado ao contexto jurídico pelo componente pai.
  *
  * Formatos suportados:
- *  - PDF (pdfjs-dist, extração por página)
+ *  - PDF (pdfjs-dist, extração por página, até 200 páginas)
  *  - DOCX (mammoth.extractRawText)
  *  - TXT/MD (leitura direta como texto)
+ *
+ * Limites dimensionados para casos jurídicos reais (processos e
+ * contratos costumam ser grandes):
+ *  - 25 MB por arquivo
+ *  - 200 páginas por PDF
+ *  - 50k chars soft / 120k chars hard por documento
+ *  - 300k chars agregados no total (para caber em contextos de LLMs)
  *
  * Sem persistência, sem upload, sem RAG — MVP deliberadamente pequeno.
  */
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
-const MAX_TEXT_CHARS = 15_000; // soft limit; acima disso avisa o usuário
-const HARD_TEXT_LIMIT = 30_000; // hard limit; acima disso trunca
+const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB
+const MAX_PDF_PAGES = 200; // teto defensivo de páginas por PDF
+const MAX_TEXT_CHARS = 50_000; // soft limit por doc; acima disso avisa o usuário
+const HARD_TEXT_LIMIT = 120_000; // hard limit por doc; acima disso trunca
+const MAX_TOTAL_CHARS = 300_000; // hard limit agregado (todos os docs)
 
 export interface AttachedDocument {
+  id: string;
   fileName: string;
   fileSize: number;
   text: string;
@@ -32,9 +42,8 @@ export interface AttachedDocument {
 }
 
 interface DocumentAttachmentProps {
-  attached: AttachedDocument | null;
-  onAttach: (doc: AttachedDocument) => void;
-  onRemove: () => void;
+  docs: AttachedDocument[];
+  onChange: (docs: AttachedDocument[]) => void;
   disabled?: boolean;
 }
 
@@ -50,7 +59,7 @@ async function extractFromPdf(file: File): Promise<string> {
   const buffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
   const chunks: string[] = [];
-  const maxPages = Math.min(pdf.numPages, 50); // teto defensivo — 50 páginas
+  const maxPages = Math.min(pdf.numPages, MAX_PDF_PAGES);
   for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
     const page = await pdf.getPage(pageNum);
     const content = await page.getTextContent();
@@ -86,15 +95,92 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export function DocumentAttachment({ attached, onAttach, onRemove, disabled }: DocumentAttachmentProps) {
+function newId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function totalChars(docs: AttachedDocument[]): number {
+  return docs.reduce((sum, d) => sum + d.text.length, 0);
+}
+
+interface DocumentCardProps {
+  doc: AttachedDocument;
+  onRemove: () => void;
+  onEdit: (newText: string) => void;
+  disabled?: boolean;
+}
+
+function DocumentCard({ doc, onRemove, onEdit, disabled }: DocumentCardProps) {
+  const [showPreview, setShowPreview] = useState(false);
+  const isOverSoftLimit = doc.text.length > MAX_TEXT_CHARS;
+
+  return (
+    <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <FileText className="w-4 h-4 text-primary shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium truncate">{doc.fileName}</p>
+            <p className="text-xs text-muted-foreground">
+              {formatBytes(doc.fileSize)} · {doc.text.length.toLocaleString("pt-BR")} chars
+              {doc.truncated && " · truncado"}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowPreview(v => !v)}
+            className="text-xs text-primary hover:underline px-1.5 py-0.5 flex items-center gap-0.5"
+            aria-label={showPreview ? "Ocultar preview" : "Ver preview"}
+          >
+            {showPreview ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            {showPreview ? "Ocultar" : "Preview"}
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={disabled}
+            aria-label="Remover documento"
+            className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {showPreview && (
+        <div className="space-y-2">
+          {isOverSoftLimit && (
+            <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-500">
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>
+                Texto extenso ({doc.text.length.toLocaleString("pt-BR")} chars). Considere editar ou resumir para melhor qualidade do prompt.
+              </span>
+            </div>
+          )}
+          <Textarea
+            value={doc.text}
+            onChange={e => onEdit(e.target.value)}
+            className="min-h-[160px] font-mono text-xs"
+            placeholder="Texto extraído do documento..."
+          />
+          <p className="text-xs text-muted-foreground">
+            Você pode editar o texto acima. O conteúdo final será incluído no contexto do prompt.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function DocumentAttachment({ docs, onChange, disabled }: DocumentAttachmentProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [previewText, setPreviewText] = useState("");
 
   const handleFile = useCallback(async (file: File) => {
     if (file.size > MAX_FILE_BYTES) {
-      toast.error(`Arquivo muito grande (${formatBytes(file.size)}). Limite: 10 MB.`);
+      toast.error(`Arquivo muito grande (${formatBytes(file.size)}). Limite: 25 MB.`);
       return;
     }
     const kind = detectKind(file);
@@ -118,20 +204,31 @@ export function DocumentAttachment({ attached, onAttach, onRemove, disabled }: D
       let finalText = text;
       let truncated = false;
       if (finalText.length > HARD_TEXT_LIMIT) {
-        finalText = finalText.slice(0, HARD_TEXT_LIMIT) + "\n\n[...texto truncado pelo limite de 30.000 caracteres...]";
+        finalText = finalText.slice(0, HARD_TEXT_LIMIT) + "\n\n[...texto truncado pelo limite de 120.000 caracteres por documento...]";
         truncated = true;
       }
 
-      setPreviewText(finalText);
-      setShowPreview(true);
+      // Checa limite agregado antes de aceitar o novo doc
+      const currentTotal = totalChars(docs);
+      const remaining = MAX_TOTAL_CHARS - currentTotal;
+      if (remaining <= 0) {
+        toast.error(`Limite total de ${MAX_TOTAL_CHARS.toLocaleString("pt-BR")} chars atingido. Remova algum documento antes de anexar outro.`);
+        return;
+      }
+      if (finalText.length > remaining) {
+        finalText = finalText.slice(0, remaining) + "\n\n[...texto truncado para caber no limite agregado de 300.000 caracteres...]";
+        truncated = true;
+      }
 
-      // Mantém o estado do pai atualizado já — o usuário ainda pode editar no preview
-      onAttach({
+      const newDoc: AttachedDocument = {
+        id: newId(),
         fileName: file.name,
         fileSize: file.size,
         text: finalText,
         truncated,
-      });
+      };
+
+      onChange([...docs, newDoc]);
 
       if (truncated) {
         toast.warning("Texto truncado para caber no limite de contexto.");
@@ -144,7 +241,7 @@ export function DocumentAttachment({ attached, onAttach, onRemove, disabled }: D
     } finally {
       setIsExtracting(false);
     }
-  }, [onAttach]);
+  }, [docs, onChange]);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -153,117 +250,92 @@ export function DocumentAttachment({ attached, onAttach, onRemove, disabled }: D
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const handleRemove = () => {
-    setPreviewText("");
-    setShowPreview(false);
-    onRemove();
+  const handleRemove = (id: string) => {
+    onChange(docs.filter(d => d.id !== id));
   };
 
-  const handlePreviewChange = (newText: string) => {
-    setPreviewText(newText);
-    if (attached) {
-      onAttach({ ...attached, text: newText, truncated: newText.length >= HARD_TEXT_LIMIT });
-    }
+  const handleEdit = (id: string, newText: string) => {
+    onChange(
+      docs.map(d =>
+        d.id === id
+          ? { ...d, text: newText, truncated: newText.length >= HARD_TEXT_LIMIT }
+          : d,
+      ),
+    );
   };
 
-  const isOverSoftLimit = previewText.length > MAX_TEXT_CHARS;
+  const aggregateChars = totalChars(docs);
+  const aggregatePct = Math.min(100, Math.round((aggregateChars / MAX_TOTAL_CHARS) * 100));
+  const isNearAggregateLimit = aggregatePct >= 80;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-sm">Documento Anexado (opcional)</Label>
-        {attached && (
-          <button
-            type="button"
-            onClick={() => setShowPreview(v => !v)}
-            className="text-xs text-primary hover:underline"
-          >
-            {showPreview ? "Ocultar preview" : "Ver preview"}
-          </button>
+        <Label className="text-sm">Documentos Anexados (opcional)</Label>
+        {docs.length > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {docs.length} {docs.length === 1 ? "documento" : "documentos"} · {aggregateChars.toLocaleString("pt-BR")} chars
+          </span>
         )}
       </div>
 
-      {!attached ? (
-        <>
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".pdf,.docx,.txt,.md,application/pdf,text/plain,text/markdown"
-            onChange={onFileChange}
-            disabled={disabled || isExtracting}
-            className="hidden"
-            aria-label="Anexar documento"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => inputRef.current?.click()}
-            disabled={disabled || isExtracting}
-            className="w-full justify-start gap-2"
-          >
-            {isExtracting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Extraindo texto...
-              </>
-            ) : (
-              <>
-                <Paperclip className="w-4 h-4" />
-                Anexar PDF, DOCX ou TXT
-              </>
-            )}
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            O texto é extraído no seu navegador — o arquivo não é enviado ao servidor. Máx 10 MB, 50 páginas.
-          </p>
-        </>
-      ) : (
-        <>
-          <div className="flex items-center justify-between gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5">
-            <div className="flex items-center gap-2 min-w-0">
-              <FileText className="w-4 h-4 text-primary shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{attached.fileName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatBytes(attached.fileSize)} · {attached.text.length.toLocaleString("pt-BR")} chars
-                  {attached.truncated && " · truncado"}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleRemove}
+      {/* Lista de documentos anexados */}
+      {docs.length > 0 && (
+        <div className="space-y-2">
+          {docs.map(doc => (
+            <DocumentCard
+              key={doc.id}
+              doc={doc}
+              onRemove={() => handleRemove(doc.id)}
+              onEdit={(newText) => handleEdit(doc.id, newText)}
               disabled={disabled}
-              aria-label="Remover documento"
-              className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {showPreview && (
-            <div className="space-y-2">
-              {isOverSoftLimit && (
-                <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-500">
-                  <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                  <span>
-                    Texto extenso ({previewText.length.toLocaleString("pt-BR")} chars). Considere editar ou resumir para melhor qualidade do prompt.
-                  </span>
-                </div>
-              )}
-              <Textarea
-                value={previewText}
-                onChange={e => handlePreviewChange(e.target.value)}
-                className="min-h-[160px] font-mono text-xs"
-                placeholder="Texto extraído do documento..."
-              />
-              <p className="text-xs text-muted-foreground">
-                Você pode editar o texto acima. O conteúdo final será incluído no contexto do prompt.
-              </p>
+            />
+          ))}
+          {isNearAggregateLimit && (
+            <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-500">
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>
+                Contexto próximo do limite ({aggregatePct}% de {MAX_TOTAL_CHARS.toLocaleString("pt-BR")} chars). Considere remover algum documento.
+              </span>
             </div>
           )}
-        </>
+        </div>
+      )}
+
+      {/* Botão de upload */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,.docx,.txt,.md,application/pdf,text/plain,text/markdown"
+        onChange={onFileChange}
+        disabled={disabled || isExtracting || aggregateChars >= MAX_TOTAL_CHARS}
+        className="hidden"
+        aria-label="Anexar documento"
+      />
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => inputRef.current?.click()}
+        disabled={disabled || isExtracting || aggregateChars >= MAX_TOTAL_CHARS}
+        className="w-full justify-start gap-2"
+      >
+        {isExtracting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Extraindo texto...
+          </>
+        ) : (
+          <>
+            <Paperclip className="w-4 h-4" />
+            {docs.length === 0 ? "Anexar PDF, DOCX ou TXT" : "Anexar outro documento"}
+          </>
+        )}
+      </Button>
+      {docs.length === 0 && (
+        <p className="text-xs text-muted-foreground">
+          O texto é extraído no seu navegador — o arquivo não é enviado ao servidor. Máx 25 MB, 200 páginas por arquivo.
+        </p>
       )}
     </div>
   );
