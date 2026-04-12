@@ -2938,3 +2938,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Identificado: hooks tRPC chamados após returns condicionais no AdminTools.tsx
 - [x] Corrigido: todos os hooks movidos para antes dos returns condicionais (loading/admin check)
 - [x] Verificado: Dashboard.tsx, Assistente.tsx e TabLogAcessos.tsx não têm o mesmo problema
+
+## Tarefas Solicitadas (12/04/2026)
+- [x] Aplicar migrações do banco de dados (pnpm db:push) para Sprints 1, 2 e 3
+- [x] Verificar e corrigir fluxo de anexo de documentos (DocumentAttachment + TabGerar)
+- [x] Implementar feature flag whitelist_ativa no painel admin (schema, endpoint, UI)
