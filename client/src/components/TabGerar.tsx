@@ -21,6 +21,7 @@ import { TIPOS_DOCUMENTO, type TipoDocumento } from "@/utils/dashboardUtils";
 import { AREAS_JURIDICAS } from "@/const";
 import { VoiceInput } from "@/components/VoiceInput";
 import { getStarterPrompts, type StarterPrompt } from "@shared/juridico";
+import { DocumentAttachment, type AttachedDocument } from "@/components/DocumentAttachment";
 
 interface TabGerarProps {
   selectedModel: string;
@@ -110,6 +111,7 @@ export default function TabGerar({
   const [fundamentacao, setFundamentacao] = useState("");
   const [parteContraria, setParteContraria] = useState("");
   const [tribunal, setTribunal] = useState("");
+  const [attachedDocs, setAttachedDocs] = useState<AttachedDocument[]>([]);
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -135,9 +137,19 @@ export default function TabGerar({
   const handleGerar = () => {
     if (!contexto.trim()) { toast.error("Por favor, descreva o contexto do caso"); return; }
     if (!objetivo.trim()) { toast.error("Por favor, descreva o objetivo do prompt"); return; }
+
+    // Sprint 3: se houver docs anexados, mescla o texto extraído ao final do contexto
+    // de forma claramente demarcada para o LLM. Cada documento em seu próprio bloco
+    // para que o LLM (e o metaprompt no server) saibam tratá-los como fonte primária.
+    const contextoFinal = attachedDocs.length > 0
+      ? `${contexto}\n\n${attachedDocs.map(d =>
+          `--- DOCUMENTO ANEXADO (${d.fileName}) ---\n${d.text}\n--- FIM DO DOCUMENTO ---`,
+        ).join("\n\n")}`
+      : contexto;
+
     geracaoMutation.mutate({
       tipoDocumento: tipoDocumento as any,
-      contextoJuridico: contexto,
+      contextoJuridico: contextoFinal,
       objetivoEspecifico: objetivo,
       area: (areaJuridica || "Civil") as any,
       partesEnvolvidas: parteContraria || undefined,
@@ -217,6 +229,13 @@ export default function TabGerar({
               </div>
               <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Descreva os fatos ou use o microfone para ditar..." rows={hasResult ? 3 : 4} />
             </div>
+
+            {/* Sprint 3: anexo de múltiplos documentos client-side (PDF/DOCX/TXT) */}
+            <DocumentAttachment
+              docs={attachedDocs}
+              onChange={setAttachedDocs}
+              disabled={geracaoMutation.isPending}
+            />
 
             <div className="space-y-2">
               <Label className="text-sm">Objetivo do Prompt *</Label>
