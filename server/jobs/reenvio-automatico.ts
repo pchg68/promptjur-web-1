@@ -105,7 +105,7 @@ async function executarReenvioAutomatico(): Promise<void> {
 
     for (const entry of alvosFiltrados) {
       try {
-        const result = await sendWelcomeEmail(entry.email, entry.nome ?? undefined);
+        const result = await sendWelcomeEmail({ email: entry.email, nome: entry.nome ?? undefined });
         const agora = new Date();
 
         if (result.skipped) {

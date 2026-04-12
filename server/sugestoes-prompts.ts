@@ -137,7 +137,6 @@ export const ESTRATEGIAS_INFO: Record<EstrategiaPrompt, Omit<SugestaoPrompt, "pr
     descricao: "Prompt objetivo e conciso, ideal para profissionais experientes com caso bem definido.",
     icone: "⚡",
     cor: "blue",
-    prompt: "",
   },
   raciocinio: {
     estrategia: "raciocinio",
@@ -145,7 +144,6 @@ export const ESTRATEGIAS_INFO: Record<EstrategiaPrompt, Omit<SugestaoPrompt, "pr
     descricao: "Guia a IA pelo raciocínio jurídico passo a passo, ideal para casos complexos.",
     icone: "🧠",
     cor: "purple",
-    prompt: "",
   },
   recuperacao: {
     estrategia: "recuperacao",
@@ -153,7 +151,6 @@ export const ESTRATEGIAS_INFO: Record<EstrategiaPrompt, Omit<SugestaoPrompt, "pr
     descricao: "Instrui a IA a buscar e citar fontes verificáveis (STF, STJ, legislação vigente).",
     icone: "📚",
     cor: "emerald",
-    prompt: "",
   },
 };
 

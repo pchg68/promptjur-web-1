@@ -339,7 +339,7 @@ export default function TabLogAcessos() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           {log.primeiroAcesso && (
-                            <UserPlus className="w-3.5 h-3.5 text-green-400 flex-shrink-0" title="Primeiro acesso" />
+                            <UserPlus className="w-3.5 h-3.5 text-green-400 flex-shrink-0" aria-label="Primeiro acesso" />
                           )}
                           <span className="text-white font-medium truncate max-w-[150px]">
                             {log.nome || <span className="text-gray-500 italic">sem nome</span>}

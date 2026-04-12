@@ -229,7 +229,7 @@ export default function TabWhitelist() {
       const headers = "email,nome,convitesEnviados,criadoEm";
       const rows = semConvitePendentes.map((w) => {
         const nome = (w.nome ?? "").replace(/,/g, " ");
-        const criado = w.createdAt ? new Date(w.createdAt).toLocaleDateString("pt-BR") : "";
+        const criado = w.criadoEm ? new Date(w.criadoEm).toLocaleDateString("pt-BR") : "";
         return `${w.email},${nome},${w.convitesEnviados ?? 0},${criado}`;
       });
       const csv = [headers, ...rows].join("\n");

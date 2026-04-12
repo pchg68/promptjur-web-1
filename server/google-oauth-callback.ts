@@ -32,11 +32,11 @@ export async function handleGoogleOAuthCallback(req: Request, res: Response): Pr
     const [userIdStr, provider] = decoded.split(":");
     const userId = parseInt(userIdStr, 10);
 
-    if (!userId || !provider || !["google_drive", "gmail"].includes(provider)) {
+    if (!userId || !provider || !["drive", "gmail"].includes(provider)) {
       throw new Error("State inválido");
     }
 
-    const { email } = await exchangeGoogleCode(code, userId, provider as "google_drive" | "gmail");
+    const { email } = await exchangeGoogleCode(code, userId, provider as "drive" | "gmail");
 
     logger.info(`[GoogleOAuth] Callback processado: provider=${provider}, userId=${userId}, email=${email}`);
 
