@@ -22,6 +22,7 @@ import { AREAS_JURIDICAS } from "@/const";
 import { VoiceInput } from "@/components/VoiceInput";
 import { getStarterPrompts, type StarterPrompt } from "@shared/juridico";
 import { DocumentAttachment, type AttachedDocument } from "@/components/DocumentAttachment";
+import { QualityScoreCard } from "@/components/QualityScoreCard";
 
 interface TabGerarProps {
   selectedModel: string;
@@ -424,6 +425,11 @@ export default function TabGerar({
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Sprint 4: Card de Qualidade com breakdown por critério */}
+              {geracaoMutation.data?.avaliacaoQualidade && (
+                <QualityScoreCard avaliacao={geracaoMutation.data.avaliacaoQualidade} />
               )}
 
               {/* Validação de Legislação */}

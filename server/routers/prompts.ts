@@ -226,7 +226,40 @@ export const promptsRouter = router({
         promptProfissional = removerPersonaDoTexto(promptProfissional);
         promptProfissional = promptProfissional.replace(/\n{3,}/g, '\n\n');
 
-        const validacaoRaw = await validarLegislacao(promptProfissional);
+        // Sprint 4: avaliação de qualidade por critério da rubrica + sugestões de melhoria
+        // Roda em paralelo com a validação de legislação para não aumentar latência
+        const criteriosJson = rubricaQualidade.map(c => `"${c}"`).join(", ");
+        const avaliacaoPromise = invokeUnifiedLLM({
+          provider: input.provider, model: input.model,
+          messages: [
+            { role: "system", content: `Você é um avaliador sênior de prompts jurídicos. Avalie o prompt abaixo contra cada critério da rubrica.\n\nPara cada critério atribua uma nota de 0 a 100 (0 = não atendido, 50 = parcialmente atendido, 100 = plenamente atendido).\nCalcule a nota geral como média ponderada dos critérios.\nSe a nota geral for menor que 80, liste de 1 a 3 sugestões concretas de melhoria.\n\nResponda APENAS em JSON.` },
+            { role: "user", content: `CRITÉRIOS DA RUBRICA:\n${rubricaTexto}\n\nPROMPT GERADO:\n${promptProfissional}` }
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "avaliacao_qualidade", strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  notaGeral: { type: "integer" },
+                  criterios: { type: "array", items: { type: "object", properties: { nome: { type: "string" }, nota: { type: "integer" }, justificativa: { type: "string" } }, required: ["nome", "nota", "justificativa"], additionalProperties: false } },
+                  sugestoes: { type: "array", items: { type: "string" } }
+                },
+                required: ["notaGeral", "criterios", "sugestoes"],
+                additionalProperties: false
+              }
+            }
+          }
+        }).then(r => {
+          try { return JSON.parse(typeof r.content === "string" ? r.content : "{}"); } catch { return null; }
+        }).catch(err => { logger.error("Erro na avaliação de qualidade", { error: err }); return null; });
+
+        const [validacaoRaw, avaliacaoRaw] = await Promise.all([
+          validarLegislacao(promptProfissional),
+          avaliacaoPromise
+        ]);
+
         const validacao = {
           citacoes: validacaoRaw.citacoes.map(c => ({
             texto: String(c.texto), tipo: c.tipo, numero: c.numero ? String(c.numero) : undefined,
@@ -240,9 +273,24 @@ export const promptsRouter = router({
           citacoesValidadas: Number(validacaoRaw.citacoesValidadas)
         };
 
+        // Monta o objeto de avaliação de qualidade (graceful fallback se a LLM falhar)
+        const avaliacaoQualidade = avaliacaoRaw ? {
+          notaGeral: Math.min(100, Math.max(0, Number(avaliacaoRaw.notaGeral) || 0)),
+          criterios: (avaliacaoRaw.criterios || []).map((c: { nome: string; nota: number; justificativa: string }) => ({
+            nome: String(c.nome),
+            nota: Math.min(100, Math.max(0, Number(c.nota) || 0)),
+            justificativa: String(c.justificativa),
+          })),
+          sugestoes: (avaliacaoRaw.sugestoes || []).map(String),
+        } : null;
+
+        const qualidadeTexto: "excelente" | "bom" | "ruim" = avaliacaoQualidade
+          ? (avaliacaoQualidade.notaGeral >= 80 ? "excelente" : avaliacaoQualidade.notaGeral >= 50 ? "bom" : "ruim")
+          : "excelente";
+
         const promptId = await db.createPrompt({
           userId: ctx.user.id, tipo: "geracao", areaJuridica: areaDetectada?.substring(0, 100) || null,
-          promptOriginal: input.contextoJuridico, promptOtimizado: promptProfissional, qualidade: "excelente",
+          promptOriginal: input.contextoJuridico, promptOtimizado: promptProfissional, qualidade: qualidadeTexto,
           metadata: { tipoDocumento: input.tipoDocumento, objetivoEspecifico: input.objetivoEspecifico, areaDetectadaAutomaticamente: !input.area }
         });
 
@@ -254,7 +302,8 @@ export const promptsRouter = router({
         return {
           promptId: Number(promptId), promptProfissional, area: areaDetectada,
           areaDetectadaAutomaticamente: !input.area, tipoDocumento: input.tipoDocumento,
-          referencias, avisosFontes, validacaoLegislacao: validacao
+          referencias, avisosFontes, validacaoLegislacao: validacao,
+          avaliacaoQualidade,
         };
       } catch (error) {
         await db.createHistorico({ userId: ctx.user.id, acao: "geracao", duracaoMs: Date.now() - startTime, sucesso: false, mensagemErro: error instanceof Error ? error.message : "Erro desconhecido" });
@@ -300,9 +349,51 @@ export const promptsRouter = router({
         const content = llmOtimizacao.content;
         const resultado = JSON.parse(typeof content === 'string' ? content : "{}");
 
+        // Sprint 4: avaliação de qualidade antes e depois da otimização (em paralelo)
+        const avaliarQualidade = (texto: string) => invokeUnifiedLLM({
+          provider: input.provider, model: input.model,
+          messages: [
+            { role: "system", content: `Você é um avaliador sênior de prompts jurídicos. Avalie o prompt abaixo quanto à qualidade geral.\n\nAtribua uma nota de 0 a 100 considerando: fundamentação legal, estrutura, clareza, tom profissional e completude.\nSe a nota for menor que 80, liste de 1 a 3 sugestões concretas de melhoria.\n\nResponda APENAS em JSON.` },
+            { role: "user", content: texto }
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "avaliacao_qualidade_simples", strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  notaGeral: { type: "integer" },
+                  sugestoes: { type: "array", items: { type: "string" } }
+                },
+                required: ["notaGeral", "sugestoes"],
+                additionalProperties: false
+              }
+            }
+          }
+        }).then(r => {
+          try { return JSON.parse(typeof r.content === "string" ? r.content : "{}"); } catch { return null; }
+        }).catch(err => { logger.error("Erro avaliação qualidade otimização", { error: err }); return null; });
+
+        const [validacaoRaw, scoreAntes, scoreDepois] = await Promise.all([
+          validarLegislacao(resultado.promptOtimizado),
+          avaliarQualidade(input.prompt),
+          avaliarQualidade(resultado.promptOtimizado),
+        ]);
+
+        const qualidadeComparacao = (scoreAntes && scoreDepois) ? {
+          antes: { notaGeral: Math.min(100, Math.max(0, Number(scoreAntes.notaGeral) || 0)), sugestoes: (scoreAntes.sugestoes || []).map(String) },
+          depois: { notaGeral: Math.min(100, Math.max(0, Number(scoreDepois.notaGeral) || 0)), sugestoes: (scoreDepois.sugestoes || []).map(String) },
+          delta: Math.min(100, Math.max(0, Number(scoreDepois.notaGeral) || 0)) - Math.min(100, Math.max(0, Number(scoreAntes.notaGeral) || 0)),
+        } : null;
+
+        const qualidadeTexto: "excelente" | "bom" | "ruim" = qualidadeComparacao
+          ? (qualidadeComparacao.depois.notaGeral >= 80 ? "excelente" : qualidadeComparacao.depois.notaGeral >= 50 ? "bom" : "ruim")
+          : "excelente";
+
         const promptId = await db.createPrompt({
           userId: ctx.user.id, tipo: "otimizacao", areaJuridica: resultado.areaIdentificada?.substring(0, 100) || null,
-          promptOriginal: input.prompt, promptOtimizado: resultado.promptOtimizado, qualidade: "excelente",
+          promptOriginal: input.prompt, promptOtimizado: resultado.promptOtimizado, qualidade: qualidadeTexto,
           metadata: { melhorias: resultado.melhorias }
         });
 
@@ -312,7 +403,6 @@ export const promptsRouter = router({
         await notifyPromptOptimized(ctx.user.id).catch(err => { logger.error('Erro notificação', { error: err }); });
 
         const avisosFontes = gerarAvisosFontes(resultado.promptOtimizado);
-        const validacaoRaw = await validarLegislacao(resultado.promptOtimizado);
         const validacao = {
           citacoes: validacaoRaw.citacoes.map(c => ({
             texto: String(c.texto), tipo: c.tipo, numero: c.numero ? String(c.numero) : undefined,
@@ -329,7 +419,8 @@ export const promptsRouter = router({
         return {
           promptId, promptOriginal: input.prompt, promptOtimizado: resultado.promptOtimizado,
           melhorias: resultado.melhorias, area: resultado.areaIdentificada,
-          avisosFontes, validacaoLegislacao: validacao
+          avisosFontes, validacaoLegislacao: validacao,
+          qualidadeComparacao,
         };
       } catch (error) {
         await db.createHistorico({ userId: ctx.user.id, acao: "otimizacao", duracaoMs: Date.now() - startTime, sucesso: false, mensagemErro: error instanceof Error ? error.message : "Erro desconhecido" });

@@ -13,6 +13,7 @@ import AIDisclaimer from "@/components/AIDisclaimer";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
 import { PromptComparison } from "@/components/PromptComparison";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
+import { QualityScoreCard } from "@/components/QualityScoreCard";
 import { VoiceInput } from "@/components/VoiceInput";
 
 interface TabOtimizarProps {
@@ -63,6 +64,10 @@ export default function TabOtimizar({
         {otimizacaoMutation.data && (
           <div className="mt-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <PromptComparison promptOriginal={otimizacaoMutation.data.promptOriginal} promptOtimizado={otimizacaoMutation.data.promptOtimizado} melhorias={otimizacaoMutation.data.melhorias} />
+            {/* Sprint 4: Comparação de qualidade antes/depois */}
+            {otimizacaoMutation.data.qualidadeComparacao && (
+              <QualityScoreCard comparacao={otimizacaoMutation.data.qualidadeComparacao} />
+            )}
             <AIDisclaimer compact />
             {otimizacaoMutation.data.validacaoLegislacao && (<div className="mt-4"><ValidacaoLegislacao validacao={otimizacaoMutation.data.validacaoLegislacao} /></div>)}
             <div className="flex flex-wrap gap-2">
