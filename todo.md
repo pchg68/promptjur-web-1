@@ -2943,3 +2943,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Aplicar migrações do banco de dados (pnpm db:push) para Sprints 1, 2 e 3
 - [x] Verificar e corrigir fluxo de anexo de documentos (DocumentAttachment + TabGerar)
 - [x] Implementar feature flag whitelist_ativa no painel admin (schema, endpoint, UI)
+
+## CRM - Painel de Análise de Vendas (Sessão Atual)
+- [x] Criar tabelas CRM no schema (crm_leads, crm_contratos, crm_membros)
+- [x] Aplicar migração 0042 no banco de dados
+- [x] Criar router tRPC do CRM (criarLead, atualizarLead, listarLeads, criarContrato, atualizarContrato, listarContratos, metricas, meuAcesso, adicionarMembro, removerMembro, listarMembros, listarUsuariosSistema)
+- [x] Criar página CRM.tsx com funil Kanban, métricas MRR/Churn/LTV e tabela de contratos
+- [x] Adicionar rota /crm no App.tsx
+- [x] Adicionar link CRM no DashboardHeader2 (desktop e mobile) para admin
+- [x] Controle de acesso por nível (visualizador, editor, admin CRM)

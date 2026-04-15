@@ -778,3 +778,80 @@ export const accessLogs = mysqlTable("access_logs", {
 });
 export type AccessLog = typeof accessLogs.$inferSelect;
 export type InsertAccessLog = typeof accessLogs.$inferInsert;
+
+// ============================================================
+// CRM — Gestão de Leads, Contratos e Membros
+// ============================================================
+
+/**
+ * Tabela de leads — representa potenciais clientes no funil de vendas.
+ */
+export const crmLeads = mysqlTable("crm_leads", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: text("nome").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  telefone: varchar("telefone", { length: 32 }),
+  empresa: text("empresa"),
+  etapa: mysqlEnum("etapa", ["lead", "contato", "demonstracao", "proposta", "fechado_ganho", "fechado_perdido"]).default("lead").notNull(),
+  valorMensal: int("valorMensal").default(0),
+  origem: mysqlEnum("origem", ["indicacao", "organico", "redes_sociais", "email_marketing", "evento", "outro"]).default("outro").notNull(),
+  notas: text("notas"),
+  responsavelId: int("responsavelId"),
+  fechadoEm: timestamp("fechadoEm"),
+  motivoPerda: text("motivoPerda"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type CrmLead = typeof crmLeads.$inferSelect;
+export type InsertCrmLead = typeof crmLeads.$inferInsert;
+
+/**
+ * Tabela de contratos/assinaturas — representa clientes ativos.
+ */
+export const crmContratos = mysqlTable("crm_contratos", {
+  id: int("id").autoincrement().primaryKey(),
+  leadId: int("leadId"),
+  nomeCliente: text("nomeCliente").notNull(),
+  emailCliente: varchar("emailCliente", { length: 320 }).notNull(),
+  empresa: text("empresa"),
+  plano: mysqlEnum("plano", ["basico", "profissional", "enterprise"]).default("basico").notNull(),
+  valorMensal: int("valorMensal").notNull().default(0),
+  status: mysqlEnum("status", ["ativo", "cancelado", "suspenso", "trial"]).default("ativo").notNull(),
+  inicioEm: timestamp("inicioEm").defaultNow().notNull(),
+  canceladoEm: timestamp("canceladoEm"),
+  motivoCancelamento: text("motivoCancelamento"),
+  notas: text("notas"),
+  responsavelId: int("responsavelId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type CrmContrato = typeof crmContratos.$inferSelect;
+export type InsertCrmContrato = typeof crmContratos.$inferInsert;
+
+/**
+ * Tabela de membros CRM — usuários autorizados a acessar o painel CRM.
+ */
+export const crmMembros = mysqlTable("crm_membros", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  nivel: mysqlEnum("nivel", ["visualizador", "editor", "admin"]).default("visualizador").notNull(),
+  autorizadoPorId: int("autorizadoPorId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type CrmMembro = typeof crmMembros.$inferSelect;
+export type InsertCrmMembro = typeof crmMembros.$inferInsert;
+
+/**
+ * Tabela de atividades CRM — histórico de interações com leads/contratos.
+ */
+export const crmAtividades = mysqlTable("crm_atividades", {
+  id: int("id").autoincrement().primaryKey(),
+  entidadeTipo: mysqlEnum("entidadeTipo", ["lead", "contrato"]).notNull(),
+  entidadeId: int("entidadeId").notNull(),
+  tipo: mysqlEnum("tipo", ["nota", "ligacao", "email", "reuniao", "proposta_enviada", "mudanca_etapa"]).notNull(),
+  descricao: text("descricao").notNull(),
+  usuarioId: int("usuarioId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type CrmAtividade = typeof crmAtividades.$inferSelect;
+export type InsertCrmAtividade = typeof crmAtividades.$inferInsert;

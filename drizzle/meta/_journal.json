@@ -295,6 +295,13 @@
       "when": 1775674436137,
       "tag": "0041_reflective_blue_shield",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1776263444976,
+      "tag": "0042_nervous_black_widow",
+      "breakpoints": true
     }
   ]
 }
