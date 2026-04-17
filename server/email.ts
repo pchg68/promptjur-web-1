@@ -29,10 +29,9 @@ function getFromAddress(): string {
   // Caso contrário, usa o domínio padrão do Resend (onboarding@resend.dev),
   // que funciona sem verificação de domínio e é aceito em qualquer conta Resend.
   const configured = process.env.EMAIL_FROM;
-  if (configured && !configured.includes("promptjur.com")) {
+  if (configured && configured.includes("@")) {
     return configured;
   }
-  // Fallback seguro: domínio padrão do Resend (não requer verificação)
   return "PromptJur <onboarding@resend.dev>";
 }
 

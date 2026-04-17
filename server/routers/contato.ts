@@ -75,7 +75,10 @@ export const contatoRouter = router({
       // Notifica o admin via e-mail (se configurado) e via sistema de notificações
       // Extrai o e-mail do remetente configurado para notificar o admin
       const adminEmail =
-        process.env.EMAIL_FROM?.match(/<(.+)>/)?.[1] ?? process.env.EMAIL_FROM ?? "";
+        ENV.adminEmail ||
+        process.env.EMAIL_FROM?.match(/<(.+)>/)?.[1] ||
+        process.env.EMAIL_FROM ||
+        "";
 
       if (adminEmail) {
         sendContactAdminNotification({

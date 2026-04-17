@@ -128,7 +128,7 @@ export const stripeRouter = router({
           ? plan.priceMonthly
           : Math.round(plan.priceYearly / 12);
 
-      const origin = ctx.req.headers.origin || "https://promptjur.manus.space";
+      const origin = ctx.req.headers.origin || process.env.VITE_APP_URL || "https://promptjur.com";
 
       try {
         const session = await stripe.checkout.sessions.create({
@@ -198,7 +198,7 @@ export const stripeRouter = router({
       });
     }
 
-    const origin = ctx.req.headers.origin || "https://promptjur.manus.space";
+    const origin = ctx.req.headers.origin || process.env.VITE_APP_URL || "https://promptjur.com";
 
     try {
       const portalSession = await stripe.billingPortal.sessions.create({
