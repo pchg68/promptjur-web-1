@@ -146,6 +146,16 @@ export async function inicializarFeatures() {
       nome: "colaboracao",
       descricao: "Compartilhamento e colaboração em prompts entre usuários",
       isAtivo: false
+    },
+    {
+      nome: "pagamentos_ativos",
+      descricao: "Ativa o sistema de pagamentos via Stripe (checkout, assinaturas)",
+      isAtivo: false
+    },
+    {
+      nome: "whitelist_ativa",
+      descricao: "Restringe acesso apenas a e-mails cadastrados na whitelist",
+      isAtivo: false
     }
   ];
 

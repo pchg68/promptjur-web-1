@@ -14,6 +14,15 @@ const envSchema = z.object({
   BUILT_IN_FORGE_API_KEY: z.string().default(""),
   STRIPE_SECRET_KEY: z.string().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
+
+  // E-mail (Resend)
+  RESEND_API_KEY: z.string().default(""),
+  EMAIL_FROM: z.string().default(""),
+  ADMIN_EMAIL: z.string().default(""),
+
+  // App URL e Sentry
+  VITE_APP_URL: z.string().default("https://promptjur.com"),
+  SENTRY_DSN: z.string().default(""),
 });
 
 function loadEnv() {
@@ -45,4 +54,9 @@ export const ENV = {
   forgeApiKey: parsed.BUILT_IN_FORGE_API_KEY,
   stripeSecretKey: parsed.STRIPE_SECRET_KEY,
   stripeWebhookSecret: parsed.STRIPE_WEBHOOK_SECRET,
+  resendApiKey: parsed.RESEND_API_KEY,
+  emailFrom: parsed.EMAIL_FROM,
+  adminEmail: parsed.ADMIN_EMAIL,
+  appUrl: parsed.VITE_APP_URL,
+  sentryDsn: parsed.SENTRY_DSN,
 };
