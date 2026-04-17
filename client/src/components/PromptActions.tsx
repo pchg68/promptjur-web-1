@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Copy, Eye, FileText, MoreHorizontal, Zap, BookTemplate, Loader2, CheckCircle2, PlayCircle, ChevronDown, ChevronUp, Clock, Shield, Download } from "lucide-react";
+import { Copy, Eye, FileText, MoreHorizontal, Zap, BookTemplate, Loader2, CheckCircle2, PlayCircle, ChevronDown, ChevronUp, Clock, Shield, Download, Share2, Link2, Unlink } from "lucide-react";
 import { copyToClipboard, exportAsMarkdown } from "@/utils/dashboardUtils";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { Input } from "@/components/ui/input";
 import LazyStreamdown from "@/components/LazyStreamdown";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
@@ -45,6 +46,24 @@ export default function PromptActions({
   onNavigateToDocumentos,
   onNavigateToAnalise,
 }: PromptActionsProps) {
+  const [showShare, setShowShare] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+  const compartilharMutation = trpc.prompts.compartilhar.useMutation({
+    onSuccess: (data) => {
+      const fullUrl = `${window.location.origin}${data.url}`;
+      setShareUrl(fullUrl);
+      setShowShare(true);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+  const descompartilharMutation = trpc.prompts.descompartilhar.useMutation({
+    onSuccess: () => {
+      setShowShare(false);
+      setShareUrl("");
+      toast.success("Link de compartilhamento removido");
+    },
+  });
+
   const [showExecucao, setShowExecucao] = useState(false);
   const [execModel, setExecModel] = useState("manus:default");
   const [execResult, setExecResult] = useState<{
@@ -286,6 +305,20 @@ export default function PromptActions({
           </Button>
         )}
 
+        {/* Sprint 5: Compartilhar via link */}
+        {promptId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => compartilharMutation.mutate({ promptId: promptId! })}
+            disabled={compartilharMutation.isPending}
+            className="gap-2"
+          >
+            {compartilharMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+            Compartilhar
+          </Button>
+        )}
+
         {/* Menu de opções adicionais */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -323,6 +356,39 @@ export default function PromptActions({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Sprint 5: Painel de link compartilhado */}
+      {showShare && shareUrl && (
+        <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-md animate-in fade-in slide-in-from-top-2 duration-300">
+          <Link2 className="w-4 h-4 text-primary shrink-0" />
+          <Input
+            value={shareUrl}
+            readOnly
+            className="h-8 text-xs font-mono bg-background"
+            onClick={(e) => (e.target as HTMLInputElement).select()}
+          />
+          <Button
+            size="sm"
+            variant="default"
+            className="shrink-0 h-8 px-3"
+            onClick={() => {
+              navigator.clipboard.writeText(shareUrl);
+              toast.success("Link copiado!");
+            }}
+          >
+            <Copy className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="shrink-0 h-8 px-2 text-muted-foreground hover:text-destructive"
+            onClick={() => promptId && descompartilharMutation.mutate({ promptId })}
+            title="Revogar link"
+          >
+            <Unlink className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

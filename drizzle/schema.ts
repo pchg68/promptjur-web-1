@@ -34,6 +34,7 @@ export const prompts = mysqlTable("prompts", {
   promptOtimizado: text("promptOtimizado"),
   qualidade: mysqlEnum("qualidade", ["excelente", "bom", "ruim"]),
   isFavorito: boolean("isFavorito").default(false),
+  shareToken: varchar("shareToken", { length: 64 }), // Sprint 5: token único para compartilhamento público
   metadata: json("metadata"), // Para armazenar dados adicionais como palavras-chave, entidades, etc.
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

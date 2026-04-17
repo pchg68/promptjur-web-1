@@ -3,6 +3,7 @@
   "dialect": "mysql",
   "id": "ffa8d81f-d84b-4789-8355-ccd96f2c622f",
   "prevId": "b231a885-86e7-4671-9ea1-b8e78b5343c0",
+
   "tables": {
     "access_whitelist": {
       "name": "access_whitelist",
@@ -834,6 +835,7 @@
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
+
     "enterprise_leads": {
       "name": "enterprise_leads",
       "columns": {
@@ -2040,6 +2042,7 @@
         }
       },
       "indexes": {},
+
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "prompts_id": {

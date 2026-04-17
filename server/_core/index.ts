@@ -3,6 +3,7 @@ import { initSentry } from "./sentry";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import helmet from "helmet";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
@@ -48,7 +49,22 @@ async function startServer() {
   
   // Configurar trust proxy para rate limiting funcionar corretamente
   app.set('trust proxy', 1);
-  
+
+  // Security headers (Helmet) — deve vir antes de qualquer rota
+  app.use(
+    helmet({
+      // Permite inline scripts/styles do Vite em dev; em prod usa hashes gerados
+      contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+      // Cross-Origin policies permissivas para assets CDN (KaTeX, pdfjs, etc.)
+      crossOriginEmbedderPolicy: false,
+    })
+  );
+
+  // Health check endpoint — usado pelo Railway, Render e load balancers
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // Stripe webhook MUST be registered BEFORE express.json() to receive raw body
   app.post(
     "/api/stripe/webhook",

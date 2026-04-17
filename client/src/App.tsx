@@ -23,6 +23,7 @@ import Contato from "./pages/Contato";
 import Assistente from "./pages/Assistente";
 import MeusPrompts from "./pages/MeusPrompts";
 import CRM from "./pages/CRM";
+import SharedPrompt from "./pages/SharedPrompt";
 import CookieBanner from "./components/CookieBanner";
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
       <Route path={"/assistente"} component={Assistente} />
       <Route path={"/meus-prompts"} component={MeusPrompts} />
       <Route path={"/crm"} component={CRM} />
+      <Route path="/shared/:token" component={SharedPrompt} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
