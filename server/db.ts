@@ -1566,3 +1566,76 @@ export async function getAtividadePorDia(userId: number, dias: number = 30) {
     return [];
   }
 }
+
+// =============================================================================
+// Sprint 5: Compartilhamento de prompts via token público
+// =============================================================================
+
+import { randomBytes } from "crypto";
+
+/** Gera um token aleatório hex de 32 bytes (64 chars) */
+function generateToken(): string {
+  return randomBytes(32).toString("hex");
+}
+
+/**
+ * Gera (ou retorna existente) um shareToken para o prompt do usuário.
+ * Retorna o token gerado.
+ */
+export async function compartilharPrompt(promptId: number, userId: number): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Verificar que o prompt pertence ao usuário
+  const result = await db.select({ id: prompts.id, shareToken: prompts.shareToken })
+    .from(prompts)
+    .where(and(eq(prompts.id, promptId), eq(prompts.userId, userId)))
+    .limit(1);
+
+  if (result.length === 0) return null;
+
+  // Se já tem token, retorna o existente
+  if (result[0].shareToken) return result[0].shareToken;
+
+  // Gera novo token
+  const token = generateToken();
+  await db.update(prompts).set({ shareToken: token }).where(eq(prompts.id, promptId));
+  return token;
+}
+
+/**
+ * Remove o token de compartilhamento (torna privado novamente).
+ */
+export async function descompartilharPrompt(promptId: number, userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db.update(prompts)
+    .set({ shareToken: null })
+    .where(and(eq(prompts.id, promptId), eq(prompts.userId, userId)));
+
+  return true;
+}
+
+/**
+ * Busca prompt público pelo shareToken (sem autenticação necessária).
+ * Retorna dados limitados — sem dados sensíveis do usuário.
+ */
+export async function getPromptByShareToken(token: string) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select({
+    id: prompts.id,
+    tipo: prompts.tipo,
+    areaJuridica: prompts.areaJuridica,
+    promptOtimizado: prompts.promptOtimizado,
+    qualidade: prompts.qualidade,
+    createdAt: prompts.createdAt,
+  })
+    .from(prompts)
+    .where(eq(prompts.shareToken, token))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}

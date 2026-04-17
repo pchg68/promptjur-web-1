@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { AREAS_JURIDICAS, REFERENCIAS_LEGAIS, TIPO_DOCUMENTO_VALUES, getExemploFewShot, getRubricaQualidade } from "@shared/juridico";
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
@@ -714,5 +714,32 @@ REGRAS OBRIGATÓRIAS:
         tipoDocumento: input.tipoDocumento,
         areaJuridica: input.areaJuridica,
       };
+    }),
+
+  // =========================================================================
+  // Sprint 5: Compartilhamento de prompts via link público
+  // =========================================================================
+
+  compartilhar: protectedProcedure
+    .input(z.object({ promptId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const token = await db.compartilharPrompt(input.promptId, ctx.user.id);
+      if (!token) throw new TRPCError({ code: "NOT_FOUND", message: "Prompt não encontrado ou sem permissão" });
+      return { token, url: `/shared/${token}` };
+    }),
+
+  descompartilhar: protectedProcedure
+    .input(z.object({ promptId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      await db.descompartilharPrompt(input.promptId, ctx.user.id);
+      return { success: true };
+    }),
+
+  getShared: publicProcedure
+    .input(z.object({ token: z.string().min(1) }))
+    .query(async ({ input }) => {
+      const prompt = await db.getPromptByShareToken(input.token);
+      if (!prompt) throw new TRPCError({ code: "NOT_FOUND", message: "Prompt não encontrado ou link expirado" });
+      return prompt;
     }),
 });
