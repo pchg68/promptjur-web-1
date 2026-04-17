@@ -35,7 +35,7 @@ export interface AuditResult {
 export async function executarAuditoriaNpm(): Promise<AuditResult> {
   try {
     // Executa pnpm audit --json
-    const { stdout } = await execAsync("cd /home/ubuntu/promptjur-web && pnpm audit --json", {
+    const { stdout } = await execAsync(`cd ${process.cwd()} && pnpm audit --json`, {
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer
     });
 
@@ -171,7 +171,7 @@ export async function atualizarDependenciasSeguras(): Promise<{
   try {
     // Executa pnpm update (atualiza apenas dentro do range do package.json)
     const { stdout, stderr } = await execAsync(
-      "cd /home/ubuntu/promptjur-web && pnpm update --latest",
+      `cd ${process.cwd()} && pnpm update --latest`,
       {
         maxBuffer: 10 * 1024 * 1024,
       }
