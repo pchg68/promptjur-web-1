@@ -1,1 +1,0 @@
-ALTER TABLE `prompts` ADD `plataformaTeste` enum('manus','chatgpt','claude','gemini','perplexity');

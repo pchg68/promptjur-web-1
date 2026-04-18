@@ -1,1 +1,0 @@
-ALTER TABLE `legislacao_cache` MODIFY COLUMN `tipo` enum('artigo','lei','codigo','decreto','portaria','resolucao') NOT NULL;

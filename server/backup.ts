@@ -10,21 +10,9 @@ import { readFileSync, writeFileSync, unlinkSync, existsSync } from "fs";
 import { storagePut } from "./storage";
 import { getDb } from "./db";
 import { eq, desc } from "drizzle-orm";
-import { mysqlTable, int, varchar, timestamp, bigint } from "drizzle-orm/mysql-core";
+import { backups } from "../drizzle/schema";
 
 const execAsync = promisify(exec);
-
-// Tabela para rastrear backups
-export const backups = mysqlTable("backups", {
-  id: int("id").autoincrement().primaryKey(),
-  filename: varchar("filename", { length: 255 }).notNull(),
-  s3Key: varchar("s3_key", { length: 512 }).notNull(),
-  s3Url: varchar("s3_url", { length: 1024 }).notNull(),
-  size: bigint("size", { mode: "number" }).notNull(),
-  isEncrypted: int("is_encrypted").notNull().default(1),
-  createdBy: int("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
 
 export type Backup = typeof backups.$inferSelect;
 
@@ -130,7 +118,7 @@ export async function criarBackup(userId: number): Promise<BackupResult> {
         s3Key,
         s3Url,
         size: encryptedData.length,
-        isEncrypted: 1,
+        isEncrypted: true,
         createdBy: userId,
       });
     }
