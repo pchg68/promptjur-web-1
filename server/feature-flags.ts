@@ -106,12 +106,12 @@ export async function criarFeature(params: {
     isAtivo: params.isAtivo ?? false
   };
 
-  const resultado = await db.insert(featureFlags).values(flagData);
-  
+  const resultado = await db.insert(featureFlags).values(flagData).returning({ id: featureFlags.id });
+
   // Limpar cache
   flagCache.clear();
-  
-  return Number(resultado[0].insertId);
+
+  return resultado[0].id;
 }
 
 /**

@@ -42,9 +42,9 @@ export const modelosPersonalizadosRouter = router({
         exemplos: input.exemplos || [],
         isPublico: input.isPublico,
         isAtivo: true,
-      });
+      }).returning({ id: templates.id });
 
-      const templateId = novoTemplate.insertId;
+      const templateId = novoTemplate.id;
 
       // Associar tags se fornecidas
       if (input.tags && input.tags.length > 0) {
@@ -189,12 +189,12 @@ export const modelosPersonalizadosRouter = router({
         areaJuridica: modeloOriginal.areaJuridica,
         variaveis: modeloOriginal.variaveis,
         exemplos: modeloOriginal.exemplos,
-        isPublico: false, // Cópias sempre começam como privadas
+        isPublico: false,
         isAtivo: true,
-      });
+      }).returning({ id: templates.id });
 
       return {
-        id: novoModelo.insertId,
+        id: novoModelo.id,
         nome: `${modeloOriginal.nome} (Cópia)`,
         mensagem: "Modelo duplicado com sucesso!",
       };

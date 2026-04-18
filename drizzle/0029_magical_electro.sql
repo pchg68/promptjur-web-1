@@ -1,1 +1,0 @@
-ALTER TABLE `historico` MODIFY COLUMN `acao` enum('analise','geracao','otimizacao','verificacao','exportacao_docx','exportacao_pdf','execucao_prompt') NOT NULL;

@@ -159,7 +159,7 @@ export async function checkPerformanceThresholds() {
   const regras = await db
     .select()
     .from(alertRules)
-    .where(eq(alertRules.isAtivo, 1));
+    .where(eq(alertRules.isAtivo, true));
 
   if (regras.length === 0) return;
 
@@ -258,7 +258,7 @@ async function dispararAlerta(params: {
     valorAtual: params.valorAtual,
     threshold: params.threshold,
     mensagem,
-    resolvido: 0
+    resolvido: false
   };
 
   await db.insert(performanceAlerts).values(alertData);
@@ -291,7 +291,7 @@ export async function listarAlertas(params?: {
     conditions.push(eq(performanceAlerts.rota, params.rota));
   }
   if (params?.resolvido !== undefined) {
-    conditions.push(eq(performanceAlerts.resolvido, params.resolvido ? 1 : 0));
+    conditions.push(eq(performanceAlerts.resolvido, params.resolvido));
   }
 
   if (conditions.length > 0) {
@@ -318,7 +318,7 @@ export async function resolverAlerta(alertaId: number) {
 
   await db
     .update(performanceAlerts)
-    .set({ resolvido: 1 })
+    .set({ resolvido: true })
     .where(eq(performanceAlerts.id, alertaId));
 
   return { id: alertaId, resolvido: true };
@@ -337,8 +337,8 @@ export async function getStatsAlertas() {
   };
 
   const todosAlertas = await db.select().from(performanceAlerts);
-  const alertasAtivos = todosAlertas.filter(a => a.resolvido === 0);
-  const alertasResolvidos = todosAlertas.filter(a => a.resolvido === 1);
+  const alertasAtivos = todosAlertas.filter(a => a.resolvido === false);
+  const alertasResolvidos = todosAlertas.filter(a => a.resolvido === true);
 
   // Contar alertas por rota
   const alertasPorRota: Record<string, number> = {};
@@ -380,11 +380,11 @@ export async function criarRegra(params: {
     rota: params.rota || null,
     metrica: params.metrica,
     threshold: params.threshold,
-    isAtivo: 1,
+    isAtivo: true,
     cooldown: params.cooldown || 300
-  });
+  }).returning({ id: alertRules.id });
 
-  return Number(resultado[0].insertId);
+  return resultado[0].id;
 }
 
 /**
@@ -422,7 +422,7 @@ export async function toggleRegra(regraId: number) {
     throw new Error(`Regra #${regraId} não encontrada`);
   }
 
-  const novoEstado = resultado[0].isAtivo === 1 ? 0 : 1;
+  const novoEstado = !resultado[0].isAtivo;
 
   // Atualizar no banco
   await db
@@ -430,7 +430,7 @@ export async function toggleRegra(regraId: number) {
     .set({ isAtivo: novoEstado })
     .where(eq(alertRules.id, regraId));
 
-  return { id: regraId, isAtivo: novoEstado === 1 };
+  return { id: regraId, isAtivo: novoEstado };
 }
 
 /**
@@ -470,7 +470,7 @@ export async function inicializarRegras() {
         rota: regra.rota,
         metrica: regra.metrica,
         threshold: regra.threshold,
-        isAtivo: 1,
+        isAtivo: true,
         cooldown: regra.cooldown
       });
     }

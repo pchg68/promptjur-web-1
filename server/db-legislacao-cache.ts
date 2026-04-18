@@ -73,11 +73,11 @@ export async function setCachedValidation(
       expiresAt,
     };
 
-    // Usar INSERT ... ON DUPLICATE KEY UPDATE para atualizar se já existir
     await db
       .insert(legislacaoCache)
       .values(cacheEntry)
-      .onDuplicateKeyUpdate({
+      .onConflictDoUpdate({
+        target: legislacaoCache.citacao,
         set: {
           confiabilidade,
           motivo,
