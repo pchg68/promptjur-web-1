@@ -3,6 +3,7 @@ import { initSentry } from "./sentry";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import path from "path";
 import helmet from "helmet";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
@@ -106,14 +107,36 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  server.listen(port, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${port}/`);
-
-    // Agendar job de limpeza de cache
-    scheduleCacheCleanup();
-    // Agendar job de expiração automática da whitelist (a cada hora)
-    scheduleWhitelistExpiry();
+  // Servidor inicia PRIMEIRO para o healthcheck passar imediatamente
+  await new Promise<void>((resolve) => {
+    server.listen(port, "0.0.0.0", () => {
+      console.log(`Server running on http://0.0.0.0:${port}/`);
+      resolve();
+    });
   });
+
+  // Agendar jobs
+  scheduleCacheCleanup();
+  scheduleWhitelistExpiry();
+
+  // Migração roda depois que o servidor já está ouvindo (não bloqueia healthcheck)
+  if (process.env.DATABASE_URL) {
+    runMigrations().catch((err) =>
+      console.error("[Migration] Erro ao migrar — a app continua rodando:", err)
+    );
+  } else {
+    console.warn("[Migration] DATABASE_URL não definida — pulando migração");
+  }
+}
+
+async function runMigrations() {
+  const { migrate } = await import("drizzle-orm/postgres-js/migrator");
+  const { getDb } = await import("../db");
+  const db = await getDb();
+  if (!db) { console.error("[Migration] DB indisponível"); return; }
+  const migrationsFolder = path.join(process.cwd(), "drizzle");
+  await migrate(db, { migrationsFolder });
+  console.log("[Migration] Concluída com sucesso");
 }
 
 startServer().catch(console.error);
