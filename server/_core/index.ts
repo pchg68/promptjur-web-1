@@ -1,3 +1,4 @@
+console.log("[boot] Iniciando PromptJur...");
 import "dotenv/config";
 import { initSentry } from "./sentry";
 import express from "express";
@@ -16,6 +17,8 @@ import { handleStripeWebhook } from "./stripeWebhook";
 import { tRPCRateLimiter, injectUserMiddleware } from "./rateLimiter";
 import * as Sentry from "@sentry/node";
 import { handleTRPCError, setUserContext } from "./sentry";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { getDb } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -107,6 +110,8 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
+  console.log(`[boot] Iniciando servidor na porta ${port}...`);
+
   // Servidor inicia PRIMEIRO para o healthcheck passar imediatamente
   await new Promise<void>((resolve) => {
     server.listen(port, "0.0.0.0", () => {
@@ -130,8 +135,7 @@ async function startServer() {
 }
 
 async function runMigrations() {
-  const { migrate } = await import("drizzle-orm/postgres-js/migrator");
-  const { getDb } = await import("../db");
+  console.log("[Migration] Iniciando...");
   const db = await getDb();
   if (!db) { console.error("[Migration] DB indisponível"); return; }
   const migrationsFolder = path.join(process.cwd(), "drizzle");
@@ -139,4 +143,7 @@ async function runMigrations() {
   console.log("[Migration] Concluída com sucesso");
 }
 
-startServer().catch(console.error);
+startServer().catch((err) => {
+  console.error("[boot] FATAL — servidor falhou ao iniciar:", err);
+  process.exit(1);
+});
