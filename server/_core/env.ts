@@ -10,7 +10,7 @@ const envSchema = z.object({
   OWNER_OPEN_ID: z.string().default(""),
   BUILT_IN_FORGE_API_URL: z.string().default(""),
   BUILT_IN_FORGE_API_KEY: z.string().default(""),
-  STRIPE_SECRET_KEY: z.string().default(""),
+  STRIPE_SECRET_KEY: z.string().default("sk_test_"),
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
 
   RESEND_API_KEY: z.string().default(""),
