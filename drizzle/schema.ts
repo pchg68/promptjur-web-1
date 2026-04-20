@@ -1,71 +1,81 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json, bigint } from "drizzle-orm/mysql-core";
+import {
+  pgTable, pgEnum, text, timestamp, varchar, boolean,
+  jsonb, bigint, integer, serial, uniqueIndex
+} from "drizzle-orm/pg-core";
 
-/**
- * Core user table backing auth flow.
- */
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
+// ─── Enums ────────────────────────────────────────────────────────────────────
+export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const subscriptionPlanEnum = pgEnum("subscription_plan", ["free", "pro", "enterprise"]);
+export const promptTipoEnum = pgEnum("prompt_tipo", ["analise", "geracao", "otimizacao"]);
+export const promptQualidadeEnum = pgEnum("prompt_qualidade", ["excelente", "bom", "ruim"]);
+export const notificationTipoEnum = pgEnum("notification_tipo", ["sucesso", "alerta", "erro", "info", "sistema"]);
+export const fontesTipoEnum = pgEnum("fontes_tipo", ["lei", "jurisprudencia", "doutrina", "artigo"]);
+export const historicoAcaoEnum = pgEnum("historico_acao", ["analise", "geracao", "otimizacao", "verificacao", "exportacao_docx", "exportacao_pdf", "execucao_prompt"]);
+export const promptVersaoTipoEnum = pgEnum("prompt_versao_tipo", ["original", "otimizado", "manual"]);
+export const legislacaoTipoEnum = pgEnum("legislacao_tipo", ["artigo", "lei", "codigo", "decreto", "portaria"]);
+export const legislacaoConfiabilidadeEnum = pgEnum("legislacao_confiabilidade", ["alta", "media", "baixa"]);
+export const perfilTipoDocumentoEnum = pgEnum("perfil_tipo_documento", ["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"]);
+export const alertMetricaEnum = pgEnum("alert_metrica", ["p50", "p95", "p99", "media"]);
+export const enterpriseLeadStatusEnum = pgEnum("enterprise_lead_status", ["pendente", "contatado", "convertido", "descartado"]);
+export const launchInterestPlanoEnum = pgEnum("launch_interest_plano", ["pro", "enterprise", "qualquer"]);
+export const contactAssuntoEnum = pgEnum("contact_assunto", ["duvida", "feedback", "suporte", "parceria", "outro"]);
+
+// ─── Tables ───────────────────────────────────────────────────────────────────
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  subscriptionPlan: mysqlEnum("subscriptionPlan", ["free", "pro", "enterprise"]).default("free").notNull(),
-  usageCount: int("usageCount").default(0).notNull(), // Contador de uso para plano gratuito
-  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }), // Stripe Customer ID
-  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }), // Stripe Subscription ID ativa
+  role: roleEnum("role").default("user").notNull(),
+  subscriptionPlan: subscriptionPlanEnum("subscriptionPlan").default("free").notNull(),
+  usageCount: integer("usageCount").default(0).notNull(),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-/**
- * Tabela de prompts salvos pelo usuário
- */
-export const prompts = mysqlTable("prompts", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  tipo: mysqlEnum("tipo", ["analise", "geracao", "otimizacao"]).notNull(),
+export const prompts = pgTable("prompts", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  tipo: promptTipoEnum("tipo").notNull(),
   areaJuridica: varchar("areaJuridica", { length: 100 }),
   promptOriginal: text("promptOriginal").notNull(),
   promptOtimizado: text("promptOtimizado"),
-  qualidade: mysqlEnum("qualidade", ["excelente", "bom", "ruim"]),
+  qualidade: promptQualidadeEnum("qualidade"),
   isFavorito: boolean("isFavorito").default(false),
-  shareToken: varchar("shareToken", { length: 64 }), // Sprint 5: token único para compartilhamento público
-  metadata: json("metadata"), // Para armazenar dados adicionais como palavras-chave, entidades, etc.
+  shareToken: varchar("shareToken", { length: 64 }).unique(),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type Prompt = typeof prompts.$inferSelect;
 export type InsertPrompt = typeof prompts.$inferInsert;
 
-/**
- * Tabela de notificações do usuário
- */
-export const notifications = mysqlTable("notifications", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  tipo: mysqlEnum("tipo", ["sucesso", "alerta", "erro", "info", "sistema"]).notNull(),
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  tipo: notificationTipoEnum("tipo").notNull(),
   titulo: varchar("titulo", { length: 200 }).notNull(),
   mensagem: text("mensagem").notNull(),
   lida: boolean("lida").default(false).notNull(),
-  link: varchar("link", { length: 500 }), // Link opcional para ação
+  link: varchar("link", { length: 500 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
-/**
- * Tabela de preferências de notificações
- */
-export const notificationPreferences = mysqlTable("notification_preferences", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(),
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull().unique(),
   emailEnabled: boolean("emailEnabled").default(true).notNull(),
   soundEnabled: boolean("soundEnabled").default(true).notNull(),
   tiposSucesso: boolean("tiposSucesso").default(true).notNull(),
@@ -74,83 +84,71 @@ export const notificationPreferences = mysqlTable("notification_preferences", {
   tiposInfo: boolean("tiposInfo").default(true).notNull(),
   tiposSistema: boolean("tiposSistema").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type NotificationPreference = typeof notificationPreferences.$inferSelect;
 export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
 
-/**
- * Tabela de análises detalhadas de prompts
- */
-export const analises = mysqlTable("analises", {
-  id: int("id").autoincrement().primaryKey(),
-  promptId: int("promptId").notNull(),
-  userId: int("userId").notNull(),
+export const analises = pgTable("analises", {
+  id: serial("id").primaryKey(),
+  promptId: integer("promptId").notNull(),
+  userId: integer("userId").notNull(),
   areaIdentificada: varchar("areaIdentificada", { length: 100 }),
-  confiancaArea: int("confiancaArea"), // 0-100
-  palavrasChave: json("palavrasChave"), // Array de strings
-  entidades: json("entidades"), // Array de objetos com tipo e valor
-  pontuacaoQualidade: int("pontuacaoQualidade"), // 0-100
-  sugestoes: json("sugestoes"), // Array de strings com sugestões
+  confiancaArea: integer("confiancaArea"),
+  palavrasChave: jsonb("palavrasChave"),
+  entidades: jsonb("entidades"),
+  pontuacaoQualidade: integer("pontuacaoQualidade"),
+  sugestoes: jsonb("sugestoes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type Analise = typeof analises.$inferSelect;
 export type InsertAnalise = typeof analises.$inferInsert;
 
-/**
- * Tabela de templates de prompts por área jurídica
- */
-export const templates = mysqlTable("templates", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId"), // null = template do sistema, valor = template do usuário
+export const templates = pgTable("templates", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId"),
   areaJuridica: varchar("areaJuridica", { length: 100 }).notNull(),
   nome: varchar("nome", { length: 255 }).notNull(),
   descricao: text("descricao"),
   template: text("template").notNull(),
-  variaveis: json("variaveis"), // Array de variáveis que podem ser substituídas
-  exemplos: json("exemplos"), // Array de exemplos de uso
+  variaveis: jsonb("variaveis"),
+  exemplos: jsonb("exemplos"),
   isAtivo: boolean("isAtivo").default(true),
-  isPublico: boolean("isPublico").default(false), // Se outros usuários podem ver
+  isPublico: boolean("isPublico").default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type Template = typeof templates.$inferSelect;
 export type InsertTemplate = typeof templates.$inferInsert;
 
-/**
- * Tabela de fontes jurídicas verificadas
- */
-export const fontesJuridicas = mysqlTable("fontes_juridicas", {
-  id: int("id").autoincrement().primaryKey(),
-  tipo: mysqlEnum("tipo", ["lei", "jurisprudencia", "doutrina", "artigo"]).notNull(),
-  identificador: varchar("identificador", { length: 255 }).notNull(), // Ex: "Lei 10.406/2002", "STF RE 123456"
+export const fontesJuridicas = pgTable("fontes_juridicas", {
+  id: serial("id").primaryKey(),
+  tipo: fontesTipoEnum("tipo").notNull(),
+  identificador: varchar("identificador", { length: 255 }).notNull(),
   titulo: text("titulo"),
-  url: text("url"), // Link para fonte oficial
-  conteudo: text("conteudo"), // Resumo ou texto completo
-  tribunal: varchar("tribunal", { length: 100 }), // STF, STJ, TRF, etc.
+  url: text("url"),
+  conteudo: text("conteudo"),
+  tribunal: varchar("tribunal", { length: 100 }),
   dataPublicacao: timestamp("dataPublicacao"),
   isVerificada: boolean("isVerificada").default(false),
   ultimaVerificacao: timestamp("ultimaVerificacao"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type FonteJuridica = typeof fontesJuridicas.$inferSelect;
 export type InsertFonteJuridica = typeof fontesJuridicas.$inferInsert;
 
-/**
- * Tabela de histórico de uso e métricas
- */
-export const historico = mysqlTable("historico", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  acao: mysqlEnum("acao", ["analise", "geracao", "otimizacao", "verificacao", "exportacao_docx", "exportacao_pdf", "execucao_prompt"]).notNull(),
-  promptId: int("promptId"),
-  detalhes: json("detalhes"), // Informações adicionais sobre a ação
-  duracaoMs: int("duracaoMs"), // Tempo de processamento em milissegundos
+export const historico = pgTable("historico", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  acao: historicoAcaoEnum("acao").notNull(),
+  promptId: integer("promptId"),
+  detalhes: jsonb("detalhes"),
+  duracaoMs: integer("duracaoMs"),
   sucesso: boolean("sucesso").default(true),
   mensagemErro: text("mensagemErro"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -159,73 +157,58 @@ export const historico = mysqlTable("historico", {
 export type Historico = typeof historico.$inferSelect;
 export type InsertHistorico = typeof historico.$inferInsert;
 
-/**
- * Tabela de configurações do usuário
- */
-export const configuracoes = mysqlTable("configuracoes", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(),
+export const configuracoes = pgTable("configuracoes", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull().unique(),
   areaPreferida: varchar("areaPreferida", { length: 100 }),
-  nivelDetalhePreferido: int("nivelDetalhePreferido").default(5), // 1-10
+  nivelDetalhePreferido: integer("nivelDetalhePreferido").default(5),
   incluirReferenciasDefault: boolean("incluirReferenciasDefault").default(true),
   personaDefault: text("personaDefault"),
-  preferencias: json("preferencias"), // Outras preferências do usuário
+  preferencias: jsonb("preferencias"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type Configuracao = typeof configuracoes.$inferSelect;
 export type InsertConfiguracao = typeof configuracoes.$inferInsert;
 
-/**
- * Tabela de tags personalizadas
- */
-export const tags = mysqlTable("tags", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
   nome: varchar("nome", { length: 50 }).notNull(),
-  cor: varchar("cor", { length: 7 }).default("#3b82f6"), // Hex color
+  cor: varchar("cor", { length: 7 }).default("#3b82f6"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type Tag = typeof tags.$inferSelect;
 export type InsertTag = typeof tags.$inferInsert;
 
-/**
- * Tabela de relacionamento entre templates e tags
- */
-export const templateTags = mysqlTable("template_tags", {
-  id: int("id").autoincrement().primaryKey(),
-  templateId: int("templateId").notNull(),
-  tagId: int("tagId").notNull(),
+export const templateTags = pgTable("template_tags", {
+  id: serial("id").primaryKey(),
+  templateId: integer("templateId").notNull(),
+  tagId: integer("tagId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type TemplateTag = typeof templateTags.$inferSelect;
 export type InsertTemplateTag = typeof templateTags.$inferInsert;
 
-/**
- * Tabela de relacionamento entre prompts e tags
- */
-export const promptTags = mysqlTable("prompt_tags", {
-  id: int("id").autoincrement().primaryKey(),
-  promptId: int("promptId").notNull(),
-  tagId: int("tagId").notNull(),
+export const promptTags = pgTable("prompt_tags", {
+  id: serial("id").primaryKey(),
+  promptId: integer("promptId").notNull(),
+  tagId: integer("tagId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type PromptTag = typeof promptTags.$inferSelect;
 export type InsertPromptTag = typeof promptTags.$inferInsert;
 
-/**
- * Tabela de versões de prompts para comparação
- */
-export const promptVersoes = mysqlTable("prompt_versoes", {
-  id: int("id").autoincrement().primaryKey(),
-  promptId: int("promptId").notNull(),
-  versao: int("versao").notNull(), // 1, 2, 3...
+export const promptVersoes = pgTable("prompt_versoes", {
+  id: serial("id").primaryKey(),
+  promptId: integer("promptId").notNull(),
+  versao: integer("versao").notNull(),
   conteudo: text("conteudo").notNull(),
-  tipo: mysqlEnum("tipo", ["original", "otimizado", "manual"]).notNull(),
+  tipo: promptVersaoTipoEnum("tipo").notNull(),
   observacoes: text("observacoes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -233,89 +216,73 @@ export const promptVersoes = mysqlTable("prompt_versoes", {
 export type PromptVersao = typeof promptVersoes.$inferSelect;
 export type InsertPromptVersao = typeof promptVersoes.$inferInsert;
 
-/**
- * Tabela de rastreamento de uso de modelos profissionais
- */
-export const usoModelos = mysqlTable("uso_modelos", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  modeloId: varchar("modeloId", { length: 50 }).notNull(), // ID do modelo (pet-001, par-001, etc.)
+export const usoModelos = pgTable("uso_modelos", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  modeloId: varchar("modeloId", { length: 50 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type UsoModelo = typeof usoModelos.$inferSelect;
 export type InsertUsoModelo = typeof usoModelos.$inferInsert;
 
-/**
- * Tabela de cache de validação de legislação
- * Armazena resultados de validações para otimizar performance
- */
-export const legislacaoCache = mysqlTable("legislacao_cache", {
-  id: int("id").autoincrement().primaryKey(),
-  citacao: varchar("citacao", { length: 500 }).notNull().unique(), // Texto da citação (ex: "Lei 11.101/2005")
-  tipo: mysqlEnum("tipo", ["artigo", "lei", "codigo", "decreto", "portaria"]).notNull(),
-  confiabilidade: mysqlEnum("confiabilidade", ["alta", "media", "baixa"]).notNull(),
-  motivo: text("motivo").notNull(), // Explicação da confiabilidade
-  linkOficial: text("linkOficial"), // Link para fonte oficial
+export const legislacaoCache = pgTable("legislacao_cache", {
+  id: serial("id").primaryKey(),
+  citacao: varchar("citacao", { length: 500 }).notNull().unique(),
+  tipo: legislacaoTipoEnum("tipo").notNull(),
+  confiabilidade: legislacaoConfiabilidadeEnum("confiabilidade").notNull(),
+  motivo: text("motivo").notNull(),
+  linkOficial: text("linkOficial"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  expiresAt: timestamp("expiresAt").notNull(), // Data de expiração do cache (30 dias)
+  expiresAt: timestamp("expiresAt").notNull(),
 });
 
 export type LegislacaoCache = typeof legislacaoCache.$inferSelect;
 export type InsertLegislacaoCache = typeof legislacaoCache.$inferInsert;
 
-/**
- * Tabela de perfis de uso para salvar combinações frequentes
- */
-export const perfisUso = mysqlTable("perfis_uso", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  nome: varchar("nome", { length: 100 }).notNull(), // Nome do perfil (ex: "Trabalhista Padrão")
-  tipoDocumento: mysqlEnum("tipoDocumento", ["peticao", "parecer", "contrato", "recurso", "defesa", "memorando", "outro"]).notNull(),
+export const perfisUso = pgTable("perfis_uso", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  nome: varchar("nome", { length: 100 }).notNull(),
+  tipoDocumento: perfilTipoDocumentoEnum("tipoDocumento").notNull(),
   areaJuridica: varchar("areaJuridica", { length: 100 }).notNull(),
-  modeloId: varchar("modeloId", { length: 50 }), // ID do modelo profissional (opcional)
-  descricao: text("descricao"), // Descrição opcional do perfil
+  modeloId: varchar("modeloId", { length: 50 }),
+  descricao: text("descricao"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type PerfilUso = typeof perfisUso.$inferSelect;
 export type InsertPerfilUso = typeof perfisUso.$inferInsert;
 
-/**
- * Tabela de templates de formatação personalizados
- */
-export const formatacaoTemplates = mysqlTable("formatacao_templates", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  nome: varchar("nome", { length: 100 }).notNull(), // Nome do template (ex: "Padrão Escritório")
-  fonte: varchar("fonte", { length: 50 }).default("Arial").notNull(), // Fonte do documento
-  tamanhoFonte: int("tamanhoFonte").default(12).notNull(), // Tamanho da fonte em pt
-  espacamento: varchar("espacamento", { length: 10 }).default("1.5").notNull(), // Espaçamento entre linhas
-  margemSuperior: int("margemSuperior").default(3).notNull(), // Margem superior em cm
-  margemInferior: int("margemInferior").default(2).notNull(), // Margem inferior em cm
-  margemEsquerda: int("margemEsquerda").default(3).notNull(), // Margem esquerda em cm
-  margemDireita: int("margemDireita").default(2).notNull(), // Margem direita em cm
+export const formatacaoTemplates = pgTable("formatacao_templates", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  nome: varchar("nome", { length: 100 }).notNull(),
+  fonte: varchar("fonte", { length: 50 }).default("Arial").notNull(),
+  tamanhoFonte: integer("tamanhoFonte").default(12).notNull(),
+  espacamento: varchar("espacamento", { length: 10 }).default("1.5").notNull(),
+  margemSuperior: integer("margemSuperior").default(3).notNull(),
+  margemInferior: integer("margemInferior").default(2).notNull(),
+  margemEsquerda: integer("margemEsquerda").default(3).notNull(),
+  margemDireita: integer("margemDireita").default(2).notNull(),
   incluirCabecalho: boolean("incluirCabecalho").default(true).notNull(),
   incluirDataHora: boolean("incluirDataHora").default(true).notNull(),
-  isPadrao: boolean("isPadrao").default(false).notNull(), // Template padrão do usuário
+  isPadrao: boolean("isPadrao").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type FormatacaoTemplate = typeof formatacaoTemplates.$inferSelect;
 export type InsertFormatacaoTemplate = typeof formatacaoTemplates.$inferInsert;
 
-/**
- * Tabela de logs de auditoria para ações administrativas
- */
-export const auditLogs = mysqlTable("audit_logs", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(), // Admin que executou a ação
-  acao: varchar("acao", { length: 100 }).notNull(), // Ex: "limpar_cache", "executar_testes", "toggle_feature"
-  descricao: text("descricao"), // Detalhes da ação
-  metadata: json("metadata"), // Dados adicionais (ex: feature toggleada, resultado dos testes)
-  ipAddress: varchar("ipAddress", { length: 45 }), // IPv4 ou IPv6
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  acao: varchar("acao", { length: 100 }).notNull(),
+  descricao: text("descricao"),
+  metadata: jsonb("metadata"),
+  ipAddress: varchar("ipAddress", { length: 45 }),
   userAgent: text("userAgent"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -323,107 +290,82 @@ export const auditLogs = mysqlTable("audit_logs", {
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
-/**
- * Tabela de feature flags para controle de funcionalidades
- */
-export const featureFlags = mysqlTable("feature_flags", {
-  id: int("id").autoincrement().primaryKey(),
-  nome: varchar("nome", { length: 100 }).notNull().unique(), // Ex: "knowledge_retrieval", "modelos_premium"
+export const featureFlags = pgTable("feature_flags", {
+  id: serial("id").primaryKey(),
+  nome: varchar("nome", { length: 100 }).notNull().unique(),
   descricao: text("descricao"),
   isAtivo: boolean("isAtivo").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type FeatureFlag = typeof featureFlags.$inferSelect;
 export type InsertFeatureFlag = typeof featureFlags.$inferInsert;
 
-/**
- * Tabela de regras de alertas de performance
- * Define thresholds para monitoramento automático
- */
-export const alertRules = mysqlTable("alert_rules", {
-  id: int("id").autoincrement().primaryKey(),
-  rota: varchar("rota", { length: 255 }), // null = regra global
-  metrica: mysqlEnum("metrica", ["p50", "p95", "p99", "media"]).notNull(),
-  threshold: int("threshold").notNull(), // em ms
-  isAtivo: int("isAtivo").default(1).notNull(),
-  cooldown: int("cooldown").default(300).notNull(), // segundos entre alertas
+export const alertRules = pgTable("alert_rules", {
+  id: serial("id").primaryKey(),
+  rota: varchar("rota", { length: 255 }),
+  metrica: alertMetricaEnum("metrica").notNull(),
+  threshold: integer("threshold").notNull(),
+  isAtivo: boolean("isAtivo").default(true).notNull(),
+  cooldown: integer("cooldown").default(300).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type AlertRule = typeof alertRules.$inferSelect;
 export type InsertAlertRule = typeof alertRules.$inferInsert;
 
-/**
- * Tabela de alertas de performance disparados
- * Histórico de alertas para análise
- */
-export const performanceAlerts = mysqlTable("performance_alerts", {
-  id: int("id").autoincrement().primaryKey(),
-  ruleId: int("ruleId").notNull(),
+export const performanceAlerts = pgTable("performance_alerts", {
+  id: serial("id").primaryKey(),
+  ruleId: integer("ruleId").notNull(),
   rota: varchar("rota", { length: 255 }).notNull(),
   metrica: varchar("metrica", { length: 20 }).notNull(),
-  valorAtual: int("valorAtual").notNull(), // em ms
-  threshold: int("threshold").notNull(), // em ms
+  valorAtual: integer("valorAtual").notNull(),
+  threshold: integer("threshold").notNull(),
   mensagem: text("mensagem").notNull(),
-  resolvido: int("resolvido").default(0).notNull(),
+  resolvido: boolean("resolvido").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type PerformanceAlert = typeof performanceAlerts.$inferSelect;
 export type InsertPerformanceAlert = typeof performanceAlerts.$inferInsert;
 
-/**
- * Tabela de backups do banco de dados
- * Rastreia backups criados e armazenados no S3
- */
-export const backups = mysqlTable("backups", {
-  id: int("id").autoincrement().primaryKey(),
+export const backups = pgTable("backups", {
+  id: serial("id").primaryKey(),
   filename: varchar("filename", { length: 255 }).notNull(),
   s3Key: varchar("s3Key", { length: 512 }).notNull(),
   s3Url: varchar("s3Url", { length: 1024 }).notNull(),
   size: bigint("size", { mode: "number" }).notNull(),
-  isEncrypted: int("isEncrypted").notNull().default(1),
-  createdBy: int("createdBy").notNull(),
+  isEncrypted: boolean("isEncrypted").default(true).notNull(),
+  createdBy: integer("createdBy").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type Backup = typeof backups.$inferSelect;
 export type InsertBackup = typeof backups.$inferInsert;
 
-
-/**
- * Tabela de templates de cabeçalho personalizados
- * Armazena configurações de cabeçalho para documentos jurídicos
- */
-export const cabecalhoTemplates = mysqlTable("cabecalho_templates", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(), // Um template por usuário
+export const cabecalhoTemplates = pgTable("cabecalho_templates", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull().unique(),
   nomeEscritorio: varchar("nomeEscritorio", { length: 255 }),
-  oab: varchar("oab", { length: 50 }), // Ex: "OAB/SP 123.456"
+  oab: varchar("oab", { length: 50 }),
   endereco: text("endereco"),
   telefone: varchar("telefone", { length: 50 }),
   email: varchar("email", { length: 320 }),
   website: varchar("website", { length: 255 }),
-  habilitado: boolean("habilitado").default(true).notNull(), // Se deve incluir cabeçalho automaticamente
+  habilitado: boolean("habilitado").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type CabecalhoTemplate = typeof cabecalhoTemplates.$inferSelect;
 export type InsertCabecalhoTemplate = typeof cabecalhoTemplates.$inferInsert;
 
-
-/**
- * Tabela de progresso de tutoriais
- * Rastreia quais tutoriais o usuário já leu/completou
- */
-export const tutorialProgresso = mysqlTable("tutorial_progresso", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  tutorialId: varchar("tutorialId", { length: 100 }).notNull(), // ID do tutorial (ex: 'bem-vindo-promptjur')
+export const tutorialProgresso = pgTable("tutorial_progresso", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  tutorialId: varchar("tutorialId", { length: 100 }).notNull(),
   concluido: boolean("concluido").default(true).notNull(),
   concluidoEm: timestamp("concluidoEm").defaultNow().notNull(),
 });
@@ -431,107 +373,75 @@ export const tutorialProgresso = mysqlTable("tutorial_progresso", {
 export type TutorialProgresso = typeof tutorialProgresso.$inferSelect;
 export type InsertTutorialProgresso = typeof tutorialProgresso.$inferInsert;
 
-/**
- * Tabela de feedback de tutoriais
- * Registra avaliações "Útil" / "Não útil" dos usuários
- */
-export const tutorialFeedback = mysqlTable("tutorial_feedback", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+export const tutorialFeedback = pgTable("tutorial_feedback", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
   tutorialId: varchar("tutorialId", { length: 100 }).notNull(),
-  util: boolean("util").notNull(), // true = útil, false = não útil
+  util: boolean("util").notNull(),
   criadoEm: timestamp("criadoEm").defaultNow().notNull(),
-  atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
+  atualizadoEm: timestamp("atualizadoEm").defaultNow().notNull(),
 });
+
 export type TutorialFeedback = typeof tutorialFeedback.$inferSelect;
 export type InsertTutorialFeedback = typeof tutorialFeedback.$inferInsert;
 
-/**
- * Tabela de leads Enterprise
- * Armazena formulários de contato do Plano Escritório para gestão comercial
- */
-export const enterpriseLeads = mysqlTable("enterprise_leads", {
-  id: int("id").autoincrement().primaryKey(),
+export const enterpriseLeads = pgTable("enterprise_leads", {
+  id: serial("id").primaryKey(),
   nome: varchar("nome", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }).notNull(),
   escritorio: varchar("escritorio", { length: 255 }).notNull(),
   numeroAdvogados: varchar("numeroAdvogados", { length: 20 }).notNull(),
   areasPrincipais: text("areasPrincipais"),
   mensagem: text("mensagem"),
-  status: mysqlEnum("status", ["pendente", "contatado", "convertido", "descartado"])
-    .default("pendente")
-    .notNull(),
+  status: enterpriseLeadStatusEnum("status").default("pendente").notNull(),
   notasInternas: text("notasInternas"),
   contatadoEm: timestamp("contatadoEm"),
   criadoEm: timestamp("criadoEm").defaultNow().notNull(),
-  atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
+  atualizadoEm: timestamp("atualizadoEm").defaultNow().notNull(),
 });
+
 export type EnterpriseLead = typeof enterpriseLeads.$inferSelect;
 export type InsertEnterpriseLead = typeof enterpriseLeads.$inferInsert;
 
-/**
- * Tabela de interessados no lançamento
- * Captura e-mails de usuários que querem ser notificados quando os planos pagos forem ativados
- */
-export const launchInterests = mysqlTable("launch_interests", {
-  id: int("id").autoincrement().primaryKey(),
+export const launchInterests = pgTable("launch_interests", {
+  id: serial("id").primaryKey(),
   email: varchar("email", { length: 320 }).notNull().unique(),
   nome: varchar("nome", { length: 255 }),
-  planoInteresse: mysqlEnum("planoInteresse", ["pro", "enterprise", "qualquer"])
-    .default("qualquer")
-    .notNull(),
+  planoInteresse: launchInterestPlanoEnum("planoInteresse").default("qualquer").notNull(),
   notificado: boolean("notificado").default(false).notNull(),
   criadoEm: timestamp("criadoEm").defaultNow().notNull(),
-  atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
+  atualizadoEm: timestamp("atualizadoEm").defaultNow().notNull(),
 });
+
 export type LaunchInterest = typeof launchInterests.$inferSelect;
 export type InsertLaunchInterest = typeof launchInterests.$inferInsert;
 
-/**
- * Tabela de whitelist de acesso
- * Controla quais e-mails têm permissão de acesso durante a fase de testes
- */
-export const accessWhitelist = mysqlTable("access_whitelist", {
-  id: int("id").autoincrement().primaryKey(),
+export const accessWhitelist = pgTable("access_whitelist", {
+  id: serial("id").primaryKey(),
   email: varchar("email", { length: 320 }).notNull().unique(),
   nome: varchar("nome", { length: 255 }),
   adicionadoPor: varchar("adicionadoPor", { length: 320 }),
   ativo: boolean("ativo").default(true).notNull(),
-  /** Data de expiração do acesso. null = sem expiração (acesso permanente) */
   expiresAt: timestamp("expiresAt"),
   /** Número total de e-mails de convite enviados para este endereço */
-  convitesEnviados: int("convitesEnviados").default(0).notNull(),
+  convitesEnviados: integer("convitesEnviados").default(0).notNull(),
   /** Data e hora do último envio de e-mail de convite */
   ultimoEnvio: timestamp("ultimoEnvio"),
   criadoEm: timestamp("criadoEm").defaultNow().notNull(),
-  atualizadoEm: timestamp("atualizadoEm").defaultNow().onUpdateNow().notNull(),
+  atualizadoEm: timestamp("atualizadoEm").defaultNow().notNull(),
 });
+
 export type AccessWhitelist = typeof accessWhitelist.$inferSelect;
 export type InsertAccessWhitelist = typeof accessWhitelist.$inferInsert;
 
-/**
- * Tabela de mensagens de contato
- * Armazena perguntas e feedback enviados pelos visitantes do site
- */
-export const contactMessages = mysqlTable("contact_messages", {
-  id: int("id").autoincrement().primaryKey(),
+export const contactMessages = pgTable("contact_messages", {
+  id: serial("id").primaryKey(),
   nome: varchar("nome", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }).notNull(),
-  assunto: mysqlEnum("assunto", [
-    "duvida",
-    "feedback",
-    "suporte",
-    "parceria",
-    "outro",
-  ])
-    .default("duvida")
-    .notNull(),
+  assunto: contactAssuntoEnum("assunto").default("duvida").notNull(),
   mensagem: text("mensagem").notNull(),
-  /** IP do visitante para rate limiting */
   ipAddress: varchar("ipAddress", { length: 64 }),
-  /** Status de leitura pelo admin */
   lido: boolean("lido").default(false).notNull(),
-  /** Resposta enviada pelo admin (opcional) */
   respostaAdmin: text("respostaAdmin"),
   respondidoEm: timestamp("respondidoEm"),
   criadoEm: timestamp("criadoEm").defaultNow().notNull(),
@@ -545,13 +455,13 @@ export type InsertContactMessage = typeof contactMessages.$inferInsert;
  * Armazena cada geração de documento para histórico e comparação de versões.
  * Agrupa versões pelo mesmo "grupo" (mesmo contexto/tipo/área) para facilitar comparação.
  */
-export const documentVersions = mysqlTable("document_versions", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+export const documentVersions = pgTable("document_versions", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
   /** Identificador do grupo de versões (UUID gerado no frontend para agrupar gerações do mesmo caso) */
   groupId: varchar("groupId", { length: 64 }).notNull(),
   /** Número da versão dentro do grupo (1, 2, 3...) */
-  versao: int("versao").notNull(),
+  versao: integer("versao").notNull(),
   /** Título descritivo (ex: "Petição Inicial - Civil") */
   titulo: varchar("titulo", { length: 255 }).notNull(),
   /** Tipo de documento (peticao, parecer, contrato, etc.) */
@@ -573,9 +483,9 @@ export const documentVersions = mysqlTable("document_versions", {
   /** Documento gerado (conteúdo completo em markdown) */
   documento: text("documento").notNull(),
   /** Tempo de geração em milissegundos */
-  tempoGeracaoMs: int("tempoGeracaoMs"),
+  tempoGeracaoMs: integer("tempoGeracaoMs"),
   /** Metadados adicionais (validação de legislação, etc.) */
-  metadata: json("metadata"),
+  metadata: jsonb("metadata"),
   /** Notas do usuário sobre esta versão */
   notas: text("notas"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -590,9 +500,9 @@ export type InsertDocumentVersion = typeof documentVersions.$inferInsert;
  * IMPORTANTE: As API Keys são armazenadas em texto — em produção, considere
  * criptografia adicional no campo apiKey antes de persistir.
  */
-export const userIntegrations = mysqlTable("user_integrations", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+export const userIntegrations = pgTable("user_integrations", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
   /** Provedor: 'openai' | 'anthropic' | 'gemini' | 'perplexity' | 'google_drive' | 'gmail' */
   provider: varchar("provider", { length: 50 }).notNull(),
   /** Chave de API do provedor (para OpenAI, Anthropic, Gemini, Perplexity) */
@@ -606,9 +516,9 @@ export const userIntegrations = mysqlTable("user_integrations", {
   /** Se a integração está ativa */
   isActive: boolean("isActive").default(true).notNull(),
   /** Metadados adicionais (email da conta Google, nome, etc.) */
-  metadata: json("metadata"),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().$onUpdateFn(() => new Date()).notNull(),
 });
 
 export type UserIntegration = typeof userIntegrations.$inferSelect;
@@ -622,34 +532,34 @@ export type InsertUserIntegration = typeof userIntegrations.$inferInsert;
  * Sessões de conversa com o assistente jurídico guiado.
  * Cada sessão representa uma conversa completa com o assistente.
  */
-export const chatSessions = mysqlTable("chat_sessions", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+export const chatSessions = pgTable("chat_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
   titulo: varchar("titulo", { length: 255 }),
-  etapaAtual: int("etapaAtual").default(1).notNull(),
+  etapaAtual: integer("etapaAtual").default(1).notNull(),
   etapaConcluida: boolean("etapaConcluida").default(false).notNull(),
   /** Contexto acumulado das respostas do usuário nas etapas guiadas */
-  contextoAcumulado: json("contextoAcumulado").$type<Record<string, string>>(),
+  contextoAcumulado: jsonb("contextoAcumulado").$type<Record<string, string>>(),
   /** Prompt final gerado ao fim do wizard */
   promptGerado: text("promptGerado"),
   areaJuridica: varchar("areaJuridica", { length: 100 }),
   tipoDocumento: varchar("tipoDocumento", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().$onUpdateFn(() => new Date()).notNull(),
 });
 
 /**
  * Mensagens individuais de cada sessão de chat.
  */
-export const chatMessages = mysqlTable("chat_messages", {
-  id: int("id").autoincrement().primaryKey(),
-  sessionId: int("sessionId").notNull(),
-  role: mysqlEnum("role_chat", ["user", "assistant", "system"]).notNull(),
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("sessionId").notNull(),
+  role: text("role_chat").notNull(),
   content: text("content").notNull(),
   /** Etapa do wizard em que a mensagem foi gerada (null = chat livre) */
-  etapa: int("etapa"),
+  etapa: integer("etapa"),
   /** Metadados extras (sugestões de prompt, fontes citadas, etc.) */
-  metadata: json("metadata").$type<Record<string, unknown>>(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -666,15 +576,15 @@ export type InsertChatMessage = typeof chatMessages.$inferInsert;
  * Tabela de prompts salvos pelo usuário a partir das sugestões do assistente JurIA.
  * Cada registro representa um prompt que o usuário escolheu salvar/usar.
  */
-export const promptsSalvos = mysqlTable("prompts_salvos", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+export const promptsSalvos = pgTable("prompts_salvos", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
   /** ID da sessão do assistente que originou o prompt */
-  sessionId: int("sessionId"),
+  sessionId: integer("sessionId"),
   /** Título descritivo gerado automaticamente ou editado pelo usuário */
   titulo: varchar("titulo", { length: 255 }).notNull(),
   /** Estratégia usada para gerar o prompt */
-  estrategia: mysqlEnum("estrategia_ps", ["direta", "raciocinio", "recuperacao", "manual"]).notNull().default("manual"),
+  estrategia: text("estrategia_ps").notNull().default("manual"),
   /** Área jurídica associada (ex: Direito Civil, Trabalhista) */
   areaJuridica: varchar("areaJuridica", { length: 100 }),
   /** Tipo de documento (ex: Petição Inicial, Recurso) */
@@ -686,9 +596,9 @@ export const promptsSalvos = mysqlTable("prompts_salvos", {
   /** Se o prompt está marcado como favorito */
   isFavorito: boolean("isFavorito").default(false).notNull(),
   /** Número de vezes que o prompt foi copiado/usado */
-  usoCount: int("usoCount").default(0).notNull(),
+  usoCount: integer("usoCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().$onUpdateFn(() => new Date()).notNull(),
 });
 
 export type PromptSalvo = typeof promptsSalvos.$inferSelect;
@@ -701,22 +611,22 @@ export type InsertPromptSalvo = typeof promptsSalvos.$inferInsert;
  * Registra cada tentativa de envio de convite para e-mails da whitelist.
  * Permite auditoria completa e visualização do histórico por e-mail.
  */
-export const conviteLogs = mysqlTable("convite_logs", {
-  id: int("id").autoincrement().primaryKey(),
+export const conviteLogs = pgTable("convite_logs", {
+  id: serial("id").primaryKey(),
   /** E-mail destinatário do convite */
   email: varchar("email", { length: 320 }).notNull(),
   /** Nome do destinatário no momento do envio */
   nome: varchar("nome", { length: 255 }),
   /** Resultado do envio */
-  resultado: mysqlEnum("resultado_cl", ["enviado", "falha", "pulado"]).notNull(),
+  resultado: text("resultado_cl").notNull(),
   /** Mensagem de erro, se houver */
   erroMsg: text("erroMsg"),
   /** IP do admin que disparou o envio (null = automático) */
   adminIp: varchar("adminIp", { length: 64 }),
   /** Identificador do admin que disparou (null = job automático) */
-  adminId: int("adminId"),
+  adminId: integer("adminId"),
   /** Tipo de disparo: manual (botão), lote (reenviar todos), automatico (job) */
-  tipoDisparo: mysqlEnum("tipo_disparo_cl", ["manual", "lote", "automatico"]).notNull().default("manual"),
+  tipoDisparo: text("tipo_disparo_cl").notNull().default("manual"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -730,21 +640,21 @@ export type InsertConviteLog = typeof conviteLogs.$inferInsert;
  * Configurações do job de reenvio automático de convites.
  * Apenas um registro ativo por vez (id = 1).
  */
-export const configReenvioAuto = mysqlTable("config_reenvio_auto", {
-  id: int("id").autoincrement().primaryKey(),
+export const configReenvioAuto = pgTable("config_reenvio_auto", {
+  id: serial("id").primaryKey(),
   /** Se o job está habilitado */
   habilitado: boolean("habilitado").default(false).notNull(),
   /** Dia da semana para execução (0=Dom, 1=Seg, ..., 6=Sáb) */
-  diaSemana: int("diaSemana").default(1).notNull(),
+  diaSemana: integer("diaSemana").default(1).notNull(),
   /** Hora de execução (0-23, horário de Brasília) */
-  hora: int("hora").default(9).notNull(),
+  hora: integer("hora").default(9).notNull(),
   /** Reenviar apenas para quem ainda não acessou o sistema */
   apenasNaoAcessaram: boolean("apenasNaoAcessaram").default(true).notNull(),
   /** Data/hora da última execução do job */
   ultimaExecucao: timestamp("ultimaExecucao"),
   /** Resultado da última execução */
   ultimoResultado: varchar("ultimoResultado", { length: 500 }),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().$onUpdateFn(() => new Date()).notNull(),
 });
 
 export type ConfigReenvioAuto = typeof configReenvioAuto.$inferSelect;
@@ -754,10 +664,10 @@ export type InsertConfigReenvioAuto = typeof configReenvioAuto.$inferInsert;
  * Tabela de log de acessos — registra cada login de usuário no sistema.
  * Permite auditoria e monitoramento de atividade no painel admin.
  */
-export const accessLogs = mysqlTable("access_logs", {
-  id: int("id").autoincrement().primaryKey(),
+export const accessLogs = pgTable("access_logs", {
+  id: serial("id").primaryKey(),
   /** ID do usuário no banco (null se for primeiro acesso e ainda não existia) */
-  userId: int("userId"),
+  userId: integer("userId"),
   /** OpenId do usuário (sempre disponível no callback OAuth) */
   openId: varchar("openId", { length: 64 }).notNull(),
   /** Nome do usuário no momento do login */
@@ -787,21 +697,21 @@ export type InsertAccessLog = typeof accessLogs.$inferInsert;
 /**
  * Tabela de leads — representa potenciais clientes no funil de vendas.
  */
-export const crmLeads = mysqlTable("crm_leads", {
-  id: int("id").autoincrement().primaryKey(),
+export const crmLeads = pgTable("crm_leads", {
+  id: serial("id").primaryKey(),
   nome: text("nome").notNull(),
   email: varchar("email", { length: 320 }).notNull(),
   telefone: varchar("telefone", { length: 32 }),
   empresa: text("empresa"),
-  etapa: mysqlEnum("etapa", ["lead", "contato", "demonstracao", "proposta", "fechado_ganho", "fechado_perdido"]).default("lead").notNull(),
-  valorMensal: int("valorMensal").default(0),
-  origem: mysqlEnum("origem", ["indicacao", "organico", "redes_sociais", "email_marketing", "evento", "outro"]).default("outro").notNull(),
+  etapa: text("etapa").default("lead").notNull(),
+  valorMensal: integer("valorMensal").default(0),
+  origem: text("origem").default("outro").notNull(),
   notas: text("notas"),
-  responsavelId: int("responsavelId"),
+  responsavelId: integer("responsavelId"),
   fechadoEm: timestamp("fechadoEm"),
   motivoPerda: text("motivoPerda"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().$onUpdateFn(() => new Date()).notNull(),
 });
 export type CrmLead = typeof crmLeads.$inferSelect;
 export type InsertCrmLead = typeof crmLeads.$inferInsert;
@@ -809,22 +719,22 @@ export type InsertCrmLead = typeof crmLeads.$inferInsert;
 /**
  * Tabela de contratos/assinaturas — representa clientes ativos.
  */
-export const crmContratos = mysqlTable("crm_contratos", {
-  id: int("id").autoincrement().primaryKey(),
-  leadId: int("leadId"),
+export const crmContratos = pgTable("crm_contratos", {
+  id: serial("id").primaryKey(),
+  leadId: integer("leadId"),
   nomeCliente: text("nomeCliente").notNull(),
   emailCliente: varchar("emailCliente", { length: 320 }).notNull(),
   empresa: text("empresa"),
-  plano: mysqlEnum("plano", ["basico", "profissional", "enterprise"]).default("basico").notNull(),
-  valorMensal: int("valorMensal").notNull().default(0),
-  status: mysqlEnum("status", ["ativo", "cancelado", "suspenso", "trial"]).default("ativo").notNull(),
+  plano: text("plano").default("basico").notNull(),
+  valorMensal: integer("valorMensal").notNull().default(0),
+  status: text("status").default("ativo").notNull(),
   inicioEm: timestamp("inicioEm").defaultNow().notNull(),
   canceladoEm: timestamp("canceladoEm"),
   motivoCancelamento: text("motivoCancelamento"),
   notas: text("notas"),
-  responsavelId: int("responsavelId"),
+  responsavelId: integer("responsavelId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().$onUpdateFn(() => new Date()).notNull(),
 });
 export type CrmContrato = typeof crmContratos.$inferSelect;
 export type InsertCrmContrato = typeof crmContratos.$inferInsert;
@@ -832,11 +742,11 @@ export type InsertCrmContrato = typeof crmContratos.$inferInsert;
 /**
  * Tabela de membros CRM — usuários autorizados a acessar o painel CRM.
  */
-export const crmMembros = mysqlTable("crm_membros", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  nivel: mysqlEnum("nivel", ["visualizador", "editor", "admin"]).default("visualizador").notNull(),
-  autorizadoPorId: int("autorizadoPorId"),
+export const crmMembros = pgTable("crm_membros", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  nivel: text("nivel").default("visualizador").notNull(),
+  autorizadoPorId: integer("autorizadoPorId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type CrmMembro = typeof crmMembros.$inferSelect;
@@ -845,13 +755,13 @@ export type InsertCrmMembro = typeof crmMembros.$inferInsert;
 /**
  * Tabela de atividades CRM — histórico de interações com leads/contratos.
  */
-export const crmAtividades = mysqlTable("crm_atividades", {
-  id: int("id").autoincrement().primaryKey(),
-  entidadeTipo: mysqlEnum("entidadeTipo", ["lead", "contrato"]).notNull(),
-  entidadeId: int("entidadeId").notNull(),
-  tipo: mysqlEnum("tipo", ["nota", "ligacao", "email", "reuniao", "proposta_enviada", "mudanca_etapa"]).notNull(),
+export const crmAtividades = pgTable("crm_atividades", {
+  id: serial("id").primaryKey(),
+  entidadeTipo: text("entidadeTipo").notNull(),
+  entidadeId: integer("entidadeId").notNull(),
+  tipo: text("tipo").notNull(),
   descricao: text("descricao").notNull(),
-  usuarioId: int("usuarioId").notNull(),
+  usuarioId: integer("usuarioId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type CrmAtividade = typeof crmAtividades.$inferSelect;

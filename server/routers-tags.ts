@@ -21,11 +21,11 @@ export const tagsRouter = router({
         userId: ctx.user.id,
         nome: input.nome,
         cor: input.cor,
-      });
+      }).returning({ id: tags.id });
 
       return {
         success: true,
-        tagId: newTag.insertId,
+        tagId: newTag.id,
       };
     }),
 

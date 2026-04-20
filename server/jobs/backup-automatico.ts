@@ -57,8 +57,7 @@ export async function runBackupAutomatico(): Promise<void> {
   if (resultado.success) {
     console.log(
       `[BackupJob] Backup criado: ${resultado.filename} ` +
-        `(${resultado.tablesExported} tabelas, ` +
-        `${((resultado.size ?? 0) / 1024).toFixed(1)} KB)`
+        `(${((resultado.size ?? 0) / 1024).toFixed(1)} KB)`
     );
   } else {
     console.error(`[BackupJob] Falha no backup: ${resultado.error}`);
@@ -66,7 +65,7 @@ export async function runBackupAutomatico(): Promise<void> {
 
   // 2. Limpar backups antigos (independente do resultado acima)
   try {
-    const limpeza = await limparBackupsAntigos(30);
+    const limpeza = await limparBackupsAntigos();
     if (limpeza.removed > 0) {
       console.log(
         `[BackupJob] Limpeza: ${limpeza.removed} backup(s) antigo(s) removido(s).`

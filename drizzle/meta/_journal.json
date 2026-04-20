@@ -1,6 +1,6 @@
 {
   "version": "7",
-  "dialect": "mysql",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
@@ -308,6 +308,7 @@
       "version": "5",
       "when": 1776464125037,
       "tag": "0043_loving_phil_sheldon",
+
       "breakpoints": true
     }
   ]

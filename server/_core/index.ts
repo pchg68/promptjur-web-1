@@ -1,8 +1,10 @@
+console.log("[boot] Iniciando PromptJur...");
 import "dotenv/config";
 import { initSentry } from "./sentry";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import path from "path";
 import helmet from "helmet";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
@@ -20,6 +22,8 @@ import { sugestoesSSEHandler } from "../sugestoes-sse";
 import { tRPCRateLimiter, injectUserMiddleware } from "./rateLimiter";
 import * as Sentry from "@sentry/node";
 import { handleTRPCError, setUserContext } from "./sentry";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { getDb } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -110,24 +114,46 @@ async function startServer() {
   }
 
   const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
+  const isProduction = process.env.NODE_ENV === "production";
+  const port = isProduction ? preferredPort : await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
-    
-    // Agendar job de limpeza de cache
-    scheduleCacheCleanup();
-    // Agendar job de expiração automática da whitelist (a cada hora)
-    scheduleWhitelistExpiry();
-    // Agendar backup automático diário às 02h00 (Brasília)
-    scheduleBackupAutomatico();
-    // Agendar reenvio automático de convites (configurável pelo painel admin)
-    scheduleReenvioAutomatico();
+  console.log(`[boot] Iniciando servidor na porta ${port}...`);
+  // Servidor inicia PRIMEIRO para o healthcheck passar imediatamente
+  await new Promise<void>((resolve) => {
+    server.listen(port, "0.0.0.0", () => {
+      console.log(`Server running on http://0.0.0.0:${port}/`);
+      resolve();
+    });
   });
+
+  // Agendar jobs
+  scheduleCacheCleanup();
+  scheduleWhitelistExpiry();
+
+  // Migração roda depois que o servidor já está ouvindo (não bloqueia healthcheck)
+  if (process.env.DATABASE_URL) {
+    runMigrations().catch((err) =>
+      console.error("[Migration] Erro ao migrar — a app continua rodando:", err)
+    );
+  } else {
+    console.warn("[Migration] DATABASE_URL não definida — pulando migração");
+  }
 }
 
-startServer().catch(console.error);
+async function runMigrations() {
+  console.log("[Migration] Iniciando...");
+  const db = await getDb();
+  if (!db) { console.error("[Migration] DB indisponível"); return; }
+  const migrationsFolder = path.join(process.cwd(), "drizzle");
+  await migrate(db, { migrationsFolder });
+  console.log("[Migration] Concluída com sucesso");
+}
+
+startServer().catch((err) => {
+  console.error("[boot] FATAL — servidor falhou ao iniciar:", err);
+  process.exit(1);
+});
