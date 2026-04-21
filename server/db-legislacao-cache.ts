@@ -76,9 +76,7 @@ export async function setCachedValidation(
     await db
       .insert(legislacaoCache)
       .values(cacheEntry)
-      .onConflictDoUpdate({
-        target: legislacaoCache.citacao,
-        set: {
+      .onDuplicateKeyUpdate({ set: {
           confiabilidade,
           motivo,
           linkOficial: linkOficial || null,

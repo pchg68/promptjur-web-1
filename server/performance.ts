@@ -376,15 +376,14 @@ export async function criarRegra(params: {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const resultado = await db.insert(alertRules).values({
+  const [resultado] = await db.insert(alertRules).values({
     rota: params.rota || null,
     metrica: params.metrica,
     threshold: params.threshold,
     isAtivo: true,
     cooldown: params.cooldown || 300
-  }).returning({ id: alertRules.id });
-
-  return resultado[0].id;
+  });
+  return (resultado as any).insertId;
 }
 
 /**

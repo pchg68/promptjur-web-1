@@ -927,3 +927,65 @@ export async function sendContactAdminNotification(opts: {
     return { success: false, error: err?.message ?? "Unknown error" };
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E-mail de notificação individual
+// ─────────────────────────────────────────────────────────────────────────────
+const NOTIF_TIPO_ICON: Record<string, string> = {
+  sucesso: "✅", alerta: "⚠️", erro: "❌", info: "ℹ️", sistema: "🔔",
+};
+const NOTIF_TIPO_COLOR: Record<string, string> = {
+  sucesso: "#22c55e", alerta: "#f59e0b", erro: "#ef4444", info: "#3b82f6", sistema: "#8b5cf6",
+};
+
+function buildNotificationEmailHtml(opts: {
+  nome: string; titulo: string; mensagem: string; tipo: string; link?: string | null; appUrl: string;
+}): string {
+  const icon = NOTIF_TIPO_ICON[opts.tipo] ?? "🔔";
+  const color = NOTIF_TIPO_COLOR[opts.tipo] ?? "#8b5cf6";
+  const ano = new Date().getFullYear();
+  const ctaHref = opts.link ? `${opts.appUrl}${opts.link}` : opts.appUrl;
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>${opts.titulo}</title></head>
+<body style="margin:0;padding:0;background:#060d1a;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#060d1a;padding:40px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#0d1b2e;border-radius:12px;overflow:hidden;border:1px solid #1e3a5f;">
+<tr><td style="background:linear-gradient(135deg,#0d1b2e,#0a2540);padding:32px 40px;border-bottom:2px solid ${color};">
+<p style="margin:0;font-size:24px;font-weight:700;color:#e2e8f0;">⚖️ PromptJur</p>
+<p style="margin:4px 0 0;font-size:12px;color:#64748b;">Sistema de Engenharia de Prompts Jurídicos</p>
+</td></tr>
+<tr><td style="padding:40px;">
+<p style="margin:0 0 8px;font-size:15px;color:#94a3b8;">Olá, <strong style="color:#e2e8f0;">${opts.nome}</strong></p>
+<div style="margin:24px 0;padding:20px;background:#0a1628;border-radius:8px;border-left:4px solid ${color};">
+<p style="margin:0 0 8px;font-size:20px;">${icon} <strong style="color:#e2e8f0;">${opts.titulo}</strong></p>
+<p style="margin:0;font-size:15px;color:#94a3b8;line-height:1.6;">${opts.mensagem}</p>
+</div>
+<a href="${ctaHref}" style="display:inline-block;margin-top:8px;padding:12px 28px;background:${color};color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Ver detalhes</a>
+</td></tr>
+<tr><td style="padding:20px 40px;border-top:1px solid #1e3a5f;text-align:center;">
+<p style="margin:0;font-size:12px;color:#475569;">© ${ano} PromptJur — <a href="${opts.appUrl}/configuracoes" style="color:#3b82f6;">Gerenciar notificações</a></p>
+</td></tr>
+</table></td></tr></table></body></html>`;
+}
+
+export async function sendNotificationEmail(opts: {
+  to: string; nome: string; titulo: string; mensagem: string; tipo: string; link?: string | null;
+}): Promise<boolean> {
+  const resend = getResend();
+  if (!resend) return false;
+  const appUrl = getAppUrl();
+  const icon = NOTIF_TIPO_ICON[opts.tipo] ?? "🔔";
+  try {
+    const { error } = await resend.emails.send({
+      from: getFromAddress(),
+      to: opts.to,
+      subject: `${icon} ${opts.titulo} — PromptJur`,
+      html: buildNotificationEmailHtml({ ...opts, appUrl }),
+    });
+    if (error) { console.error("[Email] Erro ao enviar notificação:", error); return false; }
+    return true;
+  } catch (err) {
+    console.error("[Email] Exceção ao enviar notificação:", err);
+    return false;
+  }
+}

@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { IntegracoesPanel } from "@/components/IntegracoesPanel";
+import { NotificationSettings } from "@/components/NotificationSettings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -268,6 +269,23 @@ export default function Configuracoes() {
             </div>
           </CardContent>
         </Card>
+        {/* Configurações de Notificações */}
+        <div className="mt-6">
+          <Card className="border-[#d4af37]/20 bg-[#1a2332]/60 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2 text-white">
+                🔔 Notificações
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Configure como e quando deseja receber notificações do sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NotificationSettings />
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Painel de Integrações */}
         <div className="mt-6">
           <IntegracoesPanel />

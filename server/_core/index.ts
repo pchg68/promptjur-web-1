@@ -22,7 +22,7 @@ import { sugestoesSSEHandler } from "../sugestoes-sse";
 import { tRPCRateLimiter, injectUserMiddleware } from "./rateLimiter";
 import * as Sentry from "@sentry/node";
 import { handleTRPCError, setUserContext } from "./sentry";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { migrate } from "drizzle-orm/mysql2/migrator";
 import { getDb } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {

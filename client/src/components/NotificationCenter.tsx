@@ -1,9 +1,11 @@
-import { useEffect } from "react";
-import { X, CheckCheck, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, CheckCheck, Settings, Bell, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
 import { NotificationItem } from "./NotificationItem";
+import { NotificationSettings } from "./NotificationSettings";
 import { toast } from "sonner";
 
 interface NotificationCenterProps {
@@ -13,7 +15,8 @@ interface NotificationCenterProps {
 
 export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
   const utils = trpc.useUtils();
-  
+  const [activeTab, setActiveTab] = useState<"notifications" | "settings">("notifications");
+
   // Buscar notificações
   const { data: notifications = [], isLoading } = trpc.notifications.list.useQuery(
     { limit: 50 },
@@ -56,59 +59,93 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
       />
 
       {/* Painel lateral */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-background border-l border-border z-50 shadow-2xl flex flex-col">
+      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-[#060d1a] border-l border-[#1e3a5f] z-50 shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between p-4 border-b border-[#1e3a5f]">
           <div>
-            <h2 className="text-lg font-semibold">Notificações</h2>
-            {unreadNotifications.length > 0 && (
-              <p className="text-sm text-muted-foreground">
-                {unreadNotifications.length} não {unreadNotifications.length === 1 ? "lida" : "lidas"}
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Bell className="w-5 h-5 text-blue-400" />
+              Notificações
+            </h2>
+            {activeTab === "notifications" && unreadNotifications.length > 0 && (
+              <p className="text-sm text-gray-400">
+                {unreadNotifications.length} não{" "}
+                {unreadNotifications.length === 1 ? "lida" : "lidas"}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {unreadNotifications.length > 0 && (
+          <div className="flex items-center gap-1">
+            {activeTab === "notifications" && unreadNotifications.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => markAllAsReadMutation.mutate()}
                 disabled={markAllAsReadMutation.isPending}
+                className="text-xs text-gray-400 hover:text-white h-8"
               >
-                <CheckCheck className="w-4 h-4 mr-2" />
-                Marcar todas como lidas
+                <CheckCheck className="w-3.5 h-3.5 mr-1.5" />
+                Marcar todas
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="w-5 h-5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setActiveTab(activeTab === "settings" ? "notifications" : "settings")}
+              className={`h-8 w-8 ${activeTab === "settings" ? "text-blue-400" : "text-gray-400 hover:text-white"}`}
+              title="Configurações de notificações"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-gray-400 hover:text-white">
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        {/* Lista de notificações */}
-        <ScrollArea className="flex-1">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <p className="text-sm text-muted-foreground">Carregando...</p>
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 text-center px-4">
-              <p className="text-sm text-muted-foreground">Nenhuma notificação</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Você receberá notificações sobre suas atividades aqui
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {notifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                />
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+        {/* Conteúdo */}
+        {activeTab === "settings" ? (
+          <ScrollArea className="flex-1 p-4">
+            <NotificationSettings />
+          </ScrollArea>
+        ) : (
+          <ScrollArea className="flex-1">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <p className="text-sm text-gray-400">Carregando...</p>
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 text-center px-4 gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#0d1b2e] flex items-center justify-center">
+                  <Bell className="w-6 h-6 text-gray-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-300">Nenhuma notificação</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Você receberá notificações sobre suas atividades aqui
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveTab("settings")}
+                  className="text-xs text-blue-400 hover:text-blue-300 h-7 gap-1.5"
+                >
+                  <Smartphone className="w-3 h-3" />
+                  Ativar notificações push
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#1e3a5f]">
+                {notifications.map((notification) => (
+                  <NotificationItem
+                    key={notification.id}
+                    notification={notification}
+                  />
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        )}
       </div>
     </>
   );

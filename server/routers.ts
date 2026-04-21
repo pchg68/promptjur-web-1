@@ -5,7 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
-import { notificationsRouter, notificationPreferencesRouter } from "./routers-notifications";
+import { notificationsRouter, notificationPreferencesRouter, pushSubscriptionsRouter } from "./routers-notifications";
 import { modelosPersonalizadosRouter } from "./routers-modelos-personalizados";
 import { adminRouter } from "./admin";
 import { tutoriais, type Tutorial } from "@shared/tutoriais";
@@ -35,6 +35,7 @@ export const appRouter = router({
   system: systemRouter,
   notifications: notificationsRouter,
   notificationPreferences: notificationPreferencesRouter,
+  pushSubscriptions: pushSubscriptionsRouter,
   modelosPersonalizados: modelosPersonalizadosRouter,
   admin: adminRouter,
 

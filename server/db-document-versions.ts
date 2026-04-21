@@ -27,7 +27,7 @@ export async function salvarVersaoDocumento(data: Omit<InsertDocumentVersion, "v
   const [inserted] = await db.insert(documentVersions).values({
     ...data,
     versao: proximaVersao,
-  }).returning({ id: documentVersions.id });
+  });
 
   logger.info("[DocumentVersions] Versão salva", {
     userId: data.userId,
@@ -35,7 +35,7 @@ export async function salvarVersaoDocumento(data: Omit<InsertDocumentVersion, "v
     versao: proximaVersao,
   });
 
-  return inserted.id;
+  return (inserted as any).insertId;
 }
 
 /**

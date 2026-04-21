@@ -86,9 +86,7 @@ export async function addToWhitelist(
       ativo: true,
       expiresAt: expiresAt ?? null,
     })
-    .onConflictDoUpdate({
-      target: accessWhitelist.email,
-      set: {
+    .onDuplicateKeyUpdate({ set: {
         ativo: true,
         nome: nome ?? null,
         expiresAt: expiresAt ?? null,

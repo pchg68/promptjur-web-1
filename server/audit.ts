@@ -29,8 +29,8 @@ export async function logAuditoria(params: {
     userAgent: params.req?.headers['user-agent'] as string || undefined,
   };
 
-  const result = await db.insert(auditLogs).values(logData).returning({ id: auditLogs.id });
-  return result[0].id;
+  const [result] = await db.insert(auditLogs).values(logData);
+  return (result as any).insertId;
 }
 
 /**

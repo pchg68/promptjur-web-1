@@ -1,6 +1,6 @@
 import { eq, desc, and, sql, inArray, count, avg } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { logger } from './_core/logger';
 import { 
   InsertUser, users, 
@@ -22,8 +22,9 @@ import {
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
-let _db: ReturnType<typeof drizzle<Record<string, unknown>>> | null = null;
-let _pgClient: ReturnType<typeof postgres> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _db: any = null;
+let _mysqlPool: mysql.Pool | null = null;
 
 /**
  * Obtém a instância do banco de dados Drizzle ORM.
@@ -40,8 +41,18 @@ let _pgClient: ReturnType<typeof postgres> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _pgClient = postgres(process.env.DATABASE_URL, { max: 10 });
-      _db = drizzle(_pgClient);
+      const url = new URL(process.env.DATABASE_URL);
+      _mysqlPool = mysql.createPool({
+        host: url.hostname,
+        port: parseInt(url.port) || 3306,
+        user: decodeURIComponent(url.username),
+        password: decodeURIComponent(url.password),
+        database: url.pathname.replace(/^\//, '').split('?')[0],
+        ssl: { rejectUnauthorized: false },
+        connectionLimit: 10,
+        waitForConnections: true,
+      });
+      _db = drizzle(_mysqlPool);
     } catch (error) {
       logger.warn('[Database] Failed to connect', { error });
       _db = null;
@@ -124,9 +135,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onConflictDoUpdate({
-      target: users.openId,
-      set: updateSet,
+    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet,
     });
   } catch (error) {
     logger.error('[Database] Failed to upsert user', { error });
@@ -156,14 +165,24 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+/**
+ * Buscar usuário por ID interno (para envio de e-mails de notificação)
+ */
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 // ===== PROMPT HELPERS =====
 
 export async function createPrompt(data: InsertPrompt) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(prompts).values(data).returning({ id: prompts.id });
-  return result[0].id;
+  const [result] = await db.insert(prompts).values(data);
+  return (result as any).insertId;
 }
 
 export async function getUserPrompts(userId: number, limit = 50) {
@@ -233,8 +252,8 @@ export async function createAnalise(data: InsertAnalise) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(analises).values(data).returning({ id: analises.id });
-  return result[0].id;
+  const [result] = await db.insert(analises).values(data);
+  return (result as any).insertId;
 }
 
 export async function getAnaliseByPromptId(promptId: number) {
@@ -273,8 +292,8 @@ export async function createTemplate(data: InsertTemplate) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(templates).values(data).returning({ id: templates.id });
-  return result[0].id;
+  const [result] = await db.insert(templates).values(data);
+  return (result as any).insertId;
 }
 
 // ===== FONTE JURIDICA HELPERS =====
@@ -293,8 +312,8 @@ export async function createFonteJuridica(data: InsertFonteJuridica) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(fontesJuridicas).values(data).returning({ id: fontesJuridicas.id });
-  return result[0].id;
+  const [result] = await db.insert(fontesJuridicas).values(data);
+  return (result as any).insertId;
 }
 
 export async function searchFontes(query: string, tipo?: string) {
@@ -313,8 +332,8 @@ export async function createHistorico(data: InsertHistorico) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(historico).values(data).returning({ id: historico.id });
-  return result[0].id;
+  const [result] = await db.insert(historico).values(data);
+  return (result as any).insertId;
 }
 
 export async function getUserHistorico(userId: number, limit = 100) {
@@ -374,9 +393,7 @@ export async function upsertConfiguracao(data: InsertConfiguracao) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  await db.insert(configuracoes).values(data).onConflictDoUpdate({
-    target: configuracoes.userId,
-    set: {
+  await db.insert(configuracoes).values(data).onDuplicateKeyUpdate({ set: {
       areaPreferida: data.areaPreferida,
       nivelDetalhePreferido: data.nivelDetalhePreferido,
       incluirReferenciasDefault: data.incluirReferenciasDefault,
@@ -435,8 +452,8 @@ export async function salvarTemplate(data: InsertTemplate) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(templates).values(data).returning({ id: templates.id });
-  return result[0].id;
+  const [result] = await db.insert(templates).values(data);
+  return (result as any).insertId;
 }
 
 export async function atualizarTemplate(id: number, userId: number, data: Partial<InsertTemplate>) {
@@ -506,8 +523,8 @@ export async function criarTag(data: InsertTag) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(tags).values(data).returning({ id: tags.id });
-  return result[0].id;
+  const [result] = await db.insert(tags).values(data);
+  return (result as any).insertId;
 }
 
 export async function deletarTag(tagId: number, userId: number) {
@@ -543,11 +560,11 @@ export async function atribuirTagTemplate(templateId: number, tagId: number) {
     
   if (existing.length > 0) return existing[0].id;
   
-  const result = await db.insert(templateTags).values({
+  const [result] = await db.insert(templateTags).values({
     templateId,
     tagId
-  }).returning({ id: templateTags.id });
-  return result[0].id;
+  });
+  return (result as any).insertId;
 }
 
 export async function removerTagTemplate(templateId: number, tagId: number) {
@@ -583,8 +600,8 @@ export async function salvarVersaoPrompt(data: InsertPromptVersao) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(promptVersoes).values(data).returning({ id: promptVersoes.id });
-  return result[0].id;
+  const [result] = await db.insert(promptVersoes).values(data);
+  return (result as any).insertId;
 }
 
 export async function getVersoesPrompt(promptId: number) {
@@ -760,11 +777,11 @@ export async function atribuirTagPrompt(promptId: number, tagId: number) {
     
   if (existing.length > 0) return existing[0].id;
   
-  const result = await db.insert(promptTags).values({
+  const [result] = await db.insert(promptTags).values({
     promptId,
     tagId
-  }).returning({ id: promptTags.id });
-  return result[0].id;
+  });
+  return (result as any).insertId;
 }
 
 export async function removerTagPrompt(promptId: number, tagId: number) {
@@ -850,14 +867,14 @@ export async function salvarCabecalhoTemplate(userId: number, data: Partial<Inse
   } else {
     // Criar novo
     const now = new Date();
-    const [inserted] = await db.insert(cabecalhoTemplates).values({
+    const [insertResult] = await db.insert(cabecalhoTemplates).values({
       userId,
       ...data
-    }).returning({ id: cabecalhoTemplates.id });
-
+    });
+    const insertedId = (insertResult as any).insertId;
     // Retornar com campos Date serializados
     return {
-      id: inserted.id,
+      id: insertedId,
       userId,
       ...data,
       createdAt: now.toISOString(),
@@ -956,11 +973,11 @@ export async function criarFormatacaoTemplate(data: {
       .where(eq(formatacaoTemplates.userId, data.userId));
   }
 
-  const [template] = await db
+  const [insertRes] = await db
     .insert(formatacaoTemplates)
-    .values(data)
-    .returning();
-
+    .values(data);
+  const newId = (insertRes as any).insertId;
+  const [template] = await db.select().from(formatacaoTemplates).where(eq(formatacaoTemplates.id, newId)).limit(1);
   return template;
 }
 
@@ -1644,3 +1661,4 @@ export async function getPromptByShareToken(token: string) {
 
   return result.length > 0 ? result[0] : null;
 }
+

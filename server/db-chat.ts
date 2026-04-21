@@ -12,8 +12,8 @@ import {
 export async function criarSessao(data: InsertChatSession) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const [row] = await db.insert(chatSessions).values(data).returning({ id: chatSessions.id });
-  return row.id;
+  const [row] = await db.insert(chatSessions).values(data);
+  return (row as any).insertId;
 }
 
 export async function listarSessoes(userId: number) {
@@ -66,8 +66,8 @@ export async function deletarSessao(sessionId: number, userId: number) {
 export async function salvarMensagem(data: InsertChatMessage) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const [row] = await db.insert(chatMessages).values(data).returning({ id: chatMessages.id });
-  return row.id;
+  const [row] = await db.insert(chatMessages).values(data);
+  return (row as any).insertId;
 }
 
 export async function listarMensagens(sessionId: number) {

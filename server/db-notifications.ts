@@ -8,8 +8,8 @@ export async function createNotification(data: InsertNotification) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(notifications).values(data).returning({ id: notifications.id });
-  return result[0].id;
+  const [result] = await db.insert(notifications).values(data);
+  return (result as any).insertId;
 }
 
 export async function getUserNotifications(userId: number, limit: number = 50) {

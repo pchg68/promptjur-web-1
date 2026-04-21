@@ -42,9 +42,9 @@ export const modelosPersonalizadosRouter = router({
         exemplos: input.exemplos || [],
         isPublico: input.isPublico,
         isAtivo: true,
-      }).returning({ id: templates.id });
+      });
 
-      const templateId = novoTemplate.id;
+      const templateId = (novoTemplate as any).insertId;
 
       // Associar tags se fornecidas
       if (input.tags && input.tags.length > 0) {
@@ -191,10 +191,10 @@ export const modelosPersonalizadosRouter = router({
         exemplos: modeloOriginal.exemplos,
         isPublico: false,
         isAtivo: true,
-      }).returning({ id: templates.id });
+      });
 
       return {
-        id: novoModelo.id,
+        id: (novoModelo as any).insertId,
         nome: `${modeloOriginal.nome} (Cópia)`,
         mensagem: "Modelo duplicado com sucesso!",
       };
