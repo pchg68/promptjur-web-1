@@ -12,7 +12,19 @@ import {
 import { Link } from "wouter";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Gratuito",
@@ -44,6 +56,11 @@ export default function MeuPlano() {
   const { data: usageHistory } = trpc.prompts.stats.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+  const [chartDays, setChartDays] = useState(30);
+  const { data: dailyUsage } = trpc.stripe.getDailyUsage.useQuery(
+    { days: chartDays },
+    { enabled: isAuthenticated }
+  );
 
   const daysUntilReset = useMemo(() => {
     if (!usage?.nextResetAt) return 0;
@@ -296,6 +313,97 @@ export default function MeuPlano() {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Gráfico de uso diário */}
+        {dailyUsage && dailyUsage.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-violet-500" />
+                  Uso diário de operações
+                </CardTitle>
+                <div className="flex gap-1">
+                  {[7, 14, 30].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setChartDays(d)}
+                      className={`text-xs px-2 py-1 rounded transition-colors ${
+                        chartDays === d
+                          ? "bg-violet-600 text-white"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      {d}d
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div style={{ height: 220 }}>
+                <Bar
+                  data={{
+                    labels: dailyUsage.map((d) => {
+                      const [, m, day] = d.date.split("-");
+                      return `${day}/${m}`;
+                    }),
+                    datasets: [
+                      {
+                        label: "Análises",
+                        data: dailyUsage.map((d) => d.analises),
+                        backgroundColor: "rgba(99, 102, 241, 0.7)",
+                        borderRadius: 3,
+                        stack: "ops",
+                      },
+                      {
+                        label: "Gerações",
+                        data: dailyUsage.map((d) => d.geracoes),
+                        backgroundColor: "rgba(139, 92, 246, 0.7)",
+                        borderRadius: 3,
+                        stack: "ops",
+                      },
+                      {
+                        label: "Otimizações",
+                        data: dailyUsage.map((d) => d.otimizacoes),
+                        backgroundColor: "rgba(34, 197, 94, 0.6)",
+                        borderRadius: 3,
+                        stack: "ops",
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: "top" as const, labels: { font: { size: 11 }, boxWidth: 12 } },
+                      tooltip: { mode: "index" as const, intersect: false },
+                    },
+                    scales: {
+                      x: {
+                        stacked: true,
+                        ticks: {
+                          maxTicksLimit: chartDays <= 14 ? chartDays : 10,
+                          font: { size: 10 },
+                        },
+                        grid: { display: false },
+                      },
+                      y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, font: { size: 10 } },
+                        grid: { color: "rgba(128,128,128,0.1)" },
+                      },
+                    },
+                  }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Total no período: <strong>{dailyUsage.reduce((s, d) => s + d.total, 0)}</strong> operações
+              </p>
             </CardContent>
           </Card>
         )}

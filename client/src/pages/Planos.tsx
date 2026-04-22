@@ -272,6 +272,8 @@ export default function Planos() {
   const { data: plans, isLoading: plansLoading } = trpc.stripe.getPlans.useQuery();
   const { data: pagamentosStatus } = trpc.stripe.getPagamentosAtivos.useQuery();
   const pagamentosAtivos = pagamentosStatus?.ativo ?? false;
+  const { data: interessadosData } = trpc.stripe.getInteressadosCount.useQuery();
+  const interessadosCount = interessadosData?.count ?? 0;
   const { data: currentPlan } = trpc.stripe.getCurrentPlan.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -394,12 +396,31 @@ export default function Planos() {
               <div className="flex-1">
                 <p className="text-sm font-semibold text-amber-300 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  Plataforma em fase de testes — Pagamentos temporariamente desativados
+                  Plataforma em fase beta — Planos pagos em breve
                 </p>
                 <p className="text-xs text-amber-200/70 mt-1">
-                  Os planos pagos estarão disponíveis em breve. Enquanto isso, explore todas as
-                  funcionalidades gratuitamente. Os preços exibidos são para referência.
+                  Estamos finalizando a precificação e os testes de pagamento. Explore todas as
+                  funcionalidades gratuitamente até o lançamento oficial. Os preços são para referência.
                 </p>
+                {/* Contador de interessados */}
+                {interessadosCount > 0 && (
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-amber-300/80">
+                          <span className="font-bold text-amber-300">{interessadosCount}</span> {interessadosCount === 1 ? "pessoa" : "pessoas"} na lista de espera
+                        </span>
+                        <span className="text-xs text-amber-400/60">Meta: 100</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-amber-900/40 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber-400 rounded-full transition-all duration-700"
+                          style={{ width: `${Math.min(100, (interessadosCount / 100) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -2,8 +2,8 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { stripe } from "../_core/stripe";
 import { getDb } from "../db";
-import { users, enterpriseLeads, launchInterests } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { users, enterpriseLeads, launchInterests, historico } from "../../drizzle/schema";
+import { eq, gte, and } from "drizzle-orm";
 import { PLANS, formatPrice } from "../stripe-products";
 import { TRPCError } from "@trpc/server";
 import { isFeatureEnabled } from "../feature-flags";
@@ -291,6 +291,52 @@ export const stripeRouter = router({
       console.log(`[Enterprise Lead] ${input.escritorio} (${input.email}) - ${input.numeroAdvogados} advogados`);
       return { success: true };
     }),
+
+  /**
+   * Retorna o uso diário dos últimos N dias para o gráfico de consumo
+   */
+  getDailyUsage: protectedProcedure
+    .input(z.object({ days: z.number().min(7).max(90).default(30) }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const since = new Date();
+      since.setDate(since.getDate() - input.days);
+      const rows = await db
+        .select({ createdAt: historico.createdAt, acao: historico.acao })
+        .from(historico)
+        .where(and(eq(historico.userId, ctx.user.id), gte(historico.createdAt, since)));
+      // Pré-preencher todos os dias do período com zero
+      const byDate: Record<string, { total: number; analises: number; geracoes: number; otimizacoes: number }> = {};
+      for (let i = input.days - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        byDate[key] = { total: 0, analises: 0, geracoes: 0, otimizacoes: 0 };
+      }
+      for (const row of rows) {
+        const key = new Date(row.createdAt).toISOString().slice(0, 10);
+        if (!byDate[key]) continue;
+        byDate[key].total++;
+        if (row.acao === "analise") byDate[key].analises++;
+        else if (row.acao === "geracao") byDate[key].geracoes++;
+        else if (row.acao === "otimizacao") byDate[key].otimizacoes++;
+      }
+      return Object.entries(byDate).map(([date, counts]) => ({ date, ...counts }));
+    }),
+
+  /**
+   * Retorna o número total de interessados na lista de espera
+   */
+  getInteressadosCount: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return { count: 0 };
+    const [result] = await db.execute(
+      `SELECT COUNT(*) as count FROM launch_interests`
+    ) as any[];
+    const count = Array.isArray(result) && result[0] ? Number((result[0] as any).count) : 0;
+    return { count };
+  }),
 
   /**
    * Cancela a assinatura do usuário

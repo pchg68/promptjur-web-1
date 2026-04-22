@@ -46,6 +46,7 @@ import GenerationStepper from "@/components/GenerationStepper";
 import PromptActions from "@/components/PromptActions";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
 import { ProviderStatus } from "@/components/ProviderStatus";
+import { QuotaWidget } from "@/components/QuotaWidget";
 import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
 import { ProfPromptChat } from "@/components/ProfPromptChat";
 import { GraduationCap } from "lucide-react";
@@ -845,8 +846,11 @@ export default function Dashboard() {
         {/* ═══════════════ Seções Secundárias (Colapsáveis) ═══════════════ */}
         {!isCompactMode && (
           <>
-            {/* Cards de Métricas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 mt-8">
+            {/* Widget de Quota Mensal + Cards de Métricas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 mt-8">
+              <div className="lg:col-span-1">
+                <QuotaWidget />
+              </div>
               {[
                 { label: "Análises", value: statsQuery.data?.totalAnalises || 0, icon: Sparkles },
                 { label: "Gerações", value: statsQuery.data?.totalGeracoes || 0, icon: Zap },
