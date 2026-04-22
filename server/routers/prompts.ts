@@ -10,6 +10,7 @@ import { logger } from "../_core/logger";
 import { getCachedData } from "../admin";
 import { canAccessModel, getAccessDeniedMessage } from "../plan-access";
 import { TRPCError } from "@trpc/server";
+import { checkPlanQuota, incrementQuota } from "../quota";
 
 /** Helper: verifica acesso ao modelo antes de chamar a IA */
 function checkModelAccess(userPlan: string, model?: string) {
@@ -95,6 +96,7 @@ export const promptsRouter = router({
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
+      await checkPlanQuota(ctx.user.id);
       checkModelAccess(ctx.user.subscriptionPlan, input.model);
       const startTime = Date.now();
       try {
@@ -151,7 +153,7 @@ export const promptsRouter = router({
         });
 
         await db.createHistorico({ userId: ctx.user.id, acao: "analise", promptId, duracaoMs: Date.now() - startTime, sucesso: true });
-        await db.incrementUserUsage(ctx.user.id);
+        await incrementQuota(ctx.user.id);
         const avisosFontes = gerarAvisosFontes(input.prompt);
 
         return {
@@ -181,6 +183,7 @@ export const promptsRouter = router({
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
+      await checkPlanQuota(ctx.user.id);
       checkModelAccess(ctx.user.subscriptionPlan, input.model);
       const startTime = Date.now();
       try {
@@ -295,7 +298,7 @@ export const promptsRouter = router({
         });
 
         await db.createHistorico({ userId: ctx.user.id, acao: "geracao", promptId, duracaoMs: Date.now() - startTime, sucesso: true });
-        await db.incrementUserUsage(ctx.user.id);
+        await incrementQuota(ctx.user.id);
         await notifyPromptGenerated(ctx.user.id, input.tipoDocumento).catch(err => { logger.error('Erro notificação', { error: err }); });
         const avisosFontes = gerarAvisosFontes(promptProfissional);
 
@@ -318,6 +321,7 @@ export const promptsRouter = router({
       model: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
+      await checkPlanQuota(ctx.user.id);
       checkModelAccess(ctx.user.subscriptionPlan, input.model);
       const startTime = Date.now();
       try {
@@ -399,7 +403,7 @@ export const promptsRouter = router({
 
         await db.salvarVersaoPrompt({ promptId, tipo: "original", versao: 1, conteudo: input.prompt });
         await db.createHistorico({ userId: ctx.user.id, acao: "otimizacao", promptId, duracaoMs: Date.now() - startTime, sucesso: true });
-        await db.incrementUserUsage(ctx.user.id);
+        await incrementQuota(ctx.user.id);
         await notifyPromptOptimized(ctx.user.id).catch(err => { logger.error('Erro notificação', { error: err }); });
 
         const avisosFontes = gerarAvisosFontes(resultado.promptOtimizado);

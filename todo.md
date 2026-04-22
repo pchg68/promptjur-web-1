@@ -2952,3 +2952,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar rota /crm no App.tsx
 - [x] Adicionar link CRM no DashboardHeader2 (desktop e mobile) para admin
 - [x] Controle de acesso por nível (visualizador, editor, admin CRM)
+
+## Sugestões Estratégicas - Análise Econômica (21/04/2026)
+- [x] Implementar checkPlanQuota: verificar usageCount vs limite do plano antes de cada geração
+- [x] Adicionar campo monthlyUsageResetAt no schema para reset mensal automático
+- [x] Criar procedure tRPC getMyUsage (quota usada, restante, próximo reset)
+- [x] Ativar Stripe: criar preços no dashboard e vincular stripePriceIdMonthly/Yearly nos planos
+- [x] Criar página /meu-plano com painel de monitoramento de consumo de IA
+- [ ] Adicionar gráfico de uso diário dos últimos 30 dias no painel de consumo
+- [ ] Exibir barra de progresso de quota na sidebar/dashboard

@@ -7,8 +7,29 @@ import { eq } from "drizzle-orm";
 import { PLANS, formatPrice } from "../stripe-products";
 import { TRPCError } from "@trpc/server";
 import { isFeatureEnabled } from "../feature-flags";
+import { getUserQuotaSummary } from "../quota";
 
 export const stripeRouter = router({
+  /**
+   * Retorna o resumo de quota do usuário autenticado
+   * (operações usadas, restantes, próximo reset)
+   */
+  getMyUsage: protectedProcedure.query(async ({ ctx }) => {
+    const summary = await getUserQuotaSummary(ctx.user.id);
+    if (!summary) {
+      return {
+        plan: "free",
+        usageCount: 0,
+        limit: 20,
+        remaining: 20,
+        percentUsed: 0,
+        nextResetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+        isUnlimited: false,
+      };
+    }
+    return summary;
+  }),
+
   /**
    * Retorna se os pagamentos estão ativos (feature flag `pagamentos_ativos`)
    * Usado pelo frontend para mostrar/ocultar botões de checkout
