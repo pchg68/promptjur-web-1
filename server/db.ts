@@ -119,12 +119,22 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
     }
+    // Verificar se é o proprietário (por openId ou por e-mail)
+    const isOwnerById = user.openId === ENV.ownerOpenId;
+    const isOwnerByEmail = !!(user.email && ENV.ownerEmails.includes(user.email));
+    const isOwner = isOwnerById || isOwnerByEmail;
+
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
+    } else if (isOwner) {
       values.role = 'admin';
       updateSet.role = 'admin';
+    }
+    // Garantir plano enterprise ilimitado para o proprietário
+    if (isOwner) {
+      values.subscriptionPlan = 'enterprise';
+      updateSet.subscriptionPlan = 'enterprise';
     }
 
     if (!values.lastSignedIn) {

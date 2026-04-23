@@ -16,6 +16,8 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().default(""),
   EMAIL_FROM: z.string().default(""),
   ADMIN_EMAIL: z.string().default(""),
+  // E-mails separados por vírgula que recebem role:admin + subscriptionPlan:enterprise automaticamente no login
+  OWNER_EMAILS: z.string().default("pc@hertt.com.br,admin@promptjur.com"),
 
   VITE_APP_URL: z.string().default("https://promptjur.com"),
   SENTRY_DSN: z.string().default(""),
@@ -37,6 +39,8 @@ export const ENV = {
   resendApiKey: parsed.RESEND_API_KEY,
   emailFrom: parsed.EMAIL_FROM,
   adminEmail: parsed.ADMIN_EMAIL,
+  // Lista de e-mails do proprietário (admin + enterprise ilimitado)
+  ownerEmails: parsed.OWNER_EMAILS.split(",").map(e => e.trim()).filter(Boolean),
   appUrl: parsed.VITE_APP_URL,
   sentryDsn: parsed.SENTRY_DSN,
 };
