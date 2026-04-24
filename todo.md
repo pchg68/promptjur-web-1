@@ -3011,3 +3011,10 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Criar componente AlucinacaoAlert.tsx com alertas visuais por nível de risco
   - [x] Integrar detecção no resultado da geração (paralelo com validação e avaliação)
 - [x] 43 testes unitários para RAG e Detecção de Alucinações (todos passando)
+
+## Bug Fix — Erro LLM invoke failed ao executar prompt com GPT-4o Mini
+- [x] Corrigir erro 500 "received bad response from upstream" ao usar GPT-4o Mini
+- [x] Adicionar fallback explícito para Manus AI quando OpenAI falhar (com notificação ao usuário)
+- [x] Melhorar mensagem de erro para o usuário (indicar causa e sugerir alternativa)
+- [x] Adicionar timeout de 60s na chamada OpenAI (AbortController)
+- [x] Adicionar retry com backoff exponencial (2 tentativas: 2s, 4s)

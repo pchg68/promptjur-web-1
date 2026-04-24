@@ -77,20 +77,34 @@ export async function invokeUnifiedLLM(
         return await invokeManusProvider(options);
     }
   } catch (error) {
-    console.error(`[UnifiedLLM] Erro no provider ${provider}:`, error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error(`[UnifiedLLM] Erro no provider ${provider}: ${errMsg}`);
 
-    // Fallback: se qualquer provider falhar, tenta Manus AI
+    // Fallback: se qualquer provider externo falhar, tenta Manus AI automaticamente
     if (provider !== "manus") {
+      // Não fazer fallback para erros de autenticação (chave errada) — informa o usuário
+      const isAuthError = errMsg.includes("credenciais inválidas") || errMsg.includes("401") || errMsg.includes("403");
+      const isConfigError = errMsg.includes("não configurada");
+
+      if (isAuthError || isConfigError) {
+        // Propagar o erro original com contexto claro
+        throw new Error(`LLM invoke failed: ${errMsg}`);
+      }
+
       console.log(`[UnifiedLLM] Fallback de ${provider} para Manus AI`);
       try {
-        return await invokeManusProvider(options);
+        const fallbackResult = await invokeManusProvider(options);
+        console.log(`[UnifiedLLM] Fallback para Manus AI bem-sucedido`);
+        return { ...fallbackResult, provider: "manus" };
       } catch (fallbackError) {
-        console.error("[UnifiedLLM] Fallback para Manus também falhou:", fallbackError);
-        throw fallbackError;
+        const fallbackMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        console.error("[UnifiedLLM] Fallback para Manus também falhou:", fallbackMsg);
+        // Lançar erro original com contexto do fallback
+        throw new Error(`LLM invoke failed: ${errMsg} (fallback Manus também falhou: ${fallbackMsg})`);
       }
     }
 
-    throw error;
+    throw new Error(`LLM invoke failed: ${errMsg}`);
   }
 }
 

@@ -49,8 +49,29 @@ export interface OpenAIResponse {
   };
 }
 
+/** Tempo limite padrão para chamadas OpenAI (ms) */
+const OPENAI_TIMEOUT_MS = 60_000;
+
+/** Número máximo de tentativas */
+const OPENAI_MAX_RETRIES = 2;
+
 /**
- * Invoca API da OpenAI com retry automático e fallback
+ * Aguarda um tempo antes de tentar novamente (backoff exponencial)
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Determina se o erro é transitório (vale tentar novamente)
+ */
+function isRetryableError(status: number): boolean {
+  // 429 = rate limit, 500/502/503/504 = erros temporários do servidor
+  return status === 429 || status >= 500;
+}
+
+/**
+ * Invoca API da OpenAI com retry automático, timeout e fallback
  */
 export async function invokeOpenAI(
   options: OpenAIRequestOptions
@@ -83,29 +104,86 @@ export async function invokeOpenAI(
     requestBody.response_format = options.response_format;
   }
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
+  let lastError: Error | null = null;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `OpenAI API error: ${response.status} - ${JSON.stringify(errorData)}`
-      );
+  for (let attempt = 0; attempt <= OPENAI_MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      // Backoff exponencial: 2s, 4s
+      const waitMs = Math.pow(2, attempt) * 1000;
+      console.log(`[OpenAI] Tentativa ${attempt + 1}/${OPENAI_MAX_RETRIES + 1} após ${waitMs}ms...`);
+      await sleep(waitMs);
     }
 
-    const data: OpenAIResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error("[OpenAI] Erro na chamada:", error);
-    throw error;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+
+      let response: Response;
+      try {
+        response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({})) as Record<string, unknown>;
+        const errorMsg = (errorData?.error as Record<string, unknown>)?.message
+          || JSON.stringify(errorData);
+
+        // Erros de autenticação/autorização não devem ser retentados
+        if (response.status === 401 || response.status === 403) {
+          throw new Error(`OpenAI: credenciais inválidas (${response.status}). Verifique a OPENAI_API_KEY em Settings → Secrets.`);
+        }
+
+        // Erro de modelo não encontrado
+        if (response.status === 404) {
+          throw new Error(`OpenAI: modelo "${options.model}" não encontrado ou sem acesso. Tente GPT-4o Mini ou Manus AI.`);
+        }
+
+        // Erros transitórios: tentar novamente
+        if (isRetryableError(response.status) && attempt < OPENAI_MAX_RETRIES) {
+          lastError = new Error(`OpenAI API error ${response.status}: ${errorMsg}`);
+          console.warn(`[OpenAI] Erro transitório ${response.status}, tentando novamente...`);
+          continue;
+        }
+
+        throw new Error(`OpenAI API error ${response.status}: ${errorMsg}`);
+      }
+
+      const data: OpenAIResponse = await response.json();
+      return data;
+
+    } catch (error) {
+      // Timeout
+      if (error instanceof Error && error.name === "AbortError") {
+        lastError = new Error(`OpenAI: tempo limite excedido (${OPENAI_TIMEOUT_MS / 1000}s). Tente novamente ou use o Manus AI.`);
+        if (attempt < OPENAI_MAX_RETRIES) continue;
+        throw lastError;
+      }
+
+      // Erro de rede (sem conexão)
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        lastError = new Error("OpenAI: falha de conexão. Verifique a conexão com a internet.");
+        if (attempt < OPENAI_MAX_RETRIES) continue;
+        throw lastError;
+      }
+
+      // Erro já tratado acima (não retentável)
+      console.error("[OpenAI] Erro na chamada:", error);
+      throw error;
+    }
   }
+
+  // Exauriu as tentativas
+  throw lastError || new Error("OpenAI: falha após múltiplas tentativas. Tente o Manus AI.");
 }
 
 /**

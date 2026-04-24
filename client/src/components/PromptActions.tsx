@@ -84,10 +84,40 @@ export default function PromptActions({
   const executarMutation = trpc.prompts.executarPrompt.useMutation({
     onSuccess: (data) => {
       setExecResult(data);
-      toast.success("Documento gerado com sucesso pela IA!");
+      // Informar se houve fallback automático para Manus AI
+      const { provider: execProvider } = parseModelValue(execModel);
+      if (data.provider === "manus" && execProvider !== "manus") {
+        toast.success("Documento gerado com sucesso! (Manus AI usado como fallback)", {
+          description: "O provedor selecionado não respondeu. O Manus AI foi usado automaticamente.",
+        });
+      } else {
+        toast.success("Documento gerado com sucesso pela IA!");
+      }
     },
     onError: (error) => {
-      toast.error(`Erro ao executar: ${error.message}`);
+      const msg = error.message;
+      // Mensagens amigáveis por tipo de erro
+      if (msg.includes("credenciais inválidas") || msg.includes("não configurada")) {
+        toast.error("Chave de API não configurada", {
+          description: "Acesse Configurações → Secrets e adicione a OPENAI_API_KEY, ou use o Manus AI.",
+          duration: 8000,
+        });
+      } else if (msg.includes("modelo") && msg.includes("não encontrado")) {
+        toast.error("Modelo não disponível", {
+          description: "Tente o GPT-4o Mini ou o Manus AI.",
+          duration: 6000,
+        });
+      } else if (msg.includes("tempo limite") || msg.includes("timeout")) {
+        toast.error("Tempo limite excedido", {
+          description: "O servidor demorou muito para responder. Tente novamente ou use o Manus AI.",
+          duration: 6000,
+        });
+      } else {
+        toast.error("Erro ao executar prompt", {
+          description: msg.replace("Erro ao executar prompt: ", ""),
+          duration: 6000,
+        });
+      }
     },
   });
 
