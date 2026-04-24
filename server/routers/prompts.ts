@@ -7,6 +7,8 @@ import { buildCoTFragment } from "@shared/chain-of-thought";
 import { buildFewShotFragment } from "@shared/few-shot-examples";
 import { getRefinamentoById } from "@shared/refinamento-iterativo";
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
+import { executarRAG } from "../rag-engine";
+import { detectarAlucinacoes } from "../alucinacao-detector";
 import { validarLegislacao } from "../_core/validacaoLegislacao";
 import { notifyPromptGenerated, notifyPromptOptimized } from "../notification-triggers";
 import { extractCitacoesLegais, contarCitacoesPorTipo, formatarCitacoes, extractLegalSources, getSourcesStatistics } from "../extractCitacoesLegais";
@@ -186,6 +188,13 @@ export const promptsRouter = router({
       personaId: z.string().optional(),
       personaCustom: z.string().optional(),
       chainOfThought: z.boolean().optional().default(false),
+      ragAtivo: z.boolean().optional().default(false),
+      ragConfig: z.object({
+        buscarLegislacao: z.boolean().optional(),
+        buscarSumulas: z.boolean().optional(),
+        buscarJurisprudencia: z.boolean().optional(),
+        tribunais: z.array(z.string()).optional(),
+      }).optional(),
       provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const).optional(),
       model: z.string().optional(),
     }))
@@ -231,7 +240,27 @@ export const promptsRouter = router({
           ? `\n\nDOCUMENTOS ANEXADOS PELO USUÁRIO:\nO contexto jurídico contém um ou mais blocos delimitados por "--- DOCUMENTO ANEXADO (nome) ---" e "--- FIM DO DOCUMENTO ---". Esses blocos são o texto integral de documentos reais do caso (processos, contratos, petições, decisões, laudos, etc.) que o advogado anexou para embasar a geração.\n\nREGRAS OBRIGATÓRIAS PARA OS DOCUMENTOS ANEXADOS:\n1. Trate os documentos anexados como FONTE PRIMÁRIA de fatos, partes, pedidos, fundamentos, datas, valores, números de processo e quaisquer outros elementos objetivos do caso.\n2. Em caso de conflito ou ambiguidade entre a descrição livre do usuário e o conteúdo dos documentos, PRIORIZE os documentos — eles contêm a verdade processual.\n3. No prompt final que você gerar, inclua uma seção "Documentos de Referência" listando os nomes dos documentos anexados e instruindo a IA-alvo a fundamentar suas respostas nos fatos extraídos deles.\n4. NÃO copie blocos longos dos documentos no prompt final — referencie-os pelos nomes e extraia apenas os fatos essenciais (partes, pedidos, datas, valores, teses) para guiar a IA-alvo.\n5. Se os documentos contiverem informações sensíveis ou pessoais, mantenha-as no prompt apenas na medida estritamente necessária para a tarefa jurídica.`
           : "";
 
-        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.${personaFragment}\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.${cotFragment}\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Few-shot grounding**: Use o exemplo abaixo como referência de estilo, profundidade e formato\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Peça raciocínio jurídico passo a passo no prompt gerado\n6. **Critérios de qualidade explícitos**: Liste os critérios da rubrica abaixo no próprio prompt para guiar a IA-alvo\n\n${exemploFinal}\n\nRUBRICA DE QUALIDADE — o prompt gerado DEVE garantir que o ${input.tipoDocumento} resultante atenda a estes critérios:\n${rubricaTexto}\n\nREFERÊNCIAS LEGAIS DA ÁREA: ${referencias.join(", ")}${instrucaoDocumentos}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado em seções claras (Contexto, Instruções, Referências, Formato, Critérios de Qualidade).\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- INCLUA uma seção final \"Critérios de Qualidade\" enumerando os critérios da rubrica\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.`;
+        // P3: RAG — busca semântica de fontes jurídicas para enriquecer o contexto
+        let ragResult = null;
+        let ragContexto = "";
+        if (input.ragAtivo) {
+          try {
+            ragResult = await executarRAG(
+              input.contextoJuridico,
+              areaDetectada || "Civil",
+              input.tipoDocumento,
+              input.ragConfig || {},
+            );
+            ragContexto = ragResult.contextoEnriquecido
+              ? `\n\nFONTES JURÍDICAS RECUPERADAS AUTOMATICAMENTE (RAG):\n${ragResult.contextoEnriquecido}\n\nINSTRUÇÃO: Utilize as fontes acima como base para fundamentação. Cite-as quando relevante.`
+              : "";
+            logger.info("[RAG] Contexto enriquecido com sucesso", { totalFontes: ragResult.totalFontes });
+          } catch (err) {
+            logger.error("[RAG] Erro ao executar RAG", { error: err });
+          }
+        }
+
+        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.${personaFragment}\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.${cotFragment}\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Few-shot grounding**: Use o exemplo abaixo como referência de estilo, profundidade e formato\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Peça raciocínio jurídico passo a passo no prompt gerado\n6. **Critérios de qualidade explícitos**: Liste os critérios da rubrica abaixo no próprio prompt para guiar a IA-alvo\n\n${exemploFinal}\n\nRUBRICA DE QUALIDADE — o prompt gerado DEVE garantir que o ${input.tipoDocumento} resultante atenda a estes critérios:\n${rubricaTexto}\n\nREFERÊNCIAS LEGAIS DA ÁREA: ${referencias.join(", ")}${instrucaoDocumentos}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado em seções claras (Contexto, Instruções, Referências, Formato, Critérios de Qualidade).\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- INCLUA uma seção final \"Critérios de Qualidade\" enumerando os critérios da rubrica\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.${ragContexto}`;
 
         const userPrompt = `TIPO DE DOCUMENTO: ${input.tipoDocumento.toUpperCase()}\nÁREA JURÍDICA: ${areaDetectada}\n\nCONTEXTO JURÍDICO:\n${input.contextoJuridico}\n\nOBJETIVO ESPECÍFICO:\n${input.objetivoEspecifico}\n\n${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
 
@@ -274,9 +303,16 @@ export const promptsRouter = router({
           try { return JSON.parse(typeof r.content === "string" ? r.content : "{}"); } catch { return null; }
         }).catch(err => { logger.error("Erro na avaliação de qualidade", { error: err }); return null; });
 
-        const [validacaoRaw, avaliacaoRaw] = await Promise.all([
+        // P3: Detecção de alucinações roda em paralelo com validação e avaliação
+        const alucinacaoPromise = detectarAlucinacoes(promptProfissional).catch(err => {
+          logger.error("[AlucinacaoDetector] Erro", { error: err });
+          return null;
+        });
+
+        const [validacaoRaw, avaliacaoRaw, deteccaoAlucinacao] = await Promise.all([
           validarLegislacao(promptProfissional),
-          avaliacaoPromise
+          avaliacaoPromise,
+          alucinacaoPromise,
         ]);
 
         const validacao = {
@@ -323,6 +359,25 @@ export const promptsRouter = router({
           areaDetectadaAutomaticamente: !input.area, tipoDocumento: input.tipoDocumento,
           referencias, avisosFontes, validacaoLegislacao: validacao,
           avaliacaoQualidade,
+          // P3: RAG — fontes jurídicas encontradas
+          ragResult: ragResult ? {
+            fontes: ragResult.fontes.map(f => ({
+              id: f.id, tipo: f.tipo, titulo: f.titulo,
+              conteudo: f.conteudo.substring(0, 300),
+              origem: f.origem, url: f.url, relevancia: f.relevancia,
+            })),
+            totalFontes: ragResult.totalFontes,
+            tempoMs: ragResult.tempoMs,
+            resumo: ragResult.resumo,
+          } : null,
+          // P3: Detecção de alucinações
+          deteccaoAlucinacao: deteccaoAlucinacao ? {
+            citacoes: deteccaoAlucinacao.citacoes,
+            resumo: deteccaoAlucinacao.resumo,
+            riscoGeral: deteccaoAlucinacao.riscoGeral,
+            mensagemAlerta: deteccaoAlucinacao.mensagemAlerta,
+            tempoMs: deteccaoAlucinacao.tempoMs,
+          } : null,
         };
       } catch (error) {
         await db.createHistorico({ userId: ctx.user.id, acao: "geracao", duracaoMs: Date.now() - startTime, sucesso: false, mensagemErro: error instanceof Error ? error.message : "Erro desconhecido" });

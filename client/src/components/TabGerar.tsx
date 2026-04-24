@@ -27,6 +27,9 @@ import { PersonaSelector } from "@/components/PersonaSelector";
 import { ContextChecklist } from "@/components/ContextChecklist";
 import { RefinamentoPanel } from "@/components/RefinamentoPanel";
 import { ReviewChecklist } from "@/components/ReviewChecklist";
+import { RagToggle } from "@/components/RagToggle";
+import { RagResultsPanel } from "@/components/RagResultsPanel";
+import { AlucinacaoAlert } from "@/components/AlucinacaoAlert";
 
 interface TabGerarProps {
   selectedModel: string;
@@ -123,6 +126,15 @@ export default function TabGerar({
   const [personaCustom, setPersonaCustom] = useState<string | undefined>();
   const [chainOfThought, setChainOfThought] = useState(false);
 
+  // P3: RAG Jurídico
+  const [ragAtivo, setRagAtivo] = useState(false);
+  const [ragConfig, setRagConfig] = useState({
+    buscarLegislacao: true,
+    buscarSumulas: true,
+    buscarJurisprudencia: true,
+    tribunais: ["STF", "STJ", "TJSP", "TJRJ", "TJRS"],
+  });
+
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState("");
@@ -168,6 +180,8 @@ export default function TabGerar({
       personaId: personaId || undefined,
       personaCustom: personaCustom || undefined,
       chainOfThought,
+      ragAtivo,
+      ragConfig: ragAtivo ? ragConfig : undefined,
       model: selectedModel as any,
     });
   };
@@ -298,6 +312,16 @@ export default function TabGerar({
               area={areaJuridica}
               onChange={setPersonaId}
               onCustomChange={setPersonaCustom}
+              disabled={geracaoMutation.isPending}
+              compact={hasResult}
+            />
+
+            {/* P3: RAG Jurídico Toggle */}
+            <RagToggle
+              ativo={ragAtivo}
+              config={ragConfig}
+              onAtivoChange={setRagAtivo}
+              onConfigChange={setRagConfig}
               disabled={geracaoMutation.isPending}
               compact={hasResult}
             />
@@ -494,6 +518,12 @@ export default function TabGerar({
               {geracaoMutation.data?.avaliacaoQualidade && (
                 <QualityScoreCard avaliacao={geracaoMutation.data.avaliacaoQualidade} />
               )}
+
+              {/* P3: RAG — Fontes jurídicas encontradas */}
+              <RagResultsPanel ragResult={geracaoMutation.data?.ragResult ?? null} />
+
+              {/* P3: Detecção de Alucinações */}
+              <AlucinacaoAlert deteccao={geracaoMutation.data?.deteccaoAlucinacao ?? null} />
 
               {/* Validação de Legislação */}
               {geracaoMutation.data?.validacaoLegislacao && (

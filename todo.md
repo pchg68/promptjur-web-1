@@ -2996,3 +2996,18 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Criar componente ReviewChecklist.tsx com disclaimer e checklist interativo
   - [x] Checklist: fundamentação verificada? Prazos? Competência? Partes?
   - [x] Integrar no resultado da geração (após conteúdo, antes do fluxo guiado)
+
+## Funcionalidades P3 — RAG Jurídico e Detecção de Alucinações
+- [x] RAG Jurídico com Busca Semântica
+  - [x] Criar shared/rag-juridico.ts com tipos, configurações, base de súmulas e legislação
+  - [x] Criar server/rag-engine.ts com motor de busca semântica (local + DataJud)
+  - [x] Integrar RAG no fluxo de geração (enriquecer contexto com legislação e jurisprudência)
+  - [x] Criar componente RagResultsPanel.tsx para exibir fontes encontradas
+  - [x] Criar componente RagToggle.tsx para ativar/desativar RAG com configuração de fontes e tribunais
+- [x] Detecção de Alucinações Jurídicas
+  - [x] Criar shared/alucinacao-detector.ts com tipos, padrões regex e bases de verificação
+  - [x] Criar server/alucinacao-detector.ts com motor de detecção (regex + verificação local)
+  - [x] Verificar artigos, súmulas, leis, decretos e jurisprudência citados no prompt gerado
+  - [x] Criar componente AlucinacaoAlert.tsx com alertas visuais por nível de risco
+  - [x] Integrar detecção no resultado da geração (paralelo com validação e avaliação)
+- [x] 43 testes unitários para RAG e Detecção de Alucinações (todos passando)
