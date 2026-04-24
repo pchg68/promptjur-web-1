@@ -23,6 +23,10 @@ import { VoiceInput } from "@/components/VoiceInput";
 import { getStarterPrompts, type StarterPrompt } from "@shared/juridico";
 import { DocumentAttachment, type AttachedDocument } from "@/components/DocumentAttachment";
 import { QualityScoreCard } from "@/components/QualityScoreCard";
+import { PersonaSelector } from "@/components/PersonaSelector";
+import { ContextChecklist } from "@/components/ContextChecklist";
+import { RefinamentoPanel } from "@/components/RefinamentoPanel";
+import { ReviewChecklist } from "@/components/ReviewChecklist";
 
 interface TabGerarProps {
   selectedModel: string;
@@ -114,6 +118,11 @@ export default function TabGerar({
   const [tribunal, setTribunal] = useState("");
   const [attachedDocs, setAttachedDocs] = useState<AttachedDocument[]>([]);
 
+  // P1: Persona e Chain of Thought
+  const [personaId, setPersonaId] = useState<string | undefined>();
+  const [personaCustom, setPersonaCustom] = useState<string | undefined>();
+  const [chainOfThought, setChainOfThought] = useState(false);
+
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState("");
@@ -156,6 +165,9 @@ export default function TabGerar({
       partesEnvolvidas: parteContraria || undefined,
       legislacaoRelevante: fundamentacao || undefined,
       detalhesAdicionais: tribunal ? `Tribunal: ${tribunal}. Tom: ${tomProfissional ? "profissional" : "informal"}. ${incluirJurisprudencia ? "Incluir jurisprudência." : ""} ${incluirLegislacao ? "Incluir legislação." : ""}` : undefined,
+      personaId: personaId || undefined,
+      personaCustom: personaCustom || undefined,
+      chainOfThought,
       model: selectedModel as any,
     });
   };
@@ -279,6 +291,33 @@ export default function TabGerar({
               </div>
             )}
 
+            {/* P1: Persona Jurídica Especializada */}
+            <PersonaSelector
+              value={personaId}
+              customValue={personaCustom}
+              area={areaJuridica}
+              onChange={setPersonaId}
+              onCustomChange={setPersonaCustom}
+              disabled={geracaoMutation.isPending}
+              compact={hasResult}
+            />
+
+            {/* P2: Checklist de Contexto (pré-geração) */}
+            {!hasResult && (
+              <ContextChecklist
+                campos={{
+                  tipoDocumento,
+                  contexto,
+                  objetivo,
+                  areaJuridica,
+                  parteContraria,
+                  fundamentacao,
+                  tribunal,
+                  attachedDocs,
+                }}
+              />
+            )}
+
             {/* Campos Avançados */}
             <button
               type="button"
@@ -314,6 +353,15 @@ export default function TabGerar({
                 <div className="space-y-2">
                   <Label className="text-sm">Tribunal</Label>
                   <Input value={tribunal} onChange={e => setTribunal(e.target.value)} placeholder="Ex: STF, STJ, TJ-SP..." />
+                </div>
+
+                {/* P1: Chain of Thought Jurídico */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm">Raciocínio Passo a Passo (CoT)</Label>
+                    <p className="text-[11px] text-muted-foreground">Instrui a IA a seguir: Fatos → Enquadramento → Fundamentação → Argumentação → Pedidos</p>
+                  </div>
+                  <Switch checked={chainOfThought} onCheckedChange={setChainOfThought} />
                 </div>
               </div>
             )}
@@ -367,6 +415,21 @@ export default function TabGerar({
             </CardHeader>
             <CardContent className="space-y-4">
               <AIDisclaimer />
+
+              {/* P2: Refinamento Iterativo */}
+              <RefinamentoPanel
+                promptText={promptText}
+                promptId={geracaoMutation.data?.promptId}
+                selectedModel={selectedModel}
+                onRefinado={(novoTexto) => {
+                  setEditedPrompt(novoTexto);
+                  setIsEditing(false);
+                  // Atualiza o promptProfissional no cache da mutation
+                  if (geracaoMutation.data) {
+                    (geracaoMutation.data as any).promptProfissional = novoTexto;
+                  }
+                }}
+              />
 
               {/* Ações Hierárquicas */}
               <PromptActions
@@ -436,6 +499,9 @@ export default function TabGerar({
               {geracaoMutation.data?.validacaoLegislacao && (
                 <ValidacaoLegislacao validacao={geracaoMutation.data.validacaoLegislacao} />
               )}
+
+              {/* P2: Disclaimer + Checklist de Revisão */}
+              <ReviewChecklist className="mt-4" />
 
               {/* Fluxo Guiado */}
               <PostGenerationGuide className="mt-6" />

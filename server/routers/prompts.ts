@@ -2,6 +2,10 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { AREAS_JURIDICAS, REFERENCIAS_LEGAIS, TIPO_DOCUMENTO_VALUES, getExemploFewShot, getRubricaQualidade } from "@shared/juridico";
+import { buildPersonaPromptFragment, getPersonaById } from "@shared/personas-juridicas";
+import { buildCoTFragment } from "@shared/chain-of-thought";
+import { buildFewShotFragment } from "@shared/few-shot-examples";
+import { getRefinamentoById } from "@shared/refinamento-iterativo";
 import { gerarAvisosFontes } from "@shared/verificacao-fontes";
 import { validarLegislacao } from "../_core/validacaoLegislacao";
 import { notifyPromptGenerated, notifyPromptOptimized } from "../notification-triggers";
@@ -179,6 +183,9 @@ export const promptsRouter = router({
       partesEnvolvidas: z.string().optional(),
       legislacaoRelevante: z.string().optional(),
       detalhesAdicionais: z.string().optional(),
+      personaId: z.string().optional(),
+      personaCustom: z.string().optional(),
+      chainOfThought: z.boolean().optional().default(false),
       provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const).optional(),
       model: z.string().optional(),
     }))
@@ -204,6 +211,15 @@ export const promptsRouter = router({
         
         const referencias = REFERENCIAS_LEGAIS[areaDetectada] || [];
         const exemploFewShot = getExemploFewShot(input.tipoDocumento);
+        // P2: few-shot expandidos — complementa o exemplo base com exemplos adicionais
+        const fewShotExpandido = buildFewShotFragment(input.tipoDocumento, areaDetectada);
+        const exemploFinal = fewShotExpandido ? `${exemploFewShot}\n\n${fewShotExpandido}` : exemploFewShot;
+        // P1: persona jurídica especializada
+        const personaFragment = input.personaCustom
+          ? `\n\nPERSONA ESPECIALIZADA:\n${input.personaCustom}\n`
+          : buildPersonaPromptFragment(input.personaId);
+        // P1: chain of thought jurídico
+        const cotFragment = buildCoTFragment(input.chainOfThought ?? false);
         const rubricaQualidade = getRubricaQualidade(input.tipoDocumento);
         const rubricaTexto = rubricaQualidade.map((r, i) => `${i + 1}. ${r}`).join("\n");
 
@@ -215,7 +231,7 @@ export const promptsRouter = router({
           ? `\n\nDOCUMENTOS ANEXADOS PELO USUÁRIO:\nO contexto jurídico contém um ou mais blocos delimitados por "--- DOCUMENTO ANEXADO (nome) ---" e "--- FIM DO DOCUMENTO ---". Esses blocos são o texto integral de documentos reais do caso (processos, contratos, petições, decisões, laudos, etc.) que o advogado anexou para embasar a geração.\n\nREGRAS OBRIGATÓRIAS PARA OS DOCUMENTOS ANEXADOS:\n1. Trate os documentos anexados como FONTE PRIMÁRIA de fatos, partes, pedidos, fundamentos, datas, valores, números de processo e quaisquer outros elementos objetivos do caso.\n2. Em caso de conflito ou ambiguidade entre a descrição livre do usuário e o conteúdo dos documentos, PRIORIZE os documentos — eles contêm a verdade processual.\n3. No prompt final que você gerar, inclua uma seção "Documentos de Referência" listando os nomes dos documentos anexados e instruindo a IA-alvo a fundamentar suas respostas nos fatos extraídos deles.\n4. NÃO copie blocos longos dos documentos no prompt final — referencie-os pelos nomes e extraia apenas os fatos essenciais (partes, pedidos, datas, valores, teses) para guiar a IA-alvo.\n5. Se os documentos contiverem informações sensíveis ou pessoais, mantenha-as no prompt apenas na medida estritamente necessária para a tarefa jurídica.`
           : "";
 
-        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Few-shot grounding**: Use o exemplo abaixo como referência de estilo, profundidade e formato\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Peça raciocínio jurídico passo a passo no prompt gerado\n6. **Critérios de qualidade explícitos**: Liste os critérios da rubrica abaixo no próprio prompt para guiar a IA-alvo\n\n${exemploFewShot}\n\nRUBRICA DE QUALIDADE — o prompt gerado DEVE garantir que o ${input.tipoDocumento} resultante atenda a estes critérios:\n${rubricaTexto}\n\nREFERÊNCIAS LEGAIS DA ÁREA: ${referencias.join(", ")}${instrucaoDocumentos}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado em seções claras (Contexto, Instruções, Referências, Formato, Critérios de Qualidade).\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- INCLUA uma seção final \"Critérios de Qualidade\" enumerando os critérios da rubrica\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.`;
+        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.${personaFragment}\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.${cotFragment}\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Few-shot grounding**: Use o exemplo abaixo como referência de estilo, profundidade e formato\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Peça raciocínio jurídico passo a passo no prompt gerado\n6. **Critérios de qualidade explícitos**: Liste os critérios da rubrica abaixo no próprio prompt para guiar a IA-alvo\n\n${exemploFinal}\n\nRUBRICA DE QUALIDADE — o prompt gerado DEVE garantir que o ${input.tipoDocumento} resultante atenda a estes critérios:\n${rubricaTexto}\n\nREFERÊNCIAS LEGAIS DA ÁREA: ${referencias.join(", ")}${instrucaoDocumentos}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado em seções claras (Contexto, Instruções, Referências, Formato, Critérios de Qualidade).\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- INCLUA uma seção final \"Critérios de Qualidade\" enumerando os critérios da rubrica\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.`;
 
         const userPrompt = `TIPO DE DOCUMENTO: ${input.tipoDocumento.toUpperCase()}\nÁREA JURÍDICA: ${areaDetectada}\n\nCONTEXTO JURÍDICO:\n${input.contextoJuridico}\n\nOBJETIVO ESPECÍFICO:\n${input.objetivoEspecifico}\n\n${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
 
@@ -466,7 +482,7 @@ export const promptsRouter = router({
 
   listarFavoritos: protectedProcedure.query(async ({ ctx }) => {
     const prompts = await db.getUserPrompts(ctx.user.id, 100);
-    return prompts.filter(p => p.isFavorito);
+    return prompts.filter((p: any) => p.isFavorito);
   }),
 
   exportarDocx: protectedProcedure
@@ -745,5 +761,84 @@ REGRAS OBRIGATÓRIAS:
       const prompt = await db.getPromptByShareToken(input.token);
       if (!prompt) throw new TRPCError({ code: "NOT_FOUND", message: "Prompt não encontrado ou link expirado" });
       return prompt;
+    }),
+
+  // =========================================================================
+  // P2: Refinamento Iterativo de Prompts
+  // =========================================================================
+
+  refinar: protectedProcedure
+    .input(z.object({
+      promptText: z.string().min(10, "Prompt muito curto para refinar"),
+      refinamentoId: z.string().min(1, "Selecione um tipo de refinamento"),
+      promptId: z.number().optional(),
+      provider: z.enum(["manus", "openai", "anthropic", "google", "perplexity"] as const).optional(),
+      model: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      await checkPlanQuota(ctx.user.id);
+      checkModelAccess(ctx.user.subscriptionPlan, input.model);
+      const startTime = Date.now();
+
+      const refinamento = getRefinamentoById(input.refinamentoId);
+      if (!refinamento) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Tipo de refinamento inválido" });
+      }
+
+      try {
+        const { invokeUnifiedLLM } = await import("../unified-llm");
+
+        const response = await invokeUnifiedLLM({
+          provider: input.provider,
+          model: input.model,
+          messages: [
+            {
+              role: "system",
+              content: `${refinamento.instrucaoLLM}\n\nRETORNE APENAS o prompt refinado, sem explicações, comentários ou descrições de persona. Mantenha o formato profissional.`,
+            },
+            {
+              role: "user",
+              content: `PROMPT A REFINAR:\n\n${input.promptText}`,
+            },
+          ],
+        });
+
+        let promptRefinado = removerPersonaDoTexto(response.content);
+        promptRefinado = promptRefinado.replace(/\n{3,}/g, '\n\n');
+
+        // Salvar versão se houver promptId
+        if (input.promptId) {
+          await db.salvarVersaoPrompt({
+            promptId: input.promptId,
+            tipo: "manual",
+            versao: 0, // auto-increment
+            conteudo: promptRefinado,
+          }).catch(() => {});
+
+          await db.createHistorico({
+            userId: ctx.user.id,
+            acao: "otimizacao",
+            promptId: input.promptId,
+            duracaoMs: Date.now() - startTime,
+            sucesso: true,
+            mensagemErro: `Refinamento: ${refinamento.label}`,
+          });
+        }
+
+        await incrementQuota(ctx.user.id);
+
+        return {
+          promptRefinado,
+          refinamentoAplicado: refinamento.label,
+          refinamentoCategoria: refinamento.categoria,
+          tempoMs: Date.now() - startTime,
+        };
+      } catch (error) {
+        logger.error('[Prompts] Erro ao refinar prompt', { userId: ctx.user.id, error });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao refinar: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        });
+      }
     }),
 });

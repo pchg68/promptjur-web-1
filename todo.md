@@ -2961,3 +2961,38 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Criar página /meu-plano com painel de monitoramento de consumo de IA
 - [ ] Adicionar gráfico de uso diário dos últimos 30 dias no painel de consumo
 - [ ] Exibir barra de progresso de quota na sidebar/dashboard
+
+## Funcionalidades P1 — Análise "Codificação Assistida por IA" (Impacto Alto)
+- [x] Personas Jurídicas Especializadas
+  - [x] Criar dados de personas em shared/personas-juridicas.ts
+  - [x] Adicionar seletor de persona no formulário de geração (PersonaSelector.tsx)
+  - [x] Integrar persona selecionada no system prompt do LLM
+  - [x] Permitir persona customizada pelo usuário
+- [x] Briefing Jurídico Estruturado (SPEC.md jurídico)
+  - [x] Criar shared/briefing-juridico.ts com campos estruturados
+  - [x] Campos: partes, fatos, questões jurídicas, pretensão, tribunal, prazo, docs
+  - [x] Integrar briefing como contexto enriquecido na geração
+  - [x] Função montarContextoBriefing() e calcularCompletudeBriefing()
+- [x] Chain of Thought Jurídico
+  - [x] Adicionar modo "Raciocínio Jurídico" no system prompt (shared/chain-of-thought.ts)
+  - [x] Instruir IA: Fatos → Enquadramento → Fundamentação → Argumentação → Pedidos
+  - [x] Toggle para ativar/desativar CoT no formulário de geração (Opções Avançadas)
+
+## Funcionalidades P2 — Análise "Codificação Assistida por IA" (Custo-Benefício)
+- [x] Few-Shot Examples expandidos
+  - [x] Criar shared/few-shot-examples.ts com biblioteca expandida
+  - [x] Incluir exemplos para todos os tipos de documento (10+ tipos)
+  - [x] Few-shot automático baseado no tipo selecionado (buildFewShotFragment)
+- [x] Refinamento Iterativo de Prompts
+  - [x] Criar shared/refinamento-iterativo.ts com 12 tipos de refinamento
+  - [x] Criar componente RefinamentoPanel.tsx com botões por categoria
+  - [x] Criar procedure refinar no backend (prompts.ts)
+  - [x] Salvar versão refinada no histórico
+- [x] Checklist de Contexto pré-geração
+  - [x] Criar shared/checklist-revisao.ts com CHECKLIST_CONTEXTO
+  - [x] Criar componente ContextChecklist.tsx com indicador visual
+  - [x] Integrar no formulário de geração (antes do botão Gerar)
+- [x] Disclaimer + Checklist de Revisão pós-geração
+  - [x] Criar componente ReviewChecklist.tsx com disclaimer e checklist interativo
+  - [x] Checklist: fundamentação verificada? Prazos? Competência? Partes?
+  - [x] Integrar no resultado da geração (após conteúdo, antes do fluxo guiado)
