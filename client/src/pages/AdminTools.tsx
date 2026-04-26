@@ -610,6 +610,33 @@ export default function AdminTools() {
             </CardContent>
           </Card>
 
+          {/* Monitoramento LLM */}
+          <Card className="border-blue-200 dark:border-blue-900">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-blue-500" />
+                Monitoramento LLM
+              </CardTitle>
+              <CardDescription>
+                Logs de chamadas, erros, fallbacks e latência dos providers de IA
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Visualize em tempo real quais providers estão sendo usados, frequência de fallbacks automáticos,
+                tipos de erro e tendências de latência.
+              </p>
+              <Button
+                onClick={() => setLocation('/monitoramento-llm')}
+                className="w-full"
+                variant="default"
+              >
+                <Activity className="w-4 h-4 mr-2" />
+                Abrir Painel de Monitoramento
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Feature Flags */}
           <Card>
             <CardHeader>

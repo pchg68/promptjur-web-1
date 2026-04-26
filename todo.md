@@ -3018,3 +3018,13 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Melhorar mensagem de erro para o usuário (indicar causa e sugerir alternativa)
 - [x] Adicionar timeout de 60s na chamada OpenAI (AbortController)
 - [x] Adicionar retry com backoff exponencial (2 tentativas: 2s, 4s)
+
+## Painel de Monitoramento LLM
+- [x] Criar tabela llm_logs no schema (provider, model, latência, tokens, erro, fallback, userId)
+- [x] Criar server/db-llm-logs.ts com helpers para inserir e consultar logs LLM
+- [x] Instrumentar unified-llm.ts para registrar cada chamada (sucesso, erro, fallback) no banco
+- [x] Criar server/routers/monitoramento.ts com procedures metricas, logs e resumo (admin only)
+- [x] Registrar monitoramentoRouter no server/routers.ts
+- [x] Criar página MonitoramentoLLM.tsx com cards de métricas, gráficos Chart.js e tabela de logs
+- [x] Adicionar rota /monitoramento-llm no App.tsx
+- [x] Adicionar card de acesso no AdminTools.tsx (visível apenas para admins)

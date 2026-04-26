@@ -29,6 +29,7 @@ import { assistenteRouter } from "./routers/assistente";
 import { promptsSalvosRouter } from "./routers/prompts-salvos";
 import { chatRouter } from "./routers/chat";
 import { crmRouter } from "./routers/crm";
+import { monitoramentoRouter } from "./routers/monitoramento";
 
 export const appRouter = router({
   // Core system routers
@@ -159,6 +160,7 @@ export const appRouter = router({
   promptsSalvos: promptsSalvosRouter,
   chat: chatRouter,
   crm: crmRouter,
+  monitoramento: monitoramentoRouter,
 });
 
 export type AppRouter = typeof appRouter;

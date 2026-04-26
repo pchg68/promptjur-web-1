@@ -770,3 +770,46 @@ export const pushSubscriptions = mysqlTable("push_subscriptions", {
 });
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+
+// ============================================================
+// Monitoramento LLM — Logs de chamadas, erros e fallbacks
+// ============================================================
+/**
+ * Tabela de logs de chamadas LLM — registra cada invocação ao unified-llm.ts.
+ * Permite monitorar erros, fallbacks, latência e uso por provider/modelo.
+ */
+export const llmLogs = mysqlTable("llm_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID do usuário que disparou a chamada (null = chamada interna/sistema) */
+  userId: int("userId"),
+  /** Provider solicitado originalmente (ex: "openai", "manus") */
+  providerSolicitado: varchar("providerSolicitado", { length: 32 }).notNull(),
+  /** Modelo solicitado originalmente (ex: "gpt-4o-mini") */
+  modeloSolicitado: varchar("modeloSolicitado", { length: 64 }).notNull(),
+  /** Provider que efetivamente respondeu (pode diferir se houve fallback) */
+  providerEfetivo: varchar("providerEfetivo", { length: 32 }).notNull(),
+  /** Modelo que efetivamente respondeu */
+  modeloEfetivo: varchar("modeloEfetivo", { length: 64 }).notNull(),
+  /** Se houve fallback automático para outro provider */
+  houveFallback: boolean("houveFallback").default(false).notNull(),
+  /** Status da chamada */
+  status: mysqlEnum("status_llm", ["sucesso", "erro", "timeout", "fallback_sucesso", "fallback_erro"]).notNull(),
+  /** Latência total em milissegundos */
+  latenciaMs: int("latenciaMs"),
+  /** Número de tokens de entrada (prompt) */
+  tokensEntrada: int("tokensEntrada"),
+  /** Número de tokens de saída (completion) */
+  tokensSaida: int("tokensSaida"),
+  /** Contexto da chamada (ex: "gerar_prompt", "executar_prompt", "refinar") */
+  contexto: varchar("contexto", { length: 64 }),
+  /** Mensagem de erro (se houver) */
+  erroMensagem: text("erroMensagem"),
+  /** Tipo de erro categorizado */
+  erroTipo: varchar("erroTipo", { length: 64 }),
+  /** Número da tentativa (1 = primeira, 2 = retry 1, etc.) */
+  numeroTentativa: int("numeroTentativa").default(1).notNull(),
+  /** Data/hora do evento */
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type LlmLog = typeof llmLogs.$inferSelect;
+export type InsertLlmLog = typeof llmLogs.$inferInsert;

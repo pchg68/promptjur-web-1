@@ -13,6 +13,7 @@ import { invokeOpenAI, mapToOpenAIModel, extractOpenAIContent, isOpenAIConfigure
 import { invokeClaude, mapToClaudeModel, extractClaudeContent, isClaudeConfigured } from "./claude-integration";
 import { invokeGemini, mapToGeminiModel, extractGeminiContent, isGeminiConfigured } from "./gemini-integration";
 import { invokePerplexity, mapToPerplexityModel, extractPerplexityContent, extractPerplexityCitations, isPerplexityConfigured } from "./perplexity-integration";
+import { registrarLlmLog } from "./db-llm-logs";
 
 export type LLMProvider = "manus" | "openai" | "anthropic" | "google" | "perplexity" | "claude" | "gemini";
 
@@ -55,39 +56,88 @@ export interface ConsensusResult {
 /**
  * Invoca LLM com provider unificado
  * Fallback automático: qualquer provider -> Manus AI
+ * Registra cada chamada no banco para monitoramento.
  */
 export async function invokeUnifiedLLM(
-  options: UnifiedLLMOptions
+  options: UnifiedLLMOptions & { _userId?: number; _contexto?: string }
 ): Promise<UnifiedLLMResponse> {
   const provider = options.provider || "manus";
+  const modeloSolicitado = options.model || "default";
+  const startTime = Date.now();
 
   try {
+    let result: UnifiedLLMResponse;
     switch (provider) {
       case "openai":
-        return await invokeOpenAIProvider(options);
+        result = await invokeOpenAIProvider(options);
+        break;
       case "claude":
       case "anthropic":
-        return await invokeClaudeProvider(options);
+        result = await invokeClaudeProvider(options);
+        break;
       case "gemini":
       case "google":
-        return await invokeGeminiProvider(options);
+        result = await invokeGeminiProvider(options);
+        break;
       case "perplexity":
-        return await invokePerplexityProvider(options);
+        result = await invokePerplexityProvider(options);
+        break;
       default:
-        return await invokeManusProvider(options);
+        result = await invokeManusProvider(options);
     }
+
+    // Registrar sucesso
+    registrarLlmLog({
+      userId: options._userId,
+      providerSolicitado: provider,
+      modeloSolicitado,
+      providerEfetivo: result.provider,
+      modeloEfetivo: result.model,
+      houveFallback: false,
+      status: "sucesso",
+      latenciaMs: Date.now() - startTime,
+      tokensEntrada: result.usage?.prompt_tokens,
+      tokensSaida: result.usage?.completion_tokens,
+      contexto: options._contexto,
+    }).catch(() => {}); // fire-and-forget
+
+    return result;
+
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
+    const latenciaMs = Date.now() - startTime;
     console.error(`[UnifiedLLM] Erro no provider ${provider}: ${errMsg}`);
+
+    // Categorizar tipo de erro
+    const erroTipo = errMsg.includes("timeout") || errMsg.includes("AbortError")
+      ? "timeout"
+      : errMsg.includes("credenciais") || errMsg.includes("401") || errMsg.includes("403")
+        ? "auth"
+        : errMsg.includes("não configurada")
+          ? "config"
+          : errMsg.includes("rate limit") || errMsg.includes("429")
+            ? "rate_limit"
+            : "upstream";
 
     // Fallback: se qualquer provider externo falhar, tenta Manus AI automaticamente
     if (provider !== "manus") {
-      // Não fazer fallback para erros de autenticação (chave errada) — informa o usuário
-      const isAuthError = errMsg.includes("credenciais inválidas") || errMsg.includes("401") || errMsg.includes("403");
-      const isConfigError = errMsg.includes("não configurada");
+      const isAuthError = erroTipo === "auth" || erroTipo === "config";
 
-      if (isAuthError || isConfigError) {
-        // Propagar o erro original com contexto claro
+      if (isAuthError) {
+        // Registrar erro sem fallback
+        registrarLlmLog({
+          userId: options._userId,
+          providerSolicitado: provider,
+          modeloSolicitado,
+          providerEfetivo: provider,
+          modeloEfetivo: modeloSolicitado,
+          houveFallback: false,
+          status: "erro",
+          latenciaMs,
+          contexto: options._contexto,
+          erroMensagem: errMsg.substring(0, 500),
+          erroTipo,
+        }).catch(() => {});
         throw new Error(`LLM invoke failed: ${errMsg}`);
       }
 
@@ -95,14 +145,63 @@ export async function invokeUnifiedLLM(
       try {
         const fallbackResult = await invokeManusProvider(options);
         console.log(`[UnifiedLLM] Fallback para Manus AI bem-sucedido`);
-        return { ...fallbackResult, provider: "manus" };
+        const finalResult = { ...fallbackResult, provider: "manus" as LLMProvider };
+
+        // Registrar fallback com sucesso
+        registrarLlmLog({
+          userId: options._userId,
+          providerSolicitado: provider,
+          modeloSolicitado,
+          providerEfetivo: "manus",
+          modeloEfetivo: fallbackResult.model,
+          houveFallback: true,
+          status: "fallback_sucesso",
+          latenciaMs: Date.now() - startTime,
+          tokensEntrada: fallbackResult.usage?.prompt_tokens,
+          tokensSaida: fallbackResult.usage?.completion_tokens,
+          contexto: options._contexto,
+          erroMensagem: errMsg.substring(0, 500),
+          erroTipo,
+        }).catch(() => {});
+
+        return finalResult;
       } catch (fallbackError) {
         const fallbackMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
         console.error("[UnifiedLLM] Fallback para Manus também falhou:", fallbackMsg);
-        // Lançar erro original com contexto do fallback
+
+        // Registrar fallback com erro
+        registrarLlmLog({
+          userId: options._userId,
+          providerSolicitado: provider,
+          modeloSolicitado,
+          providerEfetivo: "manus",
+          modeloEfetivo: "default",
+          houveFallback: true,
+          status: "fallback_erro",
+          latenciaMs: Date.now() - startTime,
+          contexto: options._contexto,
+          erroMensagem: `${errMsg} | fallback: ${fallbackMsg}`.substring(0, 500),
+          erroTipo,
+        }).catch(() => {});
+
         throw new Error(`LLM invoke failed: ${errMsg} (fallback Manus também falhou: ${fallbackMsg})`);
       }
     }
+
+    // Provider manus falhou diretamente
+    registrarLlmLog({
+      userId: options._userId,
+      providerSolicitado: provider,
+      modeloSolicitado,
+      providerEfetivo: provider,
+      modeloEfetivo: modeloSolicitado,
+      houveFallback: false,
+      status: erroTipo === "timeout" ? "timeout" : "erro",
+      latenciaMs,
+      contexto: options._contexto,
+      erroMensagem: errMsg.substring(0, 500),
+      erroTipo,
+    }).catch(() => {});
 
     throw new Error(`LLM invoke failed: ${errMsg}`);
   }
