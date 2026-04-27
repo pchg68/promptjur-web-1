@@ -813,3 +813,23 @@ export const llmLogs = mysqlTable("llm_logs", {
 });
 export type LlmLog = typeof llmLogs.$inferSelect;
 export type InsertLlmLog = typeof llmLogs.$inferInsert;
+
+// ── Admin Cards Arquivados ──────────────────────────────────────────────────
+// Armazena cards do painel admin que foram arquivados pelo admin
+// (preserva dados históricos sem exibir na interface principal)
+export const adminCardsArquivados = mysqlTable("admin_cards_arquivados", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Identificador único do card (ex: "resend", "testes-integracao") */
+  cardId: varchar("cardId", { length: 64 }).notNull().unique(),
+  /** Título legível do card */
+  cardTitulo: varchar("cardTitulo", { length: 128 }).notNull(),
+  /** Motivo do arquivamento (opcional) */
+  motivo: text("motivo"),
+  /** openId do admin que arquivou */
+  archivedBy: varchar("archivedBy", { length: 64 }),
+  /** Data/hora do arquivamento */
+  archivedAt: timestamp("archivedAt").defaultNow().notNull(),
+});
+
+export type AdminCardArquivado = typeof adminCardsArquivados.$inferSelect;
+export type InsertAdminCardArquivado = typeof adminCardsArquivados.$inferInsert;

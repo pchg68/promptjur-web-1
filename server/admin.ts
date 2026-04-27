@@ -1532,4 +1532,48 @@ export const adminRouter = router({
       });
       return { csv };
     }),
+
+  // ── Arquivamento de Cards do Painel Admin ──────────────────────────────────
+  listarCardsArquivados: adminProcedure.query(async () => {
+    const dbConn = await db.getDb();
+    if (!dbConn) return [];
+    const { adminCardsArquivados } = await import("../drizzle/schema");
+    const rows = await dbConn.select().from(adminCardsArquivados).orderBy(adminCardsArquivados.archivedAt);
+    return rows.map(r => ({
+      ...r,
+      archivedAt: r.archivedAt instanceof Date ? r.archivedAt.toISOString() : String(r.archivedAt),
+    }));
+  }),
+
+  arquivarCard: adminProcedure
+    .input(z.object({
+      cardId: z.string().min(1).max(64),
+      cardTitulo: z.string().min(1).max(128),
+      motivo: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      const { adminCardsArquivados } = await import("../drizzle/schema");
+      await dbConn.insert(adminCardsArquivados).values({
+        cardId: input.cardId,
+        cardTitulo: input.cardTitulo,
+        motivo: input.motivo ?? null,
+        archivedBy: ctx.user.openId,
+      }).onDuplicateKeyUpdate({
+        set: { motivo: input.motivo ?? null, archivedBy: ctx.user.openId, archivedAt: new Date() },
+      });
+      return { success: true };
+    }),
+
+  desarquivarCard: adminProcedure
+    .input(z.object({ cardId: z.string().min(1).max(64) }))
+    .mutation(async ({ input }) => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      const { adminCardsArquivados } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      await dbConn.delete(adminCardsArquivados).where(eq(adminCardsArquivados.cardId, input.cardId));
+      return { success: true };
+    }),
 });

@@ -1,17 +1,90 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle, Building2, ArrowLeft, DollarSign } from "lucide-react";
+import {
+  Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2,
+  Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package,
+  Download, Upload, AlertCircle, Building2, ArrowLeft, DollarSign,
+  ChevronDown, ChevronUp, Archive, ArchiveRestore
+} from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import TabLeads from "@/components/TabLeads";
 import TabInteressados from "@/components/TabInteressados";
 import TabWhitelist from "@/components/TabWhitelist";
 import TabMensagens from "@/components/TabMensagens";
 import TabLogAcessos from "@/components/TabLogAcessos";
 import { useLocation } from "wouter";
+
+// ── Constantes de cards arquiváveis ──────────────────────────────────────────
+const CARDS_ARQUIVAVEIS: Record<string, string> = {
+  "auditoria-serializacao": "Auditoria de Serialização",
+  "gerenciamento-cache": "Gerenciamento de Cache",
+  "testes-integracao": "Testes de Integração tRPC",
+  "logs-auditoria": "Logs de Auditoria",
+  "monitoramento-performance": "Monitoramento de Performance",
+  "monitoramento-llm": "Monitoramento LLM",
+  "dashboard-custos": "Dashboard de Custos LLM",
+  "feature-flags": "Feature Flags",
+  "auditoria-dependencias": "Auditoria de Dependências",
+  "backups": "Backups do Banco de Dados",
+  "alertas-performance": "Alertas de Performance",
+  "conversao-convites": "Taxa de Conversão de Convites",
+};
+
+// ── Componente CollapsibleCard ──────────────────────────────────────────────────
+interface CollapsibleCardProps {
+  cardId: string;
+  icon: React.ReactNode;
+  titulo: string;
+  descricao: string;
+  expanded: boolean;
+  onToggle: () => void;
+  arquivavel?: boolean;
+  onArquivar?: () => void;
+  className?: string;
+  children: React.ReactNode;
+}
+
+function CollapsibleCard({
+  cardId, icon, titulo, descricao, expanded, onToggle,
+  arquivavel, onArquivar, className, children
+}: CollapsibleCardProps) {
+  return (
+    <Card className={className}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={onToggle}>
+            {icon}
+            <div className="flex-1">
+              <CardTitle className="text-base">{titulo}</CardTitle>
+              <CardDescription className="text-xs mt-0.5">{descricao}</CardDescription>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 ml-2">
+            {arquivavel && onArquivar && (
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-amber-600"
+                title="Arquivar este card" onClick={(e) => { e.stopPropagation(); onArquivar(); }}>
+                <Archive className="w-3.5 h-3.5" />
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground"
+              title={expanded ? "Recolher" : "Expandir"} onClick={onToggle}>
+              {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      {expanded && children}
+    </Card>
+  );
+}
 
 export default function AdminTools() {
   const { user, loading } = useAuth();
@@ -21,6 +94,20 @@ export default function AdminTools() {
   const [auditandoDeps, setAuditandoDeps] = useState(false);
   const [resultadoAuditoriaDeps, setResultadoAuditoriaDeps] = useState<any>(null);
   const [downloadingBackupId, setDownloadingBackupId] = useState<number | null>(null);
+
+  // ── Estado de colapso dos cards (true = expandido) ────────────────────────
+  const [expandidos, setExpandidos] = useState<Record<string, boolean>>({});
+  const toggleCard = useCallback((cardId: string) => {
+    setExpandidos(prev => ({ ...prev, [cardId]: !prev[cardId] }));
+  }, []);
+  const isExpanded = useCallback((cardId: string, defaultExpanded = true) => {
+    return cardId in expandidos ? expandidos[cardId] : defaultExpanded;
+  }, [expandidos]);
+
+  // ── Estado do diálogo de arquivamento ──────────────────────────────────
+  const [arquivandoCard, setArquivandoCard] = useState<{ id: string; titulo: string } | null>(null);
+  const [motivoArquivamento, setMotivoArquivamento] = useState("");
+  const [mostrarArquivados, setMostrarArquivados] = useState(false);
 
   // Redirect para não-admins — DEVE estar antes dos returns condicionais
   useEffect(() => {
@@ -188,6 +275,77 @@ export default function AdminTools() {
     }
   });
 
+  // ── Arquivamento de Cards ──────────────────────────────────────────────────
+  const cardsArquivadosQuery = trpc.admin.listarCardsArquivados.useQuery();
+  const arquivarCardMutation = trpc.admin.arquivarCard.useMutation({
+    onSuccess: () => {
+      toast.success("Card arquivado com sucesso! Os dados foram preservados.");
+      cardsArquivadosQuery.refetch();
+      setArquivandoCard(null);
+      setMotivoArquivamento("");
+    },
+    onError: (error) => {
+      toast.error("Erro ao arquivar: " + error.message);
+    }
+  });
+  const desarquivarCardMutation = trpc.admin.desarquivarCard.useMutation({
+    onSuccess: () => {
+      toast.success("Card restaurado com sucesso!");
+      cardsArquivadosQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error("Erro ao restaurar: " + error.message);
+    }
+  });
+
+  // IDs dos cards arquivados (para ocultar da interface)
+  const idsArquivados = new Set((cardsArquivadosQuery.data ?? []).map((c: any) => c.cardId));
+
+  // Helpers de header de card com colapso + arquivamento
+  const renderCardHeader = (
+    cardId: string,
+    icon: React.ReactNode,
+    titulo: string,
+    descricao: string,
+    defaultExpanded = true
+  ) => (
+    <CardHeader className="pb-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={() => toggleCard(cardId)}>
+          {icon}
+          <div className="flex-1">
+            <CardTitle className="text-base">{titulo}</CardTitle>
+            <CardDescription className="text-xs mt-0.5">{descricao}</CardDescription>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 ml-2">
+          {cardId in CARDS_ARQUIVAVEIS && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-amber-600"
+              title="Arquivar este card"
+              onClick={(e) => { e.stopPropagation(); setArquivandoCard({ id: cardId, titulo: CARDS_ARQUIVAVEIS[cardId] }); }}
+            >
+              <Archive className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground"
+            title={isExpanded(cardId, defaultExpanded) ? "Recolher" : "Expandir"}
+            onClick={() => toggleCard(cardId)}
+          >
+            {isExpanded(cardId, defaultExpanded)
+              ? <ChevronUp className="w-4 h-4" />
+              : <ChevronDown className="w-4 h-4" />}
+          </Button>
+        </div>
+      </div>
+    </CardHeader>
+  );
+
   // Returns condicionais DEVEM vir depois de todos os hooks
   if (loading) {
     return (
@@ -213,16 +371,112 @@ export default function AdminTools() {
               <p className="text-muted-foreground">Acesso restrito a administradores</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLocation('/dashboard')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar ao Dashboard
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMostrarArquivados(!mostrarArquivados)}
+              className="flex items-center gap-2"
+            >
+              <Archive className="w-4 h-4" />
+              {mostrarArquivados ? "Ocultar Arquivados" : `Arquivados (${(cardsArquivadosQuery.data ?? []).length})`}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLocation('/dashboard')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar ao Dashboard
+            </Button>
+          </div>
         </div>
+
+        {/* Diálogo de Arquivamento */}
+        <Dialog open={!!arquivandoCard} onOpenChange={(open) => { if (!open) { setArquivandoCard(null); setMotivoArquivamento(""); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Archive className="w-5 h-5 text-amber-600" />
+                Arquivar Card
+              </DialogTitle>
+              <DialogDescription>
+                O card <strong>"{arquivandoCard?.titulo}"</strong> será ocultado do painel, mas todos os dados serão preservados no banco.
+                Você pode restaurá-lo a qualquer momento.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-2">
+              <label className="text-sm font-medium mb-1 block">Motivo do arquivamento (opcional)</label>
+              <Textarea
+                placeholder="Ex: Informações desatualizadas, não utilizado mais..."
+                value={motivoArquivamento}
+                onChange={(e) => setMotivoArquivamento(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setArquivandoCard(null); setMotivoArquivamento(""); }}>Cancelar</Button>
+              <Button
+                variant="default"
+                className="bg-amber-600 hover:bg-amber-700"
+                disabled={arquivarCardMutation.isPending}
+                onClick={() => {
+                  if (arquivandoCard) {
+                    arquivarCardMutation.mutate({
+                      cardId: arquivandoCard.id,
+                      cardTitulo: arquivandoCard.titulo,
+                      motivo: motivoArquivamento || undefined,
+                    });
+                  }
+                }}
+              >
+                {arquivarCardMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Archive className="w-4 h-4 mr-2" />}
+                Arquivar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Painel de Cards Arquivados */}
+        {mostrarArquivados && (
+          <Card className="mb-6 border-amber-200 dark:border-amber-900 bg-amber-50/30 dark:bg-amber-950/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                <Archive className="w-5 h-5" />
+                Cards Arquivados
+              </CardTitle>
+              <CardDescription>Cards ocultados do painel principal. Os dados foram preservados.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {(cardsArquivadosQuery.data ?? []).length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhum card arquivado.</p>
+              ) : (
+                <div className="space-y-2">
+                  {(cardsArquivadosQuery.data ?? []).map((card: any) => (
+                    <div key={card.cardId} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">{card.cardTitulo}</p>
+                        {card.motivo && <p className="text-xs text-muted-foreground mt-0.5">{card.motivo}</p>}
+                        <p className="text-xs text-muted-foreground mt-0.5">Arquivado em: {new Date(card.archivedAt).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-1"
+                        disabled={desarquivarCardMutation.isPending}
+                        onClick={() => desarquivarCardMutation.mutate({ cardId: card.cardId })}
+                      >
+                        <ArchiveRestore className="w-3.5 h-3.5" />
+                        Restaurar
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Mensagens de Contato */}
         <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
@@ -250,16 +504,18 @@ export default function AdminTools() {
         </div>
 
         {/* Card de Métricas de Conversão de Convites */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              Taxa de Conversão de Convites
-            </CardTitle>
-            <CardDescription>
-              Convites enviados vs. logins realizados — últimas 8 semanas
-            </CardDescription>
-          </CardHeader>
+        {!idsArquivados.has("conversao-convites") && (
+        <CollapsibleCard
+          cardId="conversao-convites"
+          icon={<BarChart3 className="w-5 h-5 text-primary" />}
+          titulo="Taxa de Conversão de Convites"
+          descricao="Convites enviados vs. logins realizados — últimas 8 semanas"
+          expanded={isExpanded("conversao-convites")}
+          onToggle={() => toggleCard("conversao-convites")}
+          arquivavel
+          onArquivar={() => setArquivandoCard({ id: "conversao-convites", titulo: "Taxa de Conversão de Convites" })}
+          className="mb-6"
+        >
           <CardContent>
             {metricasConversaoQuery.isLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -332,41 +588,28 @@ export default function AdminTools() {
               </div>
             ) : null}
           </CardContent>
-        </Card>
+        </CollapsibleCard>
+        )}
 
         {/* Grid de Cards */}
         <div className="grid gap-6 md:grid-cols-2">
           
           {/* Auditoria de Serialização */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5" />
-                Auditoria de Serialização
-              </CardTitle>
-              <CardDescription>
-                Verifica rotas tRPC e funções do banco que podem causar erros de serialização
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("auditoria-serializacao") && (
+          <CollapsibleCard
+            cardId="auditoria-serializacao"
+            icon={<AlertTriangle className="w-5 h-5" />}
+            titulo="Auditoria de Serialização"
+            descricao="Verifica rotas tRPC e funções do banco que podem causar erros de serialização"
+            expanded={isExpanded("auditoria-serializacao")}
+            onToggle={() => toggleCard("auditoria-serializacao")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "auditoria-serializacao", titulo: CARDS_ARQUIVAVEIS["auditoria-serializacao"] })}
+          >
             <CardContent className="space-y-4">
-              <Button 
-                onClick={() => {
-                  setAuditando(true);
-                  auditarSerializacao.mutate();
-                }}
-                disabled={auditando}
-                className="w-full"
-              >
-                {auditando ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Auditando...
-                  </>
-                ) : (
-                  "Executar Auditoria"
-                )}
+              <Button onClick={() => { setAuditando(true); auditarSerializacao.mutate(); }} disabled={auditando} className="w-full">
+                {auditando ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Auditando...</> : "Executar Auditoria"}
               </Button>
-
               {resultadoAuditoria && (
                 <div className="space-y-3 mt-4">
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -375,12 +618,9 @@ export default function AdminTools() {
                   </div>
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <span className="text-sm font-medium">Problemas Encontrados</span>
-                    <Badge variant={resultadoAuditoria.problemasEncontrados > 0 ? "destructive" : "default"}>
-                      {resultadoAuditoria.problemasEncontrados}
-                    </Badge>
+                    <Badge variant={resultadoAuditoria.problemasEncontrados > 0 ? "destructive" : "default"}>{resultadoAuditoria.problemasEncontrados}</Badge>
                   </div>
-                  
-                  {resultadoAuditoria.problemas && resultadoAuditoria.problemas.length > 0 && (
+                  {resultadoAuditoria.problemas?.length > 0 && (
                     <div className="space-y-2 mt-4">
                       <p className="text-sm font-medium">Rotas Problemáticas:</p>
                       {resultadoAuditoria.problemas.map((p: any, i: number) => (
@@ -394,19 +634,21 @@ export default function AdminTools() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Gerenciamento de Cache */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="w-5 h-5" />
-                Gerenciamento de Cache
-              </CardTitle>
-              <CardDescription>
-                Controle e monitore o cache em memória do sistema
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("gerenciamento-cache") && (
+          <CollapsibleCard
+            cardId="gerenciamento-cache"
+            icon={<Database className="w-5 h-5" />}
+            titulo="Gerenciamento de Cache"
+            descricao="Controle e monitore o cache em memória do sistema"
+            expanded={isExpanded("gerenciamento-cache")}
+            onToggle={() => toggleCard("gerenciamento-cache")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "gerenciamento-cache", titulo: CARDS_ARQUIVAVEIS["gerenciamento-cache"] })}
+          >
             <CardContent className="space-y-4">
               {estatisticasCacheQuery.data && (
                 <div className="space-y-3">
@@ -424,39 +666,26 @@ export default function AdminTools() {
                   </div>
                 </div>
               )}
-
-              <Button 
-                onClick={() => limparCacheMutation.mutate()}
-                disabled={limparCacheMutation.isPending}
-                variant="destructive"
-                className="w-full"
-              >
-                {limparCacheMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Limpando...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Limpar Cache
-                  </>
-                )}
+              <Button onClick={() => limparCacheMutation.mutate()} disabled={limparCacheMutation.isPending} variant="destructive" className="w-full">
+                {limparCacheMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Limpando...</> : <><Trash2 className="w-4 h-4 mr-2" />Limpar Cache</>}
               </Button>
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Testes de Integração */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TestTube className="w-5 h-5" />
-                Testes de Integração tRPC
-              </CardTitle>
-              <CardDescription>
-                Valida serialização e funcionamento de todas as rotas tRPC
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("testes-integracao") && (
+          <CollapsibleCard
+            cardId="testes-integracao"
+            icon={<TestTube className="w-5 h-5" />}
+            titulo="Testes de Integração tRPC"
+            descricao="Valida serialização e funcionamento de todas as rotas tRPC"
+            expanded={isExpanded("testes-integracao")}
+            onToggle={() => toggleCard("testes-integracao")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "testes-integracao", titulo: CARDS_ARQUIVAVEIS["testes-integracao"] })}
+            className="md:col-span-2"
+          >
             <CardContent className="space-y-4">
               <Button 
                 onClick={() => executarTestesMutation.mutate()}
@@ -504,19 +733,21 @@ export default function AdminTools() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Logs de Auditoria */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Logs de Auditoria
-              </CardTitle>
-              <CardDescription>
-                Histórico de ações administrativas
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("logs-auditoria") && (
+          <CollapsibleCard
+            cardId="logs-auditoria"
+            icon={<FileText className="w-5 h-5" />}
+            titulo="Logs de Auditoria"
+            descricao="Histórico de ações administrativas"
+            expanded={isExpanded("logs-auditoria")}
+            onToggle={() => toggleCard("logs-auditoria")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "logs-auditoria", titulo: CARDS_ARQUIVAVEIS["logs-auditoria"] })}
+          >
             <CardContent className="space-y-4">
               {statsAuditoriaQuery.data && (
                 <div className="grid grid-cols-2 gap-3 mb-4">
@@ -547,19 +778,21 @@ export default function AdminTools() {
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Monitoramento de Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-5 h-5" />
-                Monitoramento de Performance
-              </CardTitle>
-              <CardDescription>
-                Métricas de tempo de resposta das rotas tRPC
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("monitoramento-performance") && (
+          <CollapsibleCard
+            cardId="monitoramento-performance"
+            icon={<Activity className="w-5 h-5" />}
+            titulo="Monitoramento de Performance"
+            descricao="Métricas de tempo de resposta das rotas tRPC"
+            expanded={isExpanded("monitoramento-performance")}
+            onToggle={() => toggleCard("monitoramento-performance")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "monitoramento-performance", titulo: CARDS_ARQUIVAVEIS["monitoramento-performance"] })}
+          >
             <CardContent className="space-y-4">
               {statsPerformanceQuery.data && (
                 <div className="grid grid-cols-3 gap-3 mb-4">
@@ -608,19 +841,22 @@ export default function AdminTools() {
                 Limpar Métricas
               </Button>
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Monitoramento LLM */}
-          <Card className="border-blue-200 dark:border-blue-900">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-blue-500" />
-                Monitoramento LLM
-              </CardTitle>
-              <CardDescription>
-                Logs de chamadas, erros, fallbacks e latência dos providers de IA
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("monitoramento-llm") && (
+          <CollapsibleCard
+            cardId="monitoramento-llm"
+            icon={<Zap className="w-5 h-5 text-blue-500" />}
+            titulo="Monitoramento LLM"
+            descricao="Logs de chamadas, erros, fallbacks e latência dos providers de IA"
+            expanded={isExpanded("monitoramento-llm")}
+            onToggle={() => toggleCard("monitoramento-llm")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "monitoramento-llm", titulo: CARDS_ARQUIVAVEIS["monitoramento-llm"] })}
+            className="border-blue-200 dark:border-blue-900"
+          >
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Visualize em tempo real quais providers estão sendo usados, frequência de fallbacks automáticos,
@@ -635,19 +871,22 @@ export default function AdminTools() {
                 Abrir Painel de Monitoramento
               </Button>
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Dashboard de Custos LLM */}
-          <Card className="border-green-200 dark:border-green-900">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-500" />
-                Dashboard de Custos LLM
-              </CardTitle>
-              <CardDescription>
-                Custo estimado por modelo, provider, período e usuário com projeções
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("dashboard-custos") && (
+          <CollapsibleCard
+            cardId="dashboard-custos"
+            icon={<DollarSign className="w-5 h-5 text-green-500" />}
+            titulo="Dashboard de Custos LLM"
+            descricao="Custo estimado por modelo, provider, período e usuário com projeções"
+            expanded={isExpanded("dashboard-custos")}
+            onToggle={() => toggleCard("dashboard-custos")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "dashboard-custos", titulo: CARDS_ARQUIVAVEIS["dashboard-custos"] })}
+            className="border-green-200 dark:border-green-900"
+          >
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Visualize o custo estimado de cada chamada aos providers de IA (OpenAI, Anthropic, Google, Manus),
@@ -662,19 +901,21 @@ export default function AdminTools() {
                 Abrir Dashboard de Custos
               </Button>
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Feature Flags */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Flag className="w-5 h-5" />
-                Feature Flags
-              </CardTitle>
-              <CardDescription>
-                Controle de funcionalidades experimentais
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("feature-flags") && (
+          <CollapsibleCard
+            cardId="feature-flags"
+            icon={<Flag className="w-5 h-5" />}
+            titulo="Feature Flags"
+            descricao="Controle de funcionalidades experimentais"
+            expanded={isExpanded("feature-flags")}
+            onToggle={() => toggleCard("feature-flags")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "feature-flags", titulo: CARDS_ARQUIVAVEIS["feature-flags"] })}
+          >
             <CardContent className="space-y-4">
               <Button 
                 onClick={() => inicializarFeaturesMutation.mutate()}
@@ -716,19 +957,21 @@ export default function AdminTools() {
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Auditoria de Dependências Vulneráveis */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Auditoria de Dependências
-              </CardTitle>
-              <CardDescription>
-                Verifica vulnerabilidades conhecidas em pacotes npm
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("auditoria-dependencias") && (
+          <CollapsibleCard
+            cardId="auditoria-dependencias"
+            icon={<Package className="w-5 h-5" />}
+            titulo="Auditoria de Dependências"
+            descricao="Verifica vulnerabilidades conhecidas em pacotes npm"
+            expanded={isExpanded("auditoria-dependencias")}
+            onToggle={() => toggleCard("auditoria-dependencias")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "auditoria-dependencias", titulo: CARDS_ARQUIVAVEIS["auditoria-dependencias"] })}
+          >
             <CardContent className="space-y-4">
               <Button 
                 onClick={() => {
@@ -815,19 +1058,21 @@ export default function AdminTools() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Backups do Banco de Dados */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="w-5 h-5" />
-                Backups do Banco de Dados
-              </CardTitle>
-              <CardDescription>
-                Cria backups criptografados e armazena no S3
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("backups") && (
+          <CollapsibleCard
+            cardId="backups"
+            icon={<Database className="w-5 h-5" />}
+            titulo="Backups do Banco de Dados"
+            descricao="Cria backups criptografados e armazena no S3"
+            expanded={isExpanded("backups")}
+            onToggle={() => toggleCard("backups")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "backups", titulo: CARDS_ARQUIVAVEIS["backups"] })}
+          >
             <CardContent className="space-y-4">
               <Button 
                 onClick={() => criarBackupMutation.mutate()}
@@ -924,19 +1169,21 @@ export default function AdminTools() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
           {/* Alertas de Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5" />
-                Alertas de Performance
-              </CardTitle>
-              <CardDescription>
-                Alertas automáticos quando thresholds são excedidos
-              </CardDescription>
-            </CardHeader>
+          {!idsArquivados.has("alertas-performance") && (
+          <CollapsibleCard
+            cardId="alertas-performance"
+            icon={<Bell className="w-5 h-5" />}
+            titulo="Alertas de Performance"
+            descricao="Alertas automáticos quando thresholds são excedidos"
+            expanded={isExpanded("alertas-performance")}
+            onToggle={() => toggleCard("alertas-performance")}
+            arquivavel
+            onArquivar={() => setArquivandoCard({ id: "alertas-performance", titulo: CARDS_ARQUIVAVEIS["alertas-performance"] })}
+          >
             <CardContent className="space-y-4">
               {statsAlertasQuery.data && (
                 <div className="grid grid-cols-3 gap-3 mb-4">
@@ -1002,7 +1249,8 @@ export default function AdminTools() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </CollapsibleCard>
+          )}
 
         </div>
       </div>

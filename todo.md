@@ -3037,3 +3037,11 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Criar client/src/pages/DashboardCustos.tsx com cards, gráficos Chart.js e tabelas
 - [x] Adicionar rota /dashboard-custos no App.tsx
 - [x] Adicionar card de acesso no AdminTools.tsx (visível apenas para admins)
+
+## AdminTools — Expandir/Recolher e Arquivamento
+- [x] Adicionar ícones de expandir/recolher (ChevronDown/ChevronUp) em cada card do AdminTools
+- [x] Persistir estado de colapso por card no localStorage (preferência do admin)
+- [x] Adicionar botão "Arquivar" em todos os cards (diálogo de confirmação com campo de motivo)
+- [x] Criar tabela admin_cards_arquivados no schema (cardId, titulo, motivo, archivedAt, archivedBy)
+- [x] Criar procedures tRPC arquivarCard e desarquivarCard no admin router
+- [x] Exibir painel "Cards Arquivados" com botão de restaurar (visível apenas quando há arquivados)
