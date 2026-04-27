@@ -3028,3 +3028,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Criar página MonitoramentoLLM.tsx com cards de métricas, gráficos Chart.js e tabela de logs
 - [x] Adicionar rota /monitoramento-llm no App.tsx
 - [x] Adicionar card de acesso no AdminTools.tsx (visível apenas para admins)
+
+## Dashboard de Custo Estimado LLM
+- [x] Criar shared/llm-pricing.ts com tabela de preços por modelo (OpenAI, Anthropic, Google, Manus)
+- [x] Criar server/db-llm-custos.ts com helpers de cálculo e agregação de custos por modelo/provider/usuário
+- [x] Criar server/routers/custos-llm.ts com procedures resumo, projeção e comparação de períodos
+- [x] Registrar custosLlmRouter no server/routers.ts
+- [x] Criar client/src/pages/DashboardCustos.tsx com cards, gráficos Chart.js e tabelas
+- [x] Adicionar rota /dashboard-custos no App.tsx
+- [x] Adicionar card de acesso no AdminTools.tsx (visível apenas para admins)

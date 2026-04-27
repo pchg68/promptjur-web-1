@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle, Building2, ArrowLeft } from "lucide-react";
+import { Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2, Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package, Download, Upload, AlertCircle, Building2, ArrowLeft, DollarSign } from "lucide-react";
 import TabLeads from "@/components/TabLeads";
 import TabInteressados from "@/components/TabInteressados";
 import TabWhitelist from "@/components/TabWhitelist";
@@ -633,6 +633,33 @@ export default function AdminTools() {
               >
                 <Activity className="w-4 h-4 mr-2" />
                 Abrir Painel de Monitoramento
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Dashboard de Custos LLM */}
+          <Card className="border-green-200 dark:border-green-900">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-green-500" />
+                Dashboard de Custos LLM
+              </CardTitle>
+              <CardDescription>
+                Custo estimado por modelo, provider, período e usuário com projeções
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Visualize o custo estimado de cada chamada aos providers de IA (OpenAI, Anthropic, Google, Manus),
+                compare períodos e projete gastos futuros.
+              </p>
+              <Button
+                onClick={() => setLocation('/dashboard-custos')}
+                className="w-full"
+                variant="default"
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                Abrir Dashboard de Custos
               </Button>
             </CardContent>
           </Card>

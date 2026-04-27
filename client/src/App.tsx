@@ -24,6 +24,7 @@ import Assistente from "./pages/Assistente";
 import MeusPrompts from "./pages/MeusPrompts";
 import CRM from "./pages/CRM";
 import MonitoramentoLLM from "./pages/MonitoramentoLLM";
+import DashboardCustos from "./pages/DashboardCustos";
 import SharedPrompt from "./pages/SharedPrompt";
 import MeuPlano from "./pages/MeuPlano";
 import CookieBanner from "./components/CookieBanner";
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/shared/:token" component={SharedPrompt} />
       <Route path="/meu-plano" component={MeuPlano} />
       <Route path="/monitoramento-llm" component={MonitoramentoLLM} />
+      <Route path="/dashboard-custos" component={DashboardCustos} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
