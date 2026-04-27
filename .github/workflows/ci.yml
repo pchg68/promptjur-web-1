@@ -1,0 +1,113 @@
+name: CI — PromptJur
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Job 1: Lint e verificação de tipos TypeScript
+  # ─────────────────────────────────────────────
+  lint-typecheck:
+    name: Lint & TypeScript
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Verificar tipos TypeScript
+        run: pnpm exec tsc --noEmit
+
+  # ─────────────────────────────────────────────
+  # Job 2: Testes automatizados com Vitest
+  # ─────────────────────────────────────────────
+  test:
+    name: Testes (Vitest)
+    runs-on: ubuntu-latest
+    needs: lint-typecheck
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Executar testes
+        run: pnpm exec vitest run --reporter=verbose
+        env:
+          DATABASE_URL: ""
+          JWT_SECRET: "ci-test-secret"
+          VITE_APP_ID: "ci-test-app"
+          OAUTH_SERVER_URL: "https://api.manus.im"
+          VITE_OAUTH_PORTAL_URL: "https://manus.im"
+          OWNER_OPEN_ID: "ci-test-owner"
+          OWNER_NAME: "CI Test"
+          BUILT_IN_FORGE_API_URL: "https://api.manus.im"
+          BUILT_IN_FORGE_API_KEY: "ci-test-key"
+
+  # ─────────────────────────────────────────────
+  # Job 3: Build de produção
+  # ─────────────────────────────────────────────
+  build:
+    name: Build de Produção
+    runs-on: ubuntu-latest
+    needs: lint-typecheck
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_APP_ID: "build-ci"
+          VITE_OAUTH_PORTAL_URL: "https://manus.im"
+          VITE_FRONTEND_FORGE_API_URL: "https://api.manus.im"
+          VITE_FRONTEND_FORGE_API_KEY: "ci-build-key"
+          VITE_APP_TITLE: "PromptJur"
+
+      - name: Verificar artefatos do build
+        run: ls -lh dist/public/assets/*.js | head -10
