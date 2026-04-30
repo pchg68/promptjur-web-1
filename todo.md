@@ -3045,3 +3045,6 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Criar tabela admin_cards_arquivados no schema (cardId, titulo, motivo, archivedAt, archivedBy)
 - [x] Criar procedures tRPC arquivarCard e desarquivarCard no admin router
 - [x] Exibir painel "Cards Arquivados" com botão de restaurar (visível apenas quando há arquivados)
+
+## Vídeos Tutoriais na Página (Sessão Atual)
+- [x] Atualizar conteúdo dos 5 vídeos na página Tutoriais com dados reais dos roteiros produzidos

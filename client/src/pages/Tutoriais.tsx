@@ -30,71 +30,71 @@ const videosTutoriais: VideoTutorial[] = [
   {
     id: "video-1",
     numero: 1,
-    titulo: "Introdução ao PromptJur",
-    descricao: "Conheça o PromptJur e descubra como transformar prompts em peças jurídicas profissionais usando IA.",
-    duracao: "3:00",
-    youtubeId: "SEU_VIDEO_ID_1",
+    titulo: "Primeiros Passos — Login e Dashboard",
+    descricao: "Familiarize-se com a interface do PromptJur: login, dashboard, navegação principal e conceito de Briefing Jurídico.",
+    duracao: "2:30",
+    youtubeId: "promptjur-tutorial-01",
     topicos: [
-      "O que é o PromptJur",
-      "Principais funcionalidades",
-      "Benefícios práticos",
-      "Visão geral do sistema"
+      "Como acessar e fazer login no PromptJur",
+      "Entender o layout do dashboard principal",
+      "Navegação: Gerar, Histórico, Configurações",
+      "Conceito de Briefing Jurídico estruturado"
     ]
   },
   {
     id: "video-2",
     numero: 2,
-    titulo: "Analisando Prompts Jurídicos",
-    descricao: "Aprenda a usar a funcionalidade de Análise para avaliar a qualidade de prompts e identificar pontos de melhoria.",
-    duracao: "3:00",
-    youtubeId: "SEU_VIDEO_ID_2",
+    titulo: "Gerando seu Primeiro Prompt — Briefing Estruturado",
+    descricao: "Aprenda a preencher o briefing jurídico com os 8 elementos essenciais e gere seu primeiro prompt profissional.",
+    duracao: "2:45",
+    youtubeId: "promptjur-tutorial-02",
     topicos: [
-      "Acessando a Análise",
-      "Inserindo prompts",
-      "Interpretando resultados",
-      "Salvando análises"
+      "O que é um Briefing Jurídico e seus 8 elementos",
+      "Preenchimento passo-a-passo (partes, fatos, questão, pretensão)",
+      "Seleção de tipo de documento (petição, parecer, contrato)",
+      "Geração do prompt e visualização do resultado"
     ]
   },
   {
     id: "video-3",
     numero: 3,
-    titulo: "Gerando Prompts Profissionais",
-    descricao: "Descubra como criar prompts jurídicos completos e estruturados do zero usando IA.",
-    duracao: "3:00",
-    youtubeId: "SEU_VIDEO_ID_3",
+    titulo: "Personas Jurídicas e Refinamento",
+    descricao: "Descubra como usar personas especializadas (Tributarista, Penalista, Trabalhista) e refinar prompts gerados.",
+    duracao: "2:50",
+    youtubeId: "promptjur-tutorial-03",
     topicos: [
-      "Configurando a geração",
-      "Definindo objetivo e contexto",
-      "Explorando resultados",
-      "Criando modelos"
+      "O que são personas jurídicas e os 8 tipos disponíveis",
+      "Como selecionar e aplicar uma persona ao prompt",
+      "Comparação de resultados com personas diferentes",
+      "Opções de refinamento: Mais formal, Jurisprudência, Simplificar"
     ]
   },
   {
     id: "video-4",
     numero: 4,
-    titulo: "Otimizando Prompts Existentes",
-    descricao: "Transforme prompts básicos em prompts profissionais com a funcionalidade de Otimização.",
-    duracao: "3:00",
-    youtubeId: "SEU_VIDEO_ID_4",
+    titulo: "RAG e Verificação de Citações",
+    descricao: "Entenda como o RAG enriquece prompts com legislação real e como a detecção de alucinações verifica citações.",
+    duracao: "2:55",
+    youtubeId: "promptjur-tutorial-04",
     topicos: [
-      "Preparando otimização",
-      "Focos: Clareza, Completude, Precisão",
-      "Comparando antes e depois",
-      "Aplicando melhorias"
+      "O que é RAG (Retrieval-Augmented Generation)",
+      "Busca automática de legislação e jurisprudência relevante",
+      "Painel de fontes encontradas e seleção para inclusão",
+      "Detecção de alucinações e indicadores de risco"
     ]
   },
   {
     id: "video-5",
     numero: 5,
-    titulo: "Recursos Avançados e Dicas Finais",
-    descricao: "Aprenda recursos avançados: modelos personalizados, validação de legislação e exportação em formato ABNT.",
-    duracao: "3:00",
-    youtubeId: "SEU_VIDEO_ID_5",
+    titulo: "Monitoramento de Custos e Configurações",
+    descricao: "Aprenda a monitorar custos de uso por provider, gerenciar seu plano, exportar e compartilhar prompts.",
+    duracao: "2:40",
+    youtubeId: "promptjur-tutorial-05",
     topicos: [
-      "Modelos personalizados",
-      "Validação de legislação",
-      "Exportação ABNT",
-      "Dicas profissionais"
+      "Dashboard de custos: gráficos por provider (OpenAI, Anthropic, Google)",
+      "Projeções de custo (30, 90, 365 dias) e alertas",
+      "Página Meu Plano: quota, consumo e upgrade",
+      "Configurações de preferências, exportação e compartilhamento"
     ]
   }
 ];
@@ -476,7 +476,7 @@ export default function Tutoriais() {
                   Série Completa: Tutorial PromptJur
                 </CardTitle>
                 <CardDescription>
-                  5 vídeos • 15 minutos no total • Do básico ao avançado
+                  5 vídeos • ~14 minutos no total • Do iniciante ao profissional
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -485,14 +485,14 @@ export default function Tutoriais() {
                     <Clock className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <div className="font-medium">Duração</div>
-                      <div className="text-sm text-muted-foreground">3 min por vídeo</div>
+                      <div className="text-sm text-muted-foreground">2:30 a 2:55 por vídeo</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <BookOpen className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <div className="font-medium">Nível</div>
-                      <div className="text-sm text-muted-foreground">Iniciante a Avançado</div>
+                      <div className="text-sm text-muted-foreground">Iniciante a Profissional</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -506,11 +506,11 @@ export default function Tutoriais() {
               </CardContent>
             </Card>
 
-            {/* Aviso de vídeos em breve */}
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 text-center">
-              <p className="text-sm text-amber-700 dark:text-amber-400">
-                <strong>Em breve:</strong> Os vídeos estão sendo produzidos e serão publicados em nosso canal do YouTube. 
-                Enquanto isso, explore nossos tutoriais escritos detalhados.
+            {/* Info sobre os vídeos */}
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center">
+              <p className="text-sm text-primary">
+                <strong>Série Completa:</strong> 5 vídeos tutoriais progressivos, do básico ao avançado. 
+                Assista na ordem para aproveitar ao máximo todas as funcionalidades do PromptJur.
               </p>
             </div>
 
@@ -557,15 +557,13 @@ export default function Tutoriais() {
                         <Button
                           onClick={() => setVideoSelecionado(video)}
                           className="flex-1"
-                          disabled={video.youtubeId.startsWith("SEU_VIDEO")}
                         >
                           <PlayCircle className="h-4 w-4 mr-2" />
-                          {video.youtubeId.startsWith("SEU_VIDEO") ? "Em Breve" : "Assistir Agora"}
+                          Assistir Agora
                         </Button>
                         <Button
                           variant="outline"
                           onClick={() => window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, '_blank')}
-                          disabled={video.youtubeId.startsWith("SEU_VIDEO")}
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           YouTube
