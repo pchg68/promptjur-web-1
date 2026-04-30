@@ -24,6 +24,45 @@ import {
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock, Bot, History, BookOpen, Settings, BookMarked } from "lucide-react";
+import { QuotaWidget } from "./QuotaWidget";
+import { OnboardingTour, TourStep } from "./OnboardingTour";
+
+const ONBOARDING_STEPS: TourStep[] = [
+  {
+    title: "Bem-vindo ao PromptJur!",
+    body: "O PromptJur é seu assistente de engenharia de prompts jurídicos com IA. Vamos fazer um tour rápido pelas funcionalidades principais.",
+  },
+  {
+    selector: "[data-tour='assistente']",
+    title: "JurIA \u2014 Assistente Inteligente",
+    body: "Converse com a JurIA para gerar, otimizar e refinar prompts jurídicos. Escolha entre 8 personas especializadas para resultados mais precisos.",
+    placement: "right",
+  },
+  {
+    selector: "[data-tour='meus-prompts']",
+    title: "Meus Prompts Salvos",
+    body: "Todos os prompts gerados ficam salvos automaticamente. Organize com tags, marque favoritos e reutilize quando precisar.",
+    placement: "right",
+  },
+  {
+    selector: "[data-tour='templates']",
+    title: "Templates Prontos",
+    body: "Acesse uma biblioteca de templates jurídicos pré-configurados para petições, recursos, contratos e pareceres.",
+    placement: "right",
+  },
+  {
+    selector: "[data-tour='quota-widget']",
+    title: "Consumo e Quota",
+    body: "Acompanhe seu uso mensal em tempo real. Você receberá alertas por email ao atingir 70%, 90% e 100% da quota.",
+    placement: "top",
+  },
+  {
+    selector: "[data-tour='configuracoes']",
+    title: "Configurações",
+    body: "Configure dados do escritório, gerencie notificações e exerça seus direitos LGPD (exportar ou excluir dados).",
+    placement: "right",
+  },
+];
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -225,6 +264,7 @@ function DashboardLayoutContent({
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
                       className={`h-10 transition-all font-normal`}
+                      data-tour={item.path.replace('/', '')}
                     >
                       <item.icon
                         className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
@@ -253,6 +293,10 @@ function DashboardLayoutContent({
           </SidebarContent>
 
           <SidebarFooter className="p-3">
+            {/* Indicador de consumo de quota */}
+            <div className="mb-3 group-data-[collapsible=icon]:hidden" data-tour="quota-widget">
+              <QuotaWidget />
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
@@ -348,6 +392,7 @@ function DashboardLayoutContent({
         )}
         <main className="flex-1 p-4">{children}</main>
       </SidebarInset>
+      <OnboardingTour steps={ONBOARDING_STEPS} storageKey="promptjur-onboarding-v2" />
     </>
   );
 }

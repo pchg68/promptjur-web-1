@@ -286,25 +286,43 @@ export default function Privacidade() {
                     <tr className="bg-[#1a2332]">
                       <th className="text-left p-3 text-gray-300 border border-[#1e3a5f]">Tipo de Dado</th>
                       <th className="text-left p-3 text-gray-300 border border-[#1e3a5f]">Período de Retenção</th>
+                      <th className="text-left p-3 text-gray-300 border border-[#1e3a5f]">Procedimento de Exclusão</th>
                     </tr>
                   </thead>
                   <tbody>
                     {[
-                      ["Dados de conta", "Enquanto a conta estiver ativa + 5 anos após encerramento"],
-                      ["Histórico de prompts", "Enquanto a conta estiver ativa (excluível a qualquer momento)"],
-                      ["Logs de acesso", "90 dias"],
-                      ["Logs de erros (Sentry)", "30 dias"],
-                      ["Dados de pagamento", "Conforme exigido pela legislação fiscal (5 anos)"],
-                      ["Leads Enterprise", "3 anos após o contato"],
-                    ].map(([tipo, periodo]) => (
+                      ["Dados de conta (nome, email, OAB)", "Enquanto a conta estiver ativa + 5 anos após encerramento", "Exclusão automática via botão 'Excluir Conta' em Configurações"],
+                      ["Histórico de prompts e documentos", "Enquanto a conta estiver ativa (excluível a qualquer momento)", "Exclusão individual ou total via interface"],
+                      ["Logs de uso de IA (LLM)", "90 dias para fins de monitoramento de custos", "Anonimização automática após período"],
+                      ["Logs de acesso (IP, user-agent)", "90 dias", "Exclusão automática após período"],
+                      ["Logs de erros (Sentry)", "30 dias", "Exclusão automática pela plataforma"],
+                      ["Dados de pagamento (IDs Stripe)", "Conforme exigido pela legislação fiscal (5 anos)", "Mantido por obrigação legal"],
+                      ["Sessões de chat com assistente", "Enquanto a conta estiver ativa", "Exclusão individual ou total via interface"],
+                      ["Registros de auditoria", "5 anos (obrigação legal)", "Anonimizados após exclusão da conta"],
+                      ["Leads Enterprise", "3 anos após o contato", "Exclusão mediante solicitação"],
+                    ].map(([tipo, periodo, procedimento]) => (
                       <tr key={tipo} className="border-b border-[#1e3a5f]">
                         <td className="p-3 text-gray-300 border border-[#1e3a5f]">{tipo}</td>
                         <td className="p-3 text-gray-400 border border-[#1e3a5f]">{periodo}</td>
+                        <td className="p-3 text-gray-400 border border-[#1e3a5f]">{procedimento}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+              <div className="mt-4 p-4 rounded-lg bg-[#1a2332] border border-[#1e3a5f]">
+                <p className="font-semibold text-blue-400 text-sm mb-2">Procedimento de Exclusão de Conta</p>
+                <ol className="text-sm text-gray-300 space-y-1 list-decimal list-inside">
+                  <li>Acesse <strong className="text-white">Configurações &gt; Dados Pessoais e Conta</strong></li>
+                  <li>Exporte seus dados (portabilidade) antes de excluir, se desejar</li>
+                  <li>Clique em <strong className="text-white">Solicitar Exclusão</strong> e confirme digitando a frase de segurança</li>
+                  <li>Todos os dados pessoais serão excluídos imediatamente; registros de auditoria serão anonimizados</li>
+                  <li>Dados mantidos por obrigação legal (fiscal/regulatória) serão excluídos após o prazo legal</li>
+                </ol>
+              </div>
+              <p className="mt-3 text-sm text-gray-400">
+                <strong className="text-white">Base legal:</strong> Art. 16 da LGPD — os dados serão eliminados após o término do tratamento, exceto nas hipóteses de conservação previstas no Art. 16, I a IV.
+              </p>
             </Section>
 
             {/* 7. Direitos */}

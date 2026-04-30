@@ -3048,3 +3048,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 
 ## Vídeos Tutoriais na Página (Sessão Atual)
 - [x] Atualizar conteúdo dos 5 vídeos na página Tutoriais com dados reais dos roteiros produzidos
+
+## Itens Parciais do Plano de Negócio (exceto Stripe)
+- [x] Implementar "Excluir minha conta" (LGPD Art. 18) com exclusão completa de dados
+- [x] Implementar alertas de consumo por email (70%, 90%, 100% da quota)
+- [x] Implementar indicador visual de consumo (barra de progresso) na sidebar
+- [x] Documentar política de retenção de dados para o usuário
+- [x] Implementar detecção de abuso (CAPTCHA, múltiplas contas, anti-scraping)
+- [x] Implementar onboarding tour interativo nos primeiros 5 minutos
+- [x] Implementar sistema de limites em cascata (verde/amarelo/laranja/vermelho)

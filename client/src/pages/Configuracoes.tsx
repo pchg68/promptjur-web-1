@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Building2, Eye, Loader2, Mail, MapPin, Phone, Save, Scale } from "lucide-react";
+import { AlertTriangle, Building2, Download, Eye, Loader2, Mail, MapPin, Phone, Save, Scale, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -290,7 +290,164 @@ export default function Configuracoes() {
         <div className="mt-6">
           <IntegracoesPanel />
         </div>
+
+        {/* Exportar Dados e Excluir Conta — LGPD */}
+        <div className="mt-6">
+          <ExcluirContaSection />
+        </div>
       </main>
     </div>
+  );
+}
+
+// ─── Seção de Exclusão de Conta (LGPD Art. 18) ─────────────────────────────
+function ExcluirContaSection() {
+  const [confirmacao, setConfirmacao] = useState("");
+  const [motivo, setMotivo] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const exportarDados = trpc.account.exportarDados.useQuery(undefined, { enabled: false });
+  const excluirConta = trpc.account.excluirConta.useMutation({
+    onSuccess: () => {
+      toast.success("Conta excluída com sucesso. Você será redirecionado.");
+      setTimeout(() => { window.location.href = "/"; }, 2000);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleExportar = async () => {
+    try {
+      const result = await exportarDados.refetch();
+      if (result.data) {
+        const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `promptjur_meus_dados_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Dados exportados com sucesso!");
+      }
+    } catch {
+      toast.error("Erro ao exportar dados. Tente novamente.");
+    }
+  };
+
+  const handleExcluir = () => {
+    if (confirmacao !== "EXCLUIR MINHA CONTA") {
+      toast.error('Digite exatamente "EXCLUIR MINHA CONTA" para confirmar.');
+      return;
+    }
+    excluirConta.mutate({ confirmacao, motivo: motivo.trim() || undefined });
+  };
+
+  return (
+    <Card className="border-red-500/30 bg-[#1a2332]/60 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="text-xl flex items-center gap-2 text-white">
+          <AlertTriangle className="w-5 h-5 text-red-400" />
+          Dados Pessoais e Conta
+        </CardTitle>
+        <CardDescription className="text-gray-400">
+          Gerencie seus dados pessoais conforme a LGPD (Lei 13.709/2018, Art. 18).
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Exportar Dados */}
+        <div className="p-4 rounded-lg border border-[#d4af37]/20 bg-[#0a0e1a]/30">
+          <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+            <Download className="w-4 h-4 text-[#d4af37]" />
+            Exportar Meus Dados (Portabilidade)
+          </h3>
+          <p className="text-sm text-gray-400 mb-3">
+            Baixe uma cópia de todos os seus dados pessoais armazenados no PromptJur em formato JSON.
+          </p>
+          <Button
+            variant="outline"
+            onClick={handleExportar}
+            disabled={exportarDados.isFetching}
+            className="border-[#d4af37]/30 text-[#d4af37] hover:bg-[#d4af37]/10"
+          >
+            {exportarDados.isFetching ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Exportando...</>
+            ) : (
+              <><Download className="w-4 h-4 mr-2" /> Exportar Dados</>
+            )}
+          </Button>
+        </div>
+
+        {/* Excluir Conta */}
+        <div className="p-4 rounded-lg border border-red-500/30 bg-red-950/10">
+          <h3 className="text-red-400 font-semibold mb-2 flex items-center gap-2">
+            <Trash2 className="w-4 h-4" />
+            Excluir Minha Conta
+          </h3>
+          <p className="text-sm text-gray-400 mb-3">
+            Esta ação é <strong className="text-red-400">irreversível</strong>. Todos os seus dados, prompts, documentos e configurações serão permanentemente excluídos.
+          </p>
+
+          {!showConfirm ? (
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirm(true)}
+              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Solicitar Exclusão
+            </Button>
+          ) : (
+            <div className="space-y-4 mt-4 p-4 rounded border border-red-500/20 bg-red-950/20">
+              <div className="space-y-2">
+                <Label className="text-red-300 text-sm">
+                  Motivo da exclusão (opcional)
+                </Label>
+                <Input
+                  placeholder="Por que está excluindo sua conta?"
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  className="bg-[#0a0e1a]/50 border-red-500/30 text-white placeholder:text-gray-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-red-300 text-sm">
+                  Para confirmar, digite: <code className="bg-red-950/50 px-2 py-0.5 rounded text-red-200">EXCLUIR MINHA CONTA</code>
+                </Label>
+                <Input
+                  placeholder="EXCLUIR MINHA CONTA"
+                  value={confirmacao}
+                  onChange={(e) => setConfirmacao(e.target.value)}
+                  className="bg-[#0a0e1a]/50 border-red-500/30 text-white placeholder:text-gray-500"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => { setShowConfirm(false); setConfirmacao(""); setMotivo(""); }}
+                  className="border-gray-500/30 text-gray-400"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleExcluir}
+                  disabled={confirmacao !== "EXCLUIR MINHA CONTA" || excluirConta.isPending}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {excluirConta.isPending ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Excluindo...</>
+                  ) : (
+                    <><Trash2 className="w-4 h-4 mr-2" /> Confirmar Exclusão</>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-red-300/70">
+                Ao confirmar, seus dados serão excluídos permanentemente conforme LGPD Art. 18, V. Registros de auditoria anonimizados podem ser mantidos por até 5 anos para fins legais.
+              </p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
