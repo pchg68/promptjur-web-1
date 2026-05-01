@@ -28,6 +28,7 @@ import DashboardCustos from "./pages/DashboardCustos";
 import SharedPrompt from "./pages/SharedPrompt";
 import MeuPlano from "./pages/MeuPlano";
 import CookieBanner from "./components/CookieBanner";
+import Suporte from "./pages/Suporte";
 
 function Router() {
   return (
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/meu-plano" component={MeuPlano} />
       <Route path="/monitoramento-llm" component={MonitoramentoLLM} />
       <Route path="/dashboard-custos" component={DashboardCustos} />
+      <Route path="/suporte" component={Suporte} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

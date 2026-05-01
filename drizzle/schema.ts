@@ -833,3 +833,33 @@ export const adminCardsArquivados = mysqlTable("admin_cards_arquivados", {
 
 export type AdminCardArquivado = typeof adminCardsArquivados.$inferSelect;
 export type InsertAdminCardArquivado = typeof adminCardsArquivados.$inferInsert;
+
+// ============================================================
+// ONBOARDING DRIP EMAILS — Sequência de boas-vindas (5 emails, 14 dias)
+// ============================================================
+
+/**
+ * Rastreia quais emails da sequência de onboarding já foram enviados para cada usuário.
+ * Permite controlar a cadência e evitar duplicatas.
+ */
+export const onboardingEmails = mysqlTable("onboarding_emails", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID do usuário */
+  userId: int("userId").notNull(),
+  /** Email do usuário (para envio mesmo se conta for deletada) */
+  email: varchar("email", { length: 320 }).notNull(),
+  /** Número do email na sequência (1-5) */
+  sequenceNumber: int("sequenceNumber").notNull(),
+  /** Status do envio */
+  status: mysqlEnum("status_onb", ["pendente", "enviado", "falha", "cancelado"]).default("pendente").notNull(),
+  /** Data agendada para envio */
+  scheduledAt: timestamp("scheduledAt").notNull(),
+  /** Data efetiva do envio (null se ainda não enviado) */
+  sentAt: timestamp("sentAt"),
+  /** Erro caso tenha falhado */
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type OnboardingEmail = typeof onboardingEmails.$inferSelect;
+export type InsertOnboardingEmail = typeof onboardingEmails.$inferInsert;

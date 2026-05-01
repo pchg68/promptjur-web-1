@@ -90,6 +90,24 @@ async function startServer() {
   // Middleware do Sentry para capturar requisições (versão 10.x não requer handlers manuais)
   // O Sentry 10.x captura automaticamente via integração expressIntegration()
   
+  // ─── Scheduled Task Endpoints ───────────────────────────────────────────
+  // Endpoint para processar emails de onboarding pendentes (chamado por scheduled task)
+  app.post("/api/scheduled/onboarding", async (req, res) => {
+    try {
+      const { processOnboardingEmails } = await import("../onboarding-drip");
+      const result = await processOnboardingEmails();
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error("[Scheduled] Erro ao processar onboarding:", err);
+      res.status(500).json({ success: false, error: err?.message });
+    }
+  });
+
+  // Endpoint para processar tickets de suporte (status)
+  app.get("/api/scheduled/health", (_req, res) => {
+    res.json({ status: "ok", service: "promptjur-scheduled", timestamp: new Date().toISOString() });
+  });
+
   // tRPC API with rate limiting
   app.use(
     "/api/trpc",

@@ -3057,3 +3057,7 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Implementar detecção de abuso (CAPTCHA, múltiplas contas, anti-scraping)
 - [x] Implementar onboarding tour interativo nos primeiros 5 minutos
 - [x] Implementar sistema de limites em cascata (verde/amarelo/laranja/vermelho)
+
+## Itens P1 Pendentes - Implementação (Sessão Atual)
+- [x] Sequência de emails de boas-vindas (5 emails em 14 dias) com drip automático
+- [x] Canal de suporte integrado (formulário de contato + página de suporte)

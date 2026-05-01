@@ -104,6 +104,19 @@ export function registerOAuthRoutes(app: Express) {
         );
 
         console.log(`[OAuth] Primeiro acesso registrado: ${email} (${nome}) em ${horario}`);
+
+        // Agendar sequência de onboarding drip emails
+        if (userInfo.email) {
+          import("../onboarding-drip").then(async ({ scheduleOnboardingSequence }) => {
+            // Buscar o usuário recém-criado para obter o ID
+            const novoUsuario = await db.getUserByOpenId(userInfo.openId);
+            if (novoUsuario?.id) {
+              await scheduleOnboardingSequence(novoUsuario.id, userInfo.email!);
+            }
+          }).catch((err) => {
+            console.error("[OAuth] Falha ao agendar onboarding:", err);
+          });
+        }
       }
 
       res.redirect(302, "/");
