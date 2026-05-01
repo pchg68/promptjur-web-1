@@ -24,6 +24,10 @@ import {
   Clock,
   FlaskConical,
   Bell,
+  Coins,
+  ChevronRight,
+  Package,
+  TrendingDown,
 } from "lucide-react";
 import {
   Dialog,
@@ -277,6 +281,61 @@ export default function Planos() {
   const { data: currentPlan } = trpc.stripe.getCurrentPlan.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // ─── Créditos extras ─────────────────────────────────────────────────────────
+  const { data: creditPackages } = trpc.stripe.getCreditPackages.useQuery();
+  const { data: usageData } = trpc.stripe.getMyUsage.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const [creditsSectionOpen, setCreditsSectionOpen] = useState(false);
+
+  const creditCheckoutMutation = trpc.stripe.createCreditCheckout.useMutation({
+    onSuccess: (data) => {
+      if (data.checkoutUrl) {
+        toast.info("Redirecionando para o checkout de créditos...");
+        window.open(data.checkoutUrl, "_blank");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao criar sessão de compra de créditos");
+    },
+  });
+
+  const handleBuyCredits = (packageId: string) => {
+    if (!pagamentosAtivos) {
+      toast.info("Os pagamentos estão temporariamente desativados. Em breve disponível!");
+      return;
+    }
+    if (!isAuthenticated) {
+      window.location.href = getLoginUrl();
+      return;
+    }
+    creditCheckoutMutation.mutate({ packageId });
+  };
+
+  // Abrir seção de créditos se URL tem #creditos
+  useEffect(() => {
+    if (window.location.hash === "#creditos") {
+      setCreditsSectionOpen(true);
+      setTimeout(() => {
+        document.getElementById("creditos")?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, []);
+
+  // Detectar sucesso de compra de créditos
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    if (params.get("credits_success") === "true") {
+      const credits = params.get("credits");
+      toast.success(
+        `${credits || ""} créditos extras adicionados com sucesso! Eles já estão disponíveis na sua conta.`
+      );
+    }
+    if (params.get("credits_canceled") === "true") {
+      toast.info("Compra de créditos cancelada.");
+    }
+  }, [searchString]);
 
   const checkoutMutation = trpc.stripe.createCheckoutSession.useMutation({
     onSuccess: (data) => {
@@ -775,6 +834,141 @@ export default function Planos() {
             <Mail className="w-4 h-4 mr-2" />
             Solicitar proposta
           </Button>
+        </div>
+
+        {/* ─── Seção de Créditos Extras ──────────────────────────────────────── */}
+        <div id="creditos" className="mt-12 max-w-5xl mx-auto">
+          <button
+            onClick={() => setCreditsSectionOpen(!creditsSectionOpen)}
+            className="w-full flex items-center justify-between p-5 rounded-xl border border-border hover:border-primary/30 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white">
+                <Coins className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <h2 className="text-lg font-bold text-foreground">Créditos Extras</h2>
+                <p className="text-sm text-muted-foreground">
+                  Precisa de mais operações? Compre pacotes avulsos sem mudar de plano.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {usageData && usageData.bonusCredits > 0 && (
+                <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">
+                  {usageData.bonusCredits} créditos disponíveis
+                </span>
+              )}
+              <ChevronDown
+                className={`w-5 h-5 text-muted-foreground transition-transform ${
+                  creditsSectionOpen ? "rotate-180" : ""
+                }`}
+              />
+            </div>
+          </button>
+
+          {creditsSectionOpen && creditPackages && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {creditPackages.map((pkg) => {
+                const savingsPercent =
+                  pkg.id === "credits_10" ? 0 :
+                  pkg.id === "credits_50" ? 15 :
+                  pkg.id === "credits_100" ? 25 : 35;
+
+                return (
+                  <div
+                    key={pkg.id}
+                    className={`relative rounded-xl border p-5 flex flex-col transition-all ${
+                      pkg.popular
+                        ? "border-emerald-500/60 shadow-lg shadow-emerald-500/10"
+                        : "border-border hover:border-emerald-500/30"
+                    }`}
+                  >
+                    {/* Popular badge */}
+                    {pkg.popular && (
+                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                        <span className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full">
+                          Mais Vendido
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Header */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <Package className="w-4 h-4 text-emerald-500" />
+                      <h3 className="font-bold text-foreground">{pkg.name}</h3>
+                    </div>
+
+                    {/* Preço */}
+                    <div className="mb-3">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-foreground">
+                          {pkg.priceFormatted}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {pkg.pricePerCreditFormatted} por crédito
+                      </p>
+                    </div>
+
+                    {/* Desconto */}
+                    {savingsPercent > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-emerald-500 mb-3">
+                        <TrendingDown className="w-3 h-3" />
+                        <span className="font-medium">{savingsPercent}% de desconto</span>
+                      </div>
+                    )}
+
+                    {/* Descrição */}
+                    <p className="text-xs text-muted-foreground mb-4 flex-1">
+                      {pkg.description}
+                    </p>
+
+                    {/* Botão */}
+                    <Button
+                      variant={pkg.popular ? "default" : "outline"}
+                      size="sm"
+                      className={`w-full ${
+                        pkg.popular
+                          ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0"
+                          : ""
+                      }`}
+                      onClick={() => handleBuyCredits(pkg.id)}
+                      disabled={creditCheckoutMutation.isPending}
+                    >
+                      {creditCheckoutMutation.isPending ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                      ) : !pagamentosAtivos ? (
+                        <Clock className="w-3.5 h-3.5 mr-1.5" />
+                      ) : (
+                        <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                      )}
+                      {pagamentosAtivos ? "Comprar" : "Em breve"}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {creditsSectionOpen && (
+            <div className="mt-4 p-4 rounded-lg bg-muted/50 border border-border">
+              <div className="flex items-start gap-3">
+                <Coins className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>
+                    <strong className="text-foreground">Como funcionam os créditos extras?</strong>{" "}
+                    Créditos são consumidos automaticamente quando você atinge o limite mensal do seu plano.
+                    Eles <strong>não expiram</strong> e ficam disponíveis até serem utilizados.
+                  </p>
+                  <p>
+                    Cada crédito equivale a 1 operação (análise, geração ou otimização de prompt).
+                    Ideal para meses de maior demanda sem precisar mudar de plano.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* FAQ Section */}

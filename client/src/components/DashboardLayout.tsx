@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock, Bot, History, BookOpen, Settings, BookMarked, HelpCircle } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock, Bot, History, BookOpen, Settings, BookMarked, HelpCircle, Gift } from "lucide-react";
 import { QuotaWidget } from "./QuotaWidget";
 import { OnboardingTour, TourStep } from "./OnboardingTour";
 
@@ -76,6 +76,7 @@ const menuItems = [
   { icon: FileText, label: "Templates", path: "/templates" },
   { icon: BookOpen, label: "Tutoriais", path: "/tutoriais" },
   { icon: HelpCircle, label: "Suporte", path: "/suporte" },
+  { icon: Gift, label: "Indicações", path: "/indicacoes" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 

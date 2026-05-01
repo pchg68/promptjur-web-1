@@ -19,6 +19,32 @@ import { TRPCError } from "@trpc/server";
 import { checkPlanQuota, incrementQuota } from "../quota";
 import { checkAndSendQuotaAlert } from "../quota-alerts";
 import { checkAiRateLimit } from "../abuse-detection";
+import { getSmartRouting } from "../smart-routing";
+
+/** Helper: aplica roteamento inteligente quando provider/model não especificados */
+function applySmartRouting(params: {
+  provider?: string;
+  model?: string;
+  operation: "analisar" | "gerar" | "otimizar" | "refinar" | "verificar" | "pesquisar" | "comparar" | "documento";
+  userPlan: string;
+  inputText: string;
+  tipoDocumento?: string;
+  requiresRAG?: boolean;
+}) {
+  // Se o usuário escolheu provider/model explicitamente, respeitar a escolha
+  if (params.provider || params.model) {
+    return { provider: params.provider, model: params.model };
+  }
+  // Roteamento inteligente automático
+  const routing = getSmartRouting({
+    operation: params.operation,
+    userPlan: params.userPlan,
+    inputText: params.inputText,
+    tipoDocumento: params.tipoDocumento,
+    requiresRAG: params.requiresRAG,
+  });
+  return { provider: routing.provider, model: routing.model, _smartRouted: true, _reason: routing.reason };
+}
 
 /** Helper: verifica acesso ao modelo antes de chamar a IA */
 function checkModelAccess(userPlan: string, model?: string) {
@@ -106,7 +132,11 @@ export const promptsRouter = router({
     .mutation(async ({ input, ctx }) => {
       checkAiRateLimit(ctx.user.id);
       await checkPlanQuota(ctx.user.id);
-      checkModelAccess(ctx.user.subscriptionPlan, input.model);
+      const smartRoute = applySmartRouting({
+        provider: input.provider, model: input.model,
+        operation: "analisar", userPlan: ctx.user.subscriptionPlan, inputText: input.prompt,
+      });
+      checkModelAccess(ctx.user.subscriptionPlan, smartRoute.model);
       const startTime = Date.now();
       try {
         const citacoesExtraidas = extractCitacoesLegais(input.prompt);
@@ -117,7 +147,7 @@ export const promptsRouter = router({
         
         const { invokeUnifiedLLM } = await import("../unified-llm");
         const llmResponse = await invokeUnifiedLLM({
-          provider: input.provider, model: input.model,
+          provider: smartRoute.provider as any, model: smartRoute.model,
           messages: [
             { role: "system", content: `Você é um especialista em direito brasileiro. Analise o prompt jurídico fornecido e identifique:\n1. A área jurídica principal (Civil, Penal, Trabalhista, Tributário, Administrativo, Constitucional, Empresarial, Consumidor, Família, Previdenciário, Ambiental, Internacional)\n2. Palavras-chave relevantes (máximo 10)\n3. Entidades jurídicas mencionadas (leis, artigos, tribunais, etc.)\n4. Qualidade do prompt (0-100)\n5. Sugestões de melhoria (máximo 5)\n\nResponda APENAS em formato JSON válido, sem texto adicional.` },
             { role: "user", content: `Analise este prompt jurídico:\n\n${input.prompt}` }
@@ -205,7 +235,13 @@ export const promptsRouter = router({
     .mutation(async ({ input, ctx }) => {
       checkAiRateLimit(ctx.user.id);
       await checkPlanQuota(ctx.user.id);
-      checkModelAccess(ctx.user.subscriptionPlan, input.model);
+      const smartRoute = applySmartRouting({
+        provider: input.provider, model: input.model,
+        operation: "gerar", userPlan: ctx.user.subscriptionPlan,
+        inputText: input.contextoJuridico + (input.objetivoEspecifico || ""),
+        tipoDocumento: input.tipoDocumento,
+      });
+      checkModelAccess(ctx.user.subscriptionPlan, smartRoute.model);
       const startTime = Date.now();
       try {
         let areaDetectada = input.area;
@@ -213,7 +249,7 @@ export const promptsRouter = router({
         
         if (!areaDetectada) {
           const llmDeteccao = await invokeUnifiedLLM({
-            provider: input.provider, model: input.model,
+            provider: smartRoute.provider as any, model: smartRoute.model,
             messages: [
               { role: "system", content: `Você é um especialista em direito brasileiro. Analise o contexto e identifique APENAS a área jurídica principal. Responda com UMA das opções: ${AREAS_JURIDICAS.join(", ")}` },
               { role: "user", content: `Tipo: ${input.tipoDocumento}\nContexto: ${input.contextoJuridico}\nObjetivo: ${input.objetivoEspecifico}` }
@@ -270,7 +306,7 @@ export const promptsRouter = router({
         const userPrompt = `TIPO DE DOCUMENTO: ${input.tipoDocumento.toUpperCase()}\nÁREA JURÍDICA: ${areaDetectada}\n\nCONTEXTO JURÍDICO:\n${input.contextoJuridico}\n\nOBJETIVO ESPECÍFICO:\n${input.objetivoEspecifico}\n\n${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
 
         const llmGeracao = await invokeUnifiedLLM({
-          provider: input.provider, model: input.model,
+          provider: smartRoute.provider as any, model: smartRoute.model,
           messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }]
         });
 
@@ -283,7 +319,7 @@ export const promptsRouter = router({
         // Roda em paralelo com a validação de legislação para não aumentar latência
         const criteriosJson = rubricaQualidade.map(c => `"${c}"`).join(", ");
         const avaliacaoPromise = invokeUnifiedLLM({
-          provider: input.provider, model: input.model,
+          provider: smartRoute.provider as any, model: smartRoute.model,
           messages: [
             { role: "system", content: `Você é um avaliador sênior de prompts jurídicos. Avalie o prompt abaixo contra cada critério da rubrica.\n\nPara cada critério atribua uma nota de 0 a 100 (0 = não atendido, 50 = parcialmente atendido, 100 = plenamente atendido).\nCalcule a nota geral como média ponderada dos critérios.\nSe a nota geral for menor que 80, liste de 1 a 3 sugestões concretas de melhoria.\n\nResponda APENAS em JSON.` },
             { role: "user", content: `CRITÉRIOS DA RUBRICA:\n${rubricaTexto}\n\nPROMPT GERADO:\n${promptProfissional}` }
@@ -400,12 +436,16 @@ export const promptsRouter = router({
     .mutation(async ({ input, ctx }) => {
       checkAiRateLimit(ctx.user.id);
       await checkPlanQuota(ctx.user.id);
-      checkModelAccess(ctx.user.subscriptionPlan, input.model);
+      const smartRoute = applySmartRouting({
+        provider: input.provider, model: input.model,
+        operation: "otimizar", userPlan: ctx.user.subscriptionPlan, inputText: input.prompt,
+      });
+      checkModelAccess(ctx.user.subscriptionPlan, smartRoute.model);
       const startTime = Date.now();
       try {
         const { invokeUnifiedLLM } = await import("../unified-llm");
         const llmOtimizacao = await invokeUnifiedLLM({
-          provider: input.provider, model: input.model,
+          provider: smartRoute.provider as any, model: smartRoute.model,
           messages: [
             { role: "system", content: `Você é um especialista em engenharia de prompts jurídicos.\nAnalise o prompt e crie uma versão otimizada que seja mais clara, precisa, bem estruturada e adequada para IA jurídica.\n\nResponda em formato JSON com:\n{\n  "promptOtimizado": "versão melhorada",\n  "melhorias": ["lista de melhorias"],\n  "areaIdentificada": "área jurídica"\n}` },
             { role: "user", content: `Otimize este prompt jurídico:\n\n${input.prompt}` }
@@ -433,7 +473,7 @@ export const promptsRouter = router({
 
         // Sprint 4: avaliação de qualidade antes e depois da otimização (em paralelo)
         const avaliarQualidade = (texto: string) => invokeUnifiedLLM({
-          provider: input.provider, model: input.model,
+          provider: smartRoute.provider as any, model: smartRoute.model,
           messages: [
             { role: "system", content: `Você é um avaliador sênior de prompts jurídicos. Avalie o prompt abaixo quanto à qualidade geral.\n\nAtribua uma nota de 0 a 100 considerando: fundamentação legal, estrutura, clareza, tom profissional e completude.\nSe a nota for menor que 80, liste de 1 a 3 sugestões concretas de melhoria.\n\nResponda APENAS em JSON.` },
             { role: "user", content: texto }
@@ -603,9 +643,14 @@ export const promptsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const startTime = Date.now();
       
-      // Verificar acesso ao modelo
+      // Verificar acesso ao modelo com smart routing
       const userPlan = (ctx.user as any).subscriptionPlan || "free";
-      checkModelAccess(userPlan, input.model);
+      const smartRoute = applySmartRouting({
+        provider: input.provider, model: input.model,
+        operation: "documento", userPlan, inputText: input.promptText,
+        tipoDocumento: input.tipoDocumento,
+      });
+      checkModelAccess(userPlan, smartRoute.model);
 
       try {
         const { invokeUnifiedLLM } = await import("../unified-llm");
@@ -623,8 +668,8 @@ REGRAS OBRIGATÓRIAS:
 8. Use formatação Markdown para estruturar o documento`;
 
         const response = await invokeUnifiedLLM({
-          provider: (input.provider || "manus") as any,
-          model: input.model,
+          provider: smartRoute.provider as any,
+          model: smartRoute.model,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: input.promptText },
@@ -841,7 +886,11 @@ REGRAS OBRIGATÓRIAS:
     .mutation(async ({ input, ctx }) => {
       checkAiRateLimit(ctx.user.id);
       await checkPlanQuota(ctx.user.id);
-      checkModelAccess(ctx.user.subscriptionPlan, input.model);
+      const smartRoute = applySmartRouting({
+        provider: input.provider, model: input.model,
+        operation: "refinar", userPlan: ctx.user.subscriptionPlan, inputText: input.promptText,
+      });
+      checkModelAccess(ctx.user.subscriptionPlan, smartRoute.model);
       const startTime = Date.now();
 
       const refinamento = getRefinamentoById(input.refinamentoId);
@@ -853,8 +902,8 @@ REGRAS OBRIGATÓRIAS:
         const { invokeUnifiedLLM } = await import("../unified-llm");
 
         const response = await invokeUnifiedLLM({
-          provider: input.provider,
-          model: input.model,
+          provider: smartRoute.provider as any,
+          model: smartRoute.model,
           messages: [
             {
               role: "system",

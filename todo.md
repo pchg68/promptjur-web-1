@@ -3061,3 +3061,42 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 ## Itens P1 Pendentes - Implementação (Sessão Atual)
 - [x] Sequência de emails de boas-vindas (5 emails em 14 dias) com drip automático
 - [x] Canal de suporte integrado (formulário de contato + página de suporte)
+
+## Itens P2 Desejáveis - Implementação (Sessão Atual)
+- [x] Roteamento inteligente automático de modelos por tipo de tarefa (classificação, análise, geração)
+- [x] Pacotes de excedente (créditos avulsos one-time payment via Stripe)
+- [x] Sistema de referral com cupons de indicação
+- [x] Onboarding tour interativo (já implementado anteriormente)
+- [x] Conteúdo SEO - 10 artigos (já produzidos anteriormente)
+- [x] Detecção de abuso - CAPTCHA, múltiplas contas (já implementado anteriormente)
+- [x] Formulário de contato funcional (já implementado anteriormente)
+
+## Detalhes P2 — Implementação Completa (Sessão Atual)
+
+### Smart Routing (Roteamento Inteligente)
+- [x] Módulo server/smart-routing.ts com seleção automática de modelo
+- [x] Detecção de tipo de tarefa (classificacao, analise, geracao_simples, geracao_complexa, verificacao, pesquisa, comparacao, otimizacao)
+- [x] Seleção por tier (economico, intermediario, premium, pesquisa)
+- [x] Ajuste automático de tier por complexidade do input
+- [x] Fallback para manus-default quando modelo não disponível no plano
+- [x] Priorização de Perplexity para tarefas com citações
+- [x] 21 testes unitários passando (server/__tests__/smart-routing.test.ts)
+
+### Pacotes de Créditos Extras
+- [x] 4 pacotes definidos em stripe-products.ts (10, 50, 100, 300 créditos)
+- [x] Desconto progressivo (R$0,99 → R$0,64 por crédito)
+- [x] Endpoint tRPC stripe.createCreditCheckout para checkout via Stripe
+- [x] Webhook handler para creditar bonusCredits após pagamento
+- [x] Frontend UI na página /planos com seção recolhível de créditos extras
+- [x] QuotaWidget atualizado para exibir bonusCredits
+- [x] 20 testes unitários passando (server/__tests__/stripe-products.test.ts)
+
+### Sistema de Referral (Indicações)
+- [x] Tabelas referral_codes e referrals no schema
+- [x] Router tRPC referral com endpoints: getMyCode, validateCode, applyCode, getMyReferrals
+- [x] Geração automática de código no formato NOME-XXXXXX
+- [x] Recompensa bilateral: 5 créditos para quem indica e 5 para o indicado
+- [x] Proteção contra auto-referral e uso duplicado
+- [x] Página /indicacoes com UI completa (código, compartilhamento, estatísticas, lista)
+- [x] Link no sidebar do DashboardLayout
+- [x] 10 testes unitários passando (server/__tests__/referral.test.ts)

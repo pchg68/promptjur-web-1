@@ -84,6 +84,40 @@ async function updateUserSubscriptionById(
 }
 
 /**
+ * Adiciona créditos bônus ao usuário após compra de pacote de excedente
+ */
+async function addBonusCredits(userId: number, credits: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.error("[Webhook] Database not available for bonus credits");
+    return;
+  }
+
+  try {
+    const [user] = await db
+      .select({ bonusCredits: users.bonusCredits })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) {
+      console.error(`[Webhook] User ${userId} not found for bonus credits`);
+      return;
+    }
+
+    await db
+      .update(users)
+      .set({ bonusCredits: (user.bonusCredits ?? 0) + credits })
+      .where(eq(users.id, userId));
+
+    console.log(`[Webhook] User ${userId} now has ${(user.bonusCredits ?? 0) + credits} bonus credits`);
+  } catch (error) {
+    console.error("[Webhook] Failed to add bonus credits:", error);
+    throw error;
+  }
+}
+
+/**
  * Handler principal do webhook do Stripe
  */
 export async function handleStripeWebhook(req: Request, res: Response): Promise<void> {
@@ -132,6 +166,16 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
         const userId = session.metadata?.user_id ? parseInt(session.metadata.user_id) : null;
         const customerId = session.customer as string;
         const subscriptionId = session.subscription as string;
+
+        // Verificar se é compra de créditos extras
+        if (session.metadata?.type === "credit_purchase" && userId) {
+          const credits = parseInt(session.metadata.credits || "0");
+          if (credits > 0) {
+            await addBonusCredits(userId, credits);
+            console.log(`[Webhook] Added ${credits} bonus credits to user ${userId}`);
+          }
+          break;
+        }
 
         if (userId && subscriptionId) {
           // Buscar detalhes da assinatura para determinar o plano

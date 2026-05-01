@@ -16,6 +16,7 @@ export const users = mysqlTable("users", {
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   subscriptionPlan: mysqlEnum("subscriptionPlan", ["free", "pro", "enterprise"]).default("free").notNull(),
   usageCount: int("usageCount").default(0).notNull(),
+  bonusCredits: int("bonusCredits").default(0).notNull(),
   monthlyUsageResetAt: timestamp("monthlyUsageResetAt").defaultNow().notNull(),
   stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
   stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
@@ -863,3 +864,61 @@ export const onboardingEmails = mysqlTable("onboarding_emails", {
 
 export type OnboardingEmail = typeof onboardingEmails.$inferSelect;
 export type InsertOnboardingEmail = typeof onboardingEmails.$inferInsert;
+
+// ============================================================
+// SISTEMA DE REFERRAL — Indicações com cupons de desconto
+// ============================================================
+
+/**
+ * Códigos de referral únicos por usuário.
+ * Cada usuário pode ter um código de indicação que compartilha com outros.
+ * Quando alguém se cadastra usando o código, ambos ganham benefícios.
+ */
+export const referralCodes = mysqlTable("referral_codes", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID do usuário dono do código */
+  userId: int("userId").notNull(),
+  /** Código único de referral (ex: "PCHG-ABC123") */
+  code: varchar("code", { length: 32 }).notNull().unique(),
+  /** Créditos bônus que o referrer ganha por cada indicação convertida */
+  rewardCredits: int("rewardCredits").default(5).notNull(),
+  /** Créditos bônus que o indicado ganha ao se cadastrar */
+  referredRewardCredits: int("referredRewardCredits").default(5).notNull(),
+  /** Número total de indicações feitas com este código */
+  totalReferrals: int("totalReferrals").default(0).notNull(),
+  /** Número de indicações que se converteram (cadastro completo) */
+  convertedReferrals: int("convertedReferrals").default(0).notNull(),
+  /** Se o código está ativo */
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type InsertReferralCode = typeof referralCodes.$inferInsert;
+
+/**
+ * Registro de cada indicação realizada.
+ * Rastreia quem indicou quem e o status da conversão.
+ */
+export const referrals = mysqlTable("referrals", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID do código de referral usado */
+  referralCodeId: int("referralCodeId").notNull(),
+  /** ID do usuário que indicou (dono do código) */
+  referrerId: int("referrerId").notNull(),
+  /** ID do usuário indicado (quem usou o código) */
+  referredId: int("referredId").notNull(),
+  /** Status da indicação */
+  status: mysqlEnum("status_ref", ["pendente", "convertido", "expirado", "cancelado"]).default("pendente").notNull(),
+  /** Se a recompensa do referrer já foi creditada */
+  referrerRewarded: boolean("referrerRewarded").default(false).notNull(),
+  /** Se a recompensa do indicado já foi creditada */
+  referredRewarded: boolean("referredRewarded").default(false).notNull(),
+  /** Data da conversão (quando o indicado fez primeira operação) */
+  convertedAt: timestamp("convertedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = typeof referrals.$inferInsert;

@@ -4,7 +4,7 @@ import { stripe } from "../_core/stripe";
 import { getDb } from "../db";
 import { users, enterpriseLeads, launchInterests, historico } from "../../drizzle/schema";
 import { eq, gte, and } from "drizzle-orm";
-import { PLANS, formatPrice } from "../stripe-products";
+import { PLANS, formatPrice, CREDIT_PACKAGES, getCreditPackage } from "../stripe-products";
 import { TRPCError } from "@trpc/server";
 import { isFeatureEnabled } from "../feature-flags";
 import { getUserQuotaSummary } from "../quota";
@@ -337,6 +337,85 @@ export const stripeRouter = router({
     const count = Array.isArray(result) && result[0] ? Number((result[0] as any).count) : 0;
     return { count };
   }),
+
+  /**
+   * Retorna os pacotes de créditos extras disponíveis
+   */
+  getCreditPackages: publicProcedure.query(() => {
+    return CREDIT_PACKAGES.map((pkg) => ({
+      id: pkg.id,
+      name: pkg.name,
+      description: pkg.description,
+      credits: pkg.credits,
+      priceInCents: pkg.priceInCents,
+      priceFormatted: formatPrice(pkg.priceInCents),
+      pricePerCredit: pkg.pricePerCredit,
+      pricePerCreditFormatted: formatPrice(pkg.pricePerCredit),
+      popular: pkg.popular || false,
+    }));
+  }),
+
+  /**
+   * Cria sessão de checkout para compra de créditos extras
+   */
+  createCreditCheckout: protectedProcedure
+    .input(z.object({ packageId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const pagamentosAtivos = await isFeatureEnabled("pagamentos_ativos");
+      if (!pagamentosAtivos) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "O sistema de pagamentos está temporariamente desativado.",
+        });
+      }
+
+      const pkg = getCreditPackage(input.packageId);
+      if (!pkg) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Pacote de créditos não encontrado" });
+      }
+
+      const origin = ctx.req.headers.origin || process.env.VITE_APP_URL || "https://promptjur.com";
+
+      try {
+        const session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          customer_email: ctx.user.email || undefined,
+          client_reference_id: ctx.user.id.toString(),
+          metadata: {
+            user_id: ctx.user.id.toString(),
+            customer_email: ctx.user.email || "",
+            customer_name: ctx.user.name || "",
+            type: "credit_purchase",
+            package_id: pkg.id,
+            credits: pkg.credits.toString(),
+          },
+          line_items: [
+            {
+              price_data: {
+                currency: "brl",
+                product_data: {
+                  name: `PromptJur - ${pkg.name}`,
+                  description: `${pkg.credits} créditos extras para operações no PromptJur`,
+                },
+                unit_amount: pkg.priceInCents,
+              },
+              quantity: 1,
+            },
+          ],
+          allow_promotion_codes: true,
+          success_url: `${origin}/planos?credits_success=true&credits=${pkg.credits}`,
+          cancel_url: `${origin}/planos?credits_canceled=true`,
+        });
+
+        return { checkoutUrl: session.url };
+      } catch (error) {
+        console.error("[Stripe] Error creating credit checkout:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erro ao criar sessão de compra de créditos",
+        });
+      }
+    }),
 
   /**
    * Cancela a assinatura do usuário

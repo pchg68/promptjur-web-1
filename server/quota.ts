@@ -37,6 +37,7 @@ export async function checkPlanQuota(userId: number): Promise<void> {
       id: users.id,
       subscriptionPlan: users.subscriptionPlan,
       usageCount: users.usageCount,
+      bonusCredits: users.bonusCredits,
       monthlyUsageResetAt: users.monthlyUsageResetAt,
     })
     .from(users)
@@ -66,6 +67,12 @@ export async function checkPlanQuota(userId: number): Promise<void> {
   if (limit === -1) return; // ilimitado
 
   if (user.usageCount >= limit) {
+    // Verificar se tem créditos bônus disponíveis
+    const bonusCredits = (user as any).bonusCredits ?? 0;
+    if (bonusCredits > 0) {
+      return; // Tem créditos extras, pode continuar
+    }
+
     const planName =
       user.subscriptionPlan === "free"
         ? "Gratuito"
@@ -75,7 +82,7 @@ export async function checkPlanQuota(userId: number): Promise<void> {
 
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: `Você atingiu o limite de ${limit} operações mensais do plano ${planName}. Faça upgrade para continuar usando o PromptJur.`,
+      message: `Você atingiu o limite de ${limit} operações mensais do plano ${planName}. Adquira créditos extras ou faça upgrade para continuar usando o PromptJur.`,
     });
   }
 }
@@ -89,17 +96,38 @@ export async function incrementQuota(userId: number): Promise<void> {
   if (!db) return;
 
   const [user] = await db
-    .select({ usageCount: users.usageCount })
+    .select({
+      usageCount: users.usageCount,
+      bonusCredits: users.bonusCredits,
+      subscriptionPlan: users.subscriptionPlan,
+      monthlyUsageResetAt: users.monthlyUsageResetAt,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
 
   if (!user) return;
 
-  await db
-    .update(users)
-    .set({ usageCount: user.usageCount + 1 })
-    .where(eq(users.id, userId));
+  // Verificar se está além do limite do plano (usando créditos bônus)
+  const limit = getPlanMonthlyLimit(user.subscriptionPlan);
+  const now = new Date();
+  const resetAt = new Date(user.monthlyUsageResetAt);
+  const sameMonth = now.getFullYear() === resetAt.getFullYear() && now.getMonth() === resetAt.getMonth();
+  const currentUsage = sameMonth ? user.usageCount : 0;
+
+  if (limit !== -1 && currentUsage >= limit && user.bonusCredits > 0) {
+    // Consumir crédito bônus em vez de incrementar usage
+    await db
+      .update(users)
+      .set({ bonusCredits: user.bonusCredits - 1 })
+      .where(eq(users.id, userId));
+  } else {
+    // Incrementar usage normal
+    await db
+      .update(users)
+      .set({ usageCount: user.usageCount + 1 })
+      .where(eq(users.id, userId));
+  }
 }
 
 /**
@@ -113,6 +141,7 @@ export async function getUserQuotaSummary(userId: number) {
     .select({
       subscriptionPlan: users.subscriptionPlan,
       usageCount: users.usageCount,
+      bonusCredits: users.bonusCredits,
       monthlyUsageResetAt: users.monthlyUsageResetAt,
     })
     .from(users)
@@ -133,12 +162,15 @@ export async function getUserQuotaSummary(userId: number) {
     now.getFullYear() === resetAt.getFullYear() &&
     now.getMonth() === resetAt.getMonth();
   const currentUsage = sameMonth ? user.usageCount : 0;
+  const totalAvailable = limit === -1 ? -1 : limit + (user.bonusCredits ?? 0);
 
   return {
     plan: user.subscriptionPlan,
     usageCount: currentUsage,
     limit,
-    remaining: limit === -1 ? -1 : Math.max(0, limit - currentUsage),
+    bonusCredits: user.bonusCredits ?? 0,
+    totalAvailable,
+    remaining: totalAvailable === -1 ? -1 : Math.max(0, totalAvailable - currentUsage),
     percentUsed: limit === -1 ? 0 : Math.min(100, Math.round((currentUsage / limit) * 100)),
     nextResetAt: nextReset,
     isUnlimited: limit === -1,

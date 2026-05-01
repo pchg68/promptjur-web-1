@@ -5,7 +5,7 @@
 import { trpc } from "@/lib/trpc";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Crown, ArrowRight, Infinity as InfinityIcon } from "lucide-react";
+import { Zap, Crown, ArrowRight, Infinity as InfinityIcon, Coins } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -93,12 +93,29 @@ export function QuotaWidget() {
         </div>
       )}
 
-      {/* CTA upgrade para plano free */}
+      {/* Créditos bônus */}
+      {(usage as any).bonusCredits > 0 && (
+        <div className="flex items-center gap-1.5 text-[10px] text-emerald-400">
+          <Coins className="w-3 h-3" />
+          <span className="font-medium">{(usage as any).bonusCredits} créditos extras disponíveis</span>
+        </div>
+      )}
+
+      {/* CTA upgrade para plano free ou comprar créditos */}
       {usage.plan === "free" && percent >= 50 && (
         <Link href="/planos">
           <div className="flex items-center gap-1 text-[10px] text-violet-400 hover:text-violet-300 cursor-pointer mt-0.5">
             <Crown className="w-3 h-3" />
             <span>Ver planos pagos</span>
+            <ArrowRight className="w-3 h-3" />
+          </div>
+        </Link>
+      )}
+      {!isUnlimited && percent >= 80 && (usage as any).bonusCredits === 0 && (
+        <Link href="/planos#creditos">
+          <div className="flex items-center gap-1 text-[10px] text-amber-400 hover:text-amber-300 cursor-pointer">
+            <Coins className="w-3 h-3" />
+            <span>Comprar créditos extras</span>
             <ArrowRight className="w-3 h-3" />
           </div>
         </Link>

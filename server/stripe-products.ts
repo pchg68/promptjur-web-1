@@ -125,6 +125,59 @@ export const PLANS: Record<string, Plan> = {
   },
 };
 
+// ─── Pacotes de Créditos Extras (Excedente) ─────────────────────────────────
+
+export interface CreditPackage {
+  id: string;
+  name: string;
+  description: string;
+  credits: number;
+  priceInCents: number; // BRL centavos
+  pricePerCredit: number; // BRL centavos por crédito
+  popular?: boolean;
+  stripePriceId?: string;
+}
+
+export const CREDIT_PACKAGES: CreditPackage[] = [
+  {
+    id: "credits_10",
+    name: "10 Créditos",
+    description: "Pacote básico para uso pontual",
+    credits: 10,
+    priceInCents: 990, // R$ 9,90
+    pricePerCredit: 99, // R$ 0,99/crédito
+  },
+  {
+    id: "credits_50",
+    name: "50 Créditos",
+    description: "Pacote intermediário com 15% de desconto",
+    credits: 50,
+    priceInCents: 4190, // R$ 41,90 (R$ 0,84/crédito)
+    pricePerCredit: 84,
+    popular: true,
+  },
+  {
+    id: "credits_100",
+    name: "100 Créditos",
+    description: "Melhor custo-benefício com 25% de desconto",
+    credits: 100,
+    priceInCents: 7490, // R$ 74,90 (R$ 0,75/crédito)
+    pricePerCredit: 75,
+  },
+  {
+    id: "credits_300",
+    name: "300 Créditos",
+    description: "Pacote profissional com 35% de desconto",
+    credits: 300,
+    priceInCents: 19290, // R$ 192,90 (R$ 0,64/crédito)
+    pricePerCredit: 64,
+  },
+];
+
+export function getCreditPackage(packageId: string): CreditPackage | undefined {
+  return CREDIT_PACKAGES.find(p => p.id === packageId);
+}
+
 /**
  * Retorna o plano pelo ID
  */
