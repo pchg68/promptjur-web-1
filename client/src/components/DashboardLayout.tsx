@@ -29,37 +29,31 @@ import { OnboardingTour, TourStep } from "./OnboardingTour";
 
 const ONBOARDING_STEPS: TourStep[] = [
   {
-    title: "Bem-vindo ao PromptJur!",
-    body: "O PromptJur é seu assistente de engenharia de prompts jurídicos com IA. Vamos fazer um tour rápido pelas funcionalidades principais.",
+    title: "🌟 Bem-vindo ao PromptJur!",
+    body: "O PromptJur é seu assistente de engenharia de prompts jurídicos com IA. Em 4 passos você vai conhecer as funcionalidades principais. Vamos lá?",
   },
   {
     selector: "[data-tour='assistente']",
-    title: "JurIA \u2014 Assistente Inteligente",
-    body: "Converse com a JurIA para gerar, otimizar e refinar prompts jurídicos. Escolha entre 8 personas especializadas para resultados mais precisos.",
+    title: "🤖 JurIA \u2014 Assistente Inteligente",
+    body: "Converse com a JurIA para gerar, analisar e otimizar prompts jurídicos. Escolha entre 8 personas especializadas (civilista, penalista, trabalhista...) e gere documentos completos com validação de alucinações.",
     placement: "right",
   },
   {
     selector: "[data-tour='meus-prompts']",
-    title: "Meus Prompts Salvos",
-    body: "Todos os prompts gerados ficam salvos automaticamente. Organize com tags, marque favoritos e reutilize quando precisar.",
-    placement: "right",
-  },
-  {
-    selector: "[data-tour='templates']",
-    title: "Templates Prontos",
-    body: "Acesse uma biblioteca de templates jurídicos pré-configurados para petições, recursos, contratos e pareceres.",
+    title: "📚 Seus Prompts e Templates",
+    body: "Todos os prompts gerados ficam salvos automaticamente. Organize com tags, marque favoritos, exporte como .txt/.docx/.pdf e reutilize quando precisar. Acesse também templates prontos por área jurídica.",
     placement: "right",
   },
   {
     selector: "[data-tour='quota-widget']",
-    title: "Consumo e Quota",
-    body: "Acompanhe seu uso mensal em tempo real. Você receberá alertas por email ao atingir 70%, 90% e 100% da quota.",
+    title: "📊 Consumo e Créditos",
+    body: "Acompanhe seu uso mensal em tempo real. Você receberá alertas ao atingir 70%, 90% e 100% da quota. Precisa de mais? Compre pacotes de créditos extras na página de Planos.",
     placement: "top",
   },
   {
-    selector: "[data-tour='configuracoes']",
-    title: "Configurações",
-    body: "Configure dados do escritório, gerencie notificações e exerça seus direitos LGPD (exportar ou excluir dados).",
+    selector: "[data-tour='indicacoes']",
+    title: "🎁 Indique e Ganhe",
+    body: "Compartilhe seu código de indicação e ganhe 5 créditos extras para cada amigo que se cadastrar. Seu amigo também ganha 5 créditos!",
     placement: "right",
   },
 ];
@@ -394,7 +388,7 @@ function DashboardLayoutContent({
         )}
         <main className="flex-1 p-4">{children}</main>
       </SidebarInset>
-      <OnboardingTour steps={ONBOARDING_STEPS} storageKey="promptjur-onboarding-v2" />
+      <OnboardingTour steps={ONBOARDING_STEPS} storageKey="promptjur-onboarding-v3" />
     </>
   );
 }

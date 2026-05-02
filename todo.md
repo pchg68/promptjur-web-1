@@ -3113,3 +3113,7 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Revisar e completar conteúdo de /termos de uso — já completo com 13 seções
 - [x] Exportação básica de resultados (copiar markdown + download .txt)
 - [x] Lazy loading do Streamdown com React.lazy() e Suspense — já implementado (LazyStreamdown.tsx)
+
+## Sugestões Pré-Lançamento — Sessão Atual
+- [x] Verificar e ajustar fluxo completo de referral end-to-end (captura ?ref=, dialog, aplicação, créditos)
+- [x] Criar onboarding guiado (tour interativo 5 passos) para novos usuários no primeiro acesso ao dashboard
