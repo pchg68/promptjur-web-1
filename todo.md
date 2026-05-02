@@ -3117,3 +3117,6 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 ## Sugestões Pré-Lançamento — Sessão Atual
 - [x] Verificar e ajustar fluxo completo de referral end-to-end (captura ?ref=, dialog, aplicação, créditos)
 - [x] Criar onboarding guiado (tour interativo 5 passos) para novos usuários no primeiro acesso ao dashboard
+
+## Bug Crítico — OAuth Callback
+- [x] Corrigir erro "OAuth callback failed" no login com e-mail — coluna bonusCredits e tabelas referral adicionadas ao banco via ALTER TABLE
