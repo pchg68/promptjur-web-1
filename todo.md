@@ -3105,3 +3105,11 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Integrar Smart Routing nas mutations de análise/geração/otimização (seleção automática de modelo)
 - [x] Aplicar código de referral no fluxo de cadastro/primeiro login (campo na UI + lógica)
 - [x] Verificar e ajustar fluxo de pagamento de créditos extras (webhook + creditação)
+
+## Categoria A — Itens Pré-Lançamento (Sessão Atual)
+- [x] Gráfico de uso diário (30 dias) com Chart.js na página /meu-plano (já implementado)
+- [x] Barra de progresso de quota na sidebar do DashboardLayout (já implementado via QuotaWidget)
+- [x] Revisar e completar conteúdo de /privacidade (LGPD completa) — já completo com 12 seções
+- [x] Revisar e completar conteúdo de /termos de uso — já completo com 13 seções
+- [x] Exportação básica de resultados (copiar markdown + download .txt)
+- [x] Lazy loading do Streamdown com React.lazy() e Suspense — já implementado (LazyStreamdown.tsx)

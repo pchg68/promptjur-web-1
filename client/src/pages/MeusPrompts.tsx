@@ -48,6 +48,7 @@ import {
   Plus,
   ArrowRight,
   Sparkles,
+  Download,
   Clock,
   BarChart2,
 } from "lucide-react";
@@ -171,6 +172,18 @@ function PromptCard({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onCopiar(prompt.id, prompt.conteudo)}>
                 <Copy className="w-3.5 h-3.5 mr-2" /> Copiar prompt
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                const blob = new Blob([prompt.conteudo], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `prompt-${prompt.id}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success("Prompt baixado como .txt");
+              }}>
+                <Download className="w-3.5 h-3.5 mr-2" /> Baixar .txt
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

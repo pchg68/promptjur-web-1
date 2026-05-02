@@ -17,6 +17,7 @@ import {
   RotateCcw,
   Copy,
   CheckCheck,
+  Download,
   MessageSquare,
   Sparkles,
   ChevronRight,
@@ -113,18 +114,37 @@ function MensagemItem({ msg }: { msg: Mensagem }) {
           <p className="whitespace-pre-wrap">{msg.content}</p>
         )}
 
-        {/* Botão copiar (apenas assistente) */}
+        {/* Botões copiar e download (apenas assistente) */}
         {isAssistente && !msg.isStreaming && (
-          <button
-            onClick={copiar}
-            className="absolute -bottom-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
-          >
-            {copiado ? (
-              <CheckCheck className="w-3.5 h-3.5 text-green-500" />
-            ) : (
-              <Copy className="w-3.5 h-3.5" />
-            )}
-          </button>
+          <div className="absolute -bottom-6 right-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={copiar}
+              className="text-muted-foreground hover:text-foreground"
+              title="Copiar texto"
+            >
+              {copiado ? (
+                <CheckCheck className="w-3.5 h-3.5 text-green-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+            </button>
+            <button
+              onClick={() => {
+                const blob = new Blob([msg.content], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `promptjur-resultado-${Date.now()}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success("Arquivo .txt baixado!");
+              }}
+              className="text-muted-foreground hover:text-foreground"
+              title="Baixar como .txt"
+            >
+              <Download className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )}
 
         {/* Badge de etapa */}

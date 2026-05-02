@@ -593,6 +593,29 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
                       </>
                     )}
                   </Button>
+                  <Button
+                    onClick={() => {
+                      if (!geracaoMutation.data) {
+                        toast.error("Nenhum documento gerado para exportar");
+                        return;
+                      }
+                      const content = documentoComJurisprudencia || geracaoMutation.data.documento;
+                      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento;
+                      a.href = url;
+                      a.download = `PromptJur - ${tipoLabel} - ${new Date().toLocaleDateString('pt-BR')}.txt`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast.success("Documento baixado como .txt");
+                    }}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Download className="mr-2 w-4 h-4" />
+                    Baixar .txt
+                  </Button>
                   <Button 
                     onClick={handleExportarPdf} 
                     variant="default" 
