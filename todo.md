@@ -3100,3 +3100,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Página /indicacoes com UI completa (código, compartilhamento, estatísticas, lista)
 - [x] Link no sidebar do DashboardLayout
 - [x] 10 testes unitários passando (server/__tests__/referral.test.ts)
+
+## Integração P2 — Conectar funcionalidades ao fluxo real (Sessão Atual)
+- [x] Integrar Smart Routing nas mutations de análise/geração/otimização (seleção automática de modelo)
+- [x] Aplicar código de referral no fluxo de cadastro/primeiro login (campo na UI + lógica)
+- [x] Verificar e ajustar fluxo de pagamento de créditos extras (webhook + creditação)

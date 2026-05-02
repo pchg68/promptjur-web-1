@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Scale, Sparkles, Shield, Zap, ArrowRight, CheckCircle2, MessageSquare, LogOut, LayoutDashboard, User } from "lucide-react";
@@ -17,6 +18,20 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export default function Home() {
   const { user, isAuthenticated, logout } = useAuth();
   const [, setLocation] = useLocation();
+
+  // Capturar código de referral da URL (?ref=CODIGO) e salvar no localStorage
+  // para aplicar após o login
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get("ref");
+    if (refCode) {
+      localStorage.setItem("promptjur-referral-code", refCode.toUpperCase());
+      // Limpar parâmetro da URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("ref");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

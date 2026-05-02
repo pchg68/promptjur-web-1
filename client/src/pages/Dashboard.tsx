@@ -47,6 +47,7 @@ import PromptActions from "@/components/PromptActions";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
 import { ProviderStatus } from "@/components/ProviderStatus";
 import { QuotaWidget } from "@/components/QuotaWidget";
+import { ReferralDialog } from "@/components/ReferralDialog";
 import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
 import { ProfPromptChat } from "@/components/ProfPromptChat";
 import { GraduationCap } from "lucide-react";
@@ -365,6 +366,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Dialog de Referral (aparece automaticamente se houver código pendente) */}
+      <ReferralDialog />
       {/* Header com Navegação Persistente */}
       <DashboardHeader2
         isCompactMode={isCompactMode}
