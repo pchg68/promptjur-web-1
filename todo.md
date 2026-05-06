@@ -3126,3 +3126,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Implementar idempotência no webhook Stripe (tabela processed_stripe_events)
 - [x] Implementar operações atômicas com db.transaction() (quota + LLM, referral)
 - [x] Corrigir race condition na quota (UPDATE atômico com WHERE + sql expressions)
+
+## Melhorias Finais Pré-Lançamento — Sessão Atual
+- [x] Verificar e ajustar fluxo completo de pagamento de créditos extras (checkout → webhook → creditação)
+- [x] Implementar prompt caching da Anthropic nos system prompts jurídicos (redução ~90% custo API)
+- [x] Configurar alertas de erro via Sentry para produção (webhook failures, LLM timeouts, erros críticos)

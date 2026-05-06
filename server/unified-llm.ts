@@ -9,6 +9,7 @@
  */
 
 import { invokeLLM } from "./_core/llm";
+import { captureException, captureMessage, addBreadcrumb } from "./_core/sentry";
 import { invokeOpenAI, mapToOpenAIModel, extractOpenAIContent, isOpenAIConfigured } from "./openai-integration";
 import { invokeClaude, mapToClaudeModel, extractClaudeContent, isClaudeConfigured } from "./claude-integration";
 import { invokeGemini, mapToGeminiModel, extractGeminiContent, isGeminiConfigured } from "./gemini-integration";
@@ -107,6 +108,7 @@ export async function invokeUnifiedLLM(
     const errMsg = error instanceof Error ? error.message : String(error);
     const latenciaMs = Date.now() - startTime;
     console.error(`[UnifiedLLM] Erro no provider ${provider}: ${errMsg}`);
+    addBreadcrumb("llm", `Erro no provider ${provider}`, { error: errMsg, modelo: modeloSolicitado });
 
     // Categorizar tipo de erro
     const erroTipo = errMsg.includes("timeout") || errMsg.includes("AbortError")
@@ -168,6 +170,13 @@ export async function invokeUnifiedLLM(
       } catch (fallbackError) {
         const fallbackMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
         console.error("[UnifiedLLM] Fallback para Manus também falhou:", fallbackMsg);
+        captureException(fallbackError as Error, {
+          context: "llm_fallback_total_failure",
+          originalProvider: provider,
+          originalError: errMsg,
+          fallbackError: fallbackMsg,
+        });
+        captureMessage(`[ALERTA] LLM falha total: ${provider} + fallback Manus`, "error");
 
         // Registrar fallback com erro
         registrarLlmLog({
@@ -203,6 +212,12 @@ export async function invokeUnifiedLLM(
       erroTipo,
     }).catch(() => {});
 
+    captureException(error as Error, {
+      context: "llm_manus_provider_failure",
+      provider,
+      modelo: modeloSolicitado,
+      erroTipo,
+    });
     throw new Error(`LLM invoke failed: ${errMsg}`);
   }
 }

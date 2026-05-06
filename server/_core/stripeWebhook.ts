@@ -4,6 +4,7 @@ import { stripe, STRIPE_WEBHOOK_SECRET } from "./stripe";
 import { getDb } from "../db";
 import { users, processedStripeEvents } from "../../drizzle/schema";
 import { eq, sql } from "drizzle-orm";
+import { captureException, captureMessage, addBreadcrumb } from "./sentry";
 
 /**
  * Mapeia planos do Stripe para os planos do sistema
@@ -46,6 +47,7 @@ async function updateUserSubscription(
     console.log(`[Webhook] Updated user ${customerEmail} to plan: ${plan}`);
   } catch (error) {
     console.error("[Webhook] Failed to update user subscription:", error);
+    captureException(error as Error, { context: "webhook_update_subscription", customerEmail });
     throw error;
   }
 }
@@ -79,6 +81,7 @@ async function updateUserSubscriptionById(
     console.log(`[Webhook] Updated user ID ${userId} to plan: ${plan}`);
   } catch (error) {
     console.error("[Webhook] Failed to update user subscription by ID:", error);
+    captureException(error as Error, { context: "webhook_update_subscription_by_id", userId, plan });
     throw error;
   }
 }
@@ -105,6 +108,7 @@ async function addBonusCredits(userId: number, credits: number): Promise<void> {
     console.log(`[Webhook] Added ${credits} bonus credits to user ${userId} (atomic)`);
   } catch (error) {
     console.error("[Webhook] Failed to add bonus credits:", error);
+    captureException(error as Error, { context: "webhook_add_bonus_credits", userId, credits });
     throw error;
   }
 }
@@ -138,6 +142,7 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
   } catch (err) {
     const error = err as Error;
     console.error("[Webhook] Signature verification failed:", error.message);
+    captureException(error, { context: "stripe_webhook_signature_verification" });
     res.status(400).send(`Webhook Error: ${error.message}`);
     return;
   }
@@ -284,6 +289,12 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
     res.json({ received: true });
   } catch (error) {
     console.error("[Webhook] Error processing event:", error);
+    captureException(error as Error, {
+      context: "stripe_webhook_processing",
+      eventType: event.type,
+      eventId: event.id,
+    });
+    captureMessage(`[ALERTA] Webhook Stripe falhou: ${event.type} (${event.id})`, "error");
     res.status(500).send("Webhook processing failed");
   }
 }
