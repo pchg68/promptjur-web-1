@@ -103,6 +103,18 @@ async function startServer() {
     }
   });
 
+  // Endpoint para atualizar preços dos planos e pacotes de créditos (chamado por scheduled task mensal)
+  app.post("/api/scheduled/update-prices", async (req, res) => {
+    try {
+      const { updatePrices } = await import("../scheduled/update-prices");
+      const result = await updatePrices(req.body);
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error("[Scheduled] Erro ao atualizar preços:", err);
+      res.status(500).json({ success: false, error: err?.message });
+    }
+  });
+
   // Endpoint para processar tickets de suporte (status)
   app.get("/api/scheduled/health", (_req, res) => {
     res.json({ status: "ok", service: "promptjur-scheduled", timestamp: new Date().toISOString() });

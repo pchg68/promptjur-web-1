@@ -7,6 +7,7 @@ import { isEmailAllowed } from "../whitelist";
 import { notifyOwner } from "./notification";
 import { registrarAcesso } from "../db-access-logs";
 import { ENV } from "./env";
+import { sendWelcomeEmail } from "../email";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -105,10 +106,21 @@ export function registerOAuthRoutes(app: Express) {
 
         console.log(`[OAuth] Primeiro acesso registrado: ${email} (${nome}) em ${horario}`);
 
-        // Agendar sequência de onboarding drip emails
+        // Enviar email de boas-vindas no primeiro acesso (fire-and-forget)
         if (userInfo.email) {
+          sendWelcomeEmail({
+            email: userInfo.email,
+            nome: userInfo.name || undefined,
+          }).then((result) => {
+            if (result.success && !result.skipped) {
+              console.log(`[OAuth] Welcome email enviado para ${userInfo.email}`);
+            }
+          }).catch((err) => {
+            console.error("[OAuth] Falha ao enviar welcome email:", err);
+          });
+
+          // Agendar sequência de onboarding drip emails
           import("../onboarding-drip").then(async ({ scheduleOnboardingSequence }) => {
-            // Buscar o usuário recém-criado para obter o ID
             const novoUsuario = await db.getUserByOpenId(userInfo.openId);
             if (novoUsuario?.id) {
               await scheduleOnboardingSequence(novoUsuario.id, userInfo.email!);

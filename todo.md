@@ -3131,3 +3131,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Verificar e ajustar fluxo completo de pagamento de créditos extras (checkout → webhook → creditação)
 - [x] Implementar prompt caching da Anthropic nos system prompts jurídicos (redução ~90% custo API)
 - [x] Configurar alertas de erro via Sentry para produção (webhook failures, LLM timeouts, erros críticos)
+
+## Email de Boas-Vindas + Automação de Preços — Sessão Atual
+- [x] Implementar email de boas-vindas via Resend no primeiro login do usuário
+- [x] Criar endpoint POST /api/scheduled/update-prices para atualização de preços
+- [x] Configurar scheduled task mensal para executar atualização de preços automaticamente (CRON dia 1 às 9h)

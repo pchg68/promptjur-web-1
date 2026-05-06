@@ -964,3 +964,27 @@ export type InsertProcessedStripeEvent = typeof processedStripeEvents.$inferInse
  * - audit_logs: idx_audit_logs_userId, idx_audit_logs_createdAt
  * - referrals: unique(referrerId, referredId)
  */
+
+
+// ─── Tabela de Price Overrides (Atualização Dinâmica de Preços) ──────────────
+
+export const priceOverrides = mysqlTable("price_overrides", {
+  id: int("id").autoincrement().primaryKey(),
+  entityType: varchar("entityType", { length: 32 }).notNull(), // "plan" | "credit_package"
+  entityId: varchar("entityId", { length: 64 }).notNull(), // planId ou packageId
+  priceMonthly: int("priceMonthly"), // centavos BRL (para planos)
+  priceYearly: int("priceYearly"), // centavos BRL (para planos)
+  priceInCents: int("priceInCents"), // centavos BRL (para pacotes de créditos)
+  pricePerCredit: int("pricePerCredit"), // centavos BRL por crédito
+  reason: text("reason"), // motivo do ajuste
+  adjustmentPercent: int("adjustmentPercent"), // % de ajuste aplicado (armazenado como inteiro * 100)
+  source: varchar("source", { length: 32 }), // "ipca", "manual", "scheduled_task"
+  referenceMonth: varchar("referenceMonth", { length: 7 }), // "2026-05"
+  appliedAt: timestamp("appliedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("idx_price_overrides_entity").on(table.entityType, table.entityId),
+]);
+
+export type PriceOverride = typeof priceOverrides.$inferSelect;
+export type InsertPriceOverride = typeof priceOverrides.$inferInsert;
