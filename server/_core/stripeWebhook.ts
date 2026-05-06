@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import Stripe from "stripe";
 import { stripe, STRIPE_WEBHOOK_SECRET } from "./stripe";
 import { getDb } from "../db";
-import { users } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { users, processedStripeEvents } from "../../drizzle/schema";
+import { eq, sql } from "drizzle-orm";
 
 /**
  * Mapeia planos do Stripe para os planos do sistema
@@ -94,23 +94,15 @@ async function addBonusCredits(userId: number, credits: number): Promise<void> {
   }
 
   try {
-    const [user] = await db
-      .select({ bonusCredits: users.bonusCredits })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    if (!user) {
-      console.error(`[Webhook] User ${userId} not found for bonus credits`);
-      return;
-    }
-
+    // UPDATE ATÔMICO: usa sql expression para somar diretamente no banco
+    // Evita race condition de read-then-write quando múltiplos webhooks
+    // chegam simultaneamente para o mesmo usuário
     await db
       .update(users)
-      .set({ bonusCredits: (user.bonusCredits ?? 0) + credits })
+      .set({ bonusCredits: sql`${users.bonusCredits} + ${credits}` })
       .where(eq(users.id, userId));
 
-    console.log(`[Webhook] User ${userId} now has ${(user.bonusCredits ?? 0) + credits} bonus credits`);
+    console.log(`[Webhook] Added ${credits} bonus credits to user ${userId} (atomic)`);
   } catch (error) {
     console.error("[Webhook] Failed to add bonus credits:", error);
     throw error;
@@ -158,6 +150,35 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
   }
 
   console.log(`[Webhook] Received event: ${event.type} (${event.id})`);
+
+  // ── Verificação de Idempotência ─────────────────────────────────────────
+  try {
+    const db = await getDb();
+    if (db) {
+      const [existing] = await db
+        .select({ id: processedStripeEvents.id })
+        .from(processedStripeEvents)
+        .where(eq(processedStripeEvents.eventId, event.id))
+        .limit(1);
+
+      if (existing) {
+        console.log(`[Webhook] Event ${event.id} already processed, skipping (idempotent)`);
+        res.json({ received: true, idempotent: true });
+        return;
+      }
+
+      // Registrar evento como processado ANTES de processar
+      // (se falhar no meio, o evento não será reprocessado)
+      await db.insert(processedStripeEvents).values({
+        eventId: event.id,
+        eventType: event.type,
+      });
+    }
+  } catch (idempotencyError) {
+    // Se falhar a verificação de idempotência, continuar processando
+    // (melhor processar duplicado do que não processar)
+    console.warn(`[Webhook] Idempotency check failed:`, idempotencyError);
+  }
 
   try {
     switch (event.type) {

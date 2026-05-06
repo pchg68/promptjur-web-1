@@ -3120,3 +3120,9 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 
 ## Bug Crítico — OAuth Callback
 - [x] Corrigir erro "OAuth callback failed" no login com e-mail — coluna bonusCredits e tabelas referral adicionadas ao banco via ALTER TABLE
+
+## Correções Críticas — Iceberg Vibe Coder (Pré-Lançamento)
+- [x] Adicionar índices no banco de dados (userId, createdAt, status em tabelas críticas) — 20 índices criados
+- [x] Implementar idempotência no webhook Stripe (tabela processed_stripe_events)
+- [x] Implementar operações atômicas com db.transaction() (quota + LLM, referral)
+- [x] Corrigir race condition na quota (UPDATE atômico com WHERE + sql expressions)

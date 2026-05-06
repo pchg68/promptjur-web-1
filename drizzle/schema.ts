@@ -1,6 +1,6 @@
 import {
   mysqlTable, mysqlEnum, text, timestamp, varchar, boolean,
-  json, bigint, int, uniqueIndex, mysqlTableCreator
+  json, bigint, int, uniqueIndex, index, mysqlTableCreator
 } from "drizzle-orm/mysql-core";
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
@@ -922,3 +922,45 @@ export const referrals = mysqlTable("referrals", {
 
 export type Referral = typeof referrals.$inferSelect;
 export type InsertReferral = typeof referrals.$inferInsert;
+
+
+// ─── Tabela de Idempotência para Webhook Stripe ──────────────────────────────
+
+/**
+ * Registra eventos do Stripe já processados para evitar processamento duplicado.
+ * Garante idempotência no webhook — reenvios do Stripe não geram efeitos colaterais.
+ */
+export const processedStripeEvents = mysqlTable("processed_stripe_events", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID do evento Stripe (ex: evt_1234567890) */
+  eventId: varchar("eventId", { length: 255 }).notNull().unique(),
+  /** Tipo do evento (ex: checkout.session.completed) */
+  eventType: varchar("eventType", { length: 100 }).notNull(),
+  /** Timestamp de quando o evento foi processado */
+  processedAt: timestamp("processedAt").defaultNow().notNull(),
+});
+
+export type ProcessedStripeEvent = typeof processedStripeEvents.$inferSelect;
+export type InsertProcessedStripeEvent = typeof processedStripeEvents.$inferInsert;
+
+// ─── Índices para Performance ────────────────────────────────────────────────
+
+/**
+ * Índices compostos para as tabelas mais consultadas.
+ * Drizzle ORM não suporta índices inline em mysqlTable() da mesma forma que
+ * outros ORMs, então criamos via script de migração SQL.
+ * 
+ * Os índices serão criados via ALTER TABLE no script fix-db-indexes.mjs
+ * 
+ * Tabelas e índices planejados:
+ * - prompts: idx_prompts_userId, idx_prompts_createdAt, idx_prompts_userId_tipo
+ * - historico: idx_historico_userId, idx_historico_createdAt
+ * - llm_logs: idx_llm_logs_userId, idx_llm_logs_createdAt
+ * - notifications: idx_notifications_userId_lida
+ * - chat_sessions: idx_chat_sessions_userId
+ * - chat_messages: idx_chat_messages_sessionId
+ * - prompts_salvos: idx_prompts_salvos_userId
+ * - access_logs: idx_access_logs_userId, idx_access_logs_createdAt
+ * - audit_logs: idx_audit_logs_userId, idx_audit_logs_createdAt
+ * - referrals: unique(referrerId, referredId)
+ */
