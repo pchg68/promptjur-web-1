@@ -904,6 +904,27 @@ export default function AdminTools() {
           </CollapsibleCard>
           )}
 
+          {/* Gerenciamento de Preços */}
+          <Card className="border-emerald-200 dark:border-emerald-900">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="w-5 h-5 text-emerald-500" />
+                Gerenciamento de Preços
+              </CardTitle>
+              <CardDescription>Ajuste preços de planos e créditos, visualize overrides ativos e histórico de alterações</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => setLocation('/admin-precos')}
+                className="w-full"
+                variant="default"
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                Abrir Painel de Preços
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Feature Flags */}
           {!idsArquivados.has("feature-flags") && (
           <CollapsibleCard

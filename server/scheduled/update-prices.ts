@@ -15,6 +15,7 @@ import { eq, sql } from "drizzle-orm";
 import { getDb } from "../db";
 import { priceOverrides } from "../../drizzle/schema";
 import { PLANS, CREDIT_PACKAGES } from "../stripe-products";
+import { notifyOwner } from "../_core/notification";
 
 export interface PriceUpdate {
   planId?: string;
@@ -194,6 +195,29 @@ export async function updatePrices(input: UpdatePricesInput): Promise<UpdatePric
   }
 
   console.log(`[UpdatePrices] Resultado: ${result.applied} aplicados, ${result.skipped} ignorados, ${result.errors.length} erros`);
+
+  // Notificar owner sobre ajustes aplicados
+  if (result.applied > 0) {
+    try {
+      const detalhes = result.details
+        .map(d => {
+          const nome = d.type === "plan"
+            ? PLANS[d.id]?.name ?? d.id
+            : CREDIT_PACKAGES.find(p => p.id === d.id)?.name ?? d.id;
+          const sinal = d.adjustmentPercent > 0 ? "+" : "";
+          return `\u2022 ${nome}: R$ ${(d.oldPrice / 100).toFixed(2)} \u2192 R$ ${(d.newPrice / 100).toFixed(2)} (${sinal}${d.adjustmentPercent.toFixed(2)}%)`;
+        })
+        .join("\n");
+
+      await notifyOwner({
+        title: `\ud83d\udcb0 Ajuste de Pre\u00e7os Aplicado (${source})`,
+        content: `${result.applied} pre\u00e7o(s) atualizado(s) em ${referenceMonth}.\n\nDetalhes:\n${detalhes}${result.errors.length > 0 ? `\n\n\u26a0\ufe0f Erros: ${result.errors.join("; ")}` : ""}\n\nFonte: ${source}\nAcesse /admin-precos para gerenciar.`,
+      });
+    } catch (notifErr) {
+      console.warn("[UpdatePrices] Falha ao notificar owner:", notifErr);
+    }
+  }
+
   return result;
 }
 

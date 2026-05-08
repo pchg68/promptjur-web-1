@@ -3136,3 +3136,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Implementar email de boas-vindas via Resend no primeiro login do usuário
 - [x] Criar endpoint POST /api/scheduled/update-prices para atualização de preços
 - [x] Configurar scheduled task mensal para executar atualização de preços automaticamente (CRON dia 1 às 9h)
+
+## Painel Admin de Preços + Notificação — Sessão Atual
+- [x] Criar endpoints admin para gerenciar price overrides (listar ativos, histórico, reverter)
+- [x] Criar página frontend /admin-precos com tabela de overrides, histórico e botão reverter
+- [x] Adicionar notificação ao owner (notifyOwner) quando scheduled task aplicar ajuste de preços

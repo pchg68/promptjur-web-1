@@ -30,6 +30,7 @@ import MeuPlano from "./pages/MeuPlano";
 import CookieBanner from "./components/CookieBanner";
 import Suporte from "./pages/Suporte";
 import Referral from "./pages/Referral";
+import AdminPrecos from "./pages/AdminPrecos";
 
 function Router() {
   return (
@@ -59,6 +60,7 @@ function Router() {
       <Route path="/dashboard-custos" component={DashboardCustos} />
       <Route path="/suporte" component={Suporte} />
       <Route path="/indicacoes" component={Referral} />
+      <Route path="/admin-precos" component={AdminPrecos} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
