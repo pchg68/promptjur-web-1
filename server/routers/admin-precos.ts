@@ -262,6 +262,64 @@ export const adminPrecosRouter = router({
     }),
 
   /**
+   * Cria aviso de teste com data de vigência em 2 minutos (apenas em ambiente de desenvolvimento)
+   * Permite validar o fluxo completo: email enviado → scheduled task aplica → histórico atualizado
+   */
+  testarFluxoCompleto: adminProcedure
+    .input(z.object({
+      entityType: z.enum(["plan", "credit_package"]),
+      entityId: z.string(),
+      novoPreco: z.number().min(100),
+    }))
+    .mutation(async ({ input }) => {
+      if (process.env.NODE_ENV === "production") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Teste de fluxo não disponível em produção.",
+        });
+      }
+
+      let currentPrice: number;
+      if (input.entityType === "plan") {
+        const plan = PLANS[input.entityId];
+        if (!plan) throw new TRPCError({ code: "NOT_FOUND", message: "Plano não encontrado" });
+        currentPrice = plan.priceMonthly;
+      } else {
+        const pkg = CREDIT_PACKAGES.find(p => p.id === input.entityId);
+        if (!pkg) throw new TRPCError({ code: "NOT_FOUND", message: "Pacote não encontrado" });
+        currentPrice = pkg.priceInCents;
+      }
+
+      const adjustmentPercent = ((input.novoPreco - currentPrice) / currentPrice) * 100;
+
+      // Criar notice com effectiveDate = agora + 2 minutos (para teste rápido)
+      const effectiveDate = new Date(Date.now() + 2 * 60 * 1000);
+
+      const { createPriceChangeNotice: createNotice } = await import("../scheduled/price-change-notice");
+      const result = await createNotice({
+        entityType: input.entityType,
+        entityId: input.entityId,
+        currentPrice,
+        newPrice: input.novoPreco,
+        adjustmentPercent,
+        reason: "[TESTE] Validação do fluxo completo de aviso prévio",
+        source: "manual",
+        effectiveDateOverride: effectiveDate,
+      });
+
+      await notifyOwner({
+        title: "🧪 Teste de Fluxo Iniciado",
+        content: `Aviso de teste criado (ID #${result.noticeId}). Vigência em 2 minutos. O job diário aplicará o reajuste automaticamente.`,
+      });
+
+      return {
+        ...result,
+        effectiveDate,
+        message: `Aviso de teste criado. O reajuste será aplicado em ~2 minutos pelo job diário.`,
+      };
+    }),
+
+  /**
    * Histórico de todos os ajustes (com paginação)
    */
   historico: adminProcedure

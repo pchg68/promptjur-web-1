@@ -29,6 +29,8 @@ export interface PriceChangeRequest {
   adjustmentPercent: number;
   reason?: string;
   source?: string;
+  /** Sobrescreve a data de vigência (padrão: hoje + 30 dias). Útil para testes. */
+  effectiveDateOverride?: Date;
 }
 
 export interface NoticeResult {
@@ -233,8 +235,11 @@ export async function createPriceChangeNotice(request: PriceChangeRequest): Prom
   }
 
   const errors: string[] = [];
-  const effectiveDate = new Date();
-  effectiveDate.setDate(effectiveDate.getDate() + 30); // 30 dias de antecedência
+  const effectiveDate = request.effectiveDateOverride ?? (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d;
+  })();
 
   // Inserir registro do aviso
   const [insertResult] = await db.insert(priceChangeNotices).values({

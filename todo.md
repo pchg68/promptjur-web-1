@@ -3150,3 +3150,26 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Endpoints admin: listarAvisos, cancelarAviso, criarAvisoManual
 - [x] Notificação ao owner em criação e aplicação de avisos
 - [x] 30 testes unitários passando (price-change-notice.test.ts)
+
+## Melhorias do Sistema de Aviso Prévio de Reajuste (Sessão Atual)
+- [x] Seção "Avisos Prévios de Reajuste" na página /admin-precos
+  - [x] Tabela com todos os avisos (id, entidade, preço atual/novo, ajuste %, emails, vigência, status)
+  - [x] Badge de contagem de avisos pendentes no header
+  - [x] Botão "Cancelar" para avisos pendentes
+  - [x] Banner informativo sobre aplicação automática pelo job diário
+  - [x] Estado vazio com instruções de uso
+  - [x] Botão "Aviso 30d" em cada linha de plano/pacote (substitui "Ajustar")
+  - [x] Botão "Imediato" para ajustes sem aviso prévio (com aviso de risco)
+  - [x] Dialog de criação de aviso com destaque visual (CDC Art. 6º)
+  - [x] Histórico diferencia source "notice_*" como "aviso 30d"
+- [x] Job diário apply-pending-prices (server/jobs/apply-pending-prices.ts)
+  - [x] runApplyPendingPricesJob() delega para applyPendingPriceChanges()
+  - [x] scheduleApplyPendingPrices() registrado no index.ts
+  - [x] Execução inicial com delay de 5s (cobre downtime)
+  - [x] Intervalo de 24 horas
+- [x] Mutation testarFluxoCompleto no router admin-precos
+  - [x] Cria aviso com effectiveDateOverride = agora + 2 minutos
+  - [x] Bloqueado em NODE_ENV=production
+  - [x] Notifica owner ao iniciar teste
+- [x] effectiveDateOverride adicionado à interface PriceChangeRequest
+- [x] 14 testes unitários passando (apply-pending-prices-job.test.ts)

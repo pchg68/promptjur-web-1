@@ -13,6 +13,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { scheduleCacheCleanup } from "../jobs/cache-cleanup";
 import { scheduleWhitelistExpiry } from "../jobs/whitelist-expiry";
+import { scheduleApplyPendingPrices } from "../jobs/apply-pending-prices";
 import { scheduleBackupAutomatico } from "../jobs/backup-automatico";
 import { scheduleReenvioAutomatico } from "../jobs/reenvio-automatico";
 import { handleStripeWebhook } from "./stripeWebhook";
@@ -215,6 +216,7 @@ async function startServer() {
   // Agendar jobs
   scheduleCacheCleanup();
   scheduleWhitelistExpiry();
+  scheduleApplyPendingPrices(); // Aplica reajustes pendentes após 30 dias de aviso prévio (CDC Art. 6º)
 
   // Migração roda depois que o servidor já está ouvindo (não bloqueia healthcheck)
   if (process.env.DATABASE_URL) {
