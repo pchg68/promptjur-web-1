@@ -3141,3 +3141,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Criar endpoints admin para gerenciar price overrides (listar ativos, histórico, reverter)
 - [x] Criar página frontend /admin-precos com tabela de overrides, histórico e botão reverter
 - [x] Adicionar notificação ao owner (notifyOwner) quando scheduled task aplicar ajuste de preços
+
+## Email de Aviso Prévio de Reajuste (CDC Art. 6º)
+- [x] Criar tabela price_change_notices para registrar avisos enviados
+- [x] Implementar template de email de aviso prévio de reajuste (30 dias)
+- [x] Integrar envio automático no fluxo de ajuste de preços (scheduled + manual)
+- [x] Criar endpoint para aplicar reajuste efetivo após 30 dias (scheduled task)
+- [x] Endpoints admin: listarAvisos, cancelarAviso, criarAvisoManual
+- [x] Notificação ao owner em criação e aplicação de avisos
+- [x] 30 testes unitários passando (price-change-notice.test.ts)

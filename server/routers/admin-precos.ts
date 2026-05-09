@@ -16,7 +16,9 @@ import { getDb } from "../db";
 import { priceOverrides } from "../../drizzle/schema";
 import { PLANS, CREDIT_PACKAGES } from "../stripe-products";
 import { updatePrices, getEffectivePlanPrice, getEffectiveCreditPrice } from "../scheduled/update-prices";
+import { createPriceChangeNotice, cancelPriceChangeNotice, listPriceChangeNotices } from "../scheduled/price-change-notice";
 import { notifyOwner } from "../_core/notification";
+import { priceChangeNotices } from "../../drizzle/schema";
 
 // Middleware admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -196,6 +198,67 @@ export const adminPrecosRouter = router({
       });
 
       return { success: true, result };
+    }),
+
+  /**
+   * Listar avisos prévios de reajuste (CDC Art. 6º)
+   */
+  listarAvisos: adminProcedure.query(async () => {
+    return listPriceChangeNotices(50);
+  }),
+
+  /**
+   * Cancelar um aviso pendente (antes da vigência)
+   */
+  cancelarAviso: adminProcedure
+    .input(z.object({ noticeId: z.number() }))
+    .mutation(async ({ input }) => {
+      const success = await cancelPriceChangeNotice(input.noticeId);
+      if (!success) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Aviso não encontrado ou já não está pendente.",
+        });
+      }
+      await notifyOwner({
+        title: "❌ Aviso de Reajuste Cancelado",
+        content: `Aviso prévio #${input.noticeId} foi cancelado pelo admin. O reajuste NÃO será aplicado.`,
+      });
+      return { success: true };
+    }),
+
+  /**
+   * Criar aviso prévio manualmente (ajuste com 30 dias de antecedência)
+   */
+  criarAvisoManual: adminProcedure
+    .input(z.object({
+      entityType: z.enum(["plan", "credit_package"]),
+      entityId: z.string(),
+      novoPreco: z.number().min(100),
+      motivo: z.string().min(3),
+    }))
+    .mutation(async ({ input }) => {
+      let currentPrice: number;
+      if (input.entityType === "plan") {
+        const plan = PLANS[input.entityId];
+        if (!plan) throw new TRPCError({ code: "NOT_FOUND", message: "Plano não encontrado" });
+        currentPrice = plan.priceMonthly;
+      } else {
+        const pkg = CREDIT_PACKAGES.find(p => p.id === input.entityId);
+        if (!pkg) throw new TRPCError({ code: "NOT_FOUND", message: "Pacote não encontrado" });
+        currentPrice = pkg.priceInCents;
+      }
+      const adjustmentPercent = ((input.novoPreco - currentPrice) / currentPrice) * 100;
+      const result = await createPriceChangeNotice({
+        entityType: input.entityType,
+        entityId: input.entityId,
+        currentPrice,
+        newPrice: input.novoPreco,
+        adjustmentPercent,
+        reason: input.motivo,
+        source: "manual",
+      });
+      return result;
     }),
 
   /**

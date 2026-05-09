@@ -106,11 +106,63 @@ async function startServer() {
   // Endpoint para atualizar preços dos planos e pacotes de créditos (chamado por scheduled task mensal)
   app.post("/api/scheduled/update-prices", async (req, res) => {
     try {
-      const { updatePrices } = await import("../scheduled/update-prices");
-      const result = await updatePrices(req.body);
-      res.json({ success: true, ...result });
+      const { immediate } = req.body;
+      if (immediate) {
+        // Aplicação imediata (sem aviso prévio) — usado apenas para ajustes mínimos ou reversões
+        const { updatePrices } = await import("../scheduled/update-prices");
+        const result = await updatePrices(req.body);
+        res.json({ success: true, ...result });
+      } else {
+        // Fluxo padrão: criar aviso prévio de 30 dias (CDC Art. 6º)
+        const { createPriceChangeNotice } = await import("../scheduled/price-change-notice");
+        const { PLANS, CREDIT_PACKAGES } = await import("../stripe-products");
+        const updates = req.body.updates || [];
+        const results = [];
+        for (const update of updates) {
+          if (update.planId) {
+            const plan = PLANS[update.planId];
+            if (!plan) continue;
+            const result = await createPriceChangeNotice({
+              entityType: "plan",
+              entityId: update.planId,
+              currentPrice: plan.priceMonthly,
+              newPrice: update.newPriceMonthly ?? plan.priceMonthly,
+              adjustmentPercent: update.adjustmentPercent ?? ((update.newPriceMonthly - plan.priceMonthly) / plan.priceMonthly * 100),
+              reason: update.reason,
+              source: req.body.source || "scheduled_task",
+            });
+            results.push(result);
+          } else if (update.packageId) {
+            const pkg = CREDIT_PACKAGES.find((p: any) => p.id === update.packageId);
+            if (!pkg) continue;
+            const result = await createPriceChangeNotice({
+              entityType: "credit_package",
+              entityId: update.packageId,
+              currentPrice: pkg.priceInCents,
+              newPrice: update.newPriceInCents ?? pkg.priceInCents,
+              adjustmentPercent: update.adjustmentPercent ?? ((update.newPriceInCents - pkg.priceInCents) / pkg.priceInCents * 100),
+              reason: update.reason,
+              source: req.body.source || "scheduled_task",
+            });
+            results.push(result);
+          }
+        }
+        res.json({ success: true, mode: "notice_30_days", notices: results });
+      }
     } catch (err: any) {
       console.error("[Scheduled] Erro ao atualizar preços:", err);
+      res.status(500).json({ success: false, error: err?.message });
+    }
+  });
+
+  // Endpoint para aplicar reajustes pendentes (executado diariamente)
+  app.post("/api/scheduled/apply-pending-prices", async (req, res) => {
+    try {
+      const { applyPendingPriceChanges } = await import("../scheduled/price-change-notice");
+      const result = await applyPendingPriceChanges();
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error("[Scheduled] Erro ao aplicar reajustes pendentes:", err);
       res.status(500).json({ success: false, error: err?.message });
     }
   });

@@ -988,3 +988,42 @@ export const priceOverrides = mysqlTable("price_overrides", {
 
 export type PriceOverride = typeof priceOverrides.$inferSelect;
 export type InsertPriceOverride = typeof priceOverrides.$inferInsert;
+
+// ─── Avisos Prévios de Reajuste de Preço (CDC Art. 6º) ──────────────────────
+export const priceChangeNotices = mysqlTable("price_change_notices", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Tipo de entidade: "plan" ou "credit_package" */
+  entityType: varchar("entityType", { length: 32 }).notNull(),
+  /** ID do plano ou pacote afetado */
+  entityId: varchar("entityId", { length: 64 }).notNull(),
+  /** Preço atual (centavos) no momento do aviso */
+  currentPrice: int("currentPrice").notNull(),
+  /** Novo preço proposto (centavos) */
+  newPrice: int("newPrice").notNull(),
+  /** Percentual de ajuste */
+  adjustmentPercent: int("adjustmentPercent"),
+  /** Motivo do reajuste */
+  reason: text("reason"),
+  /** Fonte do ajuste: "ipca", "manual", "scheduled_task" */
+  source: varchar("source", { length: 32 }),
+  /** Data em que o aviso foi enviado */
+  noticeSentAt: timestamp("noticeSentAt").defaultNow().notNull(),
+  /** Data em que o novo preço entrará em vigor (30 dias após aviso) */
+  effectiveDate: timestamp("effectiveDate").notNull(),
+  /** Status: "pending" (aguardando 30 dias), "applied" (preço já aplicado), "cancelled" (cancelado pelo admin) */
+  status: mysqlEnum("status", ["pending", "applied", "cancelled"]).default("pending").notNull(),
+  /** Quantidade de emails enviados com sucesso */
+  emailsSent: int("emailsSent").default(0).notNull(),
+  /** Quantidade total de assinantes notificados */
+  totalSubscribers: int("totalSubscribers").default(0).notNull(),
+  /** Data em que o preço foi efetivamente aplicado */
+  appliedAt: timestamp("appliedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("idx_pcn_status").on(table.status),
+  index("idx_pcn_effective_date").on(table.effectiveDate),
+  index("idx_pcn_entity").on(table.entityType, table.entityId),
+]);
+
+export type PriceChangeNotice = typeof priceChangeNotices.$inferSelect;
+export type InsertPriceChangeNotice = typeof priceChangeNotices.$inferInsert;
