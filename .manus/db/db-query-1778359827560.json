@@ -1,0 +1,16 @@
+{
+  "query": "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('admin_cards_arquivados', 'onboarding_emails') ORDER BY TABLE_NAME;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('admin_cards_arquivados', 'onboarding_emails') ORDER BY TABLE_NAME;",
+  "rows": [
+    {
+      "TABLE_NAME": "admin_cards_arquivados"
+    },
+    {
+      "TABLE_NAME": "onboarding_emails"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\nadmin_cards_arquivados\nonboarding_emails\n",
+  "stderr": "",
+  "execution_time_ms": 255
+}

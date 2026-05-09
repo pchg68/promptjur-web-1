@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `onboarding_emails` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `userId` int NOT NULL,\n  `email` varchar(320) NOT NULL,\n  `sequenceNumber` int NOT NULL,\n  `status_onb` enum('pendente','enviado','falha','cancelado') NOT NULL DEFAULT 'pendente',\n  `scheduledAt` timestamp NOT NULL,\n  `sentAt` timestamp,\n  `errorMessage` text,\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `onboarding_emails_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute CREATE TABLE IF NOT EXISTS `onboarding_emails` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `userId` int NOT NULL,\n  `email` varchar(320) NOT NULL,\n  `sequenceNumber` int NOT NULL,\n  `status_onb` enum('pendente','enviado','falha','cancelado') NOT NULL DEFAULT 'pendente',\n  `scheduledAt` timestamp NOT NULL,\n  `sentAt` timestamp,\n  `errorMessage` text,\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `onboarding_emails_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 326
+}

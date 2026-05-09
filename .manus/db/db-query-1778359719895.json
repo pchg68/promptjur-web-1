@@ -1,0 +1,166 @@
+{
+  "query": "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME;",
+  "rows": [
+    {
+      "TABLE_NAME": "__drizzle_migrations"
+    },
+    {
+      "TABLE_NAME": "access_logs"
+    },
+    {
+      "TABLE_NAME": "access_whitelist"
+    },
+    {
+      "TABLE_NAME": "alert_rules"
+    },
+    {
+      "TABLE_NAME": "analises"
+    },
+    {
+      "TABLE_NAME": "audit_logs"
+    },
+    {
+      "TABLE_NAME": "backups"
+    },
+    {
+      "TABLE_NAME": "cabecalho_templates"
+    },
+    {
+      "TABLE_NAME": "chat_messages"
+    },
+    {
+      "TABLE_NAME": "chat_sessions"
+    },
+    {
+      "TABLE_NAME": "config_reenvio_auto"
+    },
+    {
+      "TABLE_NAME": "configuracoes"
+    },
+    {
+      "TABLE_NAME": "contact_messages"
+    },
+    {
+      "TABLE_NAME": "convite_logs"
+    },
+    {
+      "TABLE_NAME": "crm_atividades"
+    },
+    {
+      "TABLE_NAME": "crm_contratos"
+    },
+    {
+      "TABLE_NAME": "crm_leads"
+    },
+    {
+      "TABLE_NAME": "crm_membros"
+    },
+    {
+      "TABLE_NAME": "document_versions"
+    },
+    {
+      "TABLE_NAME": "enterprise_leads"
+    },
+    {
+      "TABLE_NAME": "feature_flags"
+    },
+    {
+      "TABLE_NAME": "fontes_juridicas"
+    },
+    {
+      "TABLE_NAME": "formatacao_templates"
+    },
+    {
+      "TABLE_NAME": "historico"
+    },
+    {
+      "TABLE_NAME": "launch_interests"
+    },
+    {
+      "TABLE_NAME": "legislacao_cache"
+    },
+    {
+      "TABLE_NAME": "llm_logs"
+    },
+    {
+      "TABLE_NAME": "notification_preferences"
+    },
+    {
+      "TABLE_NAME": "notifications"
+    },
+    {
+      "TABLE_NAME": "perfis_uso"
+    },
+    {
+      "TABLE_NAME": "performance_alerts"
+    },
+    {
+      "TABLE_NAME": "price_change_notices"
+    },
+    {
+      "TABLE_NAME": "price_overrides"
+    },
+    {
+      "TABLE_NAME": "processed_stripe_events"
+    },
+    {
+      "TABLE_NAME": "prompt_tags"
+    },
+    {
+      "TABLE_NAME": "prompt_versoes"
+    },
+    {
+      "TABLE_NAME": "prompts"
+    },
+    {
+      "TABLE_NAME": "prompts_salvos"
+    },
+    {
+      "TABLE_NAME": "push_subscriptions"
+    },
+    {
+      "TABLE_NAME": "referral_codes"
+    },
+    {
+      "TABLE_NAME": "referrals"
+    },
+    {
+      "TABLE_NAME": "shared_prompts"
+    },
+    {
+      "TABLE_NAME": "tags"
+    },
+    {
+      "TABLE_NAME": "template_tags"
+    },
+    {
+      "TABLE_NAME": "templates"
+    },
+    {
+      "TABLE_NAME": "tutorial_feedback"
+    },
+    {
+      "TABLE_NAME": "tutorial_progresso"
+    },
+    {
+      "TABLE_NAME": "user_integrations"
+    },
+    {
+      "TABLE_NAME": "user_petitions"
+    },
+    {
+      "TABLE_NAME": "user_style_profiles"
+    },
+    {
+      "TABLE_NAME": "users"
+    },
+    {
+      "TABLE_NAME": "uso_modelos"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\n__drizzle_migrations\naccess_logs\naccess_whitelist\nalert_rules\nanalises\naudit_logs\nbackups\ncabecalho_templates\nchat_messages\nchat_sessions\nconfig_reenvio_auto\nconfiguracoes\ncontact_messages\nconvite_logs\ncrm_atividades\ncrm_contratos\ncrm_leads\ncrm_membros\ndocument_versions\nenterprise_leads\nfeature_flags\nfontes_juridicas\nformatacao_templates\nhistorico\nlaunch_interests\nlegislacao_cache\nllm_logs\nnotification_preferences\nnotifications\nperfis_uso\nperformance_alerts\nprice_change_notices\nprice_overrides\nprocessed_stripe_events\nprompt_tags\nprompt_versoes\nprompts\nprompts_salvos\npush_subscriptions\nreferral_codes\nreferrals\nshared_prompts\ntags\ntemplate_tags\ntemplates\ntutorial_feedback\ntutorial_progresso\nuser_integrations\nuser_petitions\nuser_style_profiles\nusers\nuso_modelos\n",
+  "stderr": "",
+  "execution_time_ms": 252
+}

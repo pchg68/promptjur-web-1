@@ -3173,3 +3173,9 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Notifica owner ao iniciar teste
 - [x] effectiveDateOverride adicionado à interface PriceChangeRequest
 - [x] 14 testes unitários passando (apply-pending-prices-job.test.ts)
+
+## Correção de Erros Sentry (09/05/2026)
+- [x] Corrigir: tabela admin_cards_arquivados não existe no banco de produção
+- [x] Verificar se há outras tabelas faltando no banco (onboarding_emails também faltava)
+- [x] Criar tabelas faltando via SQL direto (admin_cards_arquivados + onboarding_emails)
+- [x] Criar skill stripe-sandbox-renewal

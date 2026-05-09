@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `admin_cards_arquivados` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `cardId` varchar(64) NOT NULL,\n  `cardTitulo` varchar(128) NOT NULL,\n  `motivo` text,\n  `archivedBy` varchar(64),\n  `archivedAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `admin_cards_arquivados_id` PRIMARY KEY(`id`),\n  CONSTRAINT `admin_cards_arquivados_cardId_unique` UNIQUE(`cardId`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute CREATE TABLE IF NOT EXISTS `admin_cards_arquivados` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `cardId` varchar(64) NOT NULL,\n  `cardTitulo` varchar(128) NOT NULL,\n  `motivo` text,\n  `archivedBy` varchar(64),\n  `archivedAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `admin_cards_arquivados_id` PRIMARY KEY(`id`),\n  CONSTRAINT `admin_cards_arquivados_cardId_unique` UNIQUE(`cardId`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 306
+}

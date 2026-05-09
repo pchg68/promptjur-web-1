@@ -1,0 +1,106 @@
+{
+  "query": "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME > 'enterprise_leads' ORDER BY TABLE_NAME;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME > 'enterprise_leads' ORDER BY TABLE_NAME;",
+  "rows": [
+    {
+      "TABLE_NAME": "feature_flags"
+    },
+    {
+      "TABLE_NAME": "fontes_juridicas"
+    },
+    {
+      "TABLE_NAME": "formatacao_templates"
+    },
+    {
+      "TABLE_NAME": "historico"
+    },
+    {
+      "TABLE_NAME": "launch_interests"
+    },
+    {
+      "TABLE_NAME": "legislacao_cache"
+    },
+    {
+      "TABLE_NAME": "llm_logs"
+    },
+    {
+      "TABLE_NAME": "notification_preferences"
+    },
+    {
+      "TABLE_NAME": "notifications"
+    },
+    {
+      "TABLE_NAME": "perfis_uso"
+    },
+    {
+      "TABLE_NAME": "performance_alerts"
+    },
+    {
+      "TABLE_NAME": "price_change_notices"
+    },
+    {
+      "TABLE_NAME": "price_overrides"
+    },
+    {
+      "TABLE_NAME": "processed_stripe_events"
+    },
+    {
+      "TABLE_NAME": "prompt_tags"
+    },
+    {
+      "TABLE_NAME": "prompt_versoes"
+    },
+    {
+      "TABLE_NAME": "prompts"
+    },
+    {
+      "TABLE_NAME": "prompts_salvos"
+    },
+    {
+      "TABLE_NAME": "push_subscriptions"
+    },
+    {
+      "TABLE_NAME": "referral_codes"
+    },
+    {
+      "TABLE_NAME": "referrals"
+    },
+    {
+      "TABLE_NAME": "shared_prompts"
+    },
+    {
+      "TABLE_NAME": "tags"
+    },
+    {
+      "TABLE_NAME": "template_tags"
+    },
+    {
+      "TABLE_NAME": "templates"
+    },
+    {
+      "TABLE_NAME": "tutorial_feedback"
+    },
+    {
+      "TABLE_NAME": "tutorial_progresso"
+    },
+    {
+      "TABLE_NAME": "user_integrations"
+    },
+    {
+      "TABLE_NAME": "user_petitions"
+    },
+    {
+      "TABLE_NAME": "user_style_profiles"
+    },
+    {
+      "TABLE_NAME": "users"
+    },
+    {
+      "TABLE_NAME": "uso_modelos"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\nfeature_flags\nfontes_juridicas\nformatacao_templates\nhistorico\nlaunch_interests\nlegislacao_cache\nllm_logs\nnotification_preferences\nnotifications\nperfis_uso\nperformance_alerts\nprice_change_notices\nprice_overrides\nprocessed_stripe_events\nprompt_tags\nprompt_versoes\nprompts\nprompts_salvos\npush_subscriptions\nreferral_codes\nreferrals\nshared_prompts\ntags\ntemplate_tags\ntemplates\ntutorial_feedback\ntutorial_progresso\nuser_integrations\nuser_petitions\nuser_style_profiles\nusers\nuso_modelos\n",
+  "stderr": "",
+  "execution_time_ms": 374
+}
