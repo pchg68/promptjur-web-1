@@ -14,6 +14,7 @@ import { executarAuditoriaNpm, atualizarDependenciasSeguras } from "./security-a
 import { criarBackup, listarBackups, restaurarBackup } from "./backup";
 import { storageGet } from "./storage";
 import { getSentryStatus, isSentryActive } from "./_core/sentry";
+import { getQueryErrorStats } from "./_core/query-error-alert";
 import { enterpriseLeads, launchInterests, accessWhitelist } from "../drizzle/schema";
 import { addToWhitelist, removeFromWhitelist, listWhitelist } from "./whitelist";
 import { sendWelcomeEmail, sendWelcomeEmailBatch, sendLaunchNotificationEmail } from "./email";
@@ -766,6 +767,11 @@ export const adminRouter = router({
       ...status,
       timestamp: new Date().toISOString(),
     };
+  }),
+
+  // Estatísticas de erros de query (alerta proativo — threshold 3+ em 1h)
+  queryErrorStats: adminProcedure.query(async () => {
+    return getQueryErrorStats();
   }),
 
   // ===== LEADS ENTERPRISE =====

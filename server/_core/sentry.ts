@@ -10,6 +10,7 @@
  */
 
 import * as Sentry from "@sentry/node";
+import { trackQueryError } from "./query-error-alert";
 
 let sentryInitialized = false;
 
@@ -205,6 +206,12 @@ export function handleTRPCError({ error, path, type, ctx }: {
   
   // Log no console para debugging local
   console.error(`[tRPC Error] ${type} ${path}:`, error?.message || error);
+
+  // Rastrear erros de query para alerta proativo (threshold 3+ em 1h)
+  const errorMsg = error?.message || String(error);
+  if (errorMsg.includes("Failed query") || errorMsg.includes("Table") && errorMsg.includes("doesn't exist")) {
+    trackQueryError(errorMsg, path || "unknown").catch(() => {});
+  }
   
   if (!sentryInitialized) return;
   

@@ -3179,3 +3179,9 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Verificar se há outras tabelas faltando no banco (onboarding_emails também faltava)
 - [x] Criar tabelas faltando via SQL direto (admin_cards_arquivados + onboarding_emails)
 - [x] Criar skill stripe-sandbox-renewal
+
+## Implementação das Sugestões Sentry/Stripe (09/05/2026)
+- [x] Solicitar novas chaves Stripe — gerenciado via Settings → Payment (chaves são built-in)
+- [x] Job de monitoramento de divergência de schema (server/jobs/schema-drift-monitor.ts)
+- [x] Alerta proativo para erros de Failed query com threshold 3+/1h (server/_core/query-error-alert.ts)
+- [x] 14 testes unitários passando (schema-drift-and-alert.test.ts)
