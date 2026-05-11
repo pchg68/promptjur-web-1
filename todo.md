@@ -3203,3 +3203,7 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Notificação ao owner quando revisão trimestral for gerada
 - [x] Ao aprovar: disparar aviso prévio CDC 30 dias automaticamente para cada produto
 - [x] 16 testes unitários passando (quarterly-price-review.test.ts)
+
+## Sugestões Revisão Trimestral — Implementação (11/05/2026)
+- [x] Badge de revisões pendentes no header do /admin-precos (badge azul clicável, navega para seção)
+- [x] Skill promptjur-pricing-workflow documentando workflow completo (validada)

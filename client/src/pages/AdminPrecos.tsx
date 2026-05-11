@@ -238,12 +238,20 @@ export default function AdminPrecos() {
               Visualize, ajuste e gerencie avisos prévios de reajuste (CDC Art. 6º)
             </p>
           </div>
-          {pendingAvisosCount > 0 && (
-            <Badge className="ml-auto bg-amber-500 text-white gap-1">
-              <Bell className="h-3 w-3" />
-              {pendingAvisosCount} aviso{pendingAvisosCount > 1 ? "s" : ""} pendente{pendingAvisosCount > 1 ? "s" : ""}
-            </Badge>
-          )}
+          <div className="ml-auto flex items-center gap-2">
+            {pendingAvisosCount > 0 && (
+              <Badge className="bg-amber-500 text-white gap-1 cursor-pointer" onClick={() => setExpandedSection("avisos")}>
+                <Bell className="h-3 w-3" />
+                {pendingAvisosCount} aviso{pendingAvisosCount > 1 ? "s" : ""} pendente{pendingAvisosCount > 1 ? "s" : ""}
+              </Badge>
+            )}
+            {pendingRevisoesCount > 0 && (
+              <Badge className="bg-blue-600 text-white gap-1 cursor-pointer" onClick={() => setExpandedSection("revisoes")}>
+                <CalendarClock className="h-3 w-3" />
+                {pendingRevisoesCount} revisão{pendingRevisoesCount > 1 ? "ões" : ""} pendente{pendingRevisoesCount > 1 ? "s" : ""}
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Seção: Planos */}
