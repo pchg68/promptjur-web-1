@@ -1,8 +1,21 @@
 /**
  * Definição centralizada dos produtos e planos do PromptJur
- * 
+ *
  * Os preços são definidos aqui e usados tanto no backend (checkout)
  * quanto no frontend (página de planos)
+ *
+ * ─── Metodologia de Precificação ───────────────────────────────────────────
+ * Preços calculados para cobrir:
+ *   • Stripe Payments: 3,99% + R$0,39/transação (cartão nacional)
+ *   • Stripe Billing:  +0,70% sobre o volume de assinaturas
+ *   • Carga tributária futura (Reforma Tributária LC 214/2025): ~21%
+ *     (CBS 8,8% + IBS ~9% + ISS transitório ~3%)
+ *   • Overhead total assinaturas: ~25,69% + R$0,39
+ *   • Overhead total avulso:      ~24,99% + R$0,39
+ *
+ * Atualizado em: 2026-05-11
+ * Revisão recomendada: anualmente ou quando a Reforma Tributária entrar em vigor
+ * ────────────────────────────────────────────────────────────────────────────
  */
 
 export interface PlanFeature {
@@ -67,8 +80,8 @@ export const PLANS: Record<string, Plan> = {
     id: "pro",
     name: "Profissional",
     description: "Para advogados e escritórios",
-    priceMonthly: 4990, // R$ 49,90
-    priceYearly: 47880, // R$ 478,80 (R$ 39,90/mês)
+    priceMonthly: 5790, // R$ 57,90 (inclui Stripe 4,69% + R$0,39 + tributos futuros ~21%)
+    priceYearly: 55080, // R$ 550,80 (R$ 45,90/mês × 12 — 20% desconto anual)
     currency: "brl",
     popular: true,
     features: [
@@ -138,22 +151,23 @@ export interface CreditPackage {
   stripePriceId?: string;
 }
 
+// Preços calculados com Stripe (3,99% + R$0,39) + tributos futuros (~21%)
 export const CREDIT_PACKAGES: CreditPackage[] = [
   {
     id: "credits_10",
     name: "10 Créditos",
     description: "Pacote básico para uso pontual",
     credits: 10,
-    priceInCents: 990, // R$ 9,90
-    pricePerCredit: 99, // R$ 0,99/crédito
+    priceInCents: 1190, // R$ 11,90 (líquido R$ 8,12)
+    pricePerCredit: 119, // R$ 1,19/crédito
   },
   {
     id: "credits_50",
     name: "50 Créditos",
     description: "Pacote intermediário com 15% de desconto",
     credits: 50,
-    priceInCents: 4190, // R$ 41,90 (R$ 0,84/crédito)
-    pricePerCredit: 84,
+    priceInCents: 4890, // R$ 48,90 (R$ 0,98/crédito — líquido R$ 35,65)
+    pricePerCredit: 98,
     popular: true,
   },
   {
@@ -161,16 +175,16 @@ export const CREDIT_PACKAGES: CreditPackage[] = [
     name: "100 Créditos",
     description: "Melhor custo-benefício com 25% de desconto",
     credits: 100,
-    priceInCents: 7490, // R$ 74,90 (R$ 0,75/crédito)
-    pricePerCredit: 75,
+    priceInCents: 8590, // R$ 85,90 (R$ 0,86/crédito — líquido R$ 64,03)
+    pricePerCredit: 86,
   },
   {
     id: "credits_300",
     name: "300 Créditos",
     description: "Pacote profissional com 35% de desconto",
     credits: 300,
-    priceInCents: 19290, // R$ 192,90 (R$ 0,64/crédito)
-    pricePerCredit: 64,
+    priceInCents: 22190, // R$ 221,90 (R$ 0,74/crédito — líquido R$ 165,52)
+    pricePerCredit: 74,
   },
 ];
 

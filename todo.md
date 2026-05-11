@@ -3185,3 +3185,10 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Job de monitoramento de divergência de schema (server/jobs/schema-drift-monitor.ts)
 - [x] Alerta proativo para erros de Failed query com threshold 3+/1h (server/_core/query-error-alert.ts)
 - [x] 14 testes unitários passando (schema-drift-and-alert.test.ts)
+
+## Atualização de Precificação (11/05/2026)
+- [x] Analisar carga tributária atual (Simples Nacional ~10%) + Stripe (4,69% assinatura / 3,99% avulso)
+- [x] Calcular preços antecipando Reforma Tributária LC 214/2025 (carga futura ~21%)
+- [x] Atualizar stripe-products.ts: Pro Mensal R$49,90→R$57,90, Anual R$39,90→R$45,90/mês
+- [x] Atualizar pacotes de créditos: 10→R$11,90, 50→R$48,90, 100→R$85,90, 300→R$221,90
+- [x] Documentar metodologia de precificação no cabeçalho do stripe-products.ts
