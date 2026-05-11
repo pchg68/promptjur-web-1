@@ -23,6 +23,7 @@ import {
   ArrowLeft, DollarSign, TrendingUp, RotateCcw, Edit2,
   ChevronDown, ChevronUp, History, AlertTriangle, Bell,
   BellOff, Clock, CheckCircle2, XCircle, Plus, Info,
+  RefreshCw, CalendarClock, ThumbsUp, ThumbsDown, Play,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -41,7 +42,7 @@ function formatDate(date: string | Date | null | undefined) {
   return new Date(date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-type SectionKey = "planos" | "pacotes" | "avisos" | "historico";
+type SectionKey = "planos" | "pacotes" | "avisos" | "revisoes" | "historico";
 
 export default function AdminPrecos() {
   const [, setLocation] = useLocation();
@@ -65,10 +66,13 @@ export default function AdminPrecos() {
   const [novoPrecoAviso, setNovoPrecoAviso] = useState("");
   const [motivoAviso, setMotivoAviso] = useState("");
   const [histPage, setHistPage] = useState(1);
+  const [rejeitarDialog, setRejeitarDialog] = useState<{ open: boolean; id: number; quarter: string } | null>(null);
+  const [motivoRejeicao, setMotivoRejeicao] = useState("");
 
   const resumo = trpc.adminPrecos.resumoPrecos.useQuery();
   const historico = trpc.adminPrecos.historico.useQuery({ page: histPage, limit: 15 });
   const avisos = trpc.adminPrecos.listarAvisos.useQuery();
+  const revisoes = trpc.adminPrecos.listarRevisoes.useQuery();
   const utils = trpc.useUtils();
 
   const reverterMutation = trpc.adminPrecos.reverter.useMutation({
@@ -147,6 +151,21 @@ export default function AdminPrecos() {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
+  const statusRevisaoBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Badge variant="outline" className="text-amber-500 border-amber-500 gap-1"><Clock className="h-3 w-3" /> Aguardando Aprovação</Badge>;
+      case "approved":
+        return <Badge variant="outline" className="text-blue-500 border-blue-500 gap-1"><ThumbsUp className="h-3 w-3" /> Aprovada</Badge>;
+      case "rejected":
+        return <Badge variant="outline" className="text-muted-foreground gap-1"><ThumbsDown className="h-3 w-3" /> Rejeitada</Badge>;
+      case "applied":
+        return <Badge variant="outline" className="text-green-500 border-green-500 gap-1"><CheckCircle2 className="h-3 w-3" /> Aplicada</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
   const statusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -173,6 +192,34 @@ export default function AdminPrecos() {
   };
 
   const pendingAvisosCount = avisos.data?.filter((a: any) => a.status === "pending").length ?? 0;
+  const pendingRevisoesCount = revisoes.data?.filter((r: any) => r.status === "pending").length ?? 0;
+
+  const aprovarRevisaoMutation = trpc.adminPrecos.aprovarRevisao.useMutation({
+    onSuccess: (data: any) => {
+      toast.success(`Revisão aprovada! ${data.noticeIds.length} aviso(s) prévio(s) criado(s). Os reajustes serão aplicados em 30 dias.`);
+      utils.adminPrecos.listarRevisoes.invalidate();
+      utils.adminPrecos.listarAvisos.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const rejeitarRevisaoMutation = trpc.adminPrecos.rejeitarRevisao.useMutation({
+    onSuccess: () => {
+      toast.success("Revisão rejeitada. Preços mantidos.");
+      setRejeitarDialog(null);
+      setMotivoRejeicao("");
+      utils.adminPrecos.listarRevisoes.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const executarRevisaoMutation = trpc.adminPrecos.executarRevisaoAgora.useMutation({
+    onSuccess: () => {
+      toast.success("Revisão trimestral executada! Verifique as notificações.");
+      utils.adminPrecos.listarRevisoes.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -516,6 +563,133 @@ export default function AdminPrecos() {
           )}
         </Card>
 
+        {/* Seção: Revisões Trimestrais */}
+        <Card className="mb-4">
+          <CardHeader className="cursor-pointer select-none" onClick={() => toggleSection("revisoes")}>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CalendarClock className="h-5 w-5 text-blue-500" />
+                  Revisões Trimestrais de Preços
+                  {pendingRevisoesCount > 0 && (
+                    <Badge className="bg-blue-500 text-white text-xs">{pendingRevisoesCount} pendente{pendingRevisoesCount > 1 ? "s" : ""}</Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>Análise automática trimestral com aprovação do administrador antes de aplicar reajustes</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => { e.stopPropagation(); executarRevisaoMutation.mutate(); }}
+                  disabled={executarRevisaoMutation.isPending}
+                  title="Forçar execução da revisão agora"
+                >
+                  <Play className="h-3 w-3 mr-1" />
+                  {executarRevisaoMutation.isPending ? "Executando..." : "Executar Agora"}
+                </Button>
+                {expandedSection === "revisoes" ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              </div>
+            </div>
+          </CardHeader>
+          {expandedSection === "revisoes" && (
+            <CardContent>
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
+                <Info className="h-4 w-4 text-blue-400 mt-0.5 shrink-0" />
+                <p className="text-sm text-blue-300">
+                  O sistema analisa automaticamente no <strong>1º dia de cada trimestre</strong> (jan/abr/jul/out) se algum produto está com margem abaixo de 70% considerando a carga tributária da Reforma Tributária (21%) + taxas Stripe. Se necessário, cria uma revisão pendente para sua aprovação. O reajuste só é aplicado após aprovacão + 30 dias de aviso prévio (CDC Art. 6º).
+                </p>
+              </div>
+
+              {revisoes.isLoading ? (
+                <p className="text-muted-foreground">Carregando...</p>
+              ) : !revisoes.data || revisoes.data.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <RefreshCw className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>Nenhuma revisão trimestral registrada.</p>
+                  <p className="text-sm mt-1">A próxima revisão automática ocorre no 1º dia do próximo trimestre. Você pode forçar uma execução agora clicando em <strong>"Executar Agora"</strong>.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {revisoes.data.map((rev: any) => {
+                    const items = rev.items as Array<{ entityName: string; currentPrice: number; newPrice: number; adjustmentPercent: number; currentMargin: number }>;
+                    return (
+                      <div key={rev.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-lg">{rev.quarter}</span>
+                            {statusRevisaoBadge(rev.status)}
+                            <Badge variant="outline" className="text-xs">{rev.regime}</Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {rev.status === "pending" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  onClick={() => aprovarRevisaoMutation.mutate({ id: rev.id })}
+                                  disabled={aprovarRevisaoMutation.isPending}
+                                >
+                                  <ThumbsUp className="h-3 w-3 mr-1" />
+                                  Aprovar + Iniciar 30 dias
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setRejeitarDialog({ open: true, id: rev.id, quarter: rev.quarter })}
+                                >
+                                  <ThumbsDown className="h-3 w-3 mr-1" />
+                                  Rejeitar
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Produto</TableHead>
+                              <TableHead>Preço Atual</TableHead>
+                              <TableHead>Preço Recomendado</TableHead>
+                              <TableHead>Reajuste</TableHead>
+                              <TableHead>Margem Atual</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {items.map((item, i) => (
+                              <TableRow key={i}>
+                                <TableCell className="font-medium">{item.entityName}</TableCell>
+                                <TableCell>{formatBRL(item.currentPrice)}</TableCell>
+                                <TableCell className="font-semibold text-amber-500">{formatBRL(item.newPrice)}</TableCell>
+                                <TableCell>
+                                  <span className="text-amber-400">+{item.adjustmentPercent?.toFixed(1)}%</span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className={item.currentMargin < 70 ? "text-red-400" : "text-green-400"}>
+                                    {item.currentMargin?.toFixed(1)}%
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+
+                        {rev.reviewedAt && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {rev.status === "approved" ? "Aprovado" : "Rejeitado"} em {formatDate(rev.reviewedAt)}
+                            {rev.rejectionReason && ` — Motivo: ${rev.rejectionReason}`}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+
         {/* Seção: Histórico */}
         <Card className="mb-4">
           <CardHeader className="cursor-pointer select-none" onClick={() => toggleSection("historico")}>
@@ -668,6 +842,42 @@ export default function AdminPrecos() {
             >
               <Bell className="h-4 w-4 mr-2" />
               {criarAvisoMutation.isPending ? "Enviando emails..." : "Criar Aviso + Enviar Emails"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Rejeitar Revisão Trimestral */}
+      <Dialog open={!!rejeitarDialog} onOpenChange={(open) => !open && setRejeitarDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ThumbsDown className="h-5 w-5 text-destructive" />
+              Rejeitar Revisão {rejeitarDialog?.quarter}
+            </DialogTitle>
+            <DialogDescription>
+              Os preços atuais serão mantidos. Informe o motivo da rejeição para registro histórico.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium">Motivo da Rejeição (opcional)</label>
+            <Textarea
+              placeholder="Ex: Preços adequados para o período. Reavaliar no próximo trimestre..."
+              value={motivoRejeicao}
+              onChange={(e) => setMotivoRejeicao(e.target.value)}
+              rows={3}
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejeitarDialog(null)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              onClick={() => rejeitarDialog && rejeitarRevisaoMutation.mutate({ id: rejeitarDialog.id, motivo: motivoRejeicao || undefined })}
+              disabled={rejeitarRevisaoMutation.isPending}
+            >
+              <ThumbsDown className="h-4 w-4 mr-2" />
+              {rejeitarRevisaoMutation.isPending ? "Rejeitando..." : "Confirmar Rejeição"}
             </Button>
           </DialogFooter>
         </DialogContent>

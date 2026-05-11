@@ -3192,3 +3192,14 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Atualizar stripe-products.ts: Pro Mensal R$49,90→R$57,90, Anual R$39,90→R$45,90/mês
 - [x] Atualizar pacotes de créditos: 10→R$11,90, 50→R$48,90, 100→R$85,90, 300→R$221,90
 - [x] Documentar metodologia de precificação no cabeçalho do stripe-products.ts
+
+## Revisão Trimestral de Preços + Aprovação Admin — CONCLUÍDO (11/05/2026)
+- [x] Suporte a PIX e boleto no script calcular_precos.py (skill saas-pricing-brazil)
+- [x] Criar skill cdc-price-notice documentando o módulo de aviso prévio CDC Art. 6º
+- [x] Job trimestral de revisão de preços (server/jobs/quarterly-price-review.ts)
+- [x] Tabela price_review_requests no banco (status: pending/approved/rejected/applied)
+- [x] Endpoints admin: listarRevisoes, aprovarRevisao, rejeitarRevisao, executarRevisaoAgora
+- [x] UI em /admin-precos: seção "Revisões Trimestrais" com botões Aprovar/Rejeitar/Executar Agora
+- [x] Notificação ao owner quando revisão trimestral for gerada
+- [x] Ao aprovar: disparar aviso prévio CDC 30 dias automaticamente para cada produto
+- [x] 16 testes unitários passando (quarterly-price-review.test.ts)

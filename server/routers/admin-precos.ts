@@ -18,7 +18,8 @@ import { PLANS, CREDIT_PACKAGES } from "../stripe-products";
 import { updatePrices, getEffectivePlanPrice, getEffectiveCreditPrice } from "../scheduled/update-prices";
 import { createPriceChangeNotice, cancelPriceChangeNotice, listPriceChangeNotices } from "../scheduled/price-change-notice";
 import { notifyOwner } from "../_core/notification";
-import { priceChangeNotices } from "../../drizzle/schema";
+import { priceChangeNotices, priceReviewRequests } from "../../drizzle/schema";
+import { quarterlyPriceReviewJob } from "../jobs/quarterly-price-review";
 
 // Middleware admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -317,6 +318,150 @@ export const adminPrecosRouter = router({
         effectiveDate,
         message: `Aviso de teste criado. O reajuste será aplicado em ~2 minutos pelo job diário.`,
       };
+    }),
+
+  // ─── Revisão Trimestral de Preços ───────────────────────────────────────────
+
+  /**
+   * Lista as revisões trimestrais (pendentes, aprovadas, rejeitadas, aplicadas)
+   */
+  listarRevisoes: adminProcedure
+    .input(z.object({
+      status: z.enum(["pending", "approved", "rejected", "applied", "all"]).optional().default("all"),
+    }).optional())
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+
+      const rows = await db
+        .select()
+        .from(priceReviewRequests)
+        .orderBy(desc(priceReviewRequests.createdAt));
+
+      const statusFilter = input?.status ?? "all";
+      return statusFilter === "all" ? rows : rows.filter(r => r.status === statusFilter);
+    }),
+
+  /**
+   * Aprovar uma revisão trimestral — inicia o aviso prévio de 30 dias (CDC Art. 6º)
+   */
+  aprovarRevisao: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco indisponível" });
+
+      const [revisao] = await db
+        .select()
+        .from(priceReviewRequests)
+        .where(eq(priceReviewRequests.id, input.id))
+        .limit(1);
+
+      if (!revisao) throw new TRPCError({ code: "NOT_FOUND", message: "Revisão não encontrada" });
+      if (revisao.status !== "pending") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Revisão já está com status '${revisao.status}'` });
+      }
+
+      const items = revisao.items as Array<{
+        entityId: string;
+        entityType: "plan" | "credit_package";
+        entityName: string;
+        currentPrice: number;
+        newPrice: number;
+        adjustmentPercent: number;
+        reason: string;
+      }>;
+
+      const noticeIds: number[] = [];
+      const erros: string[] = [];
+
+      // Criar aviso prévio de 30 dias para cada produto
+      for (const item of items) {
+        try {
+          const result = await createPriceChangeNotice({
+            entityType: item.entityType,
+            entityId: item.entityId,
+            currentPrice: item.currentPrice,
+            newPrice: item.newPrice,
+            adjustmentPercent: item.adjustmentPercent,
+            reason: item.reason + ` [Aprovado pelo admin ID ${ctx.user.id} em ${new Date().toLocaleDateString("pt-BR")}]`,
+            source: `quarterly-review-${revisao.quarter}`,
+          });
+          noticeIds.push(result.noticeId);
+        } catch (err) {
+          erros.push(`${item.entityName}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+
+      // Atualizar status da revisão
+      await db
+        .update(priceReviewRequests)
+        .set({
+          status: "approved",
+          reviewedBy: ctx.user.id,
+          reviewedAt: new Date(),
+          noticeIds: noticeIds as unknown as Record<string, unknown>[],
+          updatedAt: new Date(),
+        })
+        .where(eq(priceReviewRequests.id, input.id));
+
+      await notifyOwner({
+        title: `✅ Revisão ${revisao.quarter} Aprovada`,
+        content: `${noticeIds.length} aviso(s) prévio(s) criado(s). Os reajustes serão aplicados após 30 dias (CDC Art. 6º).${erros.length > 0 ? `\n\nErros: ${erros.join("; ")}` : ""}`,
+      });
+
+      return { noticeIds, erros, aprovado: true };
+    }),
+
+  /**
+   * Rejeitar uma revisão trimestral — mantém os preços atuais
+   */
+  rejeitarRevisao: adminProcedure
+    .input(z.object({
+      id: z.number(),
+      motivo: z.string().min(1).max(500).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco indisponível" });
+
+      const [revisao] = await db
+        .select()
+        .from(priceReviewRequests)
+        .where(eq(priceReviewRequests.id, input.id))
+        .limit(1);
+
+      if (!revisao) throw new TRPCError({ code: "NOT_FOUND", message: "Revisão não encontrada" });
+      if (revisao.status !== "pending") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Revisão já está com status '${revisao.status}'` });
+      }
+
+      await db
+        .update(priceReviewRequests)
+        .set({
+          status: "rejected",
+          reviewedBy: ctx.user.id,
+          reviewedAt: new Date(),
+          rejectionReason: input.motivo ?? "Sem motivo informado",
+          updatedAt: new Date(),
+        })
+        .where(eq(priceReviewRequests.id, input.id));
+
+      await notifyOwner({
+        title: `❌ Revisão ${revisao.quarter} Rejeitada`,
+        content: `Preços mantidos. Motivo: ${input.motivo ?? "não informado"}.`,
+      });
+
+      return { rejeitado: true };
+    }),
+
+  /**
+   * Forçar execução da revisão trimestral agora (para testes ou execução manual)
+   */
+  executarRevisaoAgora: adminProcedure
+    .mutation(async () => {
+      await quarterlyPriceReviewJob();
+      return { executado: true, mensagem: "Revisão trimestral executada. Verifique as notificações." };
     }),
 
   /**

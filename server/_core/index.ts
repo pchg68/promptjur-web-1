@@ -15,6 +15,7 @@ import { scheduleCacheCleanup } from "../jobs/cache-cleanup";
 import { scheduleWhitelistExpiry } from "../jobs/whitelist-expiry";
 import { scheduleApplyPendingPrices } from "../jobs/apply-pending-prices";
 import { scheduleSchemaDriftMonitor } from "../jobs/schema-drift-monitor";
+import { quarterlyPriceReviewJob, deveExecutarHoje } from "../jobs/quarterly-price-review";
 import { scheduleBackupAutomatico } from "../jobs/backup-automatico";
 import { scheduleReenvioAutomatico } from "../jobs/reenvio-automatico";
 import { handleStripeWebhook } from "./stripeWebhook";
@@ -219,6 +220,17 @@ async function startServer() {
   scheduleWhitelistExpiry();
   scheduleApplyPendingPrices(); // Aplica reajustes pendentes após 30 dias de aviso prévio (CDC Art. 6º)
   scheduleSchemaDriftMonitor(); // Monitora divergência entre schema Drizzle e banco de produção
+
+  // Revisão trimestral de preços (1º dia de jan/abr/jul/out)
+  if (deveExecutarHoje()) {
+    quarterlyPriceReviewJob();
+  }
+  // Verificação diária às 06:00 para garantir execução mesmo após restart
+  setInterval(() => {
+    if (deveExecutarHoje()) {
+      quarterlyPriceReviewJob();
+    }
+  }, 6 * 60 * 60 * 1000); // a cada 6 horas
 
   // Migração roda depois que o servidor já está ouvindo (não bloqueia healthcheck)
   if (process.env.DATABASE_URL) {

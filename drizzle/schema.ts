@@ -1027,3 +1027,30 @@ export const priceChangeNotices = mysqlTable("price_change_notices", {
 
 export type PriceChangeNotice = typeof priceChangeNotices.$inferSelect;
 export type InsertPriceChangeNotice = typeof priceChangeNotices.$inferInsert;
+
+// ─── Revisão Trimestral de Preços ─────────────────────────────────────────────
+
+export const priceReviewRequests = mysqlTable("price_review_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Trimestre de referência, ex: "2026-Q2" */
+  quarter: varchar("quarter", { length: 10 }).notNull(),
+  /** Regime tributário usado no cálculo */
+  regime: varchar("regime", { length: 32 }).notNull(),
+  /** JSON com array de { entityId, entityType, entityName, currentPrice, newPrice, adjustmentPercent } */
+  items: json("items").notNull(),
+  /** Resumo gerado pelo job (markdown) */
+  summary: text("summary"),
+  status: mysqlEnum("status", ["pending", "approved", "rejected", "applied"]).default("pending").notNull(),
+  /** ID do admin que aprovou ou rejeitou */
+  reviewedBy: int("reviewedBy"),
+  reviewedAt: timestamp("reviewedAt"),
+  /** Motivo da rejeição (opcional) */
+  rejectionReason: text("rejectionReason"),
+  /** Ao aprovar, IDs dos price_change_notices criados */
+  noticeIds: json("noticeIds"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type PriceReviewRequest = typeof priceReviewRequests.$inferSelect;
+export type InsertPriceReviewRequest = typeof priceReviewRequests.$inferInsert;
