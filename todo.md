@@ -3207,3 +3207,28 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 ## Sugestões Revisão Trimestral — Implementação (11/05/2026)
 - [x] Badge de revisões pendentes no header do /admin-precos (badge azul clicável, navega para seção)
 - [x] Skill promptjur-pricing-workflow documentando workflow completo (validada)
+
+## Implementação dos 4 Gaps — Iceberg do Vibe Coder (12/05/2026)
+### Gap 1: Auditoria de Segurança
+- [x] Instalar e configurar Helmet.js com CSP
+- [x] Adicionar npm audit ao CI (ci.yml)
+- [x] Testar headers de segurança
+
+### Gap 2: Refatoração de Arquivos Grandes
+- [x] Dividir server/db.ts (1674 linhas) em módulos por domínio
+- [x] Dividir server/admin.ts (1585 linhas) em sub-routers (8 módulos em server/routers/admin/)
+- [x] Atualizar todos os imports dependentes (barrel re-export mantém compat)
+- [x] Garantir que todos os testes continuam passando (16/16 passando)
+
+### Gap 3: Monitoramento de App
+- [x] Implementar app-health-monitor.ts (heap, event loop, DB latency)
+- [x] Adicionar endpoints admin.appMetrics, admin.appMetricsHistory, admin.appAlerts, admin.appThresholds
+- [x] Configurar alertas de threshold via notifyOwner (cooldown 15min)
+- [ ] Adicionar seção "Saúde da Aplicação" no /admin-tools (UI pendente)
+
+### Gap 4: CD Staging
+- [x] Configurar workflow cd-staging.yml para deploy no branch develop
+- [x] Validação pré-deploy (tsc + vitest)
+- [x] Build de staging com artefatos
+- [x] Smoke tests pós-deploy
+- [x] Notificação com resumo no GitHub Actions Summary

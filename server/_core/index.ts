@@ -18,6 +18,7 @@ import { scheduleSchemaDriftMonitor } from "../jobs/schema-drift-monitor";
 import { quarterlyPriceReviewJob, deveExecutarHoje } from "../jobs/quarterly-price-review";
 import { scheduleBackupAutomatico } from "../jobs/backup-automatico";
 import { scheduleReenvioAutomatico } from "../jobs/reenvio-automatico";
+import { scheduleAppHealthMonitor } from "../jobs/app-health-monitor";
 import { handleStripeWebhook } from "./stripeWebhook";
 import { handleGoogleOAuthCallback } from "../google-oauth-callback";
 import { assistenteSSEHandler } from "../assistente-sse";
@@ -58,12 +59,64 @@ async function startServer() {
   app.set('trust proxy', 1);
 
   // Security headers (Helmet) — deve vir antes de qualquer rota
+  const isProduction = process.env.NODE_ENV === "production";
   app.use(
     helmet({
-      // Permite inline scripts/styles do Vite em dev; em prod usa hashes gerados
-      contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+      contentSecurityPolicy: isProduction
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://js.stripe.com",
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com",
+              ],
+              styleSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://fonts.googleapis.com",
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com",
+              ],
+              imgSrc: ["'self'", "data:", "blob:", "https:"],
+              fontSrc: [
+                "'self'",
+                "data:",
+                "https://fonts.gstatic.com",
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com",
+              ],
+              connectSrc: [
+                "'self'",
+                "https://api.stripe.com",
+                "https://*.sentry.io",
+                process.env.BUILT_IN_FORGE_API_URL || "",
+                process.env.VITE_FRONTEND_FORGE_API_URL || "",
+              ].filter(Boolean),
+              frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+              objectSrc: ["'none'"],
+              baseUri: ["'self'"],
+              formAction: ["'self'"],
+              upgradeInsecureRequests: [],
+            },
+          }
+        : false,
+      // HSTS: 1 ano com subdomínios
+      strictTransportSecurity: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+      },
+      // Previne MIME sniffing
+      xContentTypeOptions: true, // nosniff (padrão do Helmet)
+      // Referrer policy restritiva
+      referrerPolicy: { policy: "strict-origin-when-cross-origin" },
       // Cross-Origin policies permissivas para assets CDN (KaTeX, pdfjs, etc.)
       crossOriginEmbedderPolicy: false,
+      // Previne clickjacking
+      xFrameOptions: { action: "deny" },
     })
   );
 
@@ -199,7 +252,6 @@ async function startServer() {
   }
 
   const preferredPort = parseInt(process.env.PORT || "3000");
-  const isProduction = process.env.NODE_ENV === "production";
   const port = isProduction ? preferredPort : await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
@@ -220,6 +272,7 @@ async function startServer() {
   scheduleWhitelistExpiry();
   scheduleApplyPendingPrices(); // Aplica reajustes pendentes após 30 dias de aviso prévio (CDC Art. 6º)
   scheduleSchemaDriftMonitor(); // Monitora divergência entre schema Drizzle e banco de produção
+  scheduleAppHealthMonitor(); // Monitora heap, event loop lag e DB latency a cada 60s
 
   // Revisão trimestral de preços (1º dia de jan/abr/jul/out)
   if (deveExecutarHoje()) {

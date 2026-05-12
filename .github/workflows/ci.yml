@@ -111,3 +111,36 @@ jobs:
 
       - name: Verificar artefatos do build
         run: ls -lh dist/public/assets/*.js | head -10
+
+  # ─────────────────────────────────────────────
+  # Job 4: Auditoria de Segurança de Dependências
+  # ─────────────────────────────────────────────
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Auditoria de segurança (high/critical)
+        run: pnpm audit --audit-level=high || true
+        # '|| true' para não falhar o CI em advisories sem fix disponível
+        # Remover '|| true' quando quiser bloquear merges com vulnerabilidades
+
+      - name: Verificar dependências desatualizadas
+        run: pnpm outdated || true
