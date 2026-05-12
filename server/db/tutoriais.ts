@@ -1,7 +1,7 @@
 /**
  * Helpers de tutoriais e feedback.
  */
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { tutorialFeedback, tutorialProgresso } from "../../drizzle/schema";
 import { getDb } from "./connection";
 

@@ -3279,3 +3279,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Status global com texto descritivo (operacional/atenção/crítico)
 - [x] Tooltip customizado com formatação de ms
 - [x] Testes unitários expandidos (23/23 passando)
+
+## Bug Sentry: sql is not defined em obterEstatisticasFeedback (12/05/2026)
+- [x] Corrigir ReferenceError: sql is not defined em server/db/tutoriais.ts
+- [x] Adicionar import { sql } from "drizzle-orm" no arquivo
+- [x] Validar com testes (endpoint retorna dados corretamente)
