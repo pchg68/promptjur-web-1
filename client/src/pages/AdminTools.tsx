@@ -20,6 +20,7 @@ import TabInteressados from "@/components/TabInteressados";
 import TabWhitelist from "@/components/TabWhitelist";
 import TabMensagens from "@/components/TabMensagens";
 import TabLogAcessos from "@/components/TabLogAcessos";
+import PainelSaudeApp from "@/components/PainelSaudeApp";
 import { useLocation } from "wouter";
 
 // ── Constantes de cards arquiváveis ──────────────────────────────────────────
@@ -502,6 +503,21 @@ export default function AdminTools() {
         <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
           <TabLogAcessos />
         </div>
+
+        {/* Painel de Saúde da Aplicação */}
+        <CollapsibleCard
+          cardId="saude-aplicacao"
+          icon={<Activity className="w-5 h-5 text-emerald-500" />}
+          titulo="Saúde da Aplicação"
+          descricao="Monitoramento em tempo real — DB latency, heap, event loop, CPU"
+          expanded={isExpanded("saude-aplicacao", false)}
+          onToggle={() => toggleCard("saude-aplicacao")}
+          className="mb-6"
+        >
+          <CardContent>
+            <PainelSaudeApp />
+          </CardContent>
+        </CollapsibleCard>
 
         {/* Card de Métricas de Conversão de Convites */}
         {!idsArquivados.has("conversao-convites") && (

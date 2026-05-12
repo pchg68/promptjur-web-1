@@ -3241,3 +3241,13 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Ajustar thresholds: warning 200→500ms, critical 500→2000ms
 - [x] Configurar enableKeepAlive e idleTimeout no mysql2 pool
 - [x] Testes passando (10/10)
+
+### Painel Visual de Saúde da Aplicação (12/05/2026)
+- [x] Criar seção "Saúde da Aplicação" no /admin-tools com gráficos em tempo real
+- [x] Gráfico de latência do DB (histórico + atual) com AreaChart Recharts
+- [x] Gráfico de heap memory (barra de progresso + detalhes)
+- [x] Gráfico de event loop lag com AreaChart Recharts
+- [x] Cards com métricas atuais (uptime, CPU, alertas, conexão DB)
+- [x] Polling automático a cada 30s com botão Live/Pausado
+- [x] Seção recolível (CollapsibleCard) conforme preferência do usuário
+- [x] Testes unitários da lógica de status (9/9 passando)
