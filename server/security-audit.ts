@@ -34,9 +34,29 @@ export interface AuditResult {
  */
 export async function executarAuditoriaNpm(): Promise<AuditResult> {
   try {
-    // Executa pnpm audit --json
+    // Verifica se pnpm está disponível no ambiente
+    try {
+      await execAsync('which pnpm', { timeout: 5000 });
+    } catch {
+      console.warn('[Security Audit] pnpm não disponível neste ambiente (deploy runtime)');
+      return {
+        totalVulnerabilities: -1,
+        critical: 0,
+        high: 0,
+        moderate: 0,
+        low: 0,
+        info: 0,
+        vulnerabilities: [],
+        lastAudit: new Date(),
+        unavailable: true,
+        message: 'Auditoria de dependências não disponível neste ambiente. Execute localmente com: pnpm audit',
+      } as AuditResult & { unavailable: boolean; message: string };
+    }
+
+    // Executa pnpm audit --json com timeout de 30s
     const { stdout } = await execAsync(`cd ${process.cwd()} && pnpm audit --json`, {
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+      timeout: 30000, // 30s timeout
     });
 
     // Parse do resultado JSON
@@ -144,8 +164,10 @@ export async function executarAuditoriaNpm(): Promise<AuditResult> {
       }
     }
 
-    // Se não conseguiu parsear, retorna resultado vazio
+    // Se não conseguiu parsear, retorna resultado com erro informativo
     console.error("[Security Audit] Audit failed:", error.message);
+    const isTimeout = error.killed || error.message?.includes('TIMEOUT');
+    const isNotFound = error.message?.includes('ENOENT') || error.message?.includes('not found');
     return {
       totalVulnerabilities: 0,
       critical: 0,
@@ -155,7 +177,13 @@ export async function executarAuditoriaNpm(): Promise<AuditResult> {
       info: 0,
       vulnerabilities: [],
       lastAudit: new Date(),
-    };
+      unavailable: isTimeout || isNotFound,
+      message: isTimeout 
+        ? 'Auditoria excedeu o tempo limite (30s). Tente novamente ou execute localmente.'
+        : isNotFound
+          ? 'pnpm não encontrado neste ambiente. Execute localmente com: pnpm audit'
+          : `Erro na auditoria: ${error.message?.substring(0, 200)}`,
+    } as AuditResult & { unavailable?: boolean; message?: string };
   }
 }
 
@@ -169,11 +197,23 @@ export async function atualizarDependenciasSeguras(): Promise<{
   errors: string[];
 }> {
   try {
+    // Verifica se pnpm está disponível
+    try {
+      await execAsync('which pnpm', { timeout: 5000 });
+    } catch {
+      return {
+        success: false,
+        updated: [],
+        errors: ['pnpm não disponível neste ambiente. Execute localmente com: pnpm update'],
+      };
+    }
+
     // Executa pnpm update (atualiza apenas dentro do range do package.json)
     const { stdout, stderr } = await execAsync(
       `cd ${process.cwd()} && pnpm update --latest`,
       {
         maxBuffer: 10 * 1024 * 1024,
+        timeout: 60000, // 60s timeout
       }
     );
 

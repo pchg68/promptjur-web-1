@@ -204,10 +204,12 @@ export default function AdminTools() {
 
   // Auditoria de Dependências
   const auditarDependenciasMutation = trpc.admin.auditarDependencias.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setResultadoAuditoriaDeps(data);
       setAuditandoDeps(false);
-      if (data.totalVulnerabilities === 0) {
+      if (data.unavailable) {
+        toast.warning("Auditoria indisponível neste ambiente");
+      } else if (data.totalVulnerabilities === 0) {
         toast.success("✅ Nenhuma vulnerabilidade encontrada!");
       } else {
         toast.warning(`⚠️ ${data.totalVulnerabilities} vulnerabilidade(s) encontrada(s)`);
@@ -215,7 +217,19 @@ export default function AdminTools() {
     },
     onError: (error) => {
       setAuditandoDeps(false);
-      toast.error("Erro ao auditar: " + error.message);
+      // Detecta erros de proxy/gateway (upstream connect error)
+      const msg = error.message || '';
+      if (msg.includes('upstream') || msg.includes('not valid JSON') || msg.includes('Unexpected token')) {
+        setResultadoAuditoriaDeps({
+          unavailable: true,
+          message: 'O servidor não conseguiu executar a auditoria. Isso pode ocorrer em ambientes de deploy onde o pnpm não está disponível ou o comando excedeu o timeout.',
+          totalVulnerabilities: 0,
+          vulnerabilities: [],
+        });
+        toast.warning("Auditoria indisponível neste ambiente");
+      } else {
+        toast.error("Erro ao auditar: " + msg);
+      }
     }
   });
   const atualizarDependenciasMutation = trpc.admin.atualizarDependencias.useMutation({
@@ -1028,7 +1042,18 @@ export default function AdminTools() {
                 )}
               </Button>
 
-              {resultadoAuditoriaDeps && (
+              {resultadoAuditoriaDeps && resultadoAuditoriaDeps.unavailable && (
+                <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                    <p className="text-sm font-medium text-yellow-500">Auditoria indisponível</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{resultadoAuditoriaDeps.message || 'Ferramenta de auditoria não disponível neste ambiente.'}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Execute localmente: <code className="bg-muted px-1 py-0.5 rounded">pnpm audit</code></p>
+                </div>
+              )}
+
+              {resultadoAuditoriaDeps && !resultadoAuditoriaDeps.unavailable && (
                 <div className="space-y-3 mt-4">
                   <div className="grid grid-cols-5 gap-2">
                     <div className="p-2 bg-muted rounded-lg text-center">

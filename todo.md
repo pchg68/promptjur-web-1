@@ -3251,3 +3251,11 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Polling automático a cada 30s com botão Live/Pausado
 - [x] Seção recolível (CollapsibleCard) conforme preferência do usuário
 - [x] Testes unitários da lógica de status (9/9 passando)
+
+## Bug: Erro de JSON na Auditoria (12/05/2026)
+- [x] Corrigir "Unexpected token 'u', 'upstream c'... is not valid JSON" ao executar auditoria
+- [x] Endpoint retornando texto/HTML em vez de JSON (causa: pnpm indisponível no deploy runtime)
+- [x] Adicionar verificação de disponibilidade do pnpm antes de executar
+- [x] Adicionar timeout de 30s no pnpm audit e 60s no pnpm update
+- [x] Tratar erros de proxy/gateway no frontend com mensagem informativa
+- [x] Exibir card de "Auditoria indisponível" em vez de toast de erro
