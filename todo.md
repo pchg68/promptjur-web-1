@@ -3269,3 +3269,13 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Endpoint POST /api/ci/audit (com Bearer auth) para CI salvar resultado
 - [x] Frontend: badge de fonte (CI/Local/Cache) + data da última auditoria
 - [x] Testes unitários (5/5 passando)
+
+## Melhoria Visual do Painel de Latência (12/05/2026)
+- [x] Alertas visuais quando DB latency > 500ms (borda + fundo mudam de cor)
+- [x] Mudança de cor nos gráficos (verde → amarelo → vermelho) conforme threshold
+- [x] Indicador pulsante (animate-pulse) quando em estado crítico
+- [x] Fundo do card muda de cor conforme severidade
+- [x] Gradientes de área dinâmicos nos gráficos
+- [x] Status global com texto descritivo (operacional/atenção/crítico)
+- [x] Tooltip customizado com formatação de ms
+- [x] Testes unitários expandidos (23/23 passando)
