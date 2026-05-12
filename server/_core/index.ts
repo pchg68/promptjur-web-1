@@ -27,7 +27,7 @@ import { tRPCRateLimiter, injectUserMiddleware } from "./rateLimiter";
 import * as Sentry from "@sentry/node";
 import { handleTRPCError, setUserContext } from "./sentry";
 import { migrate } from "drizzle-orm/mysql2/migrator";
-import { getDb } from "../db";
+import { getDb, warmUpDbPool } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -266,6 +266,9 @@ async function startServer() {
       resolve();
     });
   });
+
+  // Warm-up do pool de conexões (evita cold start de 6s+ no primeiro request)
+  warmUpDbPool();
 
   // Agendar jobs
   scheduleCacheCleanup();

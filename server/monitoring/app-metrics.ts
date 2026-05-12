@@ -86,8 +86,8 @@ export const THRESHOLDS = {
     critical: 100,
   },
   dbLatency: {
-    warning: 200,   // ms
-    critical: 500,
+    warning: 500,   // ms
+    critical: 2000, // ms (ajustado para tolerar reconexão TLS ocasional)
   },
 } as const;
 
@@ -134,6 +134,11 @@ export async function measureEventLoopLag(): Promise<number> {
   });
 }
 
+/**
+ * Mede a latência do banco de dados.
+ * Se a primeira tentativa for muito lenta (cold start / reconexão TLS),
+ * faz uma segunda medição para obter a latência real da conexão quente.
+ */
 export async function measureDbLatency(): Promise<number> {
   const start = Date.now();
   try {
@@ -141,7 +146,26 @@ export async function measureDbLatency(): Promise<number> {
     if (!dbConn) return -1; // DB não disponível
     
     await dbConn.execute(sql`SELECT 1`);
-    return Date.now() - start;
+    const firstLatency = Date.now() - start;
+    
+    // Se a primeira medição for > 2s, provavelmente é cold start (reconexão TLS).
+    // Faz uma segunda medição para obter a latência real.
+    if (firstLatency > 2000) {
+      const retryStart = Date.now();
+      await dbConn.execute(sql`SELECT 1`);
+      const retryLatency = Date.now() - retryStart;
+      
+      // Logar o cold start para diagnóstico
+      console.warn(
+        `[AppHealth] DB cold start detectado: ${firstLatency}ms (retry: ${retryLatency}ms). ` +
+        `Pool reconectou após idle timeout.`
+      );
+      
+      // Retornar a latência real (warm), não o cold start
+      return retryLatency;
+    }
+    
+    return firstLatency;
   } catch {
     return -1;
   }

@@ -3232,3 +3232,12 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Build de staging com artefatos
 - [x] Smoke tests pós-deploy
 - [x] Notificação com resumo no GitHub Actions Summary
+
+## Correção de Latência do DB (12/05/2026)
+- [x] Diagnosticar causa da latência de 6699ms (cold start do pool de conexões)
+- [x] Adicionar warm-up do pool na inicialização do servidor
+- [x] Adicionar keep-alive periódico (ping a cada 4min) para evitar idle timeout
+- [x] Implementar retry inteligente no measureDbLatency (descarta cold start)
+- [x] Ajustar thresholds: warning 200→500ms, critical 500→2000ms
+- [x] Configurar enableKeepAlive e idleTimeout no mysql2 pool
+- [x] Testes passando (10/10)

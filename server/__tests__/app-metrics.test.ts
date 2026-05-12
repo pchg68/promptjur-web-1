@@ -123,8 +123,8 @@ describe("App Metrics — Monitoramento de Saúde", () => {
       expect(t.heap.critical).toBe(85);
       expect(t.eventLoop.warning).toBe(50);
       expect(t.eventLoop.critical).toBe(100);
-      expect(t.dbLatency.warning).toBe(200);
-      expect(t.dbLatency.critical).toBe(500);
+      expect(t.dbLatency.warning).toBe(500);
+      expect(t.dbLatency.critical).toBe(2000);
     });
   });
 

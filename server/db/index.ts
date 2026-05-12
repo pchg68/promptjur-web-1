@@ -2,7 +2,7 @@
  * Barrel file — re-exporta todos os módulos de db.
  * Mantém compatibilidade com imports existentes de "../db" e "./db".
  */
-export { getDb } from "./connection";
+export { getDb, warmUpDbPool, closeDbPool } from "./connection";
 export * from "./analises";
 export * from "./analytics";
 export * from "./cabecalho";
