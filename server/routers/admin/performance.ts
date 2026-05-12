@@ -19,7 +19,7 @@ import { router } from "../../_core/trpc";
 import { adminProcedure } from "./shared";
 import { logAuditoria } from "../../audit";
 import { getMetricasPorRota, getStatsPerformance, limparMetricas, listarAlertas, resolverAlerta, getStatsAlertas, criarRegra, listarRegras, toggleRegra, inicializarRegras } from "../../performance";
-import { executarAuditoriaNpm, atualizarDependenciasSeguras } from "../../security-audit";
+import { executarAuditoriaNpm, atualizarDependenciasSeguras, getUltimoResultadoCI } from "../../security-audit";
 import { criarBackup, listarBackups, restaurarBackup } from "../../backup";
 import { storageGet } from "../../storage";
 import { getSentryStatus } from "../../_core/sentry";
@@ -255,10 +255,26 @@ export const adminPerformanceRouter = router({
     return resultado;
   }),
 
-  // Atualizar dependências seguras
+  // Último resultado de auditoria do CI
+  ultimoResultadoCI: adminProcedure.query(async () => {
+    const resultado = await getUltimoResultadoCI();
+    return resultado || { unavailable: true, message: 'Nenhum resultado de CI encontrado.' };
+  }),
+
+  // Atualizar dependências seguras (BLOQUEADO em produção)
   atualizarDependencias: adminProcedure.mutation(async ({ ctx }) => {
     const resultado = await atualizarDependenciasSeguras();
     
+    if (resultado.blocked) {
+      return {
+        success: false,
+        updated: [],
+        errors: [],
+        blocked: true,
+        message: 'Atualização de dependências bloqueada em produção. Execute localmente com: pnpm update',
+      };
+    }
+
     await logAuditoria({
       userId: ctx.user.id,
       acao: 'atualizar_dependencias',

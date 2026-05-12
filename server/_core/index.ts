@@ -146,6 +146,12 @@ async function startServer() {
   // Middleware do Sentry para capturar requisições (versão 10.x não requer handlers manuais)
   // O Sentry 10.x captura automaticamente via integração expressIntegration()
   
+  // ─── CI Webhook Endpoints ──────────────────────────────────────────────
+  app.post("/api/ci/audit", async (req, res) => {
+    const { handleCIAuditWebhook } = await import("../api/ci-audit");
+    return handleCIAuditWebhook(req, res);
+  });
+
   // ─── Scheduled Task Endpoints ───────────────────────────────────────────
   // Endpoint para processar emails de onboarding pendentes (chamado por scheduled task)
   app.post("/api/scheduled/onboarding", async (req, res) => {

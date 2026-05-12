@@ -1054,3 +1054,26 @@ export const priceReviewRequests = mysqlTable("price_review_requests", {
 
 export type PriceReviewRequest = typeof priceReviewRequests.$inferSelect;
 export type InsertPriceReviewRequest = typeof priceReviewRequests.$inferInsert;
+
+// ─── Auditoria de Dependências (CI) ──────────────────────────────────────────
+export const auditResults = mysqlTable("audit_results", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Origem: 'ci' (GitHub Actions) ou 'local' (sandbox/dev) */
+  source: varchar("source", { length: 20 }).notNull(),
+  /** Total de vulnerabilidades encontradas */
+  totalVulnerabilities: int("totalVulnerabilities").default(0).notNull(),
+  critical: int("critical").default(0).notNull(),
+  high: int("high").default(0).notNull(),
+  moderate: int("moderate").default(0).notNull(),
+  low: int("low").default(0).notNull(),
+  info: int("info").default(0).notNull(),
+  /** JSON com detalhes das vulnerabilidades (top 20) */
+  vulnerabilities: json("vulnerabilities"),
+  /** Commit SHA ou branch de referência */
+  commitRef: varchar("commitRef", { length: 64 }),
+  /** Duração da auditoria em ms */
+  durationMs: int("durationMs"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AuditResult = typeof auditResults.$inferSelect;
+export type InsertAuditResult = typeof auditResults.$inferInsert;

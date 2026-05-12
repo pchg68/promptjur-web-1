@@ -3259,3 +3259,13 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Adicionar timeout de 30s no pnpm audit e 60s no pnpm update
 - [x] Tratar erros de proxy/gateway no frontend com mensagem informativa
 - [x] Exibir card de "Auditoria indisponível" em vez de toast de erro
+
+## Melhorias na Auditoria de Dependências (12/05/2026)
+- [x] Criar tabela audit_results no banco para armazenar resultados do CI
+- [x] Atualizar CI (ci.yml) para executar pnpm audit e salvar resultado via API interna
+- [x] Implementar cache de 24h no endpoint auditarDependencias (quando disponível localmente)
+- [x] Desabilitar botão "Atualizar Dependências" em produção (NODE_ENV=production)
+- [x] Frontend: exibir último resultado do CI quando auditoria local indisponível
+- [x] Endpoint POST /api/ci/audit (com Bearer auth) para CI salvar resultado
+- [x] Frontend: badge de fonte (CI/Local/Cache) + data da última auditoria
+- [x] Testes unitários (5/5 passando)

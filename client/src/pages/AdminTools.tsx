@@ -233,13 +233,22 @@ export default function AdminTools() {
     }
   });
   const atualizarDependenciasMutation = trpc.admin.atualizarDependencias.useMutation({
-    onSuccess: (data) => {
-      toast.success(`✅ ${data.updated.length} pacote(s) atualizado(s)!`);
-      setAuditandoDeps(true);
-      auditarDependenciasMutation.mutate();
+    onSuccess: (data: any) => {
+      if (data.blocked) {
+        toast.warning("Atualização bloqueada em produção. Execute localmente: pnpm update");
+      } else {
+        toast.success(`✅ ${data.updated.length} pacote(s) atualizado(s)!`);
+        setAuditandoDeps(true);
+        auditarDependenciasMutation.mutate();
+      }
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar: " + error.message);
+      const msg = error.message || '';
+      if (msg.includes('upstream') || msg.includes('not valid JSON')) {
+        toast.warning("Atualização não disponível neste ambiente");
+      } else {
+        toast.error("Erro ao atualizar: " + msg);
+      }
     }
   });
 
@@ -1055,6 +1064,16 @@ export default function AdminTools() {
 
               {resultadoAuditoriaDeps && !resultadoAuditoriaDeps.unavailable && (
                 <div className="space-y-3 mt-4">
+                  {resultadoAuditoriaDeps.source && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Badge variant="outline" className="text-xs">
+                        {resultadoAuditoriaDeps.source === 'ci' ? '🔄 CI (GitHub Actions)' : resultadoAuditoriaDeps.source === 'cache' ? '📦 Cache (24h)' : '💻 Local'}
+                      </Badge>
+                      {resultadoAuditoriaDeps.lastAudit && (
+                        <span>Última: {new Date(resultadoAuditoriaDeps.lastAudit).toLocaleString('pt-BR')}</span>
+                      )}
+                    </div>
+                  )}
                   <div className="grid grid-cols-5 gap-2">
                     <div className="p-2 bg-muted rounded-lg text-center">
                       <p className="text-lg font-bold">{resultadoAuditoriaDeps.totalVulnerabilities}</p>

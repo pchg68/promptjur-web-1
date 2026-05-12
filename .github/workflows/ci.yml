@@ -139,8 +139,57 @@ jobs:
 
       - name: Auditoria de segurança (high/critical)
         run: pnpm audit --audit-level=high || true
-        # '|| true' para não falhar o CI em advisories sem fix disponível
-        # Remover '|| true' quando quiser bloquear merges com vulnerabilidades
 
       - name: Verificar dependências desatualizadas
         run: pnpm outdated || true
+
+      - name: Salvar resultado de auditoria na API
+        if: always()
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CI_AUDIT_TOKEN: ${{ secrets.CI_AUDIT_TOKEN }}
+        run: |
+          START_TIME=$SECONDS
+          AUDIT_JSON=$(pnpm audit --json 2>/dev/null || echo '{}')
+          DURATION_MS=$(( (SECONDS - START_TIME) * 1000 ))
+
+          # Extrair contagens do JSON
+          PAYLOAD=$(echo "$AUDIT_JSON" | node -e "
+            const data = require('fs').readFileSync('/dev/stdin','utf8');
+            try {
+              const j = JSON.parse(data);
+              const vulns = j.vulnerabilities || {};
+              const counts = { total: 0, critical: 0, high: 0, moderate: 0, low: 0, info: 0, vulns: [] };
+              for (const [name, v] of Object.entries(vulns)) {
+                counts.total++;
+                const sev = v.severity || 'info';
+                counts[sev] = (counts[sev] || 0) + 1;
+                if (counts.vulns.length < 20) {
+                  counts.vulns.push({ name, severity: sev, title: v.title || name, fixAvailable: v.fixAvailable !== false });
+                }
+              }
+              console.log(JSON.stringify({
+                totalVulnerabilities: counts.total,
+                critical: counts.critical,
+                high: counts.high,
+                moderate: counts.moderate,
+                low: counts.low,
+                info: counts.info,
+                vulnerabilities: counts.vulns,
+                commitRef: process.env.GITHUB_SHA?.substring(0, 8) || 'unknown',
+                durationMs: parseInt(process.env.DURATION_MS) || 0
+              }));
+            } catch(e) {
+              console.log(JSON.stringify({ totalVulnerabilities: 0, critical: 0, high: 0, moderate: 0, low: 0, info: 0, vulnerabilities: [], commitRef: 'error', durationMs: 0 }));
+            }
+          ")
+
+          if [ -n "$CI_AUDIT_TOKEN" ] && [ -n "$APP_URL" ]; then
+            curl -sf -X POST "${APP_URL}/api/ci/audit" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${CI_AUDIT_TOKEN}" \
+              -d "$PAYLOAD" && echo "[CI] Resultado de auditoria enviado com sucesso" \
+              || echo "[CI] Falha ao enviar resultado (endpoint pode estar indisponível)"
+          else
+            echo "[CI] CI_AUDIT_TOKEN ou APP_URL não configurados - pulando envio"
+          fi
