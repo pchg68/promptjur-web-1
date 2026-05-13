@@ -26,6 +26,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock, Bot, History, BookOpen, Settings, BookMarked, HelpCircle, Gift } from "lucide-react";
 import { QuotaWidget } from "./QuotaWidget";
 import { OnboardingTour, TourStep } from "./OnboardingTour";
+import { TrialBanner } from "./TrialBanner";
 
 const ONBOARDING_STEPS: TourStep[] = [
   {
@@ -386,6 +387,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
+        <TrialBanner />
         <main className="flex-1 p-4">{children}</main>
       </SidebarInset>
       <OnboardingTour steps={ONBOARDING_STEPS} storageKey="promptjur-onboarding-v3" />

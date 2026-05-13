@@ -3315,3 +3315,26 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Alertas consecutivos aumentados de 2 para 3 (reduz falsos positivos)
   - [x] Notificação de resolução: avisa quando alerta é resolvido automaticamente
   - [x] Logging de latência do keep-alive para diagnóstico de reconexões lentas
+
+## Trial de 7 Dias Gratuitos (13/05/2026)
+- [x] Implementar período de trial de 7 dias gratuitos para novos usuários
+  - [x] Módulo server/trial.ts com activateTrial, getTrialStatus, isTrialActive, getEffectivePlan
+  - [x] Ativação automática no primeiro login (oauth.ts)
+- [x] Após trial, exigir escolha de plano e pagamento via Stripe
+  - [x] Banner de trial expirado na página de planos
+  - [x] CTA de upgrade no dashboard (TrialBanner)
+- [x] Adicionar campo trialEndsAt e trialUsed no schema do usuário
+  - [x] Colunas criadas via SQL (drizzle-kit push interativo não funcionou)
+- [x] Integração com quota.ts para usar limites Pro durante trial
+- [x] UI de contagem regressiva do trial no dashboard (TrialBanner.tsx)
+  - [x] Banner no DashboardLayout com dias/horas restantes
+  - [x] Badge "Trial Pro" no QuotaWidget
+  - [x] Badge "Trial Ativo" no card do plano Pro na página de planos
+  - [x] Contagem regressiva no MeuPlano
+- [x] Paywall suave quando trial expira sem plano ativo
+  - [x] Banner vermelho no dashboard
+  - [x] Banner âmbar na página de planos
+- [x] Integração com Stripe Checkout para assinatura pós-trial
+  - [x] Botão "Assinar" visível mesmo durante trial (não mostra "Plano Atual")
+- [x] FAQ atualizado com informação do trial de 7 dias
+- [x] 12 testes unitários do módulo trial passando

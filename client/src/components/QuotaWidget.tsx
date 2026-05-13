@@ -60,8 +60,10 @@ export function QuotaWidget() {
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">
-          {planLabel}
+        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 ${
+          (usage as any).isOnTrial ? "border-violet-500/50 text-violet-400" : ""
+        }`}>
+          {(usage as any).isOnTrial ? "Trial Pro" : planLabel}
         </Badge>
       </div>
 

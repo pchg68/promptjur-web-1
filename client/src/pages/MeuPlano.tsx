@@ -53,6 +53,9 @@ export default function MeuPlano() {
   const { data: currentPlan, isLoading: planLoading } = trpc.stripe.getCurrentPlan.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+  const { data: trialStatus } = trpc.stripe.getTrialStatus.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
   const { data: usageHistory } = trpc.prompts.stats.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -148,9 +151,16 @@ export default function MeuPlano() {
                   </p>
                 </div>
               </div>
-              <Badge variant="outline" className="border-violet-500/40 text-violet-600 dark:text-violet-400">
-                Ativo
-              </Badge>
+              {(currentPlan as any)?.isOnTrial ? (
+                <Badge variant="outline" className="border-violet-500/50 text-violet-400">
+                  <Zap className="w-3 h-3 mr-1" />
+                  Trial {trialStatus?.daysRemaining !== undefined ? `${trialStatus.daysRemaining}d ${trialStatus.hoursRemaining}h` : ""}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-violet-500/40 text-violet-600 dark:text-violet-400">
+                  Ativo
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent>

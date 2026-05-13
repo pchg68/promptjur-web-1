@@ -281,6 +281,9 @@ export default function Planos() {
   const { data: currentPlan } = trpc.stripe.getCurrentPlan.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+  const { data: trialStatus } = trpc.stripe.getTrialStatus.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
   // ─── Créditos extras ─────────────────────────────────────────────────────────
   const { data: creditPackages } = trpc.stripe.getCreditPackages.useQuery();
@@ -602,6 +605,48 @@ export default function Planos() {
           </div>
         )}
 
+        {/* Banner de Trial */}
+        {trialStatus?.isActive && (
+          <div className="max-w-5xl mx-auto mb-8 rounded-xl border border-violet-500/30 bg-violet-500/5 p-4">
+            <div className="flex items-center gap-3 flex-wrap justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-violet-500/20">
+                  <Sparkles className="w-5 h-5 text-violet-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-violet-300 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Você está no Trial Profissional — {trialStatus.daysRemaining}d {trialStatus.hoursRemaining}h restantes
+                  </p>
+                  <p className="text-xs text-violet-200/70 mt-0.5">
+                    Aproveite todos os recursos do plano Profissional gratuitamente por {trialStatus.trialDurationDays} dias.
+                    Assine antes do término para não perder acesso.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner Trial Expirado */}
+        {trialStatus?.trialUsed && !trialStatus?.isActive && !trialStatus?.hasPaidPlan && (
+          <div className="max-w-5xl mx-auto mb-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/20">
+                <Clock className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-amber-300">
+                  Seu trial de {trialStatus.trialDurationDays} dias expirou
+                </p>
+                <p className="text-xs text-amber-200/70 mt-0.5">
+                  Escolha um plano abaixo para continuar com acesso completo aos recursos profissionais.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Title Section */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
@@ -612,9 +657,16 @@ export default function Planos() {
             Planos e Preços
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Escolha o plano ideal para suas necessidades jurídicas. Todos os planos incluem
-            acesso ao sistema de engenharia de prompts.
+            {trialStatus?.isActive
+              ? "Seu trial está ativo! Assine um plano para garantir acesso contínuo após o período de teste."
+              : "Escolha o plano ideal para suas necessidades jurídicas. Todos os planos incluem acesso ao sistema de engenharia de prompts."}
           </p>
+          {!trialStatus?.trialUsed && isAuthenticated && (
+            <p className="text-sm text-violet-400 mt-2">
+              <Sparkles className="w-4 h-4 inline mr-1" />
+              Todos os novos usuários recebem 7 dias de trial gratuito do plano Profissional!
+            </p>
+          )}
         </div>
 
         {/* Billing Toggle — hidden for enterprise-only view */}
@@ -686,10 +738,20 @@ export default function Planos() {
                 )}
 
                 {/* Current Plan Badge */}
-                {isCurrentPlan && (
+                {isCurrentPlan && !((currentPlan as any)?.isOnTrial && plan.id === "pro") && (
                   <div className="absolute -top-3 right-4">
                     <span className="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                       Plano Atual
+                    </span>
+                  </div>
+                )}
+
+                {/* Trial Badge */}
+                {(currentPlan as any)?.isOnTrial && plan.id === "pro" && (
+                  <div className="absolute -top-3 right-4">
+                    <span className="bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Trial Ativo
                     </span>
                   </div>
                 )}
@@ -765,7 +827,7 @@ export default function Planos() {
 
                 {/* CTA Button */}
                 <div className="mt-auto">
-                  {isCurrentPlan ? (
+                  {isCurrentPlan && !((currentPlan as any)?.isOnTrial) ? (
                     <Button variant="outline" className="w-full" disabled>
                       Plano Atual
                     </Button>
@@ -996,7 +1058,7 @@ export default function Planos() {
               },
               {
                 q: "Existe período de teste?",
-                a: "O plano Gratuito permite que você experimente o sistema com 20 operações por mês. Não é necessário cartão de crédito para começar.",
+                a: "Sim! Todos os novos usuários recebem automaticamente 7 dias de trial gratuito do plano Profissional, com acesso a todos os recursos premium (300 operações, GPT-4o + Claude + Gemini, templates ilimitados). Não é necessário cartão de crédito. Após o trial, você pode escolher um plano pago ou continuar com o plano Gratuito (20 operações/mês).",
               },
               {
                 q: "Como funciona o cancelamento?",

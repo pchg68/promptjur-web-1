@@ -106,6 +106,16 @@ export function registerOAuthRoutes(app: Express) {
 
         console.log(`[OAuth] Primeiro acesso registrado: ${email} (${nome}) em ${horario}`);
 
+        // Ativar trial de 7 dias no primeiro acesso (fire-and-forget)
+        import("../trial").then(async ({ activateTrial }) => {
+          const novoUsuario = await db.getUserByOpenId(userInfo.openId);
+          if (novoUsuario?.id) {
+            await activateTrial(novoUsuario.id);
+          }
+        }).catch((err) => {
+          console.error("[OAuth] Falha ao ativar trial:", err);
+        });
+
         // Enviar email de boas-vindas no primeiro acesso (fire-and-forget)
         if (userInfo.email) {
           sendWelcomeEmail({

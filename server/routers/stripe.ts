@@ -8,12 +8,24 @@ import { PLANS, formatPrice, CREDIT_PACKAGES, getCreditPackage } from "../stripe
 import { TRPCError } from "@trpc/server";
 import { isFeatureEnabled } from "../feature-flags";
 import { getUserQuotaSummary } from "../quota";
+import { getTrialStatus, activateTrial, TRIAL_DURATION_DAYS } from "../trial";
 
 export const stripeRouter = router({
   /**
    * Retorna o resumo de quota do usuário autenticado
    * (operações usadas, restantes, próximo reset)
    */
+  /**
+   * Retorna o status do trial do usuário autenticado
+   */
+  getTrialStatus: protectedProcedure.query(async ({ ctx }) => {
+    const status = await getTrialStatus(ctx.user.id);
+    return {
+      ...status,
+      trialDurationDays: TRIAL_DURATION_DAYS,
+    };
+  }),
+
   getMyUsage: protectedProcedure.query(async ({ ctx }) => {
     const summary = await getUserQuotaSummary(ctx.user.id);
     if (!summary) {
@@ -111,9 +123,16 @@ export const stripeRouter = router({
    */
   getCurrentPlan: protectedProcedure.query(async ({ ctx }) => {
     const planId = ctx.user.subscriptionPlan || "free";
-    const plan = PLANS[planId];
-    if (!plan) return { ...PLANS.free, currentPlan: true };
-    return { ...plan, currentPlan: true };
+    const trialInfo = await getTrialStatus(ctx.user.id);
+    const effectivePlanId = (planId === "free" && trialInfo.isActive) ? "pro" : planId;
+    const plan = PLANS[effectivePlanId];
+    if (!plan) return { ...PLANS.free, currentPlan: true, isOnTrial: false, basePlan: "free" };
+    return {
+      ...plan,
+      currentPlan: true,
+      isOnTrial: trialInfo.isActive && planId === "free",
+      basePlan: planId,
+    };
   }),
 
   /**

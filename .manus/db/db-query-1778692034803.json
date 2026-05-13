@@ -1,0 +1,50 @@
+{
+  "query": "SELECT id, name, email, subscriptionPlan, trialEndsAt, trialUsed FROM users LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT id, name, email, subscriptionPlan, trialEndsAt, trialUsed FROM users LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Paulo Cesar Hertt Grande",
+      "email": "pc@hertt.com.br",
+      "subscriptionPlan": "enterprise",
+      "trialEndsAt": "NULL",
+      "trialUsed": "0"
+    },
+    {
+      "id": "4140001",
+      "name": "Milene A. M. Scheer",
+      "email": "milenescheer72@gmail.com",
+      "subscriptionPlan": "free",
+      "trialEndsAt": "NULL",
+      "trialUsed": "0"
+    },
+    {
+      "id": "6450001",
+      "name": "Glauco Iwersen",
+      "email": "glauiwer@gmail.com",
+      "subscriptionPlan": "free",
+      "trialEndsAt": "NULL",
+      "trialUsed": "0"
+    },
+    {
+      "id": "7620001",
+      "name": "ANDREZA JULIANA",
+      "email": "andrezaju78@gmail.com",
+      "subscriptionPlan": "free",
+      "trialEndsAt": "NULL",
+      "trialUsed": "0"
+    },
+    {
+      "id": "7650001",
+      "name": "advwilsonoliveira",
+      "email": "advwilsonoliveira@gmail.com",
+      "subscriptionPlan": "free",
+      "trialEndsAt": "NULL",
+      "trialUsed": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tsubscriptionPlan\ttrialEndsAt\ttrialUsed\n1\tPaulo Cesar Hertt Grande\tpc@hertt.com.br\tenterprise\tNULL\t0\n4140001\tMilene A. M. Scheer\tmilenescheer72@gmail.com\tfree\tNULL\t0\n6450001\tGlauco Iwersen\tglauiwer@gmail.com\tfree\tNULL\t0\n7620001\tANDREZA JULIANA\tandrezaju78@gmail.com\tfree\tNULL\t0\n7650001\tadvwilsonoliveira\tadvwilsonoliveira@gmail.com\tfree\tNULL\t0\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}

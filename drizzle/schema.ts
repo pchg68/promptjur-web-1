@@ -18,6 +18,10 @@ export const users = mysqlTable("users", {
   usageCount: int("usageCount").default(0).notNull(),
   bonusCredits: int("bonusCredits").default(0).notNull(),
   monthlyUsageResetAt: timestamp("monthlyUsageResetAt").defaultNow().notNull(),
+  /** Data de término do período de trial (7 dias após cadastro). NULL = sem trial ativo */
+  trialEndsAt: timestamp("trialEndsAt"),
+  /** Indica se o trial já foi usado (evita reativação) */
+  trialUsed: boolean("trialUsed").default(false).notNull(),
   stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
   stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

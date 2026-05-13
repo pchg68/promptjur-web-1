@@ -22,6 +22,7 @@ import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { PLANS } from "./stripe-products";
+import { isTrialActive } from "./trial";
 
 /** Retorna o limite mensal do plano (−1 = ilimitado) */
 export function getPlanMonthlyLimit(plan: string): number {
@@ -68,7 +69,12 @@ export async function checkPlanQuota(userId: number): Promise<void> {
   }
 
   // ── Verificar limite ─────────────────────────────────────────────────────
-  const limit = getPlanMonthlyLimit(user.subscriptionPlan);
+  // Verificar se o trial está ativo (concede acesso Pro temporário)
+  const effectivePlan = user.subscriptionPlan === "free" && await isTrialActive(userId)
+    ? "pro"
+    : user.subscriptionPlan;
+
+  const limit = getPlanMonthlyLimit(effectivePlan);
   if (limit === -1) return; // ilimitado
 
   if (user.usageCount >= limit) {
@@ -78,9 +84,9 @@ export async function checkPlanQuota(userId: number): Promise<void> {
     }
 
     const planName =
-      user.subscriptionPlan === "free"
+      effectivePlan === "free"
         ? "Gratuito"
-        : user.subscriptionPlan === "pro"
+        : effectivePlan === "pro"
         ? "Profissional"
         : "Escritório";
 
@@ -254,7 +260,10 @@ export async function getUserQuotaSummary(userId: number) {
 
   if (!user) return null;
 
-  const limit = getPlanMonthlyLimit(user.subscriptionPlan);
+  // Verificar trial ativo para plano efetivo
+  const trialActive = user.subscriptionPlan === "free" && await isTrialActive(userId);
+  const effectivePlan = trialActive ? "pro" : user.subscriptionPlan;
+  const limit = getPlanMonthlyLimit(effectivePlan);
   const now = new Date();
 
   // Calcular próximo reset (1º dia do próximo mês)
@@ -269,7 +278,9 @@ export async function getUserQuotaSummary(userId: number) {
   const totalAvailable = limit === -1 ? -1 : limit + (user.bonusCredits ?? 0);
 
   return {
-    plan: user.subscriptionPlan,
+    plan: effectivePlan,
+    basePlan: user.subscriptionPlan,
+    isOnTrial: trialActive,
     usageCount: currentUsage,
     limit,
     bonusCredits: user.bonusCredits ?? 0,
