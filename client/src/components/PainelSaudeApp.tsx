@@ -953,6 +953,20 @@ export default function PainelSaudeApp() {
                 <span className="text-muted-foreground">Samples</span>
                 <span className="font-mono">{metrics.dbLatency.samples}</span>
               </div>
+              {metrics.dbLatency.wasColdStart && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Cold Start</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/50 text-amber-400 animate-pulse">
+                    Reconexão TLS
+                  </Badge>
+                </div>
+              )}
+              {historyQuery.data?.coldStarts != null && historyQuery.data.coldStarts > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Cold Starts</span>
+                  <span className="font-mono text-amber-400">{historyQuery.data.coldStarts}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Última verificação</span>
                 <span className="font-mono text-[10px]">
@@ -974,6 +988,12 @@ export default function PainelSaudeApp() {
           <span>Uptime: {metrics.uptime.formatted}</span>
           <span>•</span>
           <span>Samples: {metrics.dbLatency.samples} (DB) / {metrics.eventLoop.samples} (EL)</span>
+          {historyQuery.data?.coldStarts ? (
+            <>
+              <span>•</span>
+              <span className="text-amber-400">Cold Starts: {historyQuery.data.coldStarts}</span>
+            </>
+          ) : null}
         </div>
         <div className="flex items-center gap-1.5">
           <StatusDot status={overallStatus} />

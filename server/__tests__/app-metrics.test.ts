@@ -1,6 +1,7 @@
 /**
  * Testes unitários para o módulo de monitoramento de app (Gap 3)
- * Verifica: heap metrics, event loop lag, CPU metrics, alertas, thresholds
+ * Verifica: heap metrics, event loop lag, CPU metrics, alertas, thresholds,
+ * grace period de startup, detecção de cold start
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -55,10 +56,10 @@ describe("App Metrics — Monitoramento de Saúde", () => {
   });
 
   describe("measureDbLatency()", () => {
-    it("deve retornar -1 quando DB não está disponível", async () => {
-      const latency = await appMetrics.measureDbLatency();
+    it("deve retornar objeto com latencyMs=-1 e wasColdStart=false quando DB não disponível", async () => {
+      const result = await appMetrics.measureDbLatency();
       // getDb mockado retorna null
-      expect(latency).toBe(-1);
+      expect(result).toEqual({ latencyMs: -1, wasColdStart: false });
     });
   });
 
@@ -94,12 +95,18 @@ describe("App Metrics — Monitoramento de Saúde", () => {
       expect(new Date(snapshot.timestamp).getTime()).toBeGreaterThan(0);
     });
 
-    it("deve gerar alerta crítico quando DB está indisponível", async () => {
+    it("dbLatency deve incluir campo wasColdStart", async () => {
+      const snapshot = await appMetrics.collectAppMetrics();
+      expect(snapshot.dbLatency).toHaveProperty("wasColdStart");
+      expect(typeof snapshot.dbLatency.wasColdStart).toBe("boolean");
+    });
+
+    it("durante grace period, alerta de DB indisponível deve ser suprimido", async () => {
+      // O teste roda nos primeiros 3 minutos do processo, então está no grace period
       const snapshot = await appMetrics.collectAppMetrics();
       const dbAlert = snapshot.alerts.find(a => a.metric === "db_latency");
-      expect(dbAlert).toBeDefined();
-      expect(dbAlert!.level).toBe("critical");
-      expect(dbAlert!.message).toContain("indisponível");
+      // No grace period, alertas de DB são suprimidos
+      expect(dbAlert).toBeUndefined();
     });
   });
 
@@ -111,8 +118,10 @@ describe("App Metrics — Monitoramento de Saúde", () => {
       const history = appMetrics.getMetricsHistory();
       expect(history).toHaveProperty("eventLoop");
       expect(history).toHaveProperty("dbLatency");
+      expect(history).toHaveProperty("coldStarts");
       expect(history.eventLoop.samples.length).toBeGreaterThan(0);
       expect(history.eventLoop.count).toBeGreaterThan(0);
+      expect(typeof history.coldStarts).toBe("number");
     });
   });
 
@@ -132,8 +141,7 @@ describe("App Metrics — Monitoramento de Saúde", () => {
     it("deve retornar array de alertas", async () => {
       const alerts = await appMetrics.getActiveAlerts();
       expect(Array.isArray(alerts)).toBe(true);
-      // Com DB mockado como null, deve ter pelo menos o alerta de DB
-      expect(alerts.length).toBeGreaterThanOrEqual(1);
+      // No grace period com DB null, alertas de DB são suprimidos
     });
   });
 });

@@ -3284,3 +3284,14 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Corrigir ReferenceError: sql is not defined em server/db/tutoriais.ts
 - [x] Adicionar import { sql } from "drizzle-orm" no arquivo
 - [x] Validar com testes (endpoint retorna dados corretamente)
+
+## Bug: Alerta Crítico DB Latency 4301ms em Produção (13/05/2026)
+- [x] Investigar causa: Cloud Run min-instances=0 destrói container + pool de conexões
+- [x] Grace period de 3 minutos pós-startup (suprime alertas durante estabilização)
+- [x] Alertas consecutivos: requer 2 coletas seguidas antes de notificar
+- [x] Cold start detection: retry automático + descarte do sample de reconexão TLS
+- [x] Keep-alive reduzido de 4min para 2min
+- [x] Cooldown de alertas aumentado de 15min para 30min
+- [x] Delay inicial do monitor aumentado de 10s para 30s
+- [x] Frontend: indicador de cold start e contagem no card Conexão DB
+- [x] Testes atualizados (34/34 passando)

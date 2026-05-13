@@ -20,9 +20,9 @@ let _keepAliveInterval: ReturnType<typeof setInterval> | null = null;
  * Intervalo do keep-alive em ms.
  * TiDB/MySQL geralmente descarta conexões idle após 8h,
  * mas proxies intermediários (como o gateway Manus) podem ter timeout menor (~5min).
- * Usamos 4 minutos para garantir que as conexões não fiquem idle.
+ * Usamos 2 minutos para garantir que as conexões não fiquem idle.
  */
-const KEEP_ALIVE_INTERVAL_MS = 4 * 60 * 1000; // 4 minutos
+const KEEP_ALIVE_INTERVAL_MS = 2 * 60 * 1000; // 2 minutos (reduzido de 4min para combater idle timeout do proxy)
 
 /**
  * Obtém a instância do banco de dados Drizzle ORM.

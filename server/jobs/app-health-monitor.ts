@@ -5,6 +5,7 @@
  * - Coleta métricas de heap, event loop e DB latency
  * - Envia alerta ao owner via notifyOwner quando há alertas críticos
  * - Loga warnings no console
+ * - Suprime alertas de cold start (reconexão TLS) para evitar falsos positivos
  * 
  * Registrado em server/_core/index.ts
  */
@@ -13,15 +14,35 @@ import { collectAppMetrics, type AppAlert } from "../monitoring/app-metrics";
 import { notifyOwner } from "../_core/notification";
 
 const INTERVAL_MS = 60_000; // 1 minuto
-const ALERT_COOLDOWN_MS = 15 * 60_000; // 15 minutos entre alertas do mesmo tipo
+const ALERT_COOLDOWN_MS = 30 * 60_000; // 30 minutos entre alertas do mesmo tipo (aumentado de 15 para 30)
+
+/**
+ * Número de alertas consecutivos necessários antes de notificar.
+ * Evita notificação por picos isolados — só notifica se o problema persistir.
+ */
+const CONSECUTIVE_ALERTS_THRESHOLD = 2;
 
 // Rastrear último alerta enviado por métrica para evitar spam
 const lastAlertSent = new Map<string, number>();
+
+// Rastrear alertas consecutivos por métrica
+const consecutiveAlerts = new Map<string, number>();
 
 function shouldSendAlert(metric: string): boolean {
   const lastSent = lastAlertSent.get(metric);
   if (!lastSent) return true;
   return Date.now() - lastSent > ALERT_COOLDOWN_MS;
+}
+
+function trackConsecutiveAlert(metric: string, isActive: boolean): number {
+  if (isActive) {
+    const count = (consecutiveAlerts.get(metric) || 0) + 1;
+    consecutiveAlerts.set(metric, count);
+    return count;
+  } else {
+    consecutiveAlerts.set(metric, 0);
+    return 0;
+  }
 }
 
 async function runHealthCheck(): Promise<void> {
@@ -32,27 +53,52 @@ async function runHealthCheck(): Promise<void> {
     const criticalAlerts = snapshot.alerts.filter(a => a.level === 'critical');
     const warningAlerts = snapshot.alerts.filter(a => a.level === 'warning');
     
+    // Resetar contadores para métricas que não estão mais em alerta
+    const activeMetrics = new Set(snapshot.alerts.map(a => a.metric));
+    for (const [metric] of consecutiveAlerts) {
+      if (!activeMetrics.has(metric)) {
+        trackConsecutiveAlert(metric, false);
+      }
+    }
+    
     // Log warnings no console
     for (const alert of warningAlerts) {
       console.warn(`[AppHealth] WARNING: ${alert.message}`);
     }
     
-    // Enviar notificação para alertas críticos (com cooldown)
+    // Enviar notificação para alertas críticos (com cooldown E consecutivos)
     for (const alert of criticalAlerts) {
       console.error(`[AppHealth] CRITICAL: ${alert.message}`);
       
-      if (shouldSendAlert(alert.metric)) {
+      const consecutive = trackConsecutiveAlert(alert.metric, true);
+      
+      // Só notifica se o alerta persistir por N coletas consecutivas
+      if (consecutive >= CONSECUTIVE_ALERTS_THRESHOLD && shouldSendAlert(alert.metric)) {
         lastAlertSent.set(alert.metric, Date.now());
         
         try {
           await notifyOwner({
             title: `[PromptJur] Alerta Crítico: ${alert.metric}`,
-            content: `${alert.message}\n\nValor: ${alert.value}\nThreshold: ${alert.threshold}\nTimestamp: ${snapshot.timestamp}`,
+            content: [
+              alert.message,
+              '',
+              `Valor: ${alert.value}`,
+              `Threshold: ${alert.threshold}`,
+              `Alertas consecutivos: ${consecutive}`,
+              `Timestamp: ${snapshot.timestamp}`,
+              '',
+              `Heap: ${snapshot.heap.percentUsed}% | DB avg: ${snapshot.dbLatency.avgLatencyMs}ms | Uptime: ${snapshot.uptime.formatted}`,
+            ].join('\n'),
           });
-          console.log(`[AppHealth] Notificação enviada para alerta: ${alert.metric}`);
+          console.log(`[AppHealth] Notificação enviada para alerta: ${alert.metric} (${consecutive} consecutivos)`);
         } catch (err) {
           console.error(`[AppHealth] Falha ao enviar notificação:`, err);
         }
+      } else if (consecutive < CONSECUTIVE_ALERTS_THRESHOLD) {
+        console.log(
+          `[AppHealth] Alerta ${alert.metric} aguardando confirmação ` +
+          `(${consecutive}/${CONSECUTIVE_ALERTS_THRESHOLD} consecutivos)`
+        );
       }
     }
     
@@ -61,7 +107,7 @@ async function runHealthCheck(): Promise<void> {
       console.log(
         `[AppHealth] Heap: ${snapshot.heap.percentUsed}% | ` +
         `EventLoop: ${snapshot.eventLoop.lagMs}ms (avg: ${snapshot.eventLoop.avgLagMs}ms) | ` +
-        `DB: ${snapshot.dbLatency.latencyMs}ms | ` +
+        `DB: ${snapshot.dbLatency.latencyMs}ms (avg: ${snapshot.dbLatency.avgLatencyMs}ms, coldStart: ${snapshot.dbLatency.wasColdStart}) | ` +
         `Uptime: ${snapshot.uptime.formatted} | ` +
         `Alerts: ${snapshot.alerts.length}`
       );
@@ -74,17 +120,19 @@ async function runHealthCheck(): Promise<void> {
 let intervalId: ReturnType<typeof setInterval> | null = null;
 
 /**
- * Inicia o job de monitoramento de saúde da aplicação
+ * Inicia o job de monitoramento de saúde da aplicação.
+ * Aguarda 30 segundos antes da primeira coleta para dar tempo ao
+ * warm-up do pool de conexões e estabilização do processo.
  */
 export function scheduleAppHealthMonitor(): void {
-  // Executar primeira coleta após 10 segundos (dar tempo para o servidor estabilizar)
+  // Aguardar 30 segundos (antes era 10s — aumentado para dar tempo ao warm-up)
   setTimeout(() => {
     runHealthCheck();
     
     // Agendar execuções periódicas
     intervalId = setInterval(runHealthCheck, INTERVAL_MS);
-    console.log('[AppHealth] Monitor de saúde iniciado (intervalo: 60s)');
-  }, 10_000);
+    console.log('[AppHealth] Monitor de saúde iniciado (intervalo: 60s, cooldown: 30min, consecutivos: 2)');
+  }, 30_000);
 }
 
 /**

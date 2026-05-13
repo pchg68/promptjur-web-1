@@ -11,7 +11,7 @@
  * Expõe alertas quando:
  * - Heap > 80% do limite
  * - Event loop lag > 100ms
- * - DB latency > 500ms
+ * - DB latency > 500ms (após grace period de startup)
  */
 
 import { getDb } from "../db";
@@ -44,6 +44,8 @@ export interface DbLatencyMetrics {
   isHealthy: boolean;
   lastCheck: string;
   samples: number;
+  /** Indica se a medição foi feita durante cold start (reconexão TLS) */
+  wasColdStart: boolean;
 }
 
 export interface CpuMetrics {
@@ -91,12 +93,30 @@ export const THRESHOLDS = {
   },
 } as const;
 
+/**
+ * Grace period após startup do processo.
+ * Durante os primeiros 3 minutos, alertas de DB latency são suprimidos
+ * porque o Cloud Run (min-instances=0) faz cold start completo e
+ * a primeira conexão TLS pode levar 2-7 segundos.
+ */
+const STARTUP_GRACE_PERIOD_MS = 3 * 60 * 1000; // 3 minutos
+const processStartTime = Date.now();
+
+/**
+ * Número mínimo de samples antes de gerar alertas de DB.
+ * Evita falsos positivos quando o monitor acabou de iniciar.
+ */
+const MIN_SAMPLES_FOR_ALERT = 3;
+
 // ─── Histórico de Amostras ──────────────────────────────────────────────────
 
 const MAX_SAMPLES = 60; // últimos 60 samples (1 por minuto = 1h de histórico)
 
 const eventLoopSamples: number[] = [];
 const dbLatencySamples: number[] = [];
+
+/** Contador de cold starts detectados para diagnóstico */
+let coldStartCount = 0;
 
 let lastCpuUsage = process.cpuUsage();
 let lastCpuTime = Date.now();
@@ -136,38 +156,46 @@ export async function measureEventLoopLag(): Promise<number> {
 
 /**
  * Mede a latência do banco de dados.
- * Se a primeira tentativa for muito lenta (cold start / reconexão TLS),
- * faz uma segunda medição para obter a latência real da conexão quente.
+ * 
+ * Estratégia de cold start:
+ * 1. Faz SELECT 1 e mede o tempo
+ * 2. Se > 1500ms, detecta como cold start (reconexão TLS)
+ * 3. Faz retry imediato para obter latência real da conexão quente
+ * 4. Retorna a latência do retry (warm) e marca wasColdStart=true
+ * 5. O cold start NÃO é adicionado ao histórico de samples
+ * 
+ * @returns {{ latencyMs: number, wasColdStart: boolean }}
  */
-export async function measureDbLatency(): Promise<number> {
+export async function measureDbLatency(): Promise<{ latencyMs: number; wasColdStart: boolean }> {
   const start = Date.now();
   try {
     const dbConn = await getDb();
-    if (!dbConn) return -1; // DB não disponível
+    if (!dbConn) return { latencyMs: -1, wasColdStart: false };
     
     await dbConn.execute(sql`SELECT 1`);
     const firstLatency = Date.now() - start;
     
-    // Se a primeira medição for > 2s, provavelmente é cold start (reconexão TLS).
-    // Faz uma segunda medição para obter a latência real.
-    if (firstLatency > 2000) {
+    // Cold start detection: se > 1500ms, provavelmente é reconexão TLS
+    if (firstLatency > 1500) {
+      coldStartCount++;
+      
+      // Retry para obter latência real da conexão quente
       const retryStart = Date.now();
       await dbConn.execute(sql`SELECT 1`);
       const retryLatency = Date.now() - retryStart;
       
-      // Logar o cold start para diagnóstico
       console.warn(
-        `[AppHealth] DB cold start detectado: ${firstLatency}ms (retry: ${retryLatency}ms). ` +
+        `[AppHealth] DB cold start #${coldStartCount} detectado: ${firstLatency}ms → retry: ${retryLatency}ms. ` +
         `Pool reconectou após idle timeout.`
       );
       
-      // Retornar a latência real (warm), não o cold start
-      return retryLatency;
+      // Retornar a latência real (warm), marcando como cold start
+      return { latencyMs: retryLatency, wasColdStart: true };
     }
     
-    return firstLatency;
+    return { latencyMs: firstLatency, wasColdStart: false };
   } catch {
-    return -1;
+    return { latencyMs: -1, wasColdStart: false };
   }
 }
 
@@ -222,9 +250,23 @@ function max(arr: number[]): number {
   return Math.max(...arr);
 }
 
+// ─── Verificação de Grace Period ────────────────────────────────────────────
+
+/**
+ * Verifica se o processo ainda está no grace period de startup.
+ * Durante o grace period, alertas de DB latency são suprimidos.
+ */
+function isInStartupGracePeriod(): boolean {
+  return (Date.now() - processStartTime) < STARTUP_GRACE_PERIOD_MS;
+}
+
 // ─── Geração de Alertas ─────────────────────────────────────────────────────
 
-function generateAlerts(heap: HeapMetrics, eventLoop: EventLoopMetrics, dbLatency: DbLatencyMetrics): AppAlert[] {
+function generateAlerts(
+  heap: HeapMetrics, 
+  eventLoop: EventLoopMetrics, 
+  dbLatency: DbLatencyMetrics
+): AppAlert[] {
   const alerts: AppAlert[] = [];
   
   // Heap alerts
@@ -265,31 +307,59 @@ function generateAlerts(heap: HeapMetrics, eventLoop: EventLoopMetrics, dbLatenc
     });
   }
   
-  // DB latency alerts
+  // DB latency alerts — com proteções contra falsos positivos
+  const inGracePeriod = isInStartupGracePeriod();
+  const hasEnoughSamples = dbLatency.samples >= MIN_SAMPLES_FOR_ALERT;
+  
   if (dbLatency.latencyMs < 0) {
-    alerts.push({
-      level: 'critical',
-      metric: 'db_latency',
-      message: 'Banco de dados indisponível',
-      value: -1,
-      threshold: 0,
-    });
-  } else if (dbLatency.latencyMs >= THRESHOLDS.dbLatency.critical) {
-    alerts.push({
-      level: 'critical',
-      metric: 'db_latency',
-      message: `DB latency de ${dbLatency.latencyMs}ms (limite: ${THRESHOLDS.dbLatency.critical}ms)`,
-      value: dbLatency.latencyMs,
-      threshold: THRESHOLDS.dbLatency.critical,
-    });
-  } else if (dbLatency.latencyMs >= THRESHOLDS.dbLatency.warning) {
-    alerts.push({
-      level: 'warning',
-      metric: 'db_latency',
-      message: `DB latency de ${dbLatency.latencyMs}ms (limite: ${THRESHOLDS.dbLatency.warning}ms)`,
-      value: dbLatency.latencyMs,
-      threshold: THRESHOLDS.dbLatency.warning,
-    });
+    // DB indisponível — sempre alertar (exceto no grace period)
+    if (!inGracePeriod) {
+      alerts.push({
+        level: 'critical',
+        metric: 'db_latency',
+        message: 'Banco de dados indisponível',
+        value: -1,
+        threshold: 0,
+      });
+    }
+  } else if (dbLatency.wasColdStart) {
+    // Cold start detectado — logar mas NÃO gerar alerta crítico
+    // O retry já retornou a latência real (warm)
+    if (dbLatency.latencyMs >= THRESHOLDS.dbLatency.warning) {
+      alerts.push({
+        level: 'warning',
+        metric: 'db_latency',
+        message: `DB latency de ${dbLatency.latencyMs}ms após cold start (reconexão TLS detectada, cold starts: ${coldStartCount})`,
+        value: dbLatency.latencyMs,
+        threshold: THRESHOLDS.dbLatency.warning,
+      });
+    }
+  } else if (!inGracePeriod && hasEnoughSamples) {
+    // Medição normal (não cold start, fora do grace period, com samples suficientes)
+    if (dbLatency.latencyMs >= THRESHOLDS.dbLatency.critical) {
+      alerts.push({
+        level: 'critical',
+        metric: 'db_latency',
+        message: `DB latency de ${dbLatency.latencyMs}ms (limite: ${THRESHOLDS.dbLatency.critical}ms)`,
+        value: dbLatency.latencyMs,
+        threshold: THRESHOLDS.dbLatency.critical,
+      });
+    } else if (dbLatency.latencyMs >= THRESHOLDS.dbLatency.warning) {
+      alerts.push({
+        level: 'warning',
+        metric: 'db_latency',
+        message: `DB latency de ${dbLatency.latencyMs}ms (limite: ${THRESHOLDS.dbLatency.warning}ms)`,
+        value: dbLatency.latencyMs,
+        threshold: THRESHOLDS.dbLatency.warning,
+      });
+    }
+  } else if (inGracePeriod && dbLatency.latencyMs >= THRESHOLDS.dbLatency.critical) {
+    // No grace period mas com latência muito alta — logar warning informativo
+    const remainingGrace = Math.round((STARTUP_GRACE_PERIOD_MS - (Date.now() - processStartTime)) / 1000);
+    console.log(
+      `[AppHealth] DB latency ${dbLatency.latencyMs}ms durante grace period (${remainingGrace}s restantes). ` +
+      `Alerta suprimido — aguardando estabilização pós-startup.`
+    );
   }
   
   return alerts;
@@ -302,15 +372,15 @@ function generateAlerts(heap: HeapMetrics, eventLoop: EventLoopMetrics, dbLatenc
  */
 export async function collectAppMetrics(): Promise<AppMetricsSnapshot> {
   // Coletar em paralelo
-  const [eventLoopLag, dbLatency] = await Promise.all([
+  const [eventLoopLag, dbResult] = await Promise.all([
     measureEventLoopLag(),
     measureDbLatency(),
   ]);
   
-  // Adicionar samples
+  // Adicionar samples — NÃO adicionar cold starts ao histórico
   addSample(eventLoopSamples, eventLoopLag);
-  if (dbLatency >= 0) {
-    addSample(dbLatencySamples, dbLatency);
+  if (dbResult.latencyMs >= 0 && !dbResult.wasColdStart) {
+    addSample(dbLatencySamples, dbResult.latencyMs);
   }
   
   const heap = getHeapMetrics();
@@ -324,12 +394,13 @@ export async function collectAppMetrics(): Promise<AppMetricsSnapshot> {
   };
   
   const dbLatencyMetrics: DbLatencyMetrics = {
-    latencyMs: dbLatency,
+    latencyMs: dbResult.latencyMs,
     avgLatencyMs: avg(dbLatencySamples),
     maxLatencyMs: max(dbLatencySamples),
-    isHealthy: dbLatency >= 0 && dbLatency < THRESHOLDS.dbLatency.critical,
+    isHealthy: dbResult.latencyMs >= 0 && dbResult.latencyMs < THRESHOLDS.dbLatency.critical,
     lastCheck: new Date().toISOString(),
     samples: dbLatencySamples.length,
+    wasColdStart: dbResult.wasColdStart,
   };
   
   const uptimeSeconds = process.uptime();
@@ -375,5 +446,6 @@ export function getMetricsHistory() {
       avg: avg(dbLatencySamples),
       max: max(dbLatencySamples),
     },
+    coldStarts: coldStartCount,
   };
 }
