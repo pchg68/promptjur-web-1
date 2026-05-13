@@ -312,87 +312,63 @@ export default function TabWhitelist() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center">
-            <Shield className="w-5 h-5 text-blue-400" />
-          </div>
-          <div>
-            <h3 className="text-white font-semibold">Whitelist de Acesso</h3>
-            <p className="text-slate-400 text-xs">
-              Controle quais e-mails têm acesso durante a fase de testes
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Botão Reenviar para todos */}
-          {ativos.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => reenviarTodosMutation.mutate()}
-              disabled={reenviarTodosAtivo}
-              className="text-slate-400 hover:text-blue-400 gap-1 text-xs"
-              title={`Reenviar convite para todos os ${ativos.length} e-mails ativos`}
-            >
-              {reenviarTodosAtivo ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <SendHorizonal className="w-4 h-4" />
-              )}
-              {reenviarTodosAtivo ? "Enviando..." : "Reenviar todos"}
-            </Button>
-          )}
+      {/* Ações da Whitelist */}
+      <div className="flex items-center justify-end gap-2 flex-wrap">
+        {ativos.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setMostrarConfigReenvio(true)}
-            className="text-slate-400 hover:text-purple-400 gap-1 text-xs"
-            title="Configurar reenvio automático semanal"
-          >
-            <Clock className="w-4 h-4" />
-            Auto
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setMostrarPrevia(true)}
+            onClick={() => reenviarTodosMutation.mutate()}
+            disabled={reenviarTodosAtivo}
             className="text-slate-400 hover:text-blue-400 gap-1 text-xs"
-            title="Visualizar e-mail de boas-vindas"
+            title={`Reenviar convite para todos os ${ativos.length} e-mails ativos`}
           >
-            <Eye className="w-4 h-4" />
-            Prévia
+            {reenviarTodosAtivo ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <SendHorizonal className="w-4 h-4" />
+            )}
+            {reenviarTodosAtivo ? "Enviando..." : "Reenviar todos"}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setMostrarPrevia(true)}
-            className="text-slate-400 hover:text-blue-400 gap-1 text-xs"
-            title="Visualizar e-mail de boas-vindas"
-          >
-            <Eye className="w-4 h-4" />
-            Prévia
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleExportCsv}
-            className="text-slate-400 hover:text-emerald-400 gap-1 text-xs"
-            title="Exportar whitelist como CSV"
-          >
-            <Download className="w-4 h-4" />
-            CSV
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => refetch()}
-            className="text-slate-400 hover:text-white"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </Button>
-        </div>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setMostrarConfigReenvio(true)}
+          className="text-slate-400 hover:text-purple-400 gap-1 text-xs"
+          title="Configurar reenvio automático semanal"
+        >
+          <Clock className="w-4 h-4" />
+          Auto
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setMostrarPrevia(true)}
+          className="text-slate-400 hover:text-blue-400 gap-1 text-xs"
+          title="Visualizar e-mail de boas-vindas"
+        >
+          <Eye className="w-4 h-4" />
+          Prévia
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleExportCsv}
+          className="text-slate-400 hover:text-emerald-400 gap-1 text-xs"
+          title="Exportar whitelist como CSV"
+        >
+          <Download className="w-4 h-4" />
+          CSV
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => refetch()}
+          className="text-slate-400 hover:text-white"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Aviso sobre feature flag */}

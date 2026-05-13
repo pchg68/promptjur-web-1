@@ -3295,3 +3295,11 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Delay inicial do monitor aumentado de 10s para 30s
 - [x] Frontend: indicador de cold start e contagem no card Conexão DB
 - [x] Testes atualizados (34/34 passando)
+
+## Melhorias Admin-Tools (13/05/2026)
+- [x] Adicionar botão expandir/recolher (CollapsibleCard) no painel da Whitelist
+- [x] Investigar e corrigir diagnóstico do Resend que não atualiza
+  - [x] Suporte a API keys restritas a envio (ok_restrita)
+  - [x] Badge de tipo de chave (Full Access / Sending Only)
+  - [x] Instruções contextuais para chave restrita
+  - [x] Remoção de header duplicado no TabWhitelist.tsx

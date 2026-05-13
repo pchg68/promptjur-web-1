@@ -518,9 +518,16 @@ export default function AdminTools() {
         </div>
 
         {/* Whitelist de Acesso */}
-        <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">
+        <CollapsibleCard
+          cardId="whitelist-acesso"
+          icon={<Shield className="w-5 h-5 text-blue-400" />}
+          titulo="Whitelist de Acesso"
+          descricao="Controle quais e-mails têm acesso durante a fase de testes"
+          expanded={isExpanded("whitelist-acesso", true)}
+          onToggle={() => toggleCard("whitelist-acesso")}
+        >
           <TabWhitelist />
-        </div>
+        </CollapsibleCard>
 
         {/* Log de Acessos */}
         <div className="mb-8 p-6 rounded-xl bg-[#0f1923] border border-[#1e3a5f]">

@@ -52,6 +52,7 @@ function CardDiagnosticoResend() {
     if (isLoading) return <Loader2 className="w-4 h-4 animate-spin text-slate-400" />;
     if (!data?.configurado) return <WifiOff className="w-4 h-4 text-red-400" />;
     if (data.conectividade === "ok") return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
+    if (data.conectividade === "ok_restrita") return <CheckCircle2 className="w-4 h-4 text-blue-400" />;
     if (data.conectividade === "erro") return <AlertTriangle className="w-4 h-4 text-orange-400" />;
     return <Wifi className="w-4 h-4 text-slate-400" />;
   };
@@ -59,7 +60,8 @@ function CardDiagnosticoResend() {
   const statusLabel = () => {
     if (isLoading) return "Verificando...";
     if (!data?.configurado) return "Não configurado";
-    if (data.conectividade === "ok") return "Conectado";
+    if (data.conectividade === "ok") return "Conectado (Full Access)";
+    if (data.conectividade === "ok_restrita") return "Conectado (Envio)";
     if (data.conectividade === "erro") return "Erro de conexão";
     return "Sem chave";
   };
@@ -67,6 +69,7 @@ function CardDiagnosticoResend() {
   const statusColor = () => {
     if (!data?.configurado || data?.conectividade === "erro") return "border-red-500/20 bg-red-500/5";
     if (data?.conectividade === "ok") return "border-emerald-500/20 bg-emerald-500/5";
+    if (data?.conectividade === "ok_restrita") return "border-blue-500/20 bg-blue-500/5";
     return "border-slate-700/30 bg-slate-800/30";
   };
 
@@ -141,8 +144,28 @@ function CardDiagnosticoResend() {
             </div>
           </div>
 
+          {/* Tipo de chave */}
+          {data.tipoChave && data.tipoChave !== 'desconhecido' && (
+            <div className={`rounded-lg p-3 text-xs flex items-center gap-2 ${
+              data.tipoChave === 'full_access'
+                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'
+                : 'bg-blue-500/10 border border-blue-500/20 text-blue-300'
+            }`}>
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                <strong>Tipo de chave:</strong>{' '}
+                {data.tipoChave === 'full_access' ? 'Full Access' : 'Sending Only'}
+                {data.tipoChave === 'sending_only' && (
+                  <span className="text-slate-400 ml-1">
+                    (leitura de domínios/logs indisponível)
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+
           {/* Erro de conectividade */}
-          {data.erroConectividade && (
+          {data.erroConectividade && data.conectividade === 'erro' && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-xs text-red-300">
               <strong>Erro:</strong> {data.erroConectividade}
             </div>
