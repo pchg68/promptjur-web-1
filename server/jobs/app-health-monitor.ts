@@ -19,8 +19,9 @@ const ALERT_COOLDOWN_MS = 30 * 60_000; // 30 minutos entre alertas do mesmo tipo
 /**
  * Número de alertas consecutivos necessários antes de notificar.
  * Evita notificação por picos isolados — só notifica se o problema persistir.
+ * Aumentado de 2 para 3 para reduzir falsos positivos em redes instáveis.
  */
-const CONSECUTIVE_ALERTS_THRESHOLD = 2;
+const CONSECUTIVE_ALERTS_THRESHOLD = 3;
 
 // Rastrear último alerta enviado por métrica para evitar spam
 const lastAlertSent = new Map<string, number>();
@@ -57,7 +58,27 @@ async function runHealthCheck(): Promise<void> {
     const activeMetrics = new Set(snapshot.alerts.map(a => a.metric));
     for (const [metric] of consecutiveAlerts) {
       if (!activeMetrics.has(metric)) {
+        const prevCount = consecutiveAlerts.get(metric) || 0;
         trackConsecutiveAlert(metric, false);
+        
+        // Se o alerta foi resolvido após ter sido notificado, enviar resolução
+        if (prevCount >= CONSECUTIVE_ALERTS_THRESHOLD && lastAlertSent.has(metric)) {
+          try {
+            await notifyOwner({
+              title: `[PromptJur] ✅ Resolvido: ${metric}`,
+              content: [
+                `O alerta de ${metric} foi resolvido automaticamente.`,
+                '',
+                `Heap: ${snapshot.heap.percentUsed}% | DB avg: ${snapshot.dbLatency.avgLatencyMs}ms | Uptime: ${snapshot.uptime.formatted}`,
+                `Timestamp: ${snapshot.timestamp}`,
+              ].join('\n'),
+            });
+            console.log(`[AppHealth] Notificação de resolução enviada para: ${metric}`);
+          } catch {
+            // Não crítico — apenas log
+            console.warn(`[AppHealth] Falha ao enviar notificação de resolução para: ${metric}`);
+          }
+        }
       }
     }
     
@@ -131,7 +152,7 @@ export function scheduleAppHealthMonitor(): void {
     
     // Agendar execuções periódicas
     intervalId = setInterval(runHealthCheck, INTERVAL_MS);
-    console.log('[AppHealth] Monitor de saúde iniciado (intervalo: 60s, cooldown: 30min, consecutivos: 2)');
+    console.log('[AppHealth] Monitor de saúde iniciado (intervalo: 60s, cooldown: 30min, consecutivos: 3, com notificação de resolução)');
   }, 30_000);
 }
 

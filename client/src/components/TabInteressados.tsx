@@ -171,11 +171,77 @@ function CardDiagnosticoResend() {
             </div>
           )}
 
+          {/* Domínios verificados (Full Access) */}
+          {data.dominios && data.dominios.length > 0 && (
+            <div className="bg-slate-900/40 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-xs text-slate-400 font-medium">Domínios Verificados ({data.dominios.length})</span>
+              </div>
+              <div className="space-y-1.5">
+                {data.dominios.map((d: { nome: string; status: string; regiao: string; criadoEm: string }, i: number) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <code className="text-slate-300 font-mono">{d.nome}</code>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                        d.status === 'verified'
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : d.status === 'pending'
+                          ? 'bg-amber-500/20 text-amber-400'
+                          : 'bg-red-500/20 text-red-400'
+                      }`}>
+                        {d.status === 'verified' ? 'Verificado' : d.status === 'pending' ? 'Pendente' : d.status}
+                      </span>
+                    </div>
+                    <span className="text-slate-600 text-[10px]">{d.regiao}</span>
+                  </div>
+                ))}
+              </div>
+              {data.dominioFromVerificado === false && data.dominioRemetente && (
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-400">
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>Domínio <code className="font-mono">{data.dominioRemetente}</code> do EMAIL_FROM não está verificado</span>
+                </div>
+              )}
+              {data.dominioFromVerificado === true && data.dominioRemetente && (
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-400">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>Domínio <code className="font-mono">{data.dominioRemetente}</code> verificado e ativo</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Estatísticas de envio (Full Access) */}
+          {data.totalEmailsEnviados !== null && data.totalEmailsEnviados !== undefined && (
+            <div className="bg-slate-900/40 rounded-lg p-3 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <Send className="w-4 h-4 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-white text-sm font-semibold">{data.totalEmailsEnviados}</p>
+                <p className="text-slate-500 text-[10px]">E-mails recentes na API</p>
+              </div>
+            </div>
+          )}
+
           {/* Instruções */}
           {data.instrucoes && (
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 flex gap-2">
-              <Info className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-amber-300 text-xs leading-relaxed">{data.instrucoes}</p>
+            <div className={`rounded-lg p-3 flex gap-2 ${
+              data.conectividade === 'ok' && data.dominioFromVerificado === true
+                ? 'bg-emerald-500/5 border border-emerald-500/20'
+                : 'bg-amber-500/5 border border-amber-500/20'
+            }`}>
+              <Info className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${
+                data.conectividade === 'ok' && data.dominioFromVerificado === true
+                  ? 'text-emerald-400'
+                  : 'text-amber-400'
+              }`} />
+              <p className={`text-xs leading-relaxed ${
+                data.conectividade === 'ok' && data.dominioFromVerificado === true
+                  ? 'text-emerald-300'
+                  : 'text-amber-300'
+              }`}>{data.instrucoes}</p>
             </div>
           )}
 

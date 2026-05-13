@@ -3303,3 +3303,15 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Badge de tipo de chave (Full Access / Sending Only)
   - [x] Instruções contextuais para chave restrita
   - [x] Remoção de header duplicado no TabWhitelist.tsx
+
+## Sugestões de Melhoria (13/05/2026)
+- [ ] Publicar correções em produção (promptjur.com) — aguardando usuário clicar Publish
+- [x] Criar API Key Full Access no Resend para diagnóstico completo de domínios/logs
+  - [x] Key criada no Resend: "e-mail envio" com Full Access
+  - [x] Secret RESEND_API_KEY atualizado no projeto
+  - [x] Diagnóstico agora mostra domínios verificados, contagem de e-mails e status completo
+- [x] Monitorar e validar alertas de DB latency em produção
+  - [x] Keep-alive melhorado: pinga 2 conexões + reconexão automática após 3 falhas
+  - [x] Alertas consecutivos aumentados de 2 para 3 (reduz falsos positivos)
+  - [x] Notificação de resolução: avisa quando alerta é resolvido automaticamente
+  - [x] Logging de latência do keep-alive para diagnóstico de reconexões lentas

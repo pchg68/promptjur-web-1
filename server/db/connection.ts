@@ -89,10 +89,19 @@ export async function warmUpDbPool(): Promise<void> {
   }
 }
 
+/** Contador de falhas consecutivas no keep-alive */
+let keepAliveFailures = 0;
+const MAX_KEEPALIVE_FAILURES = 3;
+
 /**
  * Keep-alive periódico para manter conexões ativas no pool.
  * Evita que o gateway/proxy intermediário feche conexões idle,
  * o que causaria cold starts de 6-7 segundos na próxima query.
+ * 
+ * Melhorias:
+ * - Pinga até 2 conexões para manter pool aquecido
+ * - Reconexão automática após 3 falhas consecutivas
+ * - Logging de latência do ping para diagnóstico
  */
 function startKeepAlive(): void {
   if (_keepAliveInterval) return; // Já está rodando
@@ -101,11 +110,48 @@ function startKeepAlive(): void {
     if (!_mysqlPool) return;
     
     try {
-      const conn = await _mysqlPool.getConnection();
-      await conn.ping();
-      conn.release();
+      const start = Date.now();
+      // Pingar 2 conexões para manter mais do pool aquecido
+      const conn1 = await _mysqlPool.getConnection();
+      await conn1.ping();
+      conn1.release();
+      
+      const conn2 = await _mysqlPool.getConnection();
+      await conn2.ping();
+      conn2.release();
+      
+      const elapsed = Date.now() - start;
+      keepAliveFailures = 0; // Reset no sucesso
+      
+      // Log apenas se demorou mais que o esperado (possível reconexão)
+      if (elapsed > 500) {
+        logger.warn(`[Database] Keep-alive lento: ${elapsed}ms (possível reconexão TLS)`);
+      }
     } catch (error) {
-      logger.warn('[Database] Keep-alive ping falhou:', { error });
+      keepAliveFailures++;
+      logger.warn(`[Database] Keep-alive ping falhou (${keepAliveFailures}/${MAX_KEEPALIVE_FAILURES}):`, { error });
+      
+      // Após N falhas consecutivas, forçar reconexão do pool
+      if (keepAliveFailures >= MAX_KEEPALIVE_FAILURES) {
+        logger.warn('[Database] Muitas falhas consecutivas no keep-alive. Forçando reconexão do pool...');
+        try {
+          // Fechar pool antigo e recriar
+          if (_mysqlPool) {
+            await _mysqlPool.end().catch(() => {});
+          }
+          _mysqlPool = null;
+          _db = null;
+          keepAliveFailures = 0;
+          
+          // Recriar pool via getDb()
+          const db = await getDb();
+          if (db) {
+            logger.info('[Database] Pool reconectado com sucesso após falhas de keep-alive');
+          }
+        } catch (reconnectErr) {
+          logger.warn('[Database] Falha na reconexão do pool:', { error: reconnectErr });
+        }
+      }
     }
   }, KEEP_ALIVE_INTERVAL_MS);
 
