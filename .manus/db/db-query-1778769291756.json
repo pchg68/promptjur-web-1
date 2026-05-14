@@ -1,0 +1,94 @@
+{
+  "query": "DESCRIBE access_whitelist; SELECT * FROM access_whitelist WHERE email LIKE '%hertt%' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute DESCRIBE access_whitelist; SELECT * FROM access_whitelist WHERE email LIKE '%hertt%' LIMIT 5;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "email",
+      "Type": "varchar(320)",
+      "Null": "NO",
+      "Key": "UNI",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "nome",
+      "Type": "varchar(255)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "adicionadoPor",
+      "Type": "varchar(320)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "ativo",
+      "Type": "tinyint(1)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "1",
+      "Extra": ""
+    },
+    {
+      "Field": "criadoEm",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": ""
+    },
+    {
+      "Field": "atualizadoEm",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "Field": "expiresAt",
+      "Type": "timestamp",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "convitesEnviados",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "ultimoEnvio",
+      "Type": "timestamp",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    }
+  ],
+  "messages": [
+    "id\temail\tnome\tadicionadoPor\tativo\tcriadoEm\tatualizadoEm\texpiresAt\tconvitesEnviados\tultimoEnvio",
+    "2\tbeto@hertt.com.br\tNULL\tpc@hertt.com.br\t1\t2026-04-01 13:07:40\t2026-04-22 17:59:20\tNULL\t1\t2026-04-22 17:59:21",
+    "150001\trafael@hertt.com.br\tDr Rafael\tpc@hertt.com.br\t1\t2026-04-09 14:01:20\t2026-04-09 14:01:21\tNULL\t1\t2026-04-09 14:01:21"
+  ],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint\tNO\tPRI\tNULL\tauto_increment\nemail\tvarchar(320)\tNO\tUNI\tNULL\t\nnome\tvarchar(255)\tYES\t\tNULL\t\nadicionadoPor\tvarchar(320)\tYES\t\tNULL\t\nativo\ttinyint(1)\tNO\t\t1\t\ncriadoEm\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\t\natualizadoEm\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\nexpiresAt\ttimestamp\tYES\t\tNULL\t\nconvitesEnviados\tint\tNO\t\t0\t\nultimoEnvio\ttimestamp\tYES\t\tNULL\t\nid\temail\tnome\tadicionadoPor\tativo\tcriadoEm\tatualizadoEm\texpiresAt\tconvitesEnviados\tultimoEnvio\n2\tbeto@hertt.com.br\tNULL\tpc@hertt.com.br\t1\t2026-04-01 13:07:40\t2026-04-22 17:59:20\tNULL\t1\t2026-04-22 17:59:21\n150001\trafael@hertt.com.br\tDr Rafael\tpc@hertt.com.br\t1\t2026-04-09 14:01:20\t2026-04-09 14:01:21\tNULL\t1\t2026-04-09 14:01:21\n",
+  "stderr": "",
+  "execution_time_ms": 263
+}

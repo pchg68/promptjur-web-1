@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, openId, email, role FROM users WHERE email = 'pc@hertt.com.br' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT id, openId, email, role FROM users WHERE email = 'pc@hertt.com.br' LIMIT 1;",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "7yr56f7pBryaEEfHpMRYi9",
+      "email": "pc@hertt.com.br",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\temail\trole\n1\t7yr56f7pBryaEEfHpMRYi9\tpc@hertt.com.br\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 256
+}

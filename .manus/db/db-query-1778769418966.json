@@ -1,0 +1,74 @@
+{
+  "query": "DESCRIBE feature_flags; SELECT * FROM feature_flags WHERE nome = 'whitelist_ativa' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute DESCRIBE feature_flags; SELECT * FROM feature_flags WHERE nome = 'whitelist_ativa' LIMIT 1;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "nome",
+      "Type": "varchar(100)",
+      "Null": "NO",
+      "Key": "UNI",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "descricao",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "isAtivo",
+      "Type": "tinyint(1)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "createdAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": ""
+    },
+    {
+      "Field": "updatedAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "Field": "id",
+      "Type": "nome",
+      "Null": "descricao",
+      "Key": "isAtivo",
+      "Default": "createdAt",
+      "Extra": "updatedAt"
+    },
+    {
+      "Field": "30001",
+      "Type": "whitelist_ativa",
+      "Null": "Controla o acesso ao sistema: quando ATIVO, somente e-mails cadastrados na whitelist podem entrar; quando INATIVO, qualquer usuário pode acessar livremente.",
+      "Key": "1",
+      "Default": "2026-04-12 12:06:35",
+      "Extra": "2026-05-14 13:25:34"
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint\tNO\tPRI\tNULL\tauto_increment\nnome\tvarchar(100)\tNO\tUNI\tNULL\t\ndescricao\ttext\tYES\t\tNULL\t\nisAtivo\ttinyint(1)\tNO\t\t0\t\ncreatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\t\nupdatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\nid\tnome\tdescricao\tisAtivo\tcreatedAt\tupdatedAt\n30001\twhitelist_ativa\tControla o acesso ao sistema: quando ATIVO, somente e-mails cadastrados na whitelist podem entrar; quando INATIVO, qualquer usuário pode acessar livremente.\t1\t2026-04-12 12:06:35\t2026-05-14 13:25:34\n",
+  "stderr": "",
+  "execution_time_ms": 264
+}

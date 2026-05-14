@@ -54,8 +54,17 @@ export function registerOAuthRoutes(app: Express) {
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
       // Verificar whitelist de acesso (apenas quando whitelist_ativa estiver ligada)
-      // O owner/admin sempre tem acesso garantido, independente da whitelist
-      const isOwner = userInfo.openId === ENV.ownerOpenId;
+      // O owner/admin sempre tem acesso garantido, independente da whitelist:
+      // 1. Por openId (OWNER_OPEN_ID env)
+      // 2. Por e-mail na lista OWNER_EMAILS
+      // 3. Por role=admin no banco (usuário já existente)
+      const isOwnerByOpenId = userInfo.openId === ENV.ownerOpenId;
+      const isOwnerByEmail = userInfo.email
+        ? ENV.ownerEmails.includes(userInfo.email.toLowerCase().trim())
+        : false;
+      const isAdminByRole = usuarioExistente?.role === "admin";
+      const isOwner = isOwnerByOpenId || isOwnerByEmail || isAdminByRole;
+
       const emailPermitido = isOwner || await isEmailAllowed(userInfo.email ?? null);
       if (!emailPermitido) {
         console.log(`[Whitelist] Acesso negado para: ${userInfo.email}`);
@@ -63,7 +72,7 @@ export function registerOAuthRoutes(app: Express) {
         return;
       }
       if (isOwner) {
-        console.log(`[Whitelist] Acesso garantido para owner: ${userInfo.email}`);
+        console.log(`[Whitelist] Acesso garantido para owner/admin: ${userInfo.email} (openId=${isOwnerByOpenId}, email=${isOwnerByEmail}, role=${isAdminByRole})`);
       }
 
       // Registrar log de acesso (fire-and-forget)

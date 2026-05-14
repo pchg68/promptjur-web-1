@@ -3364,3 +3364,13 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] 8 testes unitários passando
   - [x] Job registrado em server/_core/index.ts
 - [ ] Publicar em produção (promptjur.com) — aguardando usuário clicar Publish
+
+## Correção de Bug: Bloqueio do Owner na Whitelist (14/05/2026)
+- [x] Diagnosticar por que pc@hertt.com.br era bloqueado mesmo sendo admin
+  - Causa: bypass usava apenas OWNER_OPEN_ID (env), que pode estar vazio/diferente em produção
+  - pc@hertt.com.br não estava na tabela access_whitelist
+- [x] Corrigir oauth.ts: bypass agora verifica 3 condições (OR):
+  - [x] openId === OWNER_OPEN_ID (env)
+  - [x] email está em OWNER_EMAILS (env, padrão: pc@hertt.com.br,admin@promptjur.com)
+  - [x] role === 'admin' no banco (usuário já existente com role admin)
+- [x] Servidor recompilado sem erros

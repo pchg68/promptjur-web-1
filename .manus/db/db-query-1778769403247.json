@@ -1,0 +1,19 @@
+{
+  "query": "SHOW TABLES LIKE '%feature%'; SHOW TABLES LIKE '%flag%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SHOW TABLES LIKE '%feature%'; SHOW TABLES LIKE '%flag%';",
+  "rows": [
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B (%feature%)": "feature_flags"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B (%feature%)": "Tables_in_o6j2zJFKcRnWaD36kKv87B (%flag%)"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B (%feature%)": "feature_flags"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_o6j2zJFKcRnWaD36kKv87B (%feature%)\nfeature_flags\nTables_in_o6j2zJFKcRnWaD36kKv87B (%flag%)\nfeature_flags\n",
+  "stderr": "",
+  "execution_time_ms": 263
+}

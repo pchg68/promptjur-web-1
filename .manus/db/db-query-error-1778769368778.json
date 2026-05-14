@@ -1,0 +1,10 @@
+{
+  "query": "SELECT id, openId, email, role FROM users WHERE email = 'pc@hertt.com.br' LIMIT 1; SELECT nome, valor FROM configuracoes WHERE nome = 'whitelist_ativa' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT id, openId, email, role FROM users WHERE email = 'pc@hertt.com.br' LIMIT 1; SELECT nome, valor FROM configuracoes WHERE nome = 'whitelist_ativa' LIMIT 1;",
+  "returncode": 1,
+  "logs": [
+    "id\topenId\temail\trole",
+    "1\t7yr56f7pBryaEEfHpMRYi9\tpc@hertt.com.br\tadmin",
+    "ERROR 1054 (42S22) at line 1: Unknown column 'nome' in 'where clause'"
+  ]
+}
