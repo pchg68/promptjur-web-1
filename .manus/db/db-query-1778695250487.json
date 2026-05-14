@@ -1,0 +1,20 @@
+{
+  "query": "SELECT nome, descricao, isAtivo FROM feature_flags ORDER BY nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT nome, descricao, isAtivo FROM feature_flags ORDER BY nome;",
+  "rows": [
+    {
+      "nome": "pagamentos_ativos",
+      "descricao": "Habilita o sistema de pagamentos e assinaturas via Stripe. Desative durante testes para bloquear o checkout.",
+      "isAtivo": "0"
+    },
+    {
+      "nome": "whitelist_ativa",
+      "descricao": "Controla o acesso ao sistema: quando ATIVO, somente e-mails cadastrados na whitelist podem entrar; quando INATIVO, qualquer usuário pode acessar livremente.",
+      "isAtivo": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "nome\tdescricao\tisAtivo\npagamentos_ativos\tHabilita o sistema de pagamentos e assinaturas via Stripe. Desative durante testes para bloquear o checkout.\t0\nwhitelist_ativa\tControla o acesso ao sistema: quando ATIVO, somente e-mails cadastrados na whitelist podem entrar; quando INATIVO, qualquer usuário pode acessar livremente.\t0\n",
+  "stderr": "",
+  "execution_time_ms": 271
+}

@@ -7,19 +7,60 @@ import { eq, sql } from "drizzle-orm";
 import { captureException, captureMessage, addBreadcrumb } from "./sentry";
 
 /**
- * Mapeia planos do Stripe para os planos do sistema
+ * Determina o plano do sistema a partir de uma subscription do Stripe.
+ * 
+ * Estratégia de resolução (em ordem de prioridade):
+ * 1. metadata.plan_id da subscription (definido se checkout criou com metadata)
+ * 2. Nome do produto (contém "Profissional" ou "Escritório")
+ * 3. Se tem subscription ativa, assume "pro" (plano padrão pago)
  */
-function mapStripePlanToSystemPlan(stripePriceId: string): "free" | "pro" | "enterprise" {
-  // Mapeamento baseado em metadata ou nome do preço
-  // Os IDs serão configurados quando os produtos forem criados no Stripe Dashboard
-  const priceIdLower = stripePriceId.toLowerCase();
-  if (priceIdLower.includes("enterprise") || priceIdLower.includes("escritorio")) return "enterprise";
-  if (priceIdLower.includes("pro") || priceIdLower.includes("profissional")) return "pro";
-  return "free";
+async function resolvePlanFromSubscription(
+  subscriptionId: string
+): Promise<"free" | "pro" | "enterprise"> {
+  try {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+      expand: ["items.data.price.product"],
+    });
+
+    // 1. Verificar metadata da subscription
+    if (subscription.metadata?.plan_id) {
+      const metaPlan = subscription.metadata.plan_id;
+      if (metaPlan === "pro" || metaPlan === "enterprise") {
+        console.log(`[Webhook] Plan from subscription metadata: ${metaPlan}`);
+        return metaPlan;
+      }
+    }
+
+    // 2. Verificar nome do produto
+    const item = subscription.items.data[0];
+    if (item?.price?.product) {
+      const product = item.price.product as Stripe.Product;
+      const productName = (product.name || "").toLowerCase();
+      if (productName.includes("escritório") || productName.includes("escritorio") || productName.includes("enterprise")) {
+        console.log(`[Webhook] Plan from product name "${product.name}": enterprise`);
+        return "enterprise";
+      }
+      if (productName.includes("profissional") || productName.includes("pro")) {
+        console.log(`[Webhook] Plan from product name "${product.name}": pro`);
+        return "pro";
+      }
+    }
+
+    // 3. Se tem subscription ativa, assume pro (plano pago padrão)
+    if (subscription.status === "active" || subscription.status === "trialing") {
+      console.log(`[Webhook] Active subscription without plan match, defaulting to pro`);
+      return "pro";
+    }
+
+    return "free";
+  } catch (err) {
+    console.warn(`[Webhook] Failed to resolve plan from subscription ${subscriptionId}:`, err);
+    return "pro"; // Se falhou mas tem subscription, assume pro
+  }
 }
 
 /**
- * Atualiza o plano de assinatura do usuário no banco de dados
+ * Atualiza o plano de assinatura do usuário no banco de dados (por email)
  */
 async function updateUserSubscription(
   customerEmail: string,
@@ -97,9 +138,6 @@ async function addBonusCredits(userId: number, credits: number): Promise<void> {
   }
 
   try {
-    // UPDATE ATÔMICO: usa sql expression para somar diretamente no banco
-    // Evita race condition de read-then-write quando múltiplos webhooks
-    // chegam simultaneamente para o mesmo usuário
     await db
       .update(users)
       .set({ bonusCredits: sql`${users.bonusCredits} + ${credits}` })
@@ -173,15 +211,12 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
       }
 
       // Registrar evento como processado ANTES de processar
-      // (se falhar no meio, o evento não será reprocessado)
       await db.insert(processedStripeEvents).values({
         eventId: event.id,
         eventType: event.type,
       });
     }
   } catch (idempotencyError) {
-    // Se falhar a verificação de idempotência, continuar processando
-    // (melhor processar duplicado do que não processar)
     console.warn(`[Webhook] Idempotency check failed:`, idempotencyError);
   }
 
@@ -203,49 +238,41 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
           break;
         }
 
-        if (userId && subscriptionId) {
-          // Buscar detalhes da assinatura para determinar o plano
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          const priceId = subscription.items.data[0]?.price.id || "";
-          const plan = mapStripePlanToSystemPlan(priceId);
-          
-          await updateUserSubscriptionById(userId, plan, customerId, subscriptionId);
+        // Determinar o plano: prioridade para metadata.plan_id do checkout session,
+        // depois resolve pela subscription, por último assume "pro" se tem subscription
+        let plan: "free" | "pro" | "enterprise" = "free";
+        
+        if (session.metadata?.plan_id) {
+          const metaPlan = session.metadata.plan_id;
+          if (metaPlan === "pro" || metaPlan === "enterprise") {
+            plan = metaPlan;
+          }
+          console.log(`[Webhook] Plan from checkout metadata: ${plan} (raw: ${metaPlan})`);
+        } else if (subscriptionId) {
+          plan = await resolvePlanFromSubscription(subscriptionId);
+        }
+
+        if (userId) {
+          await updateUserSubscriptionById(userId, plan, customerId, subscriptionId || undefined);
           console.log(`[Webhook] Checkout completed for user ${userId}, plan: ${plan}`);
         } else if (session.customer_email) {
-          // Fallback: usar email do cliente
-          const plan = subscriptionId ? "pro" : "free";
-          await updateUserSubscription(session.customer_email, plan, customerId, subscriptionId);
+          await updateUserSubscription(session.customer_email, plan, customerId, subscriptionId || undefined);
+          console.log(`[Webhook] Checkout completed for email ${session.customer_email}, plan: ${plan}`);
         }
         break;
       }
 
-      case "customer.subscription.created": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const customer = await stripe.customers.retrieve(subscription.customer as string);
-        
-        if ("email" in customer && customer.email) {
-          const priceId = subscription.items.data[0]?.price.id || "";
-          const plan = mapStripePlanToSystemPlan(priceId);
-          await updateUserSubscription(
-            customer.email, 
-            plan, 
-            subscription.customer as string,
-            subscription.id
-          );
-        }
-        break;
-      }
-
+      case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = await stripe.customers.retrieve(subscription.customer as string);
         
         if ("email" in customer && customer.email) {
           if (subscription.status === "active" || subscription.status === "trialing") {
-            const priceId = subscription.items.data[0]?.price.id || "";
-            const plan = mapStripePlanToSystemPlan(priceId);
+            // Resolver plano pela subscription (usa metadata + product name)
+            const plan = await resolvePlanFromSubscription(subscription.id);
             await updateUserSubscription(
-              customer.email, 
+              customer.email,
               plan,
               subscription.customer as string,
               subscription.id

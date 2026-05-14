@@ -3338,3 +3338,14 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] Botão "Assinar" visível mesmo durante trial (não mostra "Plano Atual")
 - [x] FAQ atualizado com informação do trial de 7 dias
 - [x] 12 testes unitários do módulo trial passando
+
+## Teste de Pagamento Stripe e Correção de Webhook (14/05/2026)
+- [x] Ativar feature flag pagamentos_ativos para teste
+- [x] Testar checkout completo (Profissional R$57,90/mês)
+- [x] Corrigir bug crítico: webhook mapeava plano como "free" ao invés de "pro"
+  - [x] Causa: mapStripePlanToSystemPlan usava substring matching no priceId dinâmico
+  - [x] Solução: nova função resolvePlanFromSubscription (metadata → product name → fallback pro)
+  - [x] Unificação dos handlers subscription.created e subscription.updated
+- [x] Testar portal de billing (Gerenciar Assinatura)
+- [x] Gerar relatório detalhado de teste
+- [x] 34 testes unitários passando após correção

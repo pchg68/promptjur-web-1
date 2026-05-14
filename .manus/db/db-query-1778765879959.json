@@ -1,0 +1,19 @@
+{
+  "query": "SELECT id, name, email, subscriptionPlan, stripeCustomerId, stripeSubscriptionId, trialEndsAt FROM users WHERE id = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT id, name, email, subscriptionPlan, stripeCustomerId, stripeSubscriptionId, trialEndsAt FROM users WHERE id = 1;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Paulo Cesar Hertt Grande",
+      "email": "pc@hertt.com.br",
+      "subscriptionPlan": "enterprise",
+      "stripeCustomerId": "cus_UW1UYgbimwHMge",
+      "stripeSubscriptionId": "NULL",
+      "trialEndsAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tsubscriptionPlan\tstripeCustomerId\tstripeSubscriptionId\ttrialEndsAt\n1\tPaulo Cesar Hertt Grande\tpc@hertt.com.br\tenterprise\tcus_UW1UYgbimwHMge\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 255
+}

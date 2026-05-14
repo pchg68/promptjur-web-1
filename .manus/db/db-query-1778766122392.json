@@ -1,0 +1,28 @@
+{
+  "query": "SELECT * FROM processed_stripe_events ORDER BY processedAt DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT * FROM processed_stripe_events ORDER BY processedAt DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "11",
+      "eventId": "evt_1TWzVgLXTjLdztv57yWGQHBr",
+      "eventType": "checkout.session.completed",
+      "processedAt": "2026-05-14 13:41:08"
+    },
+    {
+      "id": "12",
+      "eventId": "evt_3TWzVbLXTjLdztv50VAcN1uV",
+      "eventType": "payment_intent.succeeded",
+      "processedAt": "2026-05-14 13:41:08"
+    },
+    {
+      "id": "10",
+      "eventId": "evt_1TWzVfLXTjLdztv5Q9BSVcpu",
+      "eventType": "customer.subscription.created",
+      "processedAt": "2026-05-14 13:41:08"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\teventId\teventType\tprocessedAt\n11\tevt_1TWzVgLXTjLdztv57yWGQHBr\tcheckout.session.completed\t2026-05-14 13:41:08\n12\tevt_3TWzVbLXTjLdztv50VAcN1uV\tpayment_intent.succeeded\t2026-05-14 13:41:08\n10\tevt_1TWzVfLXTjLdztv5Q9BSVcpu\tcustomer.subscription.created\t2026-05-14 13:41:08\n",
+  "stderr": "",
+  "execution_time_ms": 265
+}
