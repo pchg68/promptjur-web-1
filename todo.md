@@ -3349,3 +3349,18 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Testar portal de billing (Gerenciar Assinatura)
 - [x] Gerar relatório detalhado de teste
 - [x] 34 testes unitários passando após correção
+
+## Sugestões Pós-Teste Stripe (14/05/2026)
+- [x] KYC do Stripe: checklist de go-live criado (checklist-go-live-stripe-promptjur.md)
+  - [ ] Completar KYC no Stripe Dashboard (ação manual do usuário)
+  - [ ] Atualizar secrets com chaves live após aprovação
+  - [ ] Configurar webhook live em promptjur.com/api/stripe/webhook
+  - [ ] Ativar feature flag pagamentos_ativos
+- [x] E-mail de lembrete de trial: job agendado implementado
+  - [x] server/jobs/trial-reminder.ts — job diário às 09h00 (Brasília)
+  - [x] Template HTML profissional com urgência e CTA de upgrade
+  - [x] Envio via Resend (Full Access key)
+  - [x] Janela de lembrete: 1-3 dias antes de expirar
+  - [x] 8 testes unitários passando
+  - [x] Job registrado em server/_core/index.ts
+- [ ] Publicar em produção (promptjur.com) — aguardando usuário clicar Publish

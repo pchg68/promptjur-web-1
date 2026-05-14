@@ -19,6 +19,7 @@ import { quarterlyPriceReviewJob, deveExecutarHoje } from "../jobs/quarterly-pri
 import { scheduleBackupAutomatico } from "../jobs/backup-automatico";
 import { scheduleReenvioAutomatico } from "../jobs/reenvio-automatico";
 import { scheduleAppHealthMonitor } from "../jobs/app-health-monitor";
+import { scheduleTrialReminder } from "../jobs/trial-reminder";
 import { handleStripeWebhook } from "./stripeWebhook";
 import { handleGoogleOAuthCallback } from "../google-oauth-callback";
 import { assistenteSSEHandler } from "../assistente-sse";
@@ -282,6 +283,7 @@ async function startServer() {
   scheduleApplyPendingPrices(); // Aplica reajustes pendentes após 30 dias de aviso prévio (CDC Art. 6º)
   scheduleSchemaDriftMonitor(); // Monitora divergência entre schema Drizzle e banco de produção
   scheduleAppHealthMonitor(); // Monitora heap, event loop lag e DB latency a cada 60s
+  scheduleTrialReminder(); // Envia lembretes de trial expirando em 1-3 dias (09h00 Brasília)
 
   // Revisão trimestral de preços (1º dia de jan/abr/jul/out)
   if (deveExecutarHoje()) {
