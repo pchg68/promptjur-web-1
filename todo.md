@@ -3374,3 +3374,8 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - [x] email está em OWNER_EMAILS (env, padrão: pc@hertt.com.br,admin@promptjur.com)
   - [x] role === 'admin' no banco (usuário já existente com role admin)
 - [x] Servidor recompilado sem erros
+
+## Bug: sql is not defined em tutoriais.estatisticasFeedback (14/05/2026)
+- [x] Corrigir import de `sql` faltando em server/db/tutoriais.ts na função obterEstatisticasFeedback
+  - Diagnóstico: o import já existe no código local (linha 4). O erro é de build antigo em produção.
+  - Solução: publicar nova versão via Publish no painel do Manus
