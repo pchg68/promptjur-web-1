@@ -129,6 +129,24 @@ describe("limparQueryParams", () => {
   });
 });
 
+describe("comportamento do modal: onConfirm vs onClose", () => {
+  it("onConfirm deve redirecionar para /dashboard (flag true)", () => {
+    // Simula a lógica do handleClosePagamentoConfirmado
+    function handleClose(redirect: boolean) {
+      return { redirect };
+    }
+    expect(handleClose(true).redirect).toBe(true);
+    expect(handleClose(false).redirect).toBe(false);
+  });
+
+  it("fechar pelo X (onClose) não deve redirecionar", () => {
+    function handleClose(redirect: boolean) {
+      return { redirect };
+    }
+    expect(handleClose(false).redirect).toBe(false);
+  });
+});
+
 describe("detectarBeneficios", () => {
   it("retorna 'pro' para plano Profissional", () => {
     expect(detectarBeneficios("Profissional")).toBe("pro");

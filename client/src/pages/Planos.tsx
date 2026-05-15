@@ -242,10 +242,12 @@ function EnterpriseContactModal({
 function PagamentoConfirmadoModal({
   open,
   onClose,
+  onConfirm,
   planName,
 }: {
   open: boolean;
   onClose: () => void;
+  onConfirm: () => void;
   planName: string;
 }) {
   const [particles, setParticles] = useState<{ id: number; x: number; color: string; delay: number; duration: number }[]>([]);
@@ -391,7 +393,7 @@ function PagamentoConfirmadoModal({
 
           {/* Botão de ação */}
           <button
-            onClick={onClose}
+            onClick={onConfirm}
             className="w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
             style={{
               background: "linear-gradient(135deg, #d4af37, #f0d060)",
@@ -597,13 +599,16 @@ export default function Planos() {
     enterprise: "from-violet-500 to-purple-600",
   };
 
-  const handleClosePagamentoConfirmado = () => {
+  const handleClosePagamentoConfirmado = (redirectToDashboard = false) => {
     setPagamentoConfirmadoOpen(false);
     // Remove query params da URL sem recarregar a página
     const url = new URL(window.location.href);
     url.searchParams.delete("success");
     url.searchParams.delete("plan");
     window.history.replaceState({}, "", url.toString());
+    if (redirectToDashboard) {
+      setLocation("/dashboard");
+    }
   };
 
   if (plansLoading || authLoading) {
@@ -619,7 +624,8 @@ export default function Planos() {
       {/* Modal de confirmação de pagamento */}
       <PagamentoConfirmadoModal
         open={pagamentoConfirmadoOpen}
-        onClose={handleClosePagamentoConfirmado}
+        onClose={() => handleClosePagamentoConfirmado(false)}
+        onConfirm={() => handleClosePagamentoConfirmado(true)}
         planName={planoPago}
       />
 
