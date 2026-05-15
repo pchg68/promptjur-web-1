@@ -3379,3 +3379,14 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
 - [x] Corrigir import de `sql` faltando em server/db/tutoriais.ts na função obterEstatisticasFeedback
   - Diagnóstico: o import já existe no código local (linha 4). O erro é de build antigo em produção.
   - Solução: publicar nova versão via Publish no painel do Manus
+
+## Modal de Confirmação de Pagamento (15/05/2026)
+- [x] Substituir toast simples por modal de celebração visual em Planos.tsx
+  - Design "Legal Blueprint": fundo navy, borda/ícone dourado, animação de confetti CSS
+  - Ícone Crown animado com pulso dourado e anel expansivo
+  - Lista de 5 benefícios desbloqueados com slide-in animado (Pro e Escritório)
+  - Botão "Começar a usar agora" em gradiente dourado
+  - Invalidação de cache tRPC (getCurrentPlan, getTrialStatus, auth.me) ao abrir
+  - Limpeza dos query params da URL ao fechar (sem reload)
+- [x] Animações CSS adicionadas em index.css: confettiFall, pulseGold, ringExpand, slideInBeneficio
+- [x] 19 testes unitários passando (pagamento-confirmado.test.ts)

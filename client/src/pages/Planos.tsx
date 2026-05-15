@@ -28,6 +28,12 @@ import {
   ChevronRight,
   Package,
   TrendingDown,
+  Star,
+  Shield,
+  Rocket,
+  FileText,
+  Bot,
+  Infinity,
 } from "lucide-react";
 import {
   Dialog,
@@ -232,6 +238,180 @@ function EnterpriseContactModal({
   );
 }
 
+// ─── Modal de confirmação de pagamento ────────────────────────────────────────
+function PagamentoConfirmadoModal({
+  open,
+  onClose,
+  planName,
+}: {
+  open: boolean;
+  onClose: () => void;
+  planName: string;
+}) {
+  const [particles, setParticles] = useState<{ id: number; x: number; color: string; delay: number; duration: number }[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      const colors = ["#d4af37", "#f0d060", "#4a90e2", "#ffffff", "#e8c547", "#7ab8f5"];
+      const newParticles = Array.from({ length: 40 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        delay: Math.random() * 1.5,
+        duration: 2 + Math.random() * 2,
+      }));
+      setParticles(newParticles);
+    }
+  }, [open]);
+
+  const isPro = planName.toLowerCase().includes("pro") || planName.toLowerCase().includes("profissional");
+  const isEnterprise = planName.toLowerCase().includes("enterprise") || planName.toLowerCase().includes("escritório");
+
+  const beneficios = isPro
+    ? [
+        { icon: <Bot className="w-4 h-4" />, texto: "Geração ilimitada de prompts jurídicos" },
+        { icon: <FileText className="w-4 h-4" />, texto: "Acesso a todos os templates premium" },
+        { icon: <Rocket className="w-4 h-4" />, texto: "Análise avançada com IA" },
+        { icon: <Shield className="w-4 h-4" />, texto: "Suporte prioritário" },
+        { icon: <Infinity className="w-4 h-4" />, texto: "Sem limite de documentos" },
+      ]
+    : isEnterprise
+    ? [
+        { icon: <Bot className="w-4 h-4" />, texto: "Tudo do Plano Profissional" },
+        { icon: <Users className="w-4 h-4" />, texto: "Múltiplos usuários no escritório" },
+        { icon: <Shield className="w-4 h-4" />, texto: "SLA e suporte dedicado" },
+        { icon: <FileText className="w-4 h-4" />, texto: "Integrações customizadas" },
+        { icon: <Star className="w-4 h-4" />, texto: "Onboarding personalizado" },
+      ]
+    : [
+        { icon: <Check className="w-4 h-4" />, texto: "Acesso completo ao plano ativado" },
+        { icon: <Rocket className="w-4 h-4" />, texto: "Recursos avançados desbloqueados" },
+        { icon: <Shield className="w-4 h-4" />, texto: "Suporte prioritário ativado" },
+      ];
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent
+        className="sm:max-w-md overflow-hidden border-0 p-0"
+        style={{
+          background: "linear-gradient(135deg, #1a2332 0%, #1e2d45 50%, #1a2332 100%)",
+          boxShadow: "0 0 0 1px rgba(212,175,55,0.3), 0 25px 50px rgba(0,0,0,0.6)",
+        }}
+      >
+        {/* Confetti particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+          {particles.map((p) => (
+            <div
+              key={p.id}
+              className="absolute w-2 h-2 rounded-sm"
+              style={{
+                left: `${p.x}%`,
+                top: "-8px",
+                backgroundColor: p.color,
+                animation: `confettiFall ${p.duration}s ease-in ${p.delay}s forwards`,
+                opacity: 0,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Faixa dourada superior */}
+        <div
+          className="h-1.5 w-full"
+          style={{ background: "linear-gradient(90deg, #d4af37, #f0d060, #d4af37)" }}
+        />
+
+        <div className="p-8 relative">
+          {/* Ícone central animado */}
+          <div className="flex justify-center mb-6">
+            <div
+              className="relative w-24 h-24 rounded-full flex items-center justify-center"
+              style={{
+                background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05))",
+                border: "2px solid rgba(212,175,55,0.5)",
+                boxShadow: "0 0 40px rgba(212,175,55,0.25), inset 0 0 20px rgba(212,175,55,0.05)",
+                animation: "pulseGold 2s ease-in-out infinite",
+              }}
+            >
+              <Crown
+                className="w-12 h-12"
+                style={{ color: "#d4af37", filter: "drop-shadow(0 0 8px rgba(212,175,55,0.6))" }}
+              />
+              {/* Anel externo */}
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  border: "1px solid rgba(212,175,55,0.2)",
+                  animation: "ringExpand 2s ease-out infinite",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Título */}
+          <div className="text-center mb-2">
+            <h2 className="text-2xl font-bold text-white mb-1">
+              Bem-vindo ao{" "}
+              <span style={{ color: "#d4af37" }}>Plano {planName}</span>!
+            </h2>
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+              Sua assinatura foi ativada com sucesso. Todos os recursos já estão disponíveis.
+            </p>
+          </div>
+
+          {/* Divisor dourado */}
+          <div
+            className="my-5 h-px w-full"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent)" }}
+          />
+
+          {/* Lista de benefícios */}
+          <div className="space-y-2.5 mb-6">
+            {beneficios.map((b, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-lg px-3 py-2"
+                style={{
+                  background: "rgba(212,175,55,0.06)",
+                  border: "1px solid rgba(212,175,55,0.12)",
+                  animation: `slideInBeneficio 0.4s ease-out ${0.1 + i * 0.08}s both`,
+                }}
+              >
+                <div
+                  className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(212,175,55,0.15)", color: "#d4af37" }}
+                >
+                  {b.icon}
+                </div>
+                <span className="text-sm text-white/85">{b.texto}</span>
+                <Check className="w-3.5 h-3.5 ml-auto flex-shrink-0" style={{ color: "#d4af37" }} />
+              </div>
+            ))}
+          </div>
+
+          {/* Botão de ação */}
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #f0d060)",
+              color: "#1a2332",
+              boxShadow: "0 4px 20px rgba(212,175,55,0.35)",
+            }}
+          >
+            <Sparkles className="w-4 h-4 inline mr-2" />
+            Começar a usar agora
+          </button>
+
+          <p className="text-xs text-center mt-3" style={{ color: "rgba(255,255,255,0.35)" }}>
+            Você receberá um e-mail de confirmação em breve.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Página principal ──────────────────────────────────────────────────────────
 export default function Planos() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -239,6 +419,9 @@ export default function Planos() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const [enterpriseModalOpen, setEnterpriseModalOpen] = useState(false);
+  const [pagamentoConfirmadoOpen, setPagamentoConfirmadoOpen] = useState(false);
+  const [planoPago, setPlanoPago] = useState("Profissional");
+  const utils = trpc.useUtils();
 
   // Estado do formulário de captura de interesse
   const [interesseEmail, setInteresseEmail] = useState("");
@@ -367,11 +550,19 @@ export default function Planos() {
   useEffect(() => {
     const params = new URLSearchParams(searchString);
     if (params.get("success") === "true") {
-      toast.success(
-        "Assinatura realizada com sucesso! Bem-vindo ao plano " +
-          (params.get("plan") || "Pro") +
-          "!"
-      );
+      const planParam = params.get("plan") || "pro";
+      const planDisplay =
+        planParam === "pro" || planParam === "profissional"
+          ? "Profissional"
+          : planParam === "enterprise" || planParam === "escritório"
+          ? "Escritório"
+          : planParam.charAt(0).toUpperCase() + planParam.slice(1);
+      setPlanoPago(planDisplay);
+      setPagamentoConfirmadoOpen(true);
+      // Invalida cache para refletir o novo plano imediatamente
+      utils.stripe.getCurrentPlan.invalidate();
+      utils.stripe.getTrialStatus.invalidate();
+      utils.auth.me.invalidate();
     }
     if (params.get("canceled") === "true") {
       toast.info("Checkout cancelado. Você pode tentar novamente quando quiser.");
@@ -406,6 +597,15 @@ export default function Planos() {
     enterprise: "from-violet-500 to-purple-600",
   };
 
+  const handleClosePagamentoConfirmado = () => {
+    setPagamentoConfirmadoOpen(false);
+    // Remove query params da URL sem recarregar a página
+    const url = new URL(window.location.href);
+    url.searchParams.delete("success");
+    url.searchParams.delete("plan");
+    window.history.replaceState({}, "", url.toString());
+  };
+
   if (plansLoading || authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -416,6 +616,13 @@ export default function Planos() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Modal de confirmação de pagamento */}
+      <PagamentoConfirmadoModal
+        open={pagamentoConfirmadoOpen}
+        onClose={handleClosePagamentoConfirmado}
+        planName={planoPago}
+      />
+
       {/* Header */}
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
