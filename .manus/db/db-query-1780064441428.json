@@ -1,0 +1,178 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "access_logs"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "access_whitelist"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "admin_cards_arquivados"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "alert_rules"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "analises"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "audit_logs"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "audit_results"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "backups"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "cabecalho_templates"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "chat_messages"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "chat_sessions"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "config_reenvio_auto"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "configuracoes"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "contact_messages"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "convite_logs"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "crm_atividades"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "crm_contratos"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "crm_leads"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "crm_membros"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "document_versions"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "enterprise_leads"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "feature_flags"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "fontes_juridicas"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "formatacao_templates"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "historico"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "launch_interests"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "legislacao_cache"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "llm_logs"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "notification_preferences"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "notifications"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "onboarding_emails"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "perfis_uso"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "performance_alerts"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "price_change_notices"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "price_overrides"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "price_review_requests"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "processed_stripe_events"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "prompt_tags"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "prompt_versoes"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "prompts"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "prompts_salvos"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "push_subscriptions"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "referral_codes"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "referrals"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "shared_prompts"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "tags"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "template_tags"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "templates"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "tutorial_feedback"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "tutorial_progresso"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "user_integrations"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "user_petitions"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "user_style_profiles"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "users"
+    },
+    {
+      "Tables_in_o6j2zJFKcRnWaD36kKv87B": "uso_modelos"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_o6j2zJFKcRnWaD36kKv87B\n__drizzle_migrations\naccess_logs\naccess_whitelist\nadmin_cards_arquivados\nalert_rules\nanalises\naudit_logs\naudit_results\nbackups\ncabecalho_templates\nchat_messages\nchat_sessions\nconfig_reenvio_auto\nconfiguracoes\ncontact_messages\nconvite_logs\ncrm_atividades\ncrm_contratos\ncrm_leads\ncrm_membros\ndocument_versions\nenterprise_leads\nfeature_flags\nfontes_juridicas\nformatacao_templates\nhistorico\nlaunch_interests\nlegislacao_cache\nllm_logs\nnotification_preferences\nnotifications\nonboarding_emails\nperfis_uso\nperformance_alerts\nprice_change_notices\nprice_overrides\nprice_review_requests\nprocessed_stripe_events\nprompt_tags\nprompt_versoes\nprompts\nprompts_salvos\npush_subscriptions\nreferral_codes\nreferrals\nshared_prompts\ntags\ntemplate_tags\ntemplates\ntutorial_feedback\ntutorial_progresso\nuser_integrations\nuser_petitions\nuser_style_profiles\nusers\nuso_modelos\n",
+  "stderr": "",
+  "execution_time_ms": 307
+}

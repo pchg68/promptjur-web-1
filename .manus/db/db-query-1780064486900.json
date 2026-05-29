@@ -1,0 +1,30 @@
+{
+  "query": "\nSELECT u.id, u.openId, u.name, u.email, u.role, u.subscriptionPlan, u.loginMethod,\n       w.ativo AS whitelist_ativo\nFROM users u\nLEFT JOIN access_whitelist w ON w.email = u.email\nWHERE u.openId IN ('test-admin-promptjur-001', 'test-user-promptjur-002');\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute \nSELECT u.id, u.openId, u.name, u.email, u.role, u.subscriptionPlan, u.loginMethod,\n       w.ativo AS whitelist_ativo\nFROM users u\nLEFT JOIN access_whitelist w ON w.email = u.email\nWHERE u.openId IN ('test-admin-promptjur-001', 'test-user-promptjur-002');\n",
+  "rows": [
+    {
+      "id": "13740116",
+      "openId": "test-admin-promptjur-001",
+      "name": "Admin Teste PromptJur",
+      "email": "admin-teste@promptjur.com",
+      "role": "admin",
+      "subscriptionPlan": "enterprise",
+      "loginMethod": "test",
+      "whitelist_ativo": "1"
+    },
+    {
+      "id": "13740117",
+      "openId": "test-user-promptjur-002",
+      "name": "Usuário Teste PromptJur",
+      "email": "user-teste@promptjur.com",
+      "role": "user",
+      "subscriptionPlan": "pro",
+      "loginMethod": "test",
+      "whitelist_ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\trole\tsubscriptionPlan\tloginMethod\twhitelist_ativo\n13740116\ttest-admin-promptjur-001\tAdmin Teste PromptJur\tadmin-teste@promptjur.com\tadmin\tenterprise\ttest\t1\n13740117\ttest-user-promptjur-002\tUsuário Teste PromptJur\tuser-teste@promptjur.com\tuser\tpro\ttest\t1\n",
+  "stderr": "",
+  "execution_time_ms": 264
+}

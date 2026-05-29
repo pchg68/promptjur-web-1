@@ -1,0 +1,14 @@
+{
+  "cookies": [
+    {
+      "name": "app_session_id",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcGVuSWQiOiJ0ZXN0LXVzZXItcHJvbXB0anVyLTAwMiIsImFwcElkIjoibzZqMnpKRktjUm5XYUQzNmtLdjg3QiIsIm5hbWUiOiJVc3XDoXJpbyBUZXN0ZSBQcm9tcHRKdXIiLCJleHAiOjE4MTE2MDA4NjF9.Fh-45UL2QSpulJDeYw3b3SDEjQNKmGGgX3Qz9EQijiU",
+      "domain": "promptjur.com",
+      "path": "/",
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

@@ -45,6 +45,26 @@ export default defineConfig({
 
   /* Configurar projetos para diferentes navegadores */
   projects: [
+    // ─── Projetos autenticados (usam token JWT — sem Turnstile) ───────────────
+    {
+      name: 'authenticated-admin',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/fixtures/admin-auth.json',
+        baseURL: process.env.BASE_URL || 'https://promptjur.com',
+      },
+      testMatch: /e2e\/(access-control|whitelist|save-prompt|legal-prompt)\.spec\.ts/,
+    },
+    {
+      name: 'authenticated-user',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/fixtures/user-auth.json',
+        baseURL: process.env.BASE_URL || 'https://promptjur.com',
+      },
+      testMatch: /e2e\/(access-control|save-prompt|legal-prompt)\.spec\.ts/,
+    },
+    // ─── Projetos padrão (sem autenticação) ──────────────────────────────────
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
