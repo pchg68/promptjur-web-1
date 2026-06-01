@@ -1,0 +1,41 @@
+# robots.txt — PromptJur
+# https://promptjur.com/robots.txt
+
+User-agent: *
+
+# Páginas públicas — permitir indexação
+Allow: /
+Allow: /planos
+Allow: /tutoriais
+Allow: /biblioteca-publica
+Allow: /biblioteca-templates
+Allow: /contato
+Allow: /privacidade
+Allow: /termos
+Allow: /template/
+
+# Páginas que exigem login — bloquear indexação
+Disallow: /dashboard
+Disallow: /historico
+Disallow: /templates
+Disallow: /meus-modelos
+Disallow: /meus-prompts
+Disallow: /configuracoes
+Disallow: /admin
+Disallow: /admin-tools
+Disallow: /admin-precos
+Disallow: /crm
+Disallow: /assistente
+Disallow: /meu-plano
+Disallow: /monitoramento-llm
+Disallow: /dashboard-custos
+Disallow: /suporte
+Disallow: /indicacoes
+Disallow: /acesso-restrito
+Disallow: /shared/
+
+# APIs — nunca indexar
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://promptjur.com/sitemap.xml

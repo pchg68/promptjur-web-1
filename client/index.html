@@ -33,6 +33,69 @@
 
     <title>%VITE_APP_TITLE%</title>
 
+    <!-- JSON-LD: Dados Estruturados (Schema.org) para o Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "PromptJur",
+          "url": "https://promptjur.com",
+          "description": "Plataforma de engenharia de prompts jurídicos com inteligência artificial. Crie, analise e otimize prompts para peças jurídicas com precisão profissional.",
+          "applicationCategory": "LegalApplication",
+          "operatingSystem": "Web",
+          "inLanguage": "pt-BR",
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "BRL",
+            "lowPrice": "0",
+            "offerCount": "3",
+            "offers": [
+              { "@type": "Offer", "name": "Gratuito", "price": "0", "priceCurrency": "BRL" },
+              { "@type": "Offer", "name": "Pro", "price": "97", "priceCurrency": "BRL" },
+              { "@type": "Offer", "name": "Escritório", "price": "197", "priceCurrency": "BRL" }
+            ]
+          },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Advogados, Estudantes de Direito, Escritórios de Advocacia"
+          },
+          "featureList": [
+            "Geração de prompts jurídicos com IA",
+            "Análise e otimização de prompts",
+            "Biblioteca de templates jurídicos",
+            "Assistente jurídico com IA",
+            "Exportação de peças em DOCX e PDF"
+          ]
+        },
+        {
+          "@type": "Organization",
+          "name": "PromptJur",
+          "url": "https://promptjur.com",
+          "logo": "https://promptjur.com/logo.png",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "url": "https://promptjur.com/contato",
+            "availableLanguage": "Portuguese"
+          },
+          "sameAs": []
+        },
+        {
+          "@type": "WebSite",
+          "name": "PromptJur",
+          "url": "https://promptjur.com",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://promptjur.com/biblioteca-publica?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
