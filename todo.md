@@ -3390,3 +3390,14 @@ O erro foi causado por cache do navegador contendo dados da versão anterior (an
   - Limpeza dos query params da URL ao fechar (sem reload)
 - [x] Animações CSS adicionadas em index.css: confettiFall, pulseGold, ringExpand, slideInBeneficio
 - [x] 19 testes unitários passando (pagamento-confirmado.test.ts)
+
+## Blog Público (Sessão Atual)
+- [x] Tabelas blog_posts e blog_links_externos criadas no banco
+- [x] Router tRPC blog com procedures: listar, porSlug, destaques, linksExternos, criar, atualizar, adicionarLink
+- [x] 5 artigos iniciais inseridos no banco
+- [x] 10 links externos inseridos (OAB, STJ, STF, Planalto, JOTA, Migalhas, Conjur, Instagram, Facebook, LexML)
+- [x] Página /blog com listagem, filtros por categoria, busca e sidebar com links externos
+- [x] Página /blog/:slug com leitura de artigo completo e artigos relacionados
+- [x] Botão Blog adicionado na navegação da Home ao lado do botão Tutoriais
+- [x] Rotas /blog e /blog/:slug registradas no App.tsx
+- [x] Sitemap.xml atualizado com /blog e os 5 artigos iniciais

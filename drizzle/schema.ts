@@ -1081,3 +1081,48 @@ export const auditResults = mysqlTable("audit_results", {
 });
 export type AuditResult = typeof auditResults.$inferSelect;
 export type InsertAuditResult = typeof auditResults.$inferInsert;
+
+// ─── Blog ─────────────────────────────────────────────────────────────────────
+
+export const blogPosts = mysqlTable("blog_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 200 }).notNull().unique(),
+  titulo: varchar("titulo", { length: 300 }).notNull(),
+  resumo: text("resumo").notNull(),
+  conteudo: text("conteudo").notNull(),
+  categoria: mysqlEnum("categoria", [
+    "engenharia-de-prompts",
+    "ia-juridica",
+    "dicas-praticas",
+    "legislacao-e-regulamentacao",
+    "casos-de-uso",
+    "ferramentas",
+  ]).notNull(),
+  tags: json("tags").$type<string[]>().default([]),
+  autorNome: varchar("autorNome", { length: 200 }).notNull().default("Equipe PromptJur"),
+  imagemUrl: varchar("imagemUrl", { length: 500 }),
+  publicado: boolean("publicado").default(false).notNull(),
+  destaque: boolean("destaque").default(false).notNull(),
+  visualizacoes: int("visualizacoes").default(0).notNull(),
+  tempoLeituraMin: int("tempoLeituraMin").default(5).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;
+
+export const blogLinksExternos = mysqlTable("blog_links_externos", {
+  id: int("id").autoincrement().primaryKey(),
+  titulo: varchar("titulo", { length: 300 }).notNull(),
+  descricao: text("descricao"),
+  url: varchar("url", { length: 500 }).notNull(),
+  tipo: mysqlEnum("tipo", ["artigo", "video", "ferramenta", "instagram", "facebook", "linkedin", "youtube", "outro"]).notNull(),
+  categoria: varchar("categoria", { length: 100 }),
+  ativo: boolean("ativo").default(true).notNull(),
+  ordem: int("ordem").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type BlogLinkExterno = typeof blogLinksExternos.$inferSelect;
+export type InsertBlogLinkExterno = typeof blogLinksExternos.$inferInsert;

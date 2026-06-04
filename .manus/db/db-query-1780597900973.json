@@ -1,0 +1,9 @@
+{
+  "query": "\nCREATE TABLE IF NOT EXISTS `blog_links_externos` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `titulo` varchar(300) NOT NULL,\n  `descricao` text DEFAULT NULL,\n  `url` varchar(500) NOT NULL,\n  `tipo` enum('artigo','video','ferramenta','instagram','facebook','linkedin','youtube','outro') NOT NULL,\n  `categoria` varchar(100) DEFAULT NULL,\n  `ativo` tinyint(1) NOT NULL DEFAULT 1,\n  `ordem` int NOT NULL DEFAULT 0,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`)\n);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute \nCREATE TABLE IF NOT EXISTS `blog_links_externos` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `titulo` varchar(300) NOT NULL,\n  `descricao` text DEFAULT NULL,\n  `url` varchar(500) NOT NULL,\n  `tipo` enum('artigo','video','ferramenta','instagram','facebook','linkedin','youtube','outro') NOT NULL,\n  `categoria` varchar(100) DEFAULT NULL,\n  `ativo` tinyint(1) NOT NULL DEFAULT 1,\n  `ordem` int NOT NULL DEFAULT 0,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`)\n);\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 338
+}

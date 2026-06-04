@@ -47,6 +47,9 @@ export default function Home() {
               <Link href="/tutoriais">
                 <Button variant="ghost">Tutoriais</Button>
               </Link>
+              <Link href="/blog">
+                <Button variant="ghost">Blog</Button>
+              </Link>
               <Link href="/contato">
                 <Button variant="ghost">Contato</Button>
               </Link>

@@ -31,6 +31,8 @@ import CookieBanner from "./components/CookieBanner";
 import Suporte from "./pages/Suporte";
 import Referral from "./pages/Referral";
 import AdminPrecos from "./pages/AdminPrecos";
+import Blog from "./pages/Blog";
+import BlogArtigo from "./pages/BlogArtigo";
 
 function Router() {
   return (
@@ -61,6 +63,8 @@ function Router() {
       <Route path="/suporte" component={Suporte} />
       <Route path="/indicacoes" component={Referral} />
       <Route path="/admin-precos" component={AdminPrecos} />
+      <Route path="/blog" component={Blog} />
+      <Route path="/blog/:slug" component={BlogArtigo} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

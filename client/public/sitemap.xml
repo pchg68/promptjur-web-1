@@ -50,6 +50,54 @@
     <priority>0.6</priority>
   </url>
 
+  <!-- Blog -->
+  <url>
+    <loc>https://promptjur.com/blog</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Blog: Artigo 1 -->
+  <url>
+    <loc>https://promptjur.com/blog/o-que-e-engenharia-de-prompts-juridicos</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 2 -->
+  <url>
+    <loc>https://promptjur.com/blog/5-prompts-essenciais-para-peticoes-trabalhistas</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 3 -->
+  <url>
+    <loc>https://promptjur.com/blog/regulamentacao-ia-direito-brasil-2025</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 4 -->
+  <url>
+    <loc>https://promptjur.com/blog/como-melhorar-qualidade-prompts-juridicos</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 5 -->
+  <url>
+    <loc>https://promptjur.com/blog/chatgpt-vs-claude-para-peticoes-juridicas</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- Política de Privacidade -->
   <url>
     <loc>https://promptjur.com/privacidade</loc>

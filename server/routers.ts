@@ -34,6 +34,7 @@ import { custosLlmRouter } from "./routers/custos-llm";
 import { accountRouter } from "./routers/account";
 import { referralRouter } from "./routers/referral";
 import { adminPrecosRouter } from "./routers/admin-precos";
+import { blogRouter } from "./routers/blog";
 
 export const appRouter = router({
   // Core system routers
@@ -169,6 +170,7 @@ export const appRouter = router({
   account: accountRouter,
   referral: referralRouter,
   adminPrecos: adminPrecosRouter,
+  blog: blogRouter,
 });
 
 export type AppRouter = typeof appRouter;
