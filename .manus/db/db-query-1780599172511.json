@@ -1,0 +1,94 @@
+{
+  "query": "SELECT id, slug, categoria, destaque, publicado FROM blog_posts ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT id, slug, categoria, destaque, publicado FROM blog_posts ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "slug": "o-que-e-engenharia-de-prompts-juridicos",
+      "categoria": "engenharia-de-prompts",
+      "destaque": "1",
+      "publicado": "1"
+    },
+    {
+      "id": "2",
+      "slug": "5-prompts-essenciais-para-peticoes-trabalhistas",
+      "categoria": "casos-de-uso",
+      "destaque": "1",
+      "publicado": "1"
+    },
+    {
+      "id": "3",
+      "slug": "regulamentacao-ia-direito-brasil-2025",
+      "categoria": "legislacao-e-regulamentacao",
+      "destaque": "0",
+      "publicado": "1"
+    },
+    {
+      "id": "4",
+      "slug": "como-melhorar-qualidade-prompts-juridicos",
+      "categoria": "dicas-praticas",
+      "destaque": "0",
+      "publicado": "1"
+    },
+    {
+      "id": "5",
+      "slug": "chatgpt-vs-claude-para-peticoes-juridicas",
+      "categoria": "ferramentas",
+      "destaque": "0",
+      "publicado": "1"
+    },
+    {
+      "id": "6",
+      "slug": "prompts-ia-contratos-imobiliarios",
+      "categoria": "casos-de-uso",
+      "destaque": "1",
+      "publicado": "1"
+    },
+    {
+      "id": "7",
+      "slug": "prompts-direito-penal-habeas-corpus-defesa",
+      "categoria": "casos-de-uso",
+      "destaque": "1",
+      "publicado": "1"
+    },
+    {
+      "id": "8",
+      "slug": "lgpd-escritorios-advocacia-o-que-muda",
+      "categoria": "legislacao-e-regulamentacao",
+      "destaque": "0",
+      "publicado": "1"
+    },
+    {
+      "id": "9",
+      "slug": "etica-ia-juridica-o-que-oab-diz",
+      "categoria": "legislacao-e-regulamentacao",
+      "destaque": "0",
+      "publicado": "1"
+    },
+    {
+      "id": "10",
+      "slug": "prompts-pareceres-tributarios-ia",
+      "categoria": "casos-de-uso",
+      "destaque": "0",
+      "publicado": "1"
+    },
+    {
+      "id": "11",
+      "slug": "como-treinar-ia-com-jurisprudencia-especifica",
+      "categoria": "engenharia-de-prompts",
+      "destaque": "0",
+      "publicado": "1"
+    },
+    {
+      "id": "12",
+      "slug": "automacao-contratos-ia-riscos-oportunidades",
+      "categoria": "ferramentas",
+      "destaque": "0",
+      "publicado": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tslug\tcategoria\tdestaque\tpublicado\n1\to-que-e-engenharia-de-prompts-juridicos\tengenharia-de-prompts\t1\t1\n2\t5-prompts-essenciais-para-peticoes-trabalhistas\tcasos-de-uso\t1\t1\n3\tregulamentacao-ia-direito-brasil-2025\tlegislacao-e-regulamentacao\t0\t1\n4\tcomo-melhorar-qualidade-prompts-juridicos\tdicas-praticas\t0\t1\n5\tchatgpt-vs-claude-para-peticoes-juridicas\tferramentas\t0\t1\n6\tprompts-ia-contratos-imobiliarios\tcasos-de-uso\t1\t1\n7\tprompts-direito-penal-habeas-corpus-defesa\tcasos-de-uso\t1\t1\n8\tlgpd-escritorios-advocacia-o-que-muda\tlegislacao-e-regulamentacao\t0\t1\n9\tetica-ia-juridica-o-que-oab-diz\tlegislacao-e-regulamentacao\t0\t1\n10\tprompts-pareceres-tributarios-ia\tcasos-de-uso\t0\t1\n11\tcomo-treinar-ia-com-jurisprudencia-especifica\tengenharia-de-prompts\t0\t1\n12\tautomacao-contratos-ia-riscos-oportunidades\tferramentas\t0\t1\n",
+  "stderr": "",
+  "execution_time_ms": 343
+}

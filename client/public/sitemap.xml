@@ -98,6 +98,62 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- Blog: Artigo 6 -->
+  <url>
+    <loc>https://promptjur.com/blog/prompts-ia-contratos-imobiliarios</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 7 -->
+  <url>
+    <loc>https://promptjur.com/blog/prompts-direito-penal-habeas-corpus-defesa</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 8 -->
+  <url>
+    <loc>https://promptjur.com/blog/lgpd-escritorios-advocacia-o-que-muda</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 9 -->
+  <url>
+    <loc>https://promptjur.com/blog/etica-ia-juridica-o-que-oab-diz</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 10 -->
+  <url>
+    <loc>https://promptjur.com/blog/prompts-pareceres-tributarios-ia</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 11 -->
+  <url>
+    <loc>https://promptjur.com/blog/como-treinar-ia-com-jurisprudencia-especifica</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog: Artigo 12 -->
+  <url>
+    <loc>https://promptjur.com/blog/automacao-contratos-ia-riscos-oportunidades</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- Política de Privacidade -->
   <url>
     <loc>https://promptjur.com/privacidade</loc>
