@@ -9,7 +9,7 @@ import {
   Shield, Database, TestTube, AlertTriangle, CheckCircle, Loader2, Trash2,
   Activity, Clock, Flag, FileText, BarChart3, Zap, Bell, Check, Package,
   Download, Upload, AlertCircle, Building2, ArrowLeft, DollarSign,
-  ChevronDown, ChevronUp, Archive, ArchiveRestore
+  ChevronDown, ChevronUp, Archive, ArchiveRestore, BookOpen
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
@@ -967,6 +967,27 @@ export default function AdminTools() {
               >
                 <DollarSign className="w-4 h-4 mr-2" />
                 Abrir Painel de Preços
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Gerenciamento do Blog */}
+          <Card className="border-gray-700 bg-gray-800/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BookOpen className="w-5 h-5 text-blue-400" />
+                Gerenciamento do Blog
+              </CardTitle>
+              <CardDescription>Crie, edite e publique artigos, gerencie links externos e categorias do blog</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => setLocation('/admin-blog')}
+                className="w-full"
+                variant="default"
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Abrir Painel do Blog
               </Button>
             </CardContent>
           </Card>
