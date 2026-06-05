@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, titulo, tipo, url FROM blog_links_externos WHERE tipo IN ('instagram', 'facebook') ORDER BY tipo;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT id, titulo, tipo, url FROM blog_links_externos WHERE tipo IN ('instagram', 'facebook') ORDER BY tipo;",
+  "rows": [
+    {
+      "id": "8",
+      "titulo": "PromptJur no Instagram",
+      "tipo": "instagram",
+      "url": "https://www.instagram.com/promptjur"
+    },
+    {
+      "id": "9",
+      "titulo": "PromptJur no Facebook",
+      "tipo": "facebook",
+      "url": "https://www.facebook.com/promptjur"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitulo\ttipo\turl\n8\tPromptJur no Instagram\tinstagram\thttps://www.instagram.com/promptjur\n9\tPromptJur no Facebook\tfacebook\thttps://www.facebook.com/promptjur\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

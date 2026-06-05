@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE blog_links_externos SET url = 'https://www.instagram.com/promptjur/', titulo = 'PromptJur no Instagram', descricao = 'Siga o PromptJur no Instagram para dicas de prompts jurídicos e novidades' WHERE id = 8;\nUPDATE blog_links_externos SET url = 'https://www.facebook.com/profile.php?id=61590492124516', titulo = 'PromptJur no Facebook', descricao = 'Acompanhe o PromptJur no Facebook e participe da comunidade jurídica' WHERE id = 9;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute UPDATE blog_links_externos SET url = 'https://www.instagram.com/promptjur/', titulo = 'PromptJur no Instagram', descricao = 'Siga o PromptJur no Instagram para dicas de prompts jurídicos e novidades' WHERE id = 8;\nUPDATE blog_links_externos SET url = 'https://www.facebook.com/profile.php?id=61590492124516', titulo = 'PromptJur no Facebook', descricao = 'Acompanhe o PromptJur no Facebook e participe da comunidade jurídica' WHERE id = 9;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 273
+}
