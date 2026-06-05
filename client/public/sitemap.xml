@@ -42,6 +42,14 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- Sobre o PromptJur -->
+  <url>
+    <loc>https://promptjur.com/sobre</loc>
+    <lastmod>2026-06-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Contato -->
   <url>
     <loc>https://promptjur.com/contato</loc>

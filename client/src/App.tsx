@@ -36,6 +36,7 @@ import AdminBlogEditor from "./pages/AdminBlogEditor";
 import AdminBlogNovoLink from "./pages/AdminBlogNovoLink";
 import Blog from "./pages/Blog";
 import BlogArtigo from "./pages/BlogArtigo";
+import Sobre from "./pages/Sobre";
 
 function Router() {
   return (
@@ -48,6 +49,7 @@ function Router() {
       <Route path={"/meus-modelos"} component={MeusModelos} />
       <Route path={"/biblioteca-publica"} component={BibliotecaPublica} />
       <Route path={"/tutoriais"} component={Tutoriais} />
+      <Route path={"/sobre"} component={Sobre} />
       <Route path={"/biblioteca-templates"} component={BibliotecaTemplates} />
       <Route path={"/admin-tools"} component={AdminTools} />
       <Route path={"/configuracoes"} component={Configuracoes} />
