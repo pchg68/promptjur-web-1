@@ -40,11 +40,12 @@
       "@graph": [
         {
           "@type": "SoftwareApplication",
+          "@id": "https://promptjur.com/#application",
           "name": "PromptJur",
           "url": "https://promptjur.com",
-          "description": "Plataforma de engenharia de prompts jurídicos com inteligência artificial. Crie, analise e otimize prompts para peças jurídicas com precisão profissional.",
-          "applicationCategory": "LegalApplication",
-          "operatingSystem": "Web",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "All",
+          "description": "Plataforma de engenharia de prompts jurídicos com IA para advogados. Crie, analise e otimize prompts com precisão profissional.",
           "inLanguage": "pt-BR",
           "offers": {
             "@type": "AggregateOffer",
@@ -71,21 +72,26 @@
         },
         {
           "@type": "Organization",
+          "@id": "https://promptjur.com/#organization",
           "name": "PromptJur",
           "url": "https://promptjur.com",
           "logo": "https://promptjur.com/logo.png",
+          "sameAs": [
+            "https://www.instagram.com/promptjur/",
+            "https://www.facebook.com/profile.php?id=61590492124516"
+          ],
           "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "customer support",
             "url": "https://promptjur.com/contato",
             "availableLanguage": "Portuguese"
-          },
-          "sameAs": []
+          }
         },
         {
           "@type": "WebSite",
-          "name": "PromptJur",
+          "@id": "https://promptjur.com/#website",
           "url": "https://promptjur.com",
+          "name": "PromptJur",
           "potentialAction": {
             "@type": "SearchAction",
             "target": "https://promptjur.com/biblioteca-publica?q={search_term_string}",
@@ -103,7 +109,20 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Conteúdo estático de fallback para SEO. Será substituído pelo React após o carregamento -->
+      <header style="display: none;">
+        <h1>PromptJur - Sistema de Engenharia de Prompts Jurídicos</h1>
+        <p>O PromptJur utiliza inteligência artificial avançada para analisar, gerar e otimizar prompts jurídicos com precisão profissional. Economize tempo e melhore a qualidade dos seus documentos legais.</p>
+        <nav>
+          <a href="https://promptjur.com/">Início</a>
+          <a href="https://promptjur.com/planos">Planos</a>
+          <a href="https://promptjur.com/blog">Blog</a>
+          <a href="https://promptjur.com/tutoriais">Tutoriais</a>
+          <a href="https://promptjur.com/contato">Contato</a>
+        </nav>
+      </header>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <script
       defer
