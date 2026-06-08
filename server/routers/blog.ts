@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { configuracoes } from "../../drizzle/schema";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
@@ -26,6 +27,46 @@ const artigoInputBase = z.object({
   destaque: z.boolean().default(false),
   tempoLeituraMin: z.number().min(1).max(60).default(5),
 });
+
+// ── Helper: dispara webhook para Zapier/Make ────────────────────────────────
+async function dispararWebhookBlog(webhookUrl: string, artigo: {
+  id: number;
+  titulo: string;
+  slug: string;
+  resumo: string;
+  categoria: string;
+  autorNome: string | null;
+  imagemUrl: string | null;
+  tags: unknown;
+  publicado: boolean;
+  destaque: boolean;
+}) {
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        evento: 'artigo_publicado',
+        artigo: {
+          id: artigo.id,
+          titulo: artigo.titulo,
+          slug: artigo.slug,
+          resumo: artigo.resumo,
+          categoria: artigo.categoria,
+          autor: artigo.autorNome,
+          imagemUrl: artigo.imagemUrl,
+          tags: artigo.tags,
+          destaque: artigo.destaque,
+          url: `https://promptjur.com/blog/${artigo.slug}`,
+          urlCurta: `promptjur.com/blog/${artigo.slug}`,
+        },
+        timestamp: new Date().toISOString(),
+      }),
+    });
+  } catch (e) {
+    console.warn('[Blog Webhook] Falha ao disparar webhook:', e);
+  }
+}
 
 export const blogRouter = router({
   // ── Público: lista artigos publicados ───────────────────────────────────────
@@ -327,5 +368,108 @@ export const blogRouter = router({
 
       await db.delete(blogLinksExternos).where(eq(blogLinksExternos.id, input.id));
       return { success: true };
+    }),
+
+  // ── Admin: obter URL do webhook configurada ──────────────────────────────────
+  obterWebhook: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+    const config = await db
+      .select({ preferencias: configuracoes.preferencias })
+      .from(configuracoes)
+      .where(eq(configuracoes.userId, ctx.user.id))
+      .limit(1);
+
+    const prefs = (config[0]?.preferencias as Record<string, unknown>) ?? {};
+    return { webhookUrl: (prefs.blogWebhookUrl as string) ?? '' };
+  }),
+
+  // ── Admin: salvar URL do webhook ─────────────────────────────────────────────
+  salvarWebhook: protectedProcedure
+    .input(z.object({ webhookUrl: z.string().url().or(z.literal('')) }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const existing = await db
+        .select({ id: configuracoes.id, preferencias: configuracoes.preferencias })
+        .from(configuracoes)
+        .where(eq(configuracoes.userId, ctx.user.id))
+        .limit(1);
+
+      const prefs = ((existing[0]?.preferencias as Record<string, unknown>) ?? {}) as Record<string, unknown>;
+      prefs.blogWebhookUrl = input.webhookUrl;
+
+      if (existing[0]) {
+        await db.update(configuracoes)
+          .set({ preferencias: prefs })
+          .where(eq(configuracoes.userId, ctx.user.id));
+      } else {
+        await db.insert(configuracoes).values({
+          userId: ctx.user.id,
+          preferencias: prefs,
+        });
+      }
+      return { success: true };
+    }),
+
+  // ── Admin: testar webhook ────────────────────────────────────────────────────
+  testarWebhook: protectedProcedure
+    .input(z.object({ webhookUrl: z.string().url() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+
+      await dispararWebhookBlog(input.webhookUrl, {
+        id: 0,
+        titulo: 'Teste de Webhook — PromptJur',
+        slug: 'teste-webhook',
+        resumo: 'Este é um teste de integração do webhook do blog PromptJur com Zapier/Make.',
+        categoria: 'engenharia-de-prompts',
+        autorNome: ctx.user.name,
+        imagemUrl: null,
+        tags: ['teste', 'webhook', 'promptjur'],
+        publicado: true,
+        destaque: false,
+      });
+      return { success: true };
+    }),
+
+  // ── Admin: publicar artigo e disparar webhook ────────────────────────────────
+  publicarComWebhook: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      // Publicar o artigo
+      await db.update(blogPosts)
+        .set({ publicado: true })
+        .where(eq(blogPosts.id, input.id));
+
+      // Buscar dados do artigo
+      const artigos = await db.select().from(blogPosts).where(eq(blogPosts.id, input.id)).limit(1);
+      const artigo = artigos[0];
+      if (!artigo) return { success: true, webhookDisparado: false };
+
+      // Buscar URL do webhook
+      const config = await db
+        .select({ preferencias: configuracoes.preferencias })
+        .from(configuracoes)
+        .where(eq(configuracoes.userId, ctx.user.id))
+        .limit(1);
+
+      const prefs = (config[0]?.preferencias as Record<string, unknown>) ?? {};
+      const webhookUrl = prefs.blogWebhookUrl as string | undefined;
+
+      if (webhookUrl) {
+        await dispararWebhookBlog(webhookUrl, artigo);
+        return { success: true, webhookDisparado: true };
+      }
+
+      return { success: true, webhookDisparado: false };
     }),
 });

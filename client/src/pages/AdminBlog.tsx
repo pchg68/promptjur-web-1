@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
@@ -48,7 +48,9 @@ export default function AdminBlog() {
   const [filtroPublicado, setFiltroPublicado] = useState<string>("todos");
   const [pagina, setPagina] = useState(0);
   const [excluirId, setExcluirId] = useState<number | null>(null);
-  const [abaAtiva, setAbaAtiva] = useState<"artigos" | "links">("artigos");
+  const [abaAtiva, setAbaAtiva] = useState<"artigos" | "links" | "integracoes">("artigos");
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookSalvo, setWebhookSalvo] = useState(false);
 
   const LIMITE = 15;
 
@@ -64,6 +66,27 @@ export default function AdminBlog() {
     undefined,
     { enabled: !!user && user.role === "admin" && abaAtiva === "links" }
   );
+
+  const { data: webhookData } = trpc.blog.obterWebhook.useQuery(undefined, {
+    enabled: !!user && user.role === "admin" && abaAtiva === "integracoes",
+  });
+
+  // Preencher campo com URL salva ao carregar
+  useEffect(() => {
+    if (webhookData?.webhookUrl && !webhookUrl) {
+      setWebhookUrl(webhookData.webhookUrl);
+    }
+  }, [webhookData]);
+
+  const salvarWebhookMutation = trpc.blog.salvarWebhook.useMutation({
+    onSuccess: () => { setWebhookSalvo(true); toast.success("Webhook salvo com sucesso!"); setTimeout(() => setWebhookSalvo(false), 3000); },
+    onError: () => toast.error("Erro ao salvar webhook"),
+  });
+
+  const testarWebhookMutation = trpc.blog.testarWebhook.useMutation({
+    onSuccess: () => toast.success("Webhook disparado! Verifique o Zapier/Make."),
+    onError: () => toast.error("Erro ao testar webhook — verifique a URL"),
+  });
 
   const togglePublicado = trpc.blog.togglePublicado.useMutation({
     onSuccess: () => { utils.blog.adminListar.invalidate(); toast.success("Status atualizado"); },
@@ -172,6 +195,17 @@ export default function AdminBlog() {
           >
             <Link2 className="w-4 h-4 inline mr-2" />
             Links Externos ({links?.length ?? 0})
+          </button>
+          <button
+            onClick={() => setAbaAtiva("integracoes")}
+            className={`px-4 py-2 text-sm font-medium rounded-t transition-colors ${
+              abaAtiva === "integracoes"
+                ? "bg-gray-800 text-white border-b-2 border-green-500"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Integrações
           </button>
         </div>
 
@@ -440,6 +474,79 @@ export default function AdminBlog() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ABA INTEGRAÇÕES */}
+        {abaAtiva === "integracoes" && (
+          <div className="max-w-2xl">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-white mb-1">Publicação Automática nas Redes Sociais</h2>
+              <p className="text-gray-400 text-sm">Configure um webhook do Zapier ou Make.com para publicar artigos automaticamente no Facebook e Instagram quando você clicar em "Publicar".</p>
+            </div>
+
+            {/* Card Zapier/Make */}
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-5 mb-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-orange-600/20 rounded-lg flex items-center justify-center">
+                  <RefreshCw className="w-5 h-5 text-orange-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-medium">Zapier / Make.com</h3>
+                  <p className="text-gray-400 text-xs">Recebe os dados do artigo e publica nas redes sociais</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-gray-300 text-sm font-medium block mb-1">URL do Webhook</label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={webhookUrl}
+                      onChange={e => setWebhookUrl(e.target.value)}
+                      placeholder="https://hooks.zapier.com/hooks/catch/... ou https://hook.eu1.make.com/..."
+                      className="bg-gray-900 border-gray-600 text-white placeholder-gray-500 flex-1"
+                    />
+                    <Button
+                      onClick={() => salvarWebhookMutation.mutate({ webhookUrl })}
+                      disabled={!webhookUrl || salvarWebhookMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
+                    >
+                      {salvarWebhookMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : webhookSalvo ? "Salvo ✓" : "Salvar"}
+                    </Button>
+                  </div>
+                  <p className="text-gray-500 text-xs mt-1">Cole aqui a URL do webhook gerada no Zapier ou Make.com</p>
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() => webhookUrl && testarWebhookMutation.mutate({ webhookUrl })}
+                  disabled={!webhookUrl || testarWebhookMutation.isPending}
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700 w-full"
+                >
+                  {testarWebhookMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                  Testar Webhook
+                </Button>
+              </div>
+            </div>
+
+            {/* Instruções */}
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-5">
+              <h3 className="text-white font-medium mb-3">Como configurar no Zapier</h3>
+              <ol className="space-y-2 text-sm text-gray-400">
+                <li className="flex gap-2"><span className="text-blue-400 font-bold">1.</span> Acesse <a href="https://zapier.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">zapier.com</a> e crie um novo Zap</li>
+                <li className="flex gap-2"><span className="text-blue-400 font-bold">2.</span> Escolha <strong className="text-white">Trigger: Webhooks by Zapier → Catch Hook</strong></li>
+                <li className="flex gap-2"><span className="text-blue-400 font-bold">3.</span> Copie a URL gerada e cole no campo acima</li>
+                <li className="flex gap-2"><span className="text-blue-400 font-bold">4.</span> Clique em <strong className="text-white">Testar Webhook</strong> para enviar dados de exemplo</li>
+                <li className="flex gap-2"><span className="text-blue-400 font-bold">5.</span> No Zapier, clique em <strong className="text-white">Test Trigger</strong> para capturar os dados</li>
+                <li className="flex gap-2"><span className="text-blue-400 font-bold">6.</span> Adicione as ações: <strong className="text-white">Facebook Pages → Create Post</strong> e <strong className="text-white">Instagram for Business → Create Post</strong></li>
+                <li className="flex gap-2"><span className="text-blue-400 font-bold">7.</span> Mapeie os campos: <code className="bg-gray-800 px-1 rounded text-xs">artigo.titulo</code>, <code className="bg-gray-800 px-1 rounded text-xs">artigo.resumo</code>, <code className="bg-gray-800 px-1 rounded text-xs">artigo.url</code></li>
+              </ol>
+
+              <div className="mt-4 p-3 bg-green-900/20 border border-green-800 rounded">
+                <p className="text-green-400 text-xs"><strong>Dados enviados pelo webhook:</strong> id, titulo, slug, resumo, categoria, autor, imagemUrl, tags, destaque, url completa do artigo, timestamp</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
