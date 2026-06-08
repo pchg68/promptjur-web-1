@@ -50,6 +50,9 @@ export default function Home() {
               <Link href="/blog">
                 <Button variant="ghost">Blog</Button>
               </Link>
+              <Link href="/sobre">
+                <Button variant="ghost">Sobre</Button>
+              </Link>
               <Link href="/contato">
                 <Button variant="ghost">Contato</Button>
               </Link>
