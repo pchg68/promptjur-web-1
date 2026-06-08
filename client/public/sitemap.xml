@@ -162,6 +162,14 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- Blog: Artigo Inaugural (SEO de marca) -->
+  <url>
+    <loc>https://promptjur.com/blog/promptjur-engenharia-de-prompts-advocacia-brasileira</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <!-- Política de Privacidade -->
   <url>
     <loc>https://promptjur.com/privacidade</loc>

@@ -1,0 +1,130 @@
+{
+  "query": "DESCRIBE blog_posts;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute DESCRIBE blog_posts;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "slug",
+      "Type": "varchar(200)",
+      "Null": "NO",
+      "Key": "UNI",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "titulo",
+      "Type": "varchar(300)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "resumo",
+      "Type": "text",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "conteudo",
+      "Type": "text",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "categoria",
+      "Type": "enum('engenharia-de-prompts','ia-juridica','dicas-praticas','legislacao-e-regulamentacao','casos-de-uso','ferramentas')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "tags",
+      "Type": "json",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "autorNome",
+      "Type": "varchar(200)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "Equipe PromptJur",
+      "Extra": ""
+    },
+    {
+      "Field": "imagemUrl",
+      "Type": "varchar(500)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "publicado",
+      "Type": "tinyint(1)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "destaque",
+      "Type": "tinyint(1)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "visualizacoes",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "tempoLeituraMin",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "5",
+      "Extra": ""
+    },
+    {
+      "Field": "createdAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": ""
+    },
+    {
+      "Field": "updatedAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint\tNO\tPRI\tNULL\tauto_increment\nslug\tvarchar(200)\tNO\tUNI\tNULL\t\ntitulo\tvarchar(300)\tNO\t\tNULL\t\nresumo\ttext\tNO\t\tNULL\t\nconteudo\ttext\tNO\t\tNULL\t\ncategoria\tenum('engenharia-de-prompts','ia-juridica','dicas-praticas','legislacao-e-regulamentacao','casos-de-uso','ferramentas')\tNO\t\tNULL\t\ntags\tjson\tYES\t\tNULL\t\nautorNome\tvarchar(200)\tNO\t\tEquipe PromptJur\t\nimagemUrl\tvarchar(500)\tYES\t\tNULL\t\npublicado\ttinyint(1)\tNO\t\t0\t\ndestaque\ttinyint(1)\tNO\t\t0\t\nvisualizacoes\tint\tNO\t\t0\t\ntempoLeituraMin\tint\tNO\t\t5\t\ncreatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\t\nupdatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\n",
+  "stderr": "",
+  "execution_time_ms": 278
+}
