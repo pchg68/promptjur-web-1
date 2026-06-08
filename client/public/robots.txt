@@ -1,20 +1,34 @@
-# robots.txt — PromptJur
-# https://promptjur.com/robots.txt
+# ==========================================
+# Robots.txt — PromptJur.com
+# Otimizado para SEO Técnico & SPAs (React/Vite)
+# ==========================================
 
+# Regras gerais para todos os motores de busca
 User-agent: *
-
-# Páginas públicas — permitir indexação
 Allow: /
+
+# CRUCIAL: Permite leitura dos bundles do React/Vite para renderização correta
+Allow: /assets/*.js
+Allow: /assets/*.css
+Allow: /assets/*.png
+Allow: /assets/*.jpg
+Allow: /assets/*.svg
+Allow: /assets/*.webp
+
+# Páginas públicas explicitamente permitidas
 Allow: /planos
 Allow: /tutoriais
 Allow: /biblioteca-publica
 Allow: /biblioteca-templates
+Allow: /sobre
 Allow: /contato
 Allow: /privacidade
 Allow: /termos
+Allow: /blog
+Allow: /blog/
 Allow: /template/
 
-# Páginas que exigem login — bloquear indexação
+# Rotas privadas — bloquear indexação (exigem login)
 Disallow: /dashboard
 Disallow: /historico
 Disallow: /templates
@@ -24,6 +38,7 @@ Disallow: /configuracoes
 Disallow: /admin
 Disallow: /admin-tools
 Disallow: /admin-precos
+Disallow: /admin-blog
 Disallow: /crm
 Disallow: /assistente
 Disallow: /meu-plano
@@ -33,9 +48,27 @@ Disallow: /suporte
 Disallow: /indicacoes
 Disallow: /acesso-restrito
 Disallow: /shared/
+Disallow: /login
+Disallow: /register
+Disallow: /config
+Disallow: /auth/
+Disallow: /private/
 
 # APIs — nunca indexar
 Disallow: /api/
 
-# Sitemap
+# Evita indexação de URLs de busca interna parametrizadas (conteúdo duplicado)
+Disallow: /search?*
+
+# Diretiva específica para o Googlebot (garante indexação dinâmica e renderização do SPA)
+User-agent: Googlebot
+Allow: /
+Allow: /assets/
+
+# Diretiva específica para o Bingbot (Microsoft)
+User-agent: Bingbot
+Allow: /
+Allow: /assets/
+
+# Sitemap oficial
 Sitemap: https://promptjur.com/sitemap.xml
