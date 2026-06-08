@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { APP_TITLE } from "@/const";
-import { Scale, Clock, Eye, ArrowLeft, ExternalLink, ChevronRight } from "lucide-react";
+import {
+  Scale, Clock, Eye, ArrowLeft, ExternalLink, ChevronRight,
+  Share2, Copy, Check, Linkedin, Facebook, MessageCircle, Twitter,
+} from "lucide-react";
 import { Streamdown } from "streamdown";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
+import { toast } from "sonner";
 
 const CATEGORIAS: Record<string, { label: string; cor: string }> = {
   "engenharia-de-prompts": { label: "Engenharia de Prompts", cor: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
@@ -19,6 +23,161 @@ const CATEGORIAS: Record<string, { label: string; cor: string }> = {
 
 function formatarData(date: Date | string) {
   return new Date(date).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+}
+
+/** Bloco de botões de compartilhamento social */
+function BotoesCompartilhamento({ titulo, resumo, url }: { titulo: string; resumo: string; url: string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  const texto = encodeURIComponent(`${titulo} — ${resumo}`);
+  const urlEnc = encodeURIComponent(url);
+
+  const redes = [
+    {
+      nome: "WhatsApp",
+      href: `https://wa.me/?text=${texto}%20${urlEnc}`,
+      icon: MessageCircle,
+      cor: "hover:bg-green-500/10 hover:text-green-400 hover:border-green-500/30",
+      label: "WhatsApp",
+    },
+    {
+      nome: "LinkedIn",
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${urlEnc}`,
+      icon: Linkedin,
+      cor: "hover:bg-blue-600/10 hover:text-blue-400 hover:border-blue-500/30",
+      label: "LinkedIn",
+    },
+    {
+      nome: "X / Twitter",
+      href: `https://twitter.com/intent/tweet?text=${texto}&url=${urlEnc}&via=promptjur`,
+      icon: Twitter,
+      cor: "hover:bg-sky-500/10 hover:text-sky-400 hover:border-sky-500/30",
+      label: "X",
+    },
+    {
+      nome: "Facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${urlEnc}`,
+      icon: Facebook,
+      cor: "hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-600/30",
+      label: "Facebook",
+    },
+  ];
+
+  function copiarLink() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiado(true);
+      toast.success("Link copiado para a área de transferência!");
+      setTimeout(() => setCopiado(false), 2500);
+    });
+  }
+
+  return (
+    <div className="mt-8 pt-6 border-t border-border/50">
+      <div className="flex items-center gap-2 mb-3">
+        <Share2 className="w-4 h-4 text-muted-foreground" />
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Compartilhar artigo
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {redes.map(({ nome, href, icon: Icon, cor, label }) => (
+          <a
+            key={nome}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Compartilhar no ${nome}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground transition-all duration-150 ${cor}`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </a>
+        ))}
+        <button
+          onClick={copiarLink}
+          title="Copiar link do artigo"
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs transition-all duration-150 ${
+            copiado
+              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+          }`}
+        >
+          {copiado ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          {copiado ? "Copiado!" : "Copiar link"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Card de compartilhamento para a sidebar */
+function SidebarCompartilhamento({ titulo, resumo, url }: { titulo: string; resumo: string; url: string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  const texto = encodeURIComponent(`${titulo} — ${resumo}`);
+  const urlEnc = encodeURIComponent(url);
+
+  function copiarLink() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiado(true);
+      toast.success("Link copiado!");
+      setTimeout(() => setCopiado(false), 2500);
+    });
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <h3 className="font-semibold text-foreground mb-3 text-sm uppercase tracking-wider flex items-center gap-2">
+        <Share2 className="w-4 h-4 text-primary" />
+        Compartilhar
+      </h3>
+      <div className="grid grid-cols-2 gap-2">
+        <a
+          href={`https://wa.me/?text=${texto}%20${urlEnc}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:bg-green-500/10 hover:text-green-400 hover:border-green-500/30 transition-all"
+        >
+          <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+        </a>
+        <a
+          href={`https://www.linkedin.com/sharing/share-offsite/?url=${urlEnc}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:bg-blue-600/10 hover:text-blue-400 hover:border-blue-500/30 transition-all"
+        >
+          <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+        </a>
+        <a
+          href={`https://twitter.com/intent/tweet?text=${texto}&url=${urlEnc}&via=promptjur`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:bg-sky-500/10 hover:text-sky-400 hover:border-sky-500/30 transition-all"
+        >
+          <Twitter className="w-3.5 h-3.5" /> X
+        </a>
+        <a
+          href={`https://www.facebook.com/sharer/sharer.php?u=${urlEnc}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-600/30 transition-all"
+        >
+          <Facebook className="w-3.5 h-3.5" /> Facebook
+        </a>
+      </div>
+      <button
+        onClick={copiarLink}
+        className={`mt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border text-xs transition-all ${
+          copiado
+            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+            : "border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+        }`}
+      >
+        {copiado ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+        {copiado ? "Link copiado!" : "Copiar link"}
+      </button>
+    </div>
+  );
 }
 
 export default function BlogArtigo() {
@@ -60,6 +219,7 @@ export default function BlogArtigo() {
 
   const cat = CATEGORIAS[post.categoria] ?? { label: post.categoria, cor: "bg-muted text-muted-foreground" };
   const outrosArtigos = listagem?.posts.filter(p => p.slug !== post.slug).slice(0, 3) ?? [];
+  const urlArtigo = `https://promptjur.com/blog/${post.slug}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -164,6 +324,13 @@ export default function BlogArtigo() {
               </div>
             )}
 
+            {/* Botões de compartilhamento — abaixo das tags */}
+            <BotoesCompartilhamento
+              titulo={post.titulo}
+              resumo={post.resumo}
+              url={urlArtigo}
+            />
+
             {/* Autor */}
             <div className="mt-8 pt-6 border-t border-border/50 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -178,6 +345,14 @@ export default function BlogArtigo() {
 
           {/* Sidebar */}
           <aside className="lg:w-64 flex-shrink-0 space-y-6">
+
+            {/* Card de compartilhamento na sidebar */}
+            <SidebarCompartilhamento
+              titulo={post.titulo}
+              resumo={post.resumo}
+              url={urlArtigo}
+            />
+
             {/* Outros artigos */}
             {outrosArtigos.length > 0 && (
               <div className="rounded-xl border border-border bg-card p-5">
