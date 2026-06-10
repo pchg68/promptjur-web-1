@@ -20,6 +20,7 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   FileText,
   Gavel,
@@ -27,14 +28,24 @@ import {
   LayoutDashboard,
   Lock,
   LogOut,
+  MapPin,
   Scale,
   Shield,
   Sparkles,
   User,
   Users,
+  X,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
+import { trpc } from "@/lib/trpc";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Link, useLocation } from "wouter";
 import FormContato from "@/components/FormContato";
 import {
@@ -78,9 +89,12 @@ export default function Home() {
       <ComparisonSection />
       <TrustSection />
       <PricingSection />
+      <FAQSection />
+      <SocialProofBanner />
       <ContactSection />
       <CTASection />
       <Footer />
+      <ExitIntentPopup />
     </div>
   );
 }
@@ -728,6 +742,222 @@ function CTASection() {
         </motion.div>
       </div>
     </section>
+  );
+}
+
+/* ─── FAQ ─── */
+const faqItems = [
+  {
+    q: "O PromptJur substitui o advogado?",
+    a: "Não. O PromptJur é uma ferramenta de produtividade que auxilia o profissional a estruturar comandos para IA. Todo resultado gerado exige revisão humana obrigatória. A responsabilidade técnica permanece com o advogado, conforme recomendações da OAB.",
+  },
+  {
+    q: "Meus dados e os dados dos clientes ficam seguros?",
+    a: "Sim. O PromptJur não armazena dados sensíveis dos casos. As interações são processadas com criptografia em trânsito e em repouso. Seguimos as diretrizes da LGPD e do sigilo profissional advocatício.",
+  },
+  {
+    q: "Posso usar o PromptJur em conformidade com a OAB?",
+    a: "Sim. O PromptJur foi projetado seguindo as recomendações da OAB e do CNJ para uso de IA na prática jurídica. Cada resultado inclui aviso de limitações e necessidade de supervisão humana.",
+  },
+  {
+    q: "Qual a diferença entre o plano gratuito e o profissional?",
+    a: "O plano gratuito oferece 12 operações/mês com 1 modelo de IA e exportação básica. O profissional oferece 300 operações, acesso a múltiplos modelos (GPT-4, Claude, Gemini), exportação DOCX/PDF/ABNT, Knowledge Retrieval do DataJud e validação de legislação via Planalto.",
+  },
+  {
+    q: "Preciso de cartão de crédito para testar?",
+    a: "Não. O plano gratuito não exige cartão. Você pode experimentar o PromptJur imediatamente com 12 operações por mês, sem compromisso.",
+  },
+  {
+    q: "O que são 'operações' no PromptJur?",
+    a: "Cada operação corresponde a uma interação completa com a IA: gerar uma peça, analisar um documento, consultar jurisprudência ou executar um workflow. Cada envio de prompt conta como 1 operação.",
+  },
+  {
+    q: "Posso cancelar a assinatura a qualquer momento?",
+    a: "Sim. Não há fidelidade. Você pode cancelar pelo portal de assinatura a qualquer momento e continuará com acesso até o fim do período pago.",
+  },
+];
+
+function FAQSection() {
+  return (
+    <section id="faq" className="py-24" style={{ background: "#1a1a2e" }}>
+      <div className="container max-w-3xl mx-auto">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          className="text-center mb-12"
+        >
+          <motion.span variants={fadeUp} custom={0} className="text-[#c9a227] font-semibold text-sm uppercase tracking-wider">Perguntas Frequentes</motion.span>
+          <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold mt-3 text-white" style={{ fontFamily: FONT_DISPLAY }}>
+            Tire suas dúvidas
+          </motion.h2>
+        </motion.div>
+        <Accordion type="single" collapsible className="space-y-3">
+          {faqItems.map((item, i) => (
+            <AccordionItem key={i} value={`faq-${i}`} className="border border-white/10 rounded-lg px-6 bg-white/[0.02] data-[state=open]:bg-white/[0.05] transition-colors">
+              <AccordionTrigger className="text-white text-left font-medium text-sm md:text-base py-4 hover:no-underline hover:text-[#c9a227] transition-colors">
+                {item.q}
+              </AccordionTrigger>
+              <AccordionContent className="text-white/60 text-sm leading-relaxed pb-4">
+                {item.a}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+    </section>
+  );
+}
+
+/* ─── SOCIAL PROOF BANNER ─── */
+function SocialProofBanner() {
+  const { data: countData } = trpc.stripe.getInteressadosCount.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const totalInteressados = countData?.count ?? 0;
+
+  // Só exibe se houver pelo menos 5 interessados
+  if (totalInteressados < 5) return null;
+
+  return (
+    <section className="py-8" style={{ background: "#151525" }}>
+      <div className="container">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-center"
+        >
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-[#c9a227]" />
+            <span className="text-white/80 text-sm">
+              <strong className="text-[#c9a227]">{totalInteressados}+</strong> profissionais do Direito já se cadastraram
+            </span>
+          </div>
+          <div className="hidden sm:block w-px h-6 bg-white/10" />
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-white/40" />
+            <span className="text-white/50 text-sm">Advogados em todo o Brasil</span>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── EXIT INTENT POPUP ─── */
+function ExitIntentPopup() {
+  const [show, setShow] = useState(false);
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    // Não mostrar para usuários logados
+    if (isAuthenticated) return;
+    // Não mostrar se já foi exibido nesta sessão
+    if (sessionStorage.getItem("exitIntentShown")) return;
+
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (e.clientY <= 5) {
+        setShow(true);
+        sessionStorage.setItem("exitIntentShown", "true");
+        document.removeEventListener("mouseleave", handleMouseLeave);
+      }
+    };
+
+    // Delay para não disparar imediatamente
+    const timer = setTimeout(() => {
+      document.addEventListener("mouseleave", handleMouseLeave);
+    }, 8000);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [isAuthenticated]);
+
+  if (!show) return null;
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShow(false)} />
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="relative bg-[#1a1a2e] border border-[#c9a227]/30 rounded-xl p-8 max-w-md w-full shadow-2xl"
+          >
+            <button
+              onClick={() => setShow(false)}
+              className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            {!submitted ? (
+              <>
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-[#c9a227]/10 flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-6 h-6 text-[#c9a227]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white" style={{ fontFamily: FONT_DISPLAY }}>
+                    Antes de sair...
+                  </h3>
+                  <p className="text-white/60 text-sm mt-2 leading-relaxed">
+                    Receba <strong className="text-[#c9a227]">25 prompts jurídicos gratuitos</strong> no seu e-mail. Modelos prontos para petições, contratos e pareceres.
+                  </p>
+                </div>
+                <div className="mt-6 space-y-3">
+                  <input
+                    type="email"
+                    placeholder="seu@email.com.br"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full h-11 px-4 rounded-md bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#c9a227]/50 text-sm"
+                  />
+                  <Button
+                    onClick={() => {
+                      if (email.includes("@")) setSubmitted(true);
+                    }}
+                    className="w-full bg-[#c9a227] hover:bg-[#b89220] text-[#1a1a2e] font-bold h-11 rounded-md transition-transform active:scale-[0.97]"
+                  >
+                    Receber prompts grátis
+                  </Button>
+                </div>
+                <p className="text-white/30 text-xs text-center mt-3">Sem spam. Respeitamos a LGPD.</p>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <CheckCircle2 className="w-12 h-12 text-[#c9a227] mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white" style={{ fontFamily: FONT_DISPLAY }}>Pronto!</h3>
+                <p className="text-white/60 text-sm mt-2">Verifique sua caixa de entrada. Os prompts estão a caminho.</p>
+                <Button
+                  onClick={() => setShow(false)}
+                  variant="outline"
+                  className="mt-4 border-white/20 text-white hover:bg-white/5"
+                >
+                  Fechar
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
