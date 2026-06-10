@@ -21,19 +21,18 @@ export default function BibliotecaPublica() {
   const [modeloPreview, setModeloPreview] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   
-  // Buscar modelos públicos - comentado pois a query não existe no router
-  // const modelosPublicosQuery = trpc.modelosPersonalizados.publicos.useQuery();
-  const modelosPublicosQuery = { data: [] as any[], isLoading: false, error: null };
+  // Buscar templates públicos via procedure real
+  const modelosPublicosQuery = trpc.templates.publicos.useQuery();
   
-  // Clonar modelo - comentado pois a mutation não existe no router
-  // const clonarMutation = trpc.modelosPersonalizados.clonar.useMutation({
-  //   onSuccess: () => {
-  //     toast.success("Modelo clonado com sucesso! Acesse 'Meus Modelos' para editá-lo.");
-  //   },
-  //   onError: (error: any) => {
-  //     toast.error(`Erro ao clonar modelo: ${error.message}`);
-  //   }
-  // });
+  // Salvar cópia do modelo no perfil do usuário
+  const salvarCopia = trpc.templates.salvar.useMutation({
+    onSuccess: () => {
+      toast.success("Modelo salvo! Acesse 'Meus Modelos' para editá-lo.");
+    },
+    onError: (error: any) => {
+      toast.error(`Erro ao salvar modelo: ${error.message}`);
+    }
+  });
   
   // Filtrar modelos
   const modelosFiltrados = (modelosPublicosQuery.data || []).filter((modelo: any) => {
@@ -47,9 +46,18 @@ export default function BibliotecaPublica() {
     return matchBusca && matchArea && matchTipo;
   }) || [];
   
-  const handleClonar = (modeloId: number) => {
-    // clonarMutation.mutate({ modeloId });
-    toast.info("Funcionalidade de clonar em desenvolvimento");
+  const handleClonar = (modelo: any) => {
+    if (!user) {
+      toast.error("Faça login para salvar modelos na sua biblioteca.");
+      return;
+    }
+    salvarCopia.mutate({
+      nome: modelo.nome,
+      descricao: modelo.descricao || "",
+      template: modelo.template,
+      areaJuridica: modelo.areaJuridica,
+      isPublico: false,
+    });
   };
   
   const handlePreview = (modelo: any) => {
@@ -234,8 +242,8 @@ export default function BibliotecaPublica() {
                     <Button
                       size="sm"
                       className="flex-1"
-                      onClick={() => handleClonar(modelo.id)}
-                      disabled={false}
+                      onClick={() => handleClonar(modelo)}
+                      disabled={salvarCopia.isPending}
                     >
                       <Copy className="w-4 h-4 mr-2" />
                       Clonar

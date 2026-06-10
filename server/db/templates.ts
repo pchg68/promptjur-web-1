@@ -84,6 +84,25 @@ export async function getTemplatesSistema() {
 }
 
 
+export async function getTemplatesPublicos() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select().from(templates)
+    .where(and(
+      eq(templates.isPublico, true),
+      eq(templates.isAtivo, true)
+    ))
+    .orderBy(templates.areaJuridica);
+  
+  return result.map(t => ({
+    ...t,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString()
+  }));
+}
+
+
 export async function salvarTemplate(data: InsertTemplate) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

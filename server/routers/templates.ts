@@ -10,6 +10,8 @@ export const templatesRouter = router({
 
   sistema: publicProcedure.query(async () => db.getTemplatesSistema()),
 
+  publicos: publicProcedure.query(async () => db.getTemplatesPublicos()),
+
   salvar: protectedProcedure
     .input(z.object({
       areaJuridica: z.string(), nome: z.string().min(3), descricao: z.string().optional(),

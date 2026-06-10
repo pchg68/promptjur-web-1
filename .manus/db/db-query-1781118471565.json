@@ -1,0 +1,90 @@
+{
+  "query": "SELECT id, nome, areaJuridica, userId, isPublico, isAtivo FROM templates WHERE isAtivo = 1 LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT id, nome, areaJuridica, userId, isPublico, isAtivo FROM templates WHERE isAtivo = 1 LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "nome": "agravo de instrumento ",
+      "areaJuridica": "Civil",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "30001",
+      "nome": "Teste da materia falimentar",
+      "areaJuridica": "Empresarial",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "30002",
+      "nome": "Falimentar - teste ",
+      "areaJuridica": "Empresarial",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "60001",
+      "nome": "Analise de tema juridico - sucessões",
+      "areaJuridica": "Processo Civil",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "90001",
+      "nome": "teste dto autoral",
+      "areaJuridica": "Direito Civil e Propriedade Intelectual (Direito Autoral)",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "120001",
+      "nome": "Analise contrato de locação",
+      "areaJuridica": "Direito Imobiliário e Contratual (Locação Comercial)",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "150001",
+      "nome": "Extinção de condomínio",
+      "areaJuridica": "Direito Civil e Processual Civil (Direito das Coisas)",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "150002",
+      "nome": "teste 04",
+      "areaJuridica": "Empresarial",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "150003",
+      "nome": "teste",
+      "areaJuridica": "Empresarial",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    },
+    {
+      "id": "180001",
+      "nome": "teste em contrato de prest de serviços - informatica",
+      "areaJuridica": "Direito Contratual, Direito Digital (LGPD), Responsabilidade Civil e Direito do Consumidor",
+      "userId": "1",
+      "isPublico": "0",
+      "isAtivo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tareaJuridica\tuserId\tisPublico\tisAtivo\n1\tagravo de instrumento \tCivil\t1\t0\t1\n30001\tTeste da materia falimentar\tEmpresarial\t1\t0\t1\n30002\tFalimentar - teste \tEmpresarial\t1\t0\t1\n60001\tAnalise de tema juridico - sucessões\tProcesso Civil\t1\t0\t1\n90001\tteste dto autoral\tDireito Civil e Propriedade Intelectual (Direito Autoral)\t1\t0\t1\n120001\tAnalise contrato de locação\tDireito Imobiliário e Contratual (Locação Comercial)\t1\t0\t1\n150001\tExtinção de condomínio\tDireito Civil e Processual Civil (Direito das Coisas)\t1\t0\t1\n150002\tteste 04\tEmpresarial\t1\t0\t1\n150003\tteste\tEmpresarial\t1\t0\t1\n180001\tteste em contrato de prest de serviços - informatica\tDireito Contratual, Direito Digital (LGPD), Responsabilidade Civil e Direito do Consumidor\t1\t0\t1\n",
+  "stderr": "",
+  "execution_time_ms": 266
+}

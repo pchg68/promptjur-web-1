@@ -1,0 +1,25 @@
+{
+  "query": "SELECT COUNT(*) as total_ativos FROM templates WHERE isAtivo = 1; SELECT COUNT(*) as total_publicos FROM templates WHERE isPublico = 1 AND isAtivo = 1; SELECT COUNT(*) as total_sistema FROM templates WHERE userId IS NULL AND isAtivo = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user pFMnxXTZhjGdpbz.f9a3b4b01df5 --database o6j2zJFKcRnWaD36kKv87B --execute SELECT COUNT(*) as total_ativos FROM templates WHERE isAtivo = 1; SELECT COUNT(*) as total_publicos FROM templates WHERE isPublico = 1 AND isAtivo = 1; SELECT COUNT(*) as total_sistema FROM templates WHERE userId IS NULL AND isAtivo = 1;",
+  "rows": [
+    {
+      "total_ativos": "30"
+    },
+    {
+      "total_ativos": "total_publicos"
+    },
+    {
+      "total_ativos": "0"
+    },
+    {
+      "total_ativos": "total_sistema"
+    },
+    {
+      "total_ativos": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_ativos\n30\ntotal_publicos\n0\ntotal_sistema\n0\n",
+  "stderr": "",
+  "execution_time_ms": 302
+}
