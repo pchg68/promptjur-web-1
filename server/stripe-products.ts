@@ -55,7 +55,7 @@ export const PLANS: Record<string, Plan> = {
     priceYearly: 0,
     currency: "brl",
     features: [
-      { text: "20 operações por mês", included: true },
+      { text: "12 operações por mês", included: true },
       { text: "Análise básica de prompts", included: true },
       { text: "Geração com GPT-4o-mini", included: true },
       { text: "3 templates salvos", included: true },
@@ -67,7 +67,7 @@ export const PLANS: Record<string, Plan> = {
       { text: "Suporte prioritário", included: false },
     ],
     limits: {
-      promptsPerMonth: 20,
+      promptsPerMonth: 12,
       modelsAvailable: ["gpt-4o-mini", "manus"],
       maxDocumentExports: 5,
       maxTemplates: 3,
