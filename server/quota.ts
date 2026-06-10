@@ -7,7 +7,7 @@
  *  3. Resetar o contador quando o mês vira
  *
  * Limites por plano (espelha stripe-products.ts):
- *  - free:       20 operações/mês
+ *  - free:       12 operações/mês
  *  - pro:       300 operações/mês
  *  - enterprise: ilimitado (-1)
  */
@@ -20,7 +20,7 @@ import { PLANS } from "./stripe-products";
 
 /** Retorna o limite mensal do plano (−1 = ilimitado) */
 export function getPlanMonthlyLimit(plan: string): number {
-  return PLANS[plan]?.limits?.promptsPerMonth ?? 20;
+  return PLANS[plan]?.limits?.promptsPerMonth ?? 12;
 }
 
 /**

@@ -20,8 +20,8 @@ export const stripeRouter = router({
       return {
         plan: "free",
         usageCount: 0,
-        limit: 20,
-        remaining: 20,
+        limit: 12,
+        remaining: 12,
         percentUsed: 0,
         nextResetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
         isUnlimited: false,
