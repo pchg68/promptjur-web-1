@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   Zap, Loader2, ChevronDown, ChevronUp, Pencil, Check, X,
   User, FileText, ListChecks, BookOpen, Palette, ShieldCheck,
-  Sparkles, Copy, Download, Save, AlertTriangle, BarChart2
+  Sparkles, Copy, Download, Save, AlertTriangle, BarChart2,
+  Wand2, RefreshCw, Lightbulb
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -122,16 +123,56 @@ export default function TabGerar({
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState("");
-  const [activeResultTab, setActiveResultTab] = useState<"basico" | "profissional">("profissional");
+  // Estado da sugestão inteligente
+  const [sugestaoDica, setSugestaoDica] = useState<string | null>(null);
+  const [sugestaoTipo, setSugestaoTipo] = useState<string | null>(null);
 
   const resultRef = useRef<HTMLDivElement>(null);
 
   const geracaoMutation = trpc.prompts.gerar.useMutation();
+  const sugerirMutation = trpc.prompts.sugerirCampos.useMutation({
+    onSuccess: (data) => {
+      setContexto(data.contexto);
+      setObjetivo(data.objetivo);
+      setSugestaoDica(data.dica);
+      setSugestaoTipo(data.tipoDocumento);
+      toast.success("Campos preenchidos com sugestão inteligente!", {
+        description: `Exemplo para ${data.tipoDocumento} — ${data.areaJuridica}`,
+        duration: 4000,
+      });
+    },
+    onError: (err) => {
+      toast.error("Não foi possível gerar a sugestão", {
+        description: err.message,
+      });
+    },
+  });
 
   useEffect(() => {
     if (initialArea) setAreaJuridica(initialArea);
     if (initialContexto) setContexto(initialContexto);
   }, [initialArea, initialContexto]);
+
+  // Limpa a dica quando o tipo de documento ou área muda
+  useEffect(() => {
+    setSugestaoDica(null);
+    setSugestaoTipo(null);
+  }, [tipoDocumento, areaJuridica]);
+
+  const handleSugerirCampos = () => {
+    const camposPreenchidos = contexto.trim() || objetivo.trim();
+    if (camposPreenchidos) {
+      // Confirmar sobrescrita se já há conteúdo
+      if (!window.confirm("Os campos de contexto e objetivo serão substituídos pela sugestão da IA. Deseja continuar?")) {
+        return;
+      }
+    }
+    sugerirMutation.mutate({
+      tipoDocumento,
+      areaJuridica: areaJuridica || undefined,
+      model: selectedModel,
+    });
+  };
 
   const handleGerar = () => {
     if (!contexto.trim()) { toast.error("Por favor, descreva o contexto do caso"); return; }
@@ -178,6 +219,8 @@ export default function TabGerar({
     });
   };
 
+  const isSugerindo = sugerirMutation.isPending;
+
   // ── LAYOUT: 3 painéis fixos lado a lado ──────────────────────────────────
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-0 -mx-6 -mt-4 overflow-hidden rounded-lg border border-border">
@@ -221,6 +264,51 @@ export default function TabGerar({
             </Select>
           </div>
 
+          {/* ── BOTÃO DE SUGESTÃO INTELIGENTE ─────────────────────────────── */}
+          <div className="rounded-lg border border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 p-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Wand2 className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-xs font-semibold text-foreground">Sugestão Inteligente</span>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">IA</Badge>
+                </div>
+                <p className="text-[11px] text-muted-foreground mb-2 leading-relaxed">
+                  Preencha contexto e objetivo automaticamente com um exemplo realista para{" "}
+                  <span className="font-medium text-foreground">
+                    {TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento}
+                  </span>
+                  {areaJuridica ? ` — ${areaJuridica}` : ""}.
+                </p>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="h-7 text-xs gap-1.5 w-full"
+                  onClick={handleSugerirCampos}
+                  disabled={isSugerindo || geracaoMutation.isPending}
+                >
+                  {isSugerindo ? (
+                    <><RefreshCw className="w-3 h-3 animate-spin" />Gerando sugestão...</>
+                  ) : (
+                    <><Wand2 className="w-3 h-3" />Sugerir campos com IA</>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Dica da última sugestão */}
+            {sugestaoDica && (
+              <div className="mt-2.5 pt-2.5 border-t border-primary/20 flex items-start gap-2">
+                <Lightbulb className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <span className="font-medium text-amber-600">Dica:</span> {sugestaoDica}
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Contexto */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -235,14 +323,24 @@ export default function TabGerar({
                 contexto.length > 1800 ? "text-destructive" : contexto.length > 1400 ? "text-amber-500" : "text-muted-foreground"
               }`}>{contexto.length}/2000</span>
             </div>
-            <Textarea
-              value={contexto}
-              onChange={e => setContexto(e.target.value)}
-              placeholder="Descreva os fatos ou use o microfone para ditar..."
-              rows={4}
-              maxLength={2000}
-              className="text-sm resize-none"
-            />
+            <div className="relative">
+              <Textarea
+                value={contexto}
+                onChange={e => setContexto(e.target.value)}
+                placeholder="Descreva os fatos ou use o microfone para ditar..."
+                rows={4}
+                maxLength={2000}
+                className={`text-sm resize-none transition-all duration-300 ${isSugerindo ? "opacity-50" : ""}`}
+              />
+              {isSugerindo && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
+                    Gerando...
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Objetivo */}
@@ -253,14 +351,24 @@ export default function TabGerar({
                 objetivo.length > 450 ? "text-destructive" : objetivo.length > 350 ? "text-amber-500" : "text-muted-foreground"
               }`}>{objetivo.length}/500</span>
             </div>
-            <Textarea
-              value={objetivo}
-              onChange={e => setObjetivo(e.target.value)}
-              placeholder="O que você espera como resultado..."
-              rows={3}
-              maxLength={500}
-              className="text-sm resize-none"
-            />
+            <div className="relative">
+              <Textarea
+                value={objetivo}
+                onChange={e => setObjetivo(e.target.value)}
+                placeholder="O que você espera como resultado..."
+                rows={3}
+                maxLength={500}
+                className={`text-sm resize-none transition-all duration-300 ${isSugerindo ? "opacity-50" : ""}`}
+              />
+              {isSugerindo && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
+                    Gerando...
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Documentos anexados */}
@@ -272,10 +380,10 @@ export default function TabGerar({
 
           {/* Inspirações */}
           {starters.length > 0 && (
-            <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
+            <div className="rounded-md border border-border bg-muted/20 p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold">Inspirações{areaJuridica ? ` — ${areaJuridica}` : ""}</span>
+                <span className="text-xs font-semibold">Casos típicos{areaJuridica ? ` — ${areaJuridica}` : ""}</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {starters.map((s, idx) => (
@@ -385,7 +493,7 @@ export default function TabGerar({
         <div className="flex-shrink-0 p-4 border-t border-border bg-card">
           <Button
             onClick={handleGerar}
-            disabled={geracaoMutation.isPending}
+            disabled={geracaoMutation.isPending || isSugerindo}
             className="w-full"
             size="default"
           >
@@ -449,7 +557,15 @@ export default function TabGerar({
               </div>
               <div>
                 <h4 className="text-base font-semibold text-foreground/60 mb-1">Pronto para gerar</h4>
-                <p className="text-sm max-w-xs">Preencha o contexto e o objetivo no painel ao lado e clique em <strong>Gerar Prompt Profissional</strong>.</p>
+                <p className="text-sm max-w-xs">
+                  Preencha o contexto e o objetivo no painel ao lado — ou use{" "}
+                  <span className="font-medium text-primary">Sugestão Inteligente</span>{" "}
+                  para preencher automaticamente — e clique em <strong>Gerar Prompt Profissional</strong>.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground/60 mt-2">
+                <Wand2 className="w-3.5 h-3.5 text-primary/50" />
+                <span>Dica: use a sugestão inteligente para começar rapidamente</span>
               </div>
             </div>
           )}

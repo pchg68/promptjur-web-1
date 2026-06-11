@@ -955,4 +955,116 @@ REGRAS OBRIGATÓRIAS:
         });
       }
     }),
+
+  /**
+   * Sugestão inteligente de campos: gera contexto e objetivo realistas
+   * com base no tipo de documento e área jurídica selecionados pelo usuário.
+   */
+  sugerirCampos: protectedProcedure
+    .input(z.object({
+      tipoDocumento: z.string(),
+      areaJuridica: z.string().optional(),
+      model: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      checkAiRateLimit(ctx.user.id);
+      const smartRoute = applySmartRouting({
+        model: input.model,
+        operation: "gerar",
+        userPlan: ctx.user.subscriptionPlan,
+        inputText: input.tipoDocumento,
+      });
+      checkModelAccess(ctx.user.subscriptionPlan, smartRoute.model);
+
+      const area = input.areaJuridica || "Civil";
+      const tipo = input.tipoDocumento;
+
+      // Mapa de rótulos legíveis por tipo de documento
+      const tipoLabels: Record<string, string> = {
+        peticao: "Petição Inicial",
+        contestacao: "Contestação",
+        recurso: "Recurso",
+        parecer: "Parecer Jurídico",
+        contrato: "Contrato",
+        notificacao: "Notificação Extrajudicial",
+        habeas_corpus: "Habeas Corpus",
+        mandado_seguranca: "Mandado de Segurança",
+        acordo: "Acordo/Transação",
+        procuracao: "Procuração",
+        declaracao: "Declaração",
+        memorando: "Memorando Jurídico",
+      };
+      const tipoLabel = tipoLabels[tipo] || tipo;
+
+      try {
+        const { invokeUnifiedLLM } = await import("../unified-llm");
+        const llmResponse = await invokeUnifiedLLM({
+          provider: smartRoute.provider as any,
+          model: smartRoute.model,
+          messages: [
+            {
+              role: "system",
+              content: `Você é um assistente especializado em direito brasileiro. Sua tarefa é gerar um EXEMPLO REALISTA e ESPECÍFICO de caso jurídico para preencher os campos de um gerador de prompts profissionais.
+
+IMPORTANTE:
+- Crie um caso CONCRETO e VEROSSÍMIL, com nomes fictícios, valores e fatos plausíveis
+- O contexto deve ter entre 200 e 400 caracteres
+- O objetivo deve ter entre 80 e 150 caracteres
+- NÃO invente leis ou artigos inexistentes
+- Use linguagem jurídica brasileira correta
+- O caso deve ser típico da área ${area} para o documento ${tipoLabel}
+
+Responda APENAS em JSON válido, sem texto adicional.`,
+            },
+            {
+              role: "user",
+              content: `Gere um exemplo realista de caso jurídico para:
+- Tipo de documento: ${tipoLabel}
+- Área jurídica: ${area}
+
+Retorne um JSON com:
+{
+  "contexto": "descrição detalhada dos fatos do caso (200-400 chars)",
+  "objetivo": "o que se espera obter com o prompt (80-150 chars)",
+  "dica": "uma dica rápida e prática para este tipo de documento (máx 100 chars)"
+}`,
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "sugestao_campos",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  contexto: { type: "string", description: "Contexto do caso jurídico" },
+                  objetivo: { type: "string", description: "Objetivo do prompt" },
+                  dica: { type: "string", description: "Dica prática para o tipo de documento" },
+                },
+                required: ["contexto", "objetivo", "dica"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const content = llmResponse.content;
+        const resultado = JSON.parse(typeof content === "string" ? content : "{}");
+
+        return {
+          contexto: String(resultado.contexto || "").slice(0, 2000),
+          objetivo: String(resultado.objetivo || "").slice(0, 500),
+          dica: String(resultado.dica || "").slice(0, 200),
+          tipoDocumento: tipoLabel,
+          areaJuridica: area,
+        };
+      } catch (error) {
+        logger.error("[Prompts] Erro ao sugerir campos", { userId: ctx.user.id, error });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar sugestão: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
+        });
+      }
+    }),
 });
