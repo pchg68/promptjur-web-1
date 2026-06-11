@@ -10,7 +10,7 @@ import {
   Zap, Loader2, ChevronDown, ChevronUp, Pencil, Check, X,
   User, FileText, ListChecks, BookOpen, Palette, ShieldCheck,
   Sparkles, Copy, Download, Save, AlertTriangle, BarChart2,
-  Wand2, RefreshCw, Lightbulb
+  Wand2, RefreshCw, Lightbulb, History
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -126,6 +126,29 @@ export default function TabGerar({
   // Estado da sugestão inteligente
   const [sugestaoDica, setSugestaoDica] = useState<string | null>(null);
   const [sugestaoTipo, setSugestaoTipo] = useState<string | null>(null);
+  const [showHistorico, setShowHistorico] = useState(false);
+
+  // Histórico de sugestões por tipo de documento (persistido no localStorage)
+  type SugestaoHistorico = { contexto: string; objetivo: string; dica: string; tipoDocumento: string; areaJuridica: string; criadaEm: string };
+  const HISTORICO_KEY = "promptjur-sugestoes-historico";
+  const MAX_HISTORICO = 5;
+
+  const carregarHistorico = (): SugestaoHistorico[] => {
+    try { return JSON.parse(localStorage.getItem(HISTORICO_KEY) || "[]"); } catch { return []; }
+  };
+
+  const [historicoSugestoes, setHistoricoSugestoes] = useState<SugestaoHistorico[]>(carregarHistorico);
+
+  const salvarNoHistorico = (item: SugestaoHistorico) => {
+    const historico = carregarHistorico();
+    // Remove duplicatas do mesmo tipo+área
+    const filtrado = historico.filter(h => !(h.tipoDocumento === item.tipoDocumento && h.areaJuridica === item.areaJuridica && h.contexto === item.contexto));
+    const novo = [item, ...filtrado].slice(0, MAX_HISTORICO);
+    localStorage.setItem(HISTORICO_KEY, JSON.stringify(novo));
+    setHistoricoSugestoes(novo);
+  };
+
+  const historicoFiltrado = historicoSugestoes.filter(h => h.tipoDocumento === tipoDocumento);
 
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -136,6 +159,15 @@ export default function TabGerar({
       setObjetivo(data.objetivo);
       setSugestaoDica(data.dica);
       setSugestaoTipo(data.tipoDocumento);
+      // Salvar no histórico
+      salvarNoHistorico({
+        contexto: data.contexto,
+        objetivo: data.objetivo,
+        dica: data.dica,
+        tipoDocumento: data.tipoDocumento,
+        areaJuridica: data.areaJuridica,
+        criadaEm: new Date().toISOString(),
+      });
       toast.success("Campos preenchidos com sugestão inteligente!", {
         description: `Exemplo para ${data.tipoDocumento} — ${data.areaJuridica}`,
         duration: 4000,
@@ -159,18 +191,18 @@ export default function TabGerar({
     setSugestaoTipo(null);
   }, [tipoDocumento, areaJuridica]);
 
-  const handleSugerirCampos = () => {
-    const camposPreenchidos = contexto.trim() || objetivo.trim();
-    if (camposPreenchidos) {
-      // Confirmar sobrescrita se já há conteúdo
-      if (!window.confirm("Os campos de contexto e objetivo serão substituídos pela sugestão da IA. Deseja continuar?")) {
-        return;
-      }
+  const handleSugerirCampos = (modo: "gerar" | "completar" = "gerar") => {
+    const temContexto = contexto.trim().length > 0;
+    const temObjetivo = objetivo.trim().length > 0;
+    if (modo === "gerar" && (temContexto || temObjetivo)) {
+      if (!window.confirm("Os campos de contexto e objetivo serão substituídos pela sugestão da IA. Deseja continuar?")) return;
     }
     sugerirMutation.mutate({
       tipoDocumento,
       areaJuridica: areaJuridica || undefined,
       model: selectedModel,
+      contextoAtual: modo === "completar" && temContexto ? contexto : undefined,
+      objetivoAtual: modo === "completar" && temObjetivo ? objetivo : undefined,
     });
   };
 
@@ -283,7 +315,19 @@ export default function TabGerar({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <span className="text-xs font-semibold text-foreground">Sugestão Inteligente</span>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">IA</Badge>
+                    <div className="flex items-center gap-1">
+                    {historicoFiltrado.length > 0 && (
+                      <button
+                        onClick={() => setShowHistorico(v => !v)}
+                        className="text-[10px] text-primary/70 hover:text-primary flex items-center gap-0.5 transition-colors"
+                        title="Ver sugestões anteriores"
+                      >
+                        <History className="w-3 h-3" />
+                        {historicoFiltrado.length}
+                      </button>
+                    )}
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">IA</Badge>
+                  </div>
                 </div>
                 <p className="text-[11px] text-muted-foreground mb-2 leading-relaxed">
                   Preencha contexto e objetivo automaticamente com um exemplo realista para{" "}
@@ -292,24 +336,65 @@ export default function TabGerar({
                   </span>
                   {areaJuridica ? ` — ${areaJuridica}` : ""}.
                 </p>
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="h-7 text-xs gap-1.5 w-full"
-                  onClick={handleSugerirCampos}
-                  disabled={isSugerindo || geracaoMutation.isPending}
-                >
-                  {isSugerindo ? (
-                    <><RefreshCw className="w-3 h-3 animate-spin" />Gerando sugestão...</>
-                  ) : (
-                    <><Wand2 className="w-3 h-3" />Sugerir campos com IA</>
+                <div className="flex gap-1.5">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="h-7 text-xs gap-1.5 flex-1"
+                    onClick={() => handleSugerirCampos("gerar")}
+                    disabled={isSugerindo || geracaoMutation.isPending}
+                    title="Gera um exemplo completo do zero"
+                  >
+                    {isSugerindo ? (
+                      <><RefreshCw className="w-3 h-3 animate-spin" />Gerando...</>
+                    ) : (
+                      <><Wand2 className="w-3 h-3" />Gerar exemplo</>
+                    )}
+                  </Button>
+                  {(contexto.trim() || objetivo.trim()) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs gap-1 px-2"
+                      onClick={() => handleSugerirCampos("completar")}
+                      disabled={isSugerindo || geracaoMutation.isPending}
+                      title="Usa o que você já digitou como base e completa/melhora os campos"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      Completar
+                    </Button>
                   )}
-                </Button>
+                </div>
               </div>
             </div>
 
+            {/* Histórico de sugestões anteriores */}
+            {showHistorico && historicoFiltrado.length > 0 && (
+              <div className="mt-2.5 pt-2.5 border-t border-primary/20 space-y-1.5">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                  <History className="w-3 h-3" /> Sugestões anteriores para este tipo
+                </p>
+                {historicoFiltrado.map((h, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setContexto(h.contexto);
+                      setObjetivo(h.objetivo);
+                      setSugestaoDica(h.dica);
+                      setShowHistorico(false);
+                      toast.success("Sugestão anterior restaurada!", { duration: 2000 });
+                    }}
+                    className="w-full text-left rounded-md bg-background/60 hover:bg-background border border-border/50 p-2 transition-colors group"
+                  >
+                    <p className="text-[11px] text-foreground line-clamp-2 group-hover:text-primary transition-colors">{h.contexto}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{h.areaJuridica} • {new Date(h.criadaEm).toLocaleDateString("pt-BR")}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Dica da última sugestão */}
-            {sugestaoDica && (
+            {sugestaoDica && !showHistorico && (
               <div className="mt-2.5 pt-2.5 border-t border-primary/20 flex items-start gap-2">
                 <Lightbulb className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-[11px] text-muted-foreground leading-relaxed">

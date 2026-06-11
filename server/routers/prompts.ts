@@ -965,6 +965,8 @@ REGRAS OBRIGATÓRIAS:
       tipoDocumento: z.string(),
       areaJuridica: z.string().optional(),
       model: z.string().optional(),
+      contextoAtual: z.string().optional(), // modo completar: contexto parcial já digitado
+      objetivoAtual: z.string().optional(), // modo completar: objetivo parcial já digitado
     }))
     .mutation(async ({ input, ctx }) => {
       checkAiRateLimit(ctx.user.id);
@@ -978,6 +980,7 @@ REGRAS OBRIGATÓRIAS:
 
       const area = input.areaJuridica || "Civil";
       const tipo = input.tipoDocumento;
+      const modoCompletar = !!(input.contextoAtual || input.objetivoAtual);
 
       // Mapa de rótulos legíveis por tipo de documento
       const tipoLabels: Record<string, string> = {
@@ -1018,7 +1021,20 @@ Responda APENAS em JSON válido, sem texto adicional.`,
             },
             {
               role: "user",
-              content: `Gere um exemplo realista de caso jurídico para:
+              content: modoCompletar
+                ? `Complete e melhore os campos abaixo para o documento ${tipoLabel} na área ${area}:
+
+${input.contextoAtual ? `CONTEXTO ATUAL (melhore e expanda):\n"${input.contextoAtual}"` : "CONTEXTO: (gere um contexto realista)"}
+
+${input.objetivoAtual ? `OBJETIVO ATUAL (refine e melhore):\n"${input.objetivoAtual}"` : "OBJETIVO: (gere um objetivo claro)"}
+
+Retorne um JSON com:
+{
+  "contexto": "contexto melhorado e expandido (200-400 chars)",
+  "objetivo": "objetivo refinado e mais preciso (80-150 chars)",
+  "dica": "uma dica rápida e prática para este tipo de documento (máx 100 chars)"
+}`
+                : `Gere um exemplo realista de caso jurídico para:
 - Tipo de documento: ${tipoLabel}
 - Área jurídica: ${area}
 
