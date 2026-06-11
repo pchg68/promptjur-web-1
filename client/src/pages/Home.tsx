@@ -129,7 +129,7 @@ function ShareButtons({ compact = false }: { compact?: boolean }) {
 
 // Asset URLs (CDN)
 const HERO_BG = "https://d2xsxph8kpxj0f.cloudfront.net/310419663029699712/5rA4Xp94a7aS8aQWEYfuYR/promptjur-hero-bg-Nyr3w4ZEKhGCRMmXra46K3.webp";
-const DEMO_MOCKUP = "https://d2xsxph8kpxj0f.cloudfront.net/310419663029699712/5rA4Xp94a7aS8aQWEYfuYR/promptjur-demo-mockup-MJFvmv9aym5ErVj4i7BdAL.webp";
+const DEMO_MOCKUP = "/manus-storage/promptjur-mockup-new_bca85a63.png";
 const TRUST_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310419663029699712/5rA4Xp94a7aS8aQWEYfuYR/promptjur-trust-section-57asGbpcXn9imV2gjB4HTc.webp";
 const LIBRARY_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310419663029699712/5rA4Xp94a7aS8aQWEYfuYR/promptjur-library-section-LwcMFVQaT7iKyKfBtr2cHC.webp";
 
