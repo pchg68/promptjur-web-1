@@ -691,7 +691,7 @@ function PricingSection() {
             </div>
             <h3 className="text-lg font-bold text-white">Profissional</h3>
             <div className="mt-4 mb-6">
-              <span className="text-4xl font-bold text-white" style={{ fontFamily: FONT_DISPLAY }}>R$ 49,90</span>
+              <span className="text-4xl font-bold text-white" style={{ fontFamily: FONT_DISPLAY }}>R$ 57,90</span>
               <span className="text-white/50 text-sm">/mês</span>
             </div>
             <ul className="space-y-3 mb-8 text-sm text-white/60">
