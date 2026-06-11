@@ -51,8 +51,6 @@ import { ProviderStatus } from "@/components/ProviderStatus";
 import { QuotaWidget } from "@/components/QuotaWidget";
 import { ReferralDialog } from "@/components/ReferralDialog";
 import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
-import { ProfPromptChat } from "@/components/ProfPromptChat";
-import { GraduationCap } from "lucide-react";
 
 const ONBOARDING_STORAGE_KEY = "promptjur-onboarding-v1";
 
@@ -73,12 +71,6 @@ const ONBOARDING_STEPS: TourStep[] = [
     body: "Use estas abas para analisar um prompt existente, otimizá-lo ou gerar um prompt profissional do zero a partir do seu caso.",
     placement: "bottom",
   },
-  {
-    selector: "[data-tour='prof-prompt']",
-    title: "Prof. Prompt — seu tutor",
-    body: "Travado no que escrever? Abra o tutor conversacional. Ele faz perguntas socráticas para refinar seu prompt até ficar pronto.",
-    placement: "top",
-  },
 ];
 
 export default function Dashboard() {
@@ -94,8 +86,6 @@ export default function Dashboard() {
       return true;
     }
   });
-  // Estado para abrir/fechar o painel do Prof. Prompt
-  const [profPromptOpen, setProfPromptOpen] = useState(false);
   // Permite reabrir o tour manualmente
   const [tourForceOpen, setTourForceOpen] = useState(false);
 
@@ -955,24 +945,7 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* ═══════════════ Prof. Prompt — tutor conversacional ═══════════════ */}
-        <div className="mt-8" data-tour="prof-prompt">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setProfPromptOpen(o => !o)}
-            className="mb-4 w-full justify-between"
-          >
-            <span className="flex items-center gap-2">
-              <GraduationCap className="w-4 h-4" />
-              Prof. Prompt — tutor de prompts jurídicos
-            </span>
-            <ChevronRight className={`w-4 h-4 transition-transform ${profPromptOpen ? 'rotate-90' : ''}`} />
-          </Button>
-          {profPromptOpen && (
-            <ProfPromptChat selectedModel={selectedModel} />
-          )}
-        </div>
+
         </div>
       </main>
 
