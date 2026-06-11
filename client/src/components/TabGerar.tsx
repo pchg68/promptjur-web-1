@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Zap, Loader2, ChevronDown, ChevronUp, Pencil, Check, X, User, FileText, ListChecks, BookOpen, Palette, ShieldCheck, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Zap, Loader2, ChevronDown, ChevronUp, Pencil, Check, X,
+  User, FileText, ListChecks, BookOpen, Palette, ShieldCheck,
+  Sparkles, Copy, Download, Save, AlertTriangle, BarChart2
+} from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { ModelSelector } from "@/components/ModelSelector";
@@ -40,13 +43,10 @@ interface TabGerarProps {
   isGerandoDoc: boolean;
   initialArea?: string;
   initialContexto?: string;
-  /** Navegar para aba Documentos com prompt preenchido */
   onNavigateToDocumentos?: () => void;
-  /** Navegar para aba Análise com prompt preenchido */
   onNavigateToAnalise?: () => void;
 }
 
-// Seções do prompt para visualização estruturada
 const PROMPT_SECTIONS = [
   { key: "persona", icon: User, label: "Persona Especializada", color: "text-blue-500" },
   { key: "contexto", icon: FileText, label: "Contexto do Caso", color: "text-emerald-500" },
@@ -62,7 +62,6 @@ function parsePromptSections(text: string): { key: string; content: string }[] {
   const lines = text.split("\n");
   let currentSection = "";
   let currentContent: string[] = [];
-
   const sectionPatterns: Record<string, RegExp> = {
     persona: /^(#+\s*)?(persona|papel|atue como|você é|aja como)/i,
     contexto: /^(#+\s*)?(contexto|caso|situação|fato|cenário)/i,
@@ -71,7 +70,6 @@ function parsePromptSections(text: string): { key: string; content: string }[] {
     formato: /^(#+\s*)?(formato|estrutura|estilo|organiz)/i,
     qualidade: /^(#+\s*)?(qualidade|critério|requisito|observ|atenç)/i,
   };
-
   for (const line of lines) {
     let matched = false;
     for (const [key, pattern] of Object.entries(sectionPatterns)) {
@@ -85,20 +83,14 @@ function parsePromptSections(text: string): { key: string; content: string }[] {
         break;
       }
     }
-    if (!matched) {
-      currentContent.push(line);
-    }
+    if (!matched) currentContent.push(line);
   }
-
   if (currentSection && currentContent.length > 0) {
     sections.push({ key: currentSection, content: currentContent.join("\n").trim() });
   }
-
-  // Se não encontrou seções, retorna o texto inteiro como "instrucoes"
   if (sections.length === 0 && text.trim()) {
     sections.push({ key: "instrucoes", content: text.trim() });
   }
-
   return sections;
 }
 
@@ -107,12 +99,12 @@ export default function TabGerar({
   initialArea = "", initialContexto = "",
   onNavigateToDocumentos, onNavigateToAnalise,
 }: TabGerarProps) {
-  // Form state
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("peticao");
   const [contexto, setContexto] = useState(initialContexto);
   const [objetivo, setObjetivo] = useState("");
   const [areaJuridica, setAreaJuridica] = useState(initialArea);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showPersonalizar, setShowPersonalizar] = useState(false);
   const [tomProfissional, setTomProfissional] = useState(true);
   const [incluirJurisprudencia, setIncluirJurisprudencia] = useState(true);
   const [incluirLegislacao, setIncluirLegislacao] = useState(true);
@@ -120,37 +112,22 @@ export default function TabGerar({
   const [parteContraria, setParteContraria] = useState("");
   const [tribunal, setTribunal] = useState("");
   const [attachedDocs, setAttachedDocs] = useState<AttachedDocument[]>([]);
-
-  // P1: Persona e Chain of Thought
   const [personaId, setPersonaId] = useState<string | undefined>();
   const [personaCustom, setPersonaCustom] = useState<string | undefined>();
   const [chainOfThought, setChainOfThought] = useState(false);
-
-  // P3: RAG Jurídico
   const [ragAtivo, setRagAtivo] = useState(false);
   const [ragConfig, setRagConfig] = useState({
-    buscarLegislacao: true,
-    buscarSumulas: true,
-    buscarJurisprudencia: true,
+    buscarLegislacao: true, buscarSumulas: true, buscarJurisprudencia: true,
     tribunais: ["STF", "STJ", "TJSP", "TJRJ", "TJRS"],
   });
-
-  // Edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState("");
+  const [activeResultTab, setActiveResultTab] = useState<"basico" | "profissional">("profissional");
 
-  // Result ref for scroll
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const geracaoMutation = trpc.prompts.gerar.useMutation({
-    onSuccess: () => {
-      setTimeout(() => {
-        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 300);
-    },
-  });
+  const geracaoMutation = trpc.prompts.gerar.useMutation();
 
-  // Update from parent props
   useEffect(() => {
     if (initialArea) setAreaJuridica(initialArea);
     if (initialContexto) setContexto(initialContexto);
@@ -159,16 +136,11 @@ export default function TabGerar({
   const handleGerar = () => {
     if (!contexto.trim()) { toast.error("Por favor, descreva o contexto do caso"); return; }
     if (!objetivo.trim()) { toast.error("Por favor, descreva o objetivo do prompt"); return; }
-
-    // Sprint 3: se houver docs anexados, mescla o texto extraído ao final do contexto
-    // de forma claramente demarcada para o LLM. Cada documento em seu próprio bloco
-    // para que o LLM (e o metaprompt no server) saibam tratá-los como fonte primária.
     const contextoFinal = attachedDocs.length > 0
       ? `${contexto}\n\n${attachedDocs.map(d =>
           `--- DOCUMENTO ANEXADO (${d.fileName}) ---\n${d.text}\n--- FIM DO DOCUMENTO ---`,
         ).join("\n\n")}`
       : contexto;
-
     geracaoMutation.mutate({
       tipoDocumento: tipoDocumento as any,
       contextoJuridico: contextoFinal,
@@ -188,8 +160,6 @@ export default function TabGerar({
 
   const promptText = isEditing ? editedPrompt : (geracaoMutation.data?.promptProfissional || "");
   const parsedSections = useMemo(() => parsePromptSections(promptText), [promptText]);
-
-  // Starter prompts contextuais à área selecionada (catálogo curado em shared/juridico.ts)
   const starters = useMemo(() => getStarterPrompts(areaJuridica), [areaJuridica]);
 
   const applyStarter = (starter: StarterPrompt) => {
@@ -199,258 +169,303 @@ export default function TabGerar({
     toast.success(`Inspiração carregada: ${starter.titulo}`);
   };
 
-  const startEditing = () => {
-    setEditedPrompt(geracaoMutation.data?.promptProfissional || "");
-    setIsEditing(true);
-  };
-
-  const confirmEdit = () => {
-    setIsEditing(false);
-    toast.success("Prompt editado com sucesso!");
-  };
-
-  const cancelEdit = () => {
-    setEditedPrompt("");
-    setIsEditing(false);
-  };
-
   const hasResult = !!geracaoMutation.data;
 
+  const handleCopyPrompt = () => {
+    if (!promptText) return;
+    navigator.clipboard.writeText(promptText).then(() => {
+      toast.success("Prompt copiado para a área de transferência!");
+    });
+  };
+
+  // ── LAYOUT: 3 painéis fixos lado a lado ──────────────────────────────────
   return (
-    <div className={`transition-all duration-500 ${hasResult ? "flex gap-6" : ""}`}>
-      {/* Painel Esquerdo: Formulário */}
-      <div className={`transition-all duration-500 ${hasResult ? "w-[380px] flex-shrink-0 sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto" : "w-full"}`}>
-        <Card>
-          <CardHeader className={hasResult ? "p-4" : ""}>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Zap className="w-5 h-5 text-primary" />
-              {hasResult ? "Parâmetros" : "Gerar Prompt Jurídico Profissional"}
-            </CardTitle>
-            {!hasResult && (
-              <CardDescription>Preencha os campos para gerar um prompt profissional estruturado com referências legais</CardDescription>
-            )}
-            {!hasResult && <DisclaimerLegal className="mt-4" />}
-          </CardHeader>
-          <CardContent className={`space-y-4 ${hasResult ? "p-4 pt-0" : ""}`}>
-            {!hasResult && (
-              <ModelSelector value={selectedModel} onChange={handleModelChange} disabled={geracaoMutation.isPending} />
-            )}
+    <div className="flex h-[calc(100vh-8rem)] gap-0 -mx-6 -mt-4 overflow-hidden rounded-lg border border-border">
 
-            <div className="space-y-2">
-              <Label className="text-sm">Tipo de Documento</Label>
-              <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {TIPOS_DOCUMENTO.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* ── PAINEL CENTRAL: ENTRADA ─────────────────────────────────────────── */}
+      <div className="w-[400px] flex-shrink-0 flex flex-col border-r border-border bg-card overflow-hidden">
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm">Contexto do Caso *</Label>
-                  <VoiceInput
-                    onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)}
-                    disabled={geracaoMutation.isPending}
-                  />
-                </div>
-                <span className={`text-xs tabular-nums ${
-                  contexto.length > 1800 ? "text-destructive" : contexto.length > 1400 ? "text-amber-600" : "text-muted-foreground"
-                }`}>{contexto.length}/2000</span>
+        {/* Header do painel */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">1</span>
+            <span className="text-sm font-semibold">Parâmetros</span>
+          </div>
+          <ModelSelector value={selectedModel} onChange={handleModelChange} compact />
+        </div>
+
+        {/* Corpo do painel — scrollável */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+          <DisclaimerLegal />
+
+          {/* Tipo de documento */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo de Documento</Label>
+            <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento)}>
+              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TIPOS_DOCUMENTO.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Área Jurídica */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Área Jurídica</Label>
+            <Select value={areaJuridica} onValueChange={setAreaJuridica}>
+              <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent>
+                {AREAS_JURIDICAS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Contexto */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contexto do Caso *</Label>
+                <VoiceInput
+                  onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)}
+                  disabled={geracaoMutation.isPending}
+                />
               </div>
-              <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Descreva os fatos ou use o microfone para ditar..." rows={hasResult ? 3 : 4} maxLength={2000} />
+              <span className={`text-xs tabular-nums ${
+                contexto.length > 1800 ? "text-destructive" : contexto.length > 1400 ? "text-amber-500" : "text-muted-foreground"
+              }`}>{contexto.length}/2000</span>
             </div>
-
-            {/* Sprint 3: anexo de múltiplos documentos client-side (PDF/DOCX/TXT) */}
-            <DocumentAttachment
-              docs={attachedDocs}
-              onChange={setAttachedDocs}
-              disabled={geracaoMutation.isPending}
+            <Textarea
+              value={contexto}
+              onChange={e => setContexto(e.target.value)}
+              placeholder="Descreva os fatos ou use o microfone para ditar..."
+              rows={4}
+              maxLength={2000}
+              className="text-sm resize-none"
             />
+          </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm">Objetivo do Prompt *</Label>
-                <span className={`text-xs tabular-nums ${
-                  objetivo.length > 450 ? "text-destructive" : objetivo.length > 350 ? "text-amber-600" : "text-muted-foreground"
-                }`}>{objetivo.length}/500</span>
+          {/* Objetivo */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Objetivo do Prompt *</Label>
+              <span className={`text-xs tabular-nums ${
+                objetivo.length > 450 ? "text-destructive" : objetivo.length > 350 ? "text-amber-500" : "text-muted-foreground"
+              }`}>{objetivo.length}/500</span>
+            </div>
+            <Textarea
+              value={objetivo}
+              onChange={e => setObjetivo(e.target.value)}
+              placeholder="O que você espera como resultado..."
+              rows={3}
+              maxLength={500}
+              className="text-sm resize-none"
+            />
+          </div>
+
+          {/* Documentos anexados */}
+          <DocumentAttachment
+            docs={attachedDocs}
+            onChange={setAttachedDocs}
+            disabled={geracaoMutation.isPending}
+          />
+
+          {/* Inspirações */}
+          {starters.length > 0 && (
+            <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-semibold">Inspirações{areaJuridica ? ` — ${areaJuridica}` : ""}</span>
               </div>
-              <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="O que você espera como resultado..." rows={hasResult ? 2 : 3} maxLength={500} />
+              <div className="flex flex-wrap gap-1.5">
+                {starters.map((s, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => applyStarter(s)}
+                    className="text-left text-xs px-2 py-1 rounded bg-background hover:bg-primary/10 border border-border hover:border-primary/40 transition-colors"
+                    title={s.contexto}
+                  >
+                    {s.titulo}
+                  </button>
+                ))}
+              </div>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <Label className="text-sm">Área Jurídica</Label>
-              <Select value={areaJuridica} onValueChange={setAreaJuridica}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {AREAS_JURIDICAS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Checklist de contexto */}
+          <ContextChecklist
+            campos={{ tipoDocumento, contexto, objetivo, areaJuridica, parteContraria, fundamentacao, tribunal, attachedDocs }}
+          />
 
-            {/* Inspirações: starter prompts contextuais à área (Sprint 2) */}
-            {!hasResult && starters.length > 0 && (
-              <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Inspirações para {areaJuridica}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Comece a partir de um caso típico — clique para preencher os campos automaticamente.
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {starters.map((s, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => applyStarter(s)}
-                      className="text-left text-xs px-2.5 py-1.5 rounded-md bg-background hover:bg-primary/10 border border-border hover:border-primary/40 transition-colors"
-                      title={s.contexto}
-                    >
-                      {s.titulo}
-                    </button>
-                  ))}
-                </div>
+          {/* Personalizar saída — colapsável */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowPersonalizar(!showPersonalizar)}
+              className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full py-1"
+            >
+              {showPersonalizar ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              ⚙ Personalizar saída
+              <span className="text-[10px] text-muted-foreground/60 font-normal">(opcional)</span>
+            </button>
+            {showPersonalizar && (
+              <div className="mt-2 space-y-3 pl-3 border-l border-border">
+                <PersonaSelector
+                  value={personaId}
+                  customValue={personaCustom}
+                  area={areaJuridica}
+                  onChange={setPersonaId}
+                  onCustomChange={setPersonaCustom}
+                  disabled={geracaoMutation.isPending}
+                  compact
+                />
+                <RagToggle
+                  ativo={ragAtivo}
+                  config={ragConfig}
+                  onAtivoChange={setRagAtivo}
+                  onConfigChange={setRagConfig}
+                  disabled={geracaoMutation.isPending}
+                  compact
+                />
               </div>
             )}
+          </div>
 
-            {/* P1: Persona Jurídica Especializada */}
-            <PersonaSelector
-              value={personaId}
-              customValue={personaCustom}
-              area={areaJuridica}
-              onChange={setPersonaId}
-              onCustomChange={setPersonaCustom}
-              disabled={geracaoMutation.isPending}
-              compact={hasResult}
-            />
-
-            {/* P3: RAG Jurídico Toggle */}
-            <RagToggle
-              ativo={ragAtivo}
-              config={ragConfig}
-              onAtivoChange={setRagAtivo}
-              onConfigChange={setRagConfig}
-              disabled={geracaoMutation.isPending}
-              compact={hasResult}
-            />
-
-            {/* P2: Checklist de Contexto (pré-geração) */}
-            {!hasResult && (
-              <ContextChecklist
-                campos={{
-                  tipoDocumento,
-                  contexto,
-                  objetivo,
-                  areaJuridica,
-                  parteContraria,
-                  fundamentacao,
-                  tribunal,
-                  attachedDocs,
-                }}
-              />
-            )}
-
-            {/* Campos Avançados */}
+          {/* Opções avançadas — colapsável */}
+          <div>
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+              className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full py-1"
             >
-              {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              Opções Avançadas
+              {showAdvanced ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              ▸ Opções avançadas
             </button>
-
             {showAdvanced && (
-              <div className="space-y-4 pl-2 border-l-2 border-primary/20">
+              <div className="mt-2 space-y-3 pl-3 border-l border-border">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Tom Profissional</Label>
+                  <Label className="text-xs">Tom Profissional</Label>
                   <Switch checked={tomProfissional} onCheckedChange={setTomProfissional} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Incluir Jurisprudência</Label>
+                  <Label className="text-xs">Incluir Jurisprudência</Label>
                   <Switch checked={incluirJurisprudencia} onCheckedChange={setIncluirJurisprudencia} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Incluir Legislação</Label>
+                  <Label className="text-xs">Incluir Legislação</Label>
                   <Switch checked={incluirLegislacao} onCheckedChange={setIncluirLegislacao} />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Fundamentação Específica</Label>
-                  <Input value={fundamentacao} onChange={e => setFundamentacao(e.target.value)} placeholder="Ex: Art. 5º CF/88..." />
+                <div className="space-y-1">
+                  <Label className="text-xs">Fundamentação Específica</Label>
+                  <Input value={fundamentacao} onChange={e => setFundamentacao(e.target.value)} placeholder="Ex: Art. 5º CF/88..." className="h-7 text-xs" />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Parte Contrária</Label>
-                  <Input value={parteContraria} onChange={e => setParteContraria(e.target.value)} placeholder="Identificação da parte contrária..." />
+                <div className="space-y-1">
+                  <Label className="text-xs">Parte Contrária</Label>
+                  <Input value={parteContraria} onChange={e => setParteContraria(e.target.value)} placeholder="Identificação da parte contrária..." className="h-7 text-xs" />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Tribunal</Label>
-                  <Input value={tribunal} onChange={e => setTribunal(e.target.value)} placeholder="Ex: STF, STJ, TJ-SP..." />
+                <div className="space-y-1">
+                  <Label className="text-xs">Tribunal</Label>
+                  <Input value={tribunal} onChange={e => setTribunal(e.target.value)} placeholder="Ex: STF, STJ, TJ-SP..." className="h-7 text-xs" />
                 </div>
-
-                {/* P1: Chain of Thought Jurídico */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-sm">Raciocínio Passo a Passo (CoT)</Label>
-                    <p className="text-[11px] text-muted-foreground">Instrui a IA a seguir: Fatos → Enquadramento → Fundamentação → Argumentação → Pedidos</p>
+                    <Label className="text-xs">Raciocínio Passo a Passo (CoT)</Label>
+                    <p className="text-[10px] text-muted-foreground">Fatos → Enquadramento → Fundamentação → Pedidos</p>
                   </div>
                   <Switch checked={chainOfThought} onCheckedChange={setChainOfThought} />
                 </div>
               </div>
             )}
+          </div>
 
-            <Button onClick={handleGerar} disabled={geracaoMutation.isPending} className="w-full" size={hasResult ? "default" : "lg"}>
-              {geracaoMutation.isPending ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Gerando...</>) : (<><Zap className="mr-2 w-4 h-4" />{hasResult ? "Regerar" : "Gerar Prompt Profissional"}</>)}
-            </Button>
+        </div>
 
-            {!hasResult && <GenerationStepper isGenerating={geracaoMutation.isPending} type="geracao" />}
-          </CardContent>
-        </Card>
+        {/* Botão Gerar — fixo no rodapé do painel */}
+        <div className="flex-shrink-0 p-4 border-t border-border bg-card">
+          <Button
+            onClick={handleGerar}
+            disabled={geracaoMutation.isPending}
+            className="w-full"
+            size="default"
+          >
+            {geracaoMutation.isPending
+              ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Gerando...</>)
+              : (<><Zap className="mr-2 w-4 h-4" />{hasResult ? "Regerar Prompt" : "Gerar Prompt Profissional"}</>)
+            }
+          </Button>
+          {geracaoMutation.isPending && (
+            <div className="mt-2">
+              <GenerationStepper isGenerating={geracaoMutation.isPending} type="geracao" />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Painel Direito: Resultado (Artifact View) */}
-      {hasResult && (
-        <div ref={resultRef} className="flex-1 min-w-0 animate-in fade-in slide-in-from-right-8 duration-500">
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div>
-                  <CardTitle className="text-lg">Prompt Profissional Gerado</CardTitle>
-                  <div className="flex items-center gap-2 mt-1">
-                    {geracaoMutation.data?.area && (
-                      <Badge variant="secondary">{geracaoMutation.data.area}</Badge>
-                    )}
-                    <Badge variant="outline" className="text-xs">
-                      {TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {!isEditing ? (
-                    <Button variant="ghost" size="sm" onClick={startEditing} className="gap-1">
-                      <Pencil className="w-3.5 h-3.5" />
-                      Editar
-                    </Button>
-                  ) : (
-                    <>
-                      <Button variant="default" size="sm" onClick={confirmEdit} className="gap-1">
-                        <Check className="w-3.5 h-3.5" />
-                        Confirmar
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={cancelEdit} className="gap-1">
-                        <X className="w-3.5 h-3.5" />
-                        Cancelar
-                      </Button>
-                    </>
-                  )}
-                </div>
+      {/* ── PAINEL DIREITO: RESULTADO ────────────────────────────────────────── */}
+      <div ref={resultRef} className="flex-1 min-w-0 flex flex-col bg-background overflow-hidden">
+
+        {/* Header do painel de resultado */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 flex-shrink-0 gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">2</span>
+            <span className="text-sm font-semibold">Resultado Gerado</span>
+            {hasResult && geracaoMutation.data?.area && (
+              <Badge variant="secondary" className="text-xs">{geracaoMutation.data.area}</Badge>
+            )}
+            {hasResult && (
+              <Badge variant="outline" className="text-xs">
+                {TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento}
+              </Badge>
+            )}
+          </div>
+          {hasResult && (
+            <div className="flex items-center gap-2">
+              {!isEditing ? (
+                <Button variant="ghost" size="sm" onClick={() => { setEditedPrompt(geracaoMutation.data?.promptProfissional || ""); setIsEditing(true); }} className="gap-1 h-7 text-xs">
+                  <Pencil className="w-3 h-3" />Editar
+                </Button>
+              ) : (
+                <>
+                  <Button variant="default" size="sm" onClick={() => { setIsEditing(false); toast.success("Prompt editado!"); }} className="gap-1 h-7 text-xs">
+                    <Check className="w-3 h-3" />Confirmar
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => { setEditedPrompt(""); setIsEditing(false); }} className="gap-1 h-7 text-xs">
+                    <X className="w-3 h-3" />Cancelar
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Corpo do resultado — scrollável */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {!hasResult && !geracaoMutation.isPending && (
+            /* Estado vazio */
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground text-center py-16">
+              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
+                <Zap className="w-8 h-8 text-muted-foreground/40" />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              <div>
+                <h4 className="text-base font-semibold text-foreground/60 mb-1">Pronto para gerar</h4>
+                <p className="text-sm max-w-xs">Preencha o contexto e o objetivo no painel ao lado e clique em <strong>Gerar Prompt Profissional</strong>.</p>
+              </div>
+            </div>
+          )}
+
+          {geracaoMutation.isPending && (
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground text-center py-16">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+              <p className="text-sm">Gerando seu prompt profissional...</p>
+            </div>
+          )}
+
+          {hasResult && (
+            <>
               <AIDisclaimer />
 
-              {/* P2: Refinamento Iterativo */}
+              {/* Refinamento iterativo */}
               <RefinamentoPanel
                 promptText={promptText}
                 promptId={geracaoMutation.data?.promptId}
@@ -458,14 +473,13 @@ export default function TabGerar({
                 onRefinado={(novoTexto) => {
                   setEditedPrompt(novoTexto);
                   setIsEditing(false);
-                  // Atualiza o promptProfissional no cache da mutation
                   if (geracaoMutation.data) {
                     (geracaoMutation.data as any).promptProfissional = novoTexto;
                   }
                 }}
               />
 
-              {/* Ações Hierárquicas */}
+              {/* Ações */}
               <PromptActions
                 promptText={promptText}
                 titulo={`Prompt ${TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || ""}`}
@@ -479,7 +493,7 @@ export default function TabGerar({
                   tipoDocumento: TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label,
                   promptId: geracaoMutation.data?.promptId,
                 })}
-                onSaveTemplate={() => onSaveTemplate(promptText, geracaoMutation.data?.area || areaJuridica || "Geral")}
+                onSaveTemplate={() => onSaveTemplate(promptText, geracaoMutation.data?.area || areaJuridica)}
                 showGerarDocumento={!!geracaoMutation.data?.promptId}
                 onGerarDocumento={() => geracaoMutation.data?.promptId && onGerarDocumento(geracaoMutation.data.promptId, promptText, tipoDocumento)}
                 isGerandoDoc={isGerandoDoc}
@@ -495,16 +509,16 @@ export default function TabGerar({
                   className="min-h-[400px] font-mono text-sm"
                 />
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {parsedSections.length > 1 ? (
                     parsedSections.map((section, idx) => {
                       const sectionConfig = PROMPT_SECTIONS.find(s => s.key === section.key);
                       const Icon = sectionConfig?.icon || FileText;
                       return (
-                        <div key={idx} className="p-4 bg-muted/30 rounded-sm border-l-2 border-primary/30">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Icon className={`w-4 h-4 ${sectionConfig?.color || "text-muted-foreground"}`} />
-                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        <div key={idx} className="p-3 bg-muted/30 rounded-sm border-l-2 border-primary/30">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <Icon className={`w-3.5 h-3.5 ${sectionConfig?.color || "text-muted-foreground"}`} />
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                               {sectionConfig?.label || "Conteúdo"}
                             </span>
                           </div>
@@ -524,15 +538,15 @@ export default function TabGerar({
                 </div>
               )}
 
-              {/* Sprint 4: Card de Qualidade com breakdown por critério */}
+              {/* Qualidade */}
               {geracaoMutation.data?.avaliacaoQualidade && (
                 <QualityScoreCard avaliacao={geracaoMutation.data.avaliacaoQualidade} />
               )}
 
-              {/* P3: RAG — Fontes jurídicas encontradas */}
+              {/* RAG */}
               <RagResultsPanel ragResult={geracaoMutation.data?.ragResult ?? null} />
 
-              {/* P3: Detecção de Alucinações */}
+              {/* Alucinações */}
               <AlucinacaoAlert deteccao={geracaoMutation.data?.deteccaoAlucinacao ?? null} />
 
               {/* Validação de Legislação */}
@@ -540,28 +554,76 @@ export default function TabGerar({
                 <ValidacaoLegislacao validacao={geracaoMutation.data.validacaoLegislacao} />
               )}
 
-              {/* P2: Disclaimer + Checklist de Revisão */}
-              <ReviewChecklist className="mt-4" />
+              {/* Checklist de Revisão */}
+              <ReviewChecklist className="mt-2" />
 
               {/* Fluxo Guiado */}
-              <PostGenerationGuide className="mt-6" />
+              <PostGenerationGuide className="mt-4" />
+            </>
+          )}
 
-              {/* Aviso de revisão fixo no rodapé do resultado */}
-              <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
-                <span className="text-amber-500">⚠</span>
-                <span>Sempre revise o conteúdo gerado. A IA pode cometer erros jurídicos. Não substitui consulta com advogado.</span>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Erro */}
+          {geracaoMutation.error && (
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-sm text-destructive text-sm">
+              Erro: {geracaoMutation.error.message}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Erro */}
-      {geracaoMutation.error && !hasResult && (
-        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-sm text-destructive text-sm mt-4">
-          Erro: {geracaoMutation.error.message}
+        {/* Barra de ações fixas no rodapé — sempre visível */}
+        <div className="flex-shrink-0 px-4 py-2.5 border-t border-border bg-muted/20 flex items-center gap-2 flex-wrap">
+          <Button
+            variant="default"
+            size="sm"
+            className="gap-1.5 h-7 text-xs"
+            disabled={!hasResult}
+            onClick={handleCopyPrompt}
+          >
+            <Copy className="w-3 h-3" />
+            Copiar prompt
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 h-7 text-xs"
+            disabled={!hasResult || isGerandoDoc}
+            onClick={() => hasResult && geracaoMutation.data?.promptId && onGerarDocumento(geracaoMutation.data.promptId, promptText, tipoDocumento)}
+          >
+            <Download className="w-3 h-3" />
+            Gerar .docx
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 h-7 text-xs"
+            disabled={!hasResult}
+            onClick={() => hasResult && onPreview({
+              titulo: `Prompt Profissional - ${TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || ""}`,
+              conteudo: promptText,
+              areaJuridica: geracaoMutation.data?.area,
+              tipoDocumento: TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label,
+              promptId: geracaoMutation.data?.promptId,
+            })}
+          >
+            <BarChart2 className="w-3 h-3" />
+            Visualizar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 h-7 text-xs"
+            disabled={!hasResult}
+            onClick={() => hasResult && onSaveTemplate(promptText, geracaoMutation.data?.area || areaJuridica)}
+          >
+            <Save className="w-3 h-3" />
+            Salvar modelo
+          </Button>
+          <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+            <AlertTriangle className="w-3 h-3 text-amber-500" />
+            <span>Sempre revise o conteúdo gerado. A IA pode cometer erros.</span>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
