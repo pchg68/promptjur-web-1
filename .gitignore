@@ -113,3 +113,5 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+.github/workflows/cd-staging.yml
+.github/workflows/ci.yml
