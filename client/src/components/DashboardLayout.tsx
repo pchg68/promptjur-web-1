@@ -1,4 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ProfPromptChat } from "@/components/ProfPromptChat";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -12,7 +14,7 @@ import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import {
   LayoutDashboard, LogOut, Users, Shield, FileText, Lock, Bot,
   History, BookOpen, Settings, BookMarked, HelpCircle, Gift,
-  Coins, Crown, ChevronRight, Bell
+  Coins, Crown, ChevronRight, Bell, GraduationCap
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { QuotaWidget } from "./QuotaWidget";
@@ -104,6 +106,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
+  const [profPromptOpen, setProfPromptOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try { return localStorage.getItem("sidebar-collapsed") === "true"; } catch { return false; }
   });
@@ -190,6 +193,21 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             </button>
           )}
         </nav>
+
+        {/* Prof. Prompt button — fixed above footer */}
+        <div className="px-2 pb-1 flex-shrink-0">
+          <button
+            onClick={() => setProfPromptOpen(true)}
+            title={collapsed ? "Prof. Prompt" : undefined}
+            data-tour="prof-prompt"
+            className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors bg-primary/10 hover:bg-primary/20 text-primary font-medium"
+          >
+            <GraduationCap className="h-4 w-4 flex-shrink-0" />
+            {!collapsed && (
+              <span className="flex-1 text-left truncate">Prof. Prompt</span>
+            )}
+          </button>
+        </div>
 
         {/* Footer items */}
         <div className="border-t border-border px-2 py-2 space-y-0.5 flex-shrink-0">
@@ -357,6 +375,21 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       </div>
 
       <OnboardingTour steps={ONBOARDING_STEPS} storageKey="promptjur-onboarding-v3" />
+
+      {/* ── Prof. Prompt Drawer ─────────────────────────────────────── */}
+      <Sheet open={profPromptOpen} onOpenChange={setProfPromptOpen}>
+        <SheetContent side="right" className="w-[420px] sm:w-[480px] flex flex-col p-0 bg-background border-l border-border">
+          <SheetHeader className="px-4 py-3 border-b border-border flex-shrink-0">
+            <SheetTitle className="flex items-center gap-2 text-base">
+              <GraduationCap className="w-5 h-5 text-primary" />
+              Prof. Prompt
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden p-3">
+            <ProfPromptChat height="calc(100vh - 120px)" />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
