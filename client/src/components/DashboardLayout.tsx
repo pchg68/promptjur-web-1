@@ -61,8 +61,7 @@ const menuItems = [
   { icon: BookMarked,      label: "Modelos",        path: "/templates",    tour: "modelos" },
   { icon: History,         label: "Histórico",      path: "/historico",    tour: "historico" },
   { icon: Bot,             label: "JurIA",          path: "/assistente",   tour: "assistente" },
-  { icon: Users,           label: "Clientes",       path: "/clientes",     tour: "clientes" },
-  { icon: BookOpen,        label: "Jurisprudência", path: "/tutoriais",    tour: "jurisprudencia", badge: "Beta" },
+  { icon: BookOpen,        label: "Tutoriais",      path: "/tutoriais",    tour: "tutoriais" },
   { icon: Settings,        label: "Configurações",  path: "/configuracoes",tour: "configuracoes" },
 ];
 
