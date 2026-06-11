@@ -816,7 +816,7 @@ function CTASection() {
     </section>
   );
 }
-/* ─── FAQ ─── *//
+/* --- FAQ --- */
 const faqItems = [
   {
     q: "O PromptJur substitui o advogado?",
