@@ -8,26 +8,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
-import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock, Bot, History, BookOpen, Settings, BookMarked, HelpCircle, Gift, Coins, Crown } from "lucide-react";
+import {
+  LayoutDashboard, LogOut, Users, Shield, FileText, Lock, Bot,
+  History, BookOpen, Settings, BookMarked, HelpCircle, Gift,
+  Coins, Crown, ChevronRight, Bell
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { QuotaWidget } from "./QuotaWidget";
 import { OnboardingTour, TourStep } from "./OnboardingTour";
 import { TrialBanner } from "./TrialBanner";
+import { Button } from "./ui/button";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
+import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
+import { NotificationBell } from "./NotificationBell";
 
 const ONBOARDING_STEPS: TourStep[] = [
   {
@@ -36,48 +31,44 @@ const ONBOARDING_STEPS: TourStep[] = [
   },
   {
     selector: "[data-tour='assistente']",
-    title: "🤖 JurIA \u2014 Assistente Inteligente",
-    body: "Converse com a JurIA para gerar, analisar e otimizar prompts jurídicos. Escolha entre 8 personas especializadas (civilista, penalista, trabalhista...) e gere documentos completos com validação de alucinações.",
+    title: "🤖 JurIA — Assistente Inteligente",
+    body: "Converse com a JurIA para gerar, analisar e otimizar prompts jurídicos. Escolha entre 8 personas especializadas e gere documentos completos com validação de alucinações.",
     placement: "right",
   },
   {
     selector: "[data-tour='meus-prompts']",
     title: "📚 Seus Prompts e Templates",
-    body: "Todos os prompts gerados ficam salvos automaticamente. Organize com tags, marque favoritos, exporte como .txt/.docx/.pdf e reutilize quando precisar. Acesse também templates prontos por área jurídica.",
+    body: "Todos os prompts gerados ficam salvos automaticamente. Organize com tags, marque favoritos, exporte como .txt/.docx/.pdf e reutilize quando precisar.",
     placement: "right",
   },
   {
     selector: "[data-tour='quota-widget']",
     title: "📊 Consumo e Créditos",
-    body: "Acompanhe seu uso mensal em tempo real. Você receberá alertas ao atingir 70%, 90% e 100% da quota. Precisa de mais? Compre pacotes de créditos extras na página de Planos.",
+    body: "Acompanhe seu uso mensal em tempo real. Você receberá alertas ao atingir 70%, 90% e 100% da quota.",
     placement: "top",
   },
   {
     selector: "[data-tour='indicacoes']",
     title: "🎁 Indique e Ganhe",
-    body: "Compartilhe seu código de indicação e ganhe 5 créditos extras para cada amigo que se cadastrar. Seu amigo também ganha 5 créditos!",
+    body: "Compartilhe seu código de indicação e ganhe 5 créditos extras para cada amigo que se cadastrar.",
     placement: "right",
   },
 ];
-import { CSSProperties, useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
-import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
-import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Bot, label: "JurIA — Assistente", path: "/assistente" },
-  { icon: BookMarked, label: "Meus Prompts", path: "/meus-prompts" },
-  { icon: History, label: "Histórico", path: "/historico" },
-  { icon: FileText, label: "Templates", path: "/templates" },
-  { icon: BookOpen, label: "Tutoriais", path: "/tutoriais" },
-  { icon: Gift, label: "Indicações", path: "/indicacoes", badge: "Novo" },
-  { icon: Settings, label: "Configurações", path: "/configuracoes" },
+  { icon: LayoutDashboard, label: "Dashboard",     path: "/dashboard",    tour: "dashboard" },
+  { icon: FileText,        label: "Nova Peça",      path: "/dashboard",    tour: "nova-peca" },
+  { icon: BookMarked,      label: "Modelos",        path: "/templates",    tour: "modelos" },
+  { icon: History,         label: "Histórico",      path: "/historico",    tour: "historico" },
+  { icon: Bot,             label: "JurIA",          path: "/assistente",   tour: "assistente" },
+  { icon: Users,           label: "Clientes",       path: "/clientes",     tour: "clientes" },
+  { icon: BookOpen,        label: "Jurisprudência", path: "/tutoriais",    tour: "jurisprudencia", badge: "Beta" },
+  { icon: Settings,        label: "Configurações",  path: "/configuracoes",tour: "configuracoes" },
 ];
 
-// Itens fixos no rodapé da sidebar
 const footerMenuItems = [
-  { icon: HelpCircle, label: "Suporte", path: "/suporte" },
+  { icon: HelpCircle, label: "Suporte",    path: "/suporte" },
+  { icon: Gift,       label: "Indicações", path: "/indicacoes", badge: "Novo" },
 ];
 
 const PLAN_LABELS: Record<string, string> = {
@@ -86,389 +77,287 @@ const PLAN_LABELS: Record<string, string> = {
   enterprise: "Escritório",
 };
 
-const SIDEBAR_WIDTH_KEY = "sidebar-width";
-const DEFAULT_WIDTH = 280;
-const MIN_WIDTH = 200;
-const MAX_WIDTH = 480;
-
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [sidebarWidth, setSidebarWidth] = useState(() => {
-    const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
-    return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
-  });
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { loading, user } = useAuth();
 
-  useEffect(() => {
-    localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
-  }, [sidebarWidth]);
-
-  if (loading) {
-    return <DashboardLayoutSkeleton />
-  }
+  if (loading) return <DashboardLayoutSkeleton />;
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative group">
-              <div className="relative">
-                <img
-                  src={APP_LOGO}
-                  alt={APP_TITLE}
-                  className="h-20 w-20 rounded-xl object-cover shadow"
-                />
-              </div>
-            </div>
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">{APP_TITLE}</h1>
-              <p className="text-sm text-muted-foreground">
-                Please sign in to continue
-              </p>
-            </div>
+          <img src={APP_LOGO} alt={APP_TITLE} className="h-16 w-16 rounded-xl object-cover shadow" />
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight">{APP_TITLE}</h1>
+            <p className="text-sm text-muted-foreground">Faça login para continuar</p>
           </div>
-          <Button
-            onClick={() => {
-              window.location.href = getLoginUrl();
-            }}
-            size="lg"
-            className="w-full shadow-lg hover:shadow-xl transition-all"
-          >
-            Sign in
+          <Button onClick={() => { window.location.href = getLoginUrl(); }} size="lg" className="w-full">
+            Entrar
           </Button>
         </div>
       </div>
     );
   }
 
-  return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": `${sidebarWidth}px`,
-        } as CSSProperties
-      }
-    >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
-        {children}
-      </DashboardLayoutContent>
-    </SidebarProvider>
-  );
+  return <DashboardLayoutContent>{children}</DashboardLayoutContent>;
 }
 
-// ─── HeaderBar com créditos ─────────────────────────────────────────────────
-function HeaderBar({ activeLabel, isMobile }: { activeLabel?: string; isMobile: boolean }) {
-  const { data: usage } = trpc.stripe.getMyUsage.useQuery(undefined, {
-    refetchInterval: 120_000,
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+  const { user, logout } = useAuth();
+  const [location, setLocation] = useLocation();
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem("sidebar-collapsed") === "true"; } catch { return false; }
   });
-  const { user } = useAuth();
+
+  const { data: usage } = trpc.stripe.getMyUsage.useQuery(undefined, { refetchInterval: 120_000 });
   const planLabel = PLAN_LABELS[(user as any)?.subscriptionPlan ?? "free"] ?? "Gratuito";
   const isUnlimited = usage?.isUnlimited;
   const creditos = isUnlimited ? null : (usage ? usage.limit - usage.usageCount : null);
 
-  if (isMobile) return null;
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    try { localStorage.setItem("sidebar-collapsed", String(next)); } catch {}
+  };
+
+  // Active page label for header
+  const activeItem = menuItems.find(i => i.path === location);
+  const activeLabel = activeItem?.label ?? "Dashboard";
+
+  const sidebarW = collapsed ? "w-16" : "w-52";
 
   return (
-    <div className="hidden md:flex border-b h-12 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-      <span className="text-sm font-medium text-muted-foreground">
-        {activeLabel ?? APP_TITLE}
-      </span>
-      <div className="flex items-center gap-3">
-        {/* Créditos disponíveis */}
-        {usage && (
-          <div className="flex items-center gap-1.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2.5 py-1 rounded-full text-xs font-semibold">
-            <Coins className="w-3.5 h-3.5" />
-            {isUnlimited ? (
-              <span>Créditos ilimitados</span>
-            ) : (
-              <span>{creditos} créditos disponíveis</span>
-            )}
-          </div>
-        )}
-        {/* Badge de plano */}
-        <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs font-medium text-muted-foreground">
-          <Crown className="w-3 h-3" />
-          <span>{planLabel}</span>
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      {/* ── SIDEBAR ───────────────────────────────────────────────────── */}
+      <aside
+        className={`${sidebarW} flex-shrink-0 flex flex-col border-r border-border bg-sidebar transition-all duration-200 overflow-hidden`}
+        style={{ minWidth: collapsed ? "4rem" : "13rem" }}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-3 h-14 px-3 border-b border-border flex-shrink-0">
+          <img src={APP_LOGO} alt="Logo" className="h-8 w-8 rounded-md object-cover flex-shrink-0" />
+          {!collapsed && (
+            <div className="min-w-0">
+              <span className="text-sm font-bold tracking-tight text-foreground truncate block">PromptJur</span>
+              <span className="text-[10px] text-muted-foreground truncate block">Engenharia de Prompts</span>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
-  );
-}
 
-type DashboardLayoutContentProps = {
-  children: React.ReactNode;
-  setSidebarWidth: (width: number) => void;
-};
+        {/* Nav items */}
+        <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+          {menuItems.map(item => {
+            const isActive = location === item.path && (item.label === "Dashboard" ? location === "/dashboard" : true);
+            const isReallyActive = location === item.path;
+            return (
+              <button
+                key={item.tour}
+                data-tour={item.tour}
+                onClick={() => setLocation(item.path)}
+                title={collapsed ? item.label : undefined}
+                className={`w-full flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors group relative
+                  ${isReallyActive
+                    ? "bg-accent text-foreground font-medium border-l-2 border-primary pl-[calc(0.5rem-2px)]"
+                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                  }`}
+              >
+                <item.icon className={`h-4 w-4 flex-shrink-0 ${isReallyActive ? "text-primary" : ""}`} />
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 text-left truncate">{item.label}</span>
+                    {item.badge && (
+                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary">
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
+            );
+          })}
 
-function DashboardLayoutContent({
-  children,
-  setSidebarWidth,
-}: DashboardLayoutContentProps) {
-  const { user, logout } = useAuth();
-  const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
-  const isCollapsed = state === "collapsed";
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find(item => item.path === location);
-  const isMobile = useIsMobile();
+          {user?.role === "admin" && (
+            <button
+              onClick={() => setLocation("/admin-tools")}
+              title={collapsed ? "Admin" : undefined}
+              className={`w-full flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors
+                ${location === "/admin-tools"
+                  ? "bg-accent text-primary font-medium border-l-2 border-primary pl-[calc(0.5rem-2px)]"
+                  : "text-primary/70 hover:bg-accent/60 hover:text-primary"
+                }`}
+            >
+              <Shield className="h-4 w-4 flex-shrink-0 text-primary" />
+              {!collapsed && <span className="flex-1 text-left truncate">Admin</span>}
+            </button>
+          )}
+        </nav>
 
-  useEffect(() => {
-    if (isCollapsed) {
-      setIsResizing(false);
-    }
-  }, [isCollapsed]);
+        {/* Footer items */}
+        <div className="border-t border-border px-2 py-2 space-y-0.5 flex-shrink-0">
+          {footerMenuItems.map(item => {
+            const isActive = location === item.path;
+            return (
+              <button
+                key={item.path}
+                data-tour={item.path.replace("/", "")}
+                onClick={() => setLocation(item.path)}
+                title={collapsed ? item.label : undefined}
+                className={`w-full flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors
+                  ${isActive
+                    ? "bg-accent text-foreground font-medium border-l-2 border-primary pl-[calc(0.5rem-2px)]"
+                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                  }`}
+              >
+                <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-primary" : ""}`} />
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 text-left truncate">{item.label}</span>
+                    {item.badge && (
+                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary">
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
+            );
+          })}
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-
-      const sidebarLeft = sidebarRef.current?.getBoundingClientRect().left ?? 0;
-      const newWidth = e.clientX - sidebarLeft;
-      if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
-        setSidebarWidth(newWidth);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
-    if (isResizing) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-    }
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-  }, [isResizing, setSidebarWidth]);
-
-  return (
-    <>
-      <div className="relative" ref={sidebarRef}>
-        <Sidebar
-          collapsible="icon"
-          className="border-r-0"
-          disableTransition={isResizing}
-        >
-          <SidebarHeader className="h-16 justify-center">
-            <div className="flex items-center gap-3 pl-2 group-data-[collapsible=icon]:px-0 transition-all w-full">
-              {isCollapsed ? (
-                <div className="relative h-8 w-8 shrink-0 group">
-                  <img
-                    src={APP_LOGO}
-                    className="h-8 w-8 rounded-md object-cover ring-1 ring-border"
-                    alt="Logo"
-                  />
-                  <button
-                    onClick={toggleSidebar}
-                    className="absolute inset-0 flex items-center justify-center bg-accent rounded-md ring-1 ring-border opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <PanelLeft className="h-4 w-4 text-foreground" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={APP_LOGO}
-                      className="h-8 w-8 rounded-md object-cover ring-1 ring-border shrink-0"
-                      alt="Logo"
-                    />
-                    <span className="font-semibold tracking-tight truncate">
-                      {APP_TITLE}
-                    </span>
-                  </div>
-                  <button
-                    onClick={toggleSidebar}
-                    className="ml-auto h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
-                  >
-                    <PanelLeft className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                </>
-              )}
-            </div>
-          </SidebarHeader>
-
-          <SidebarContent className="gap-0">
-            <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
-                const isActive = location === item.path;
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => setLocation(item.path)}
-                      tooltip={item.label}
-                      className={`h-10 transition-all font-normal relative ${
-                        isActive ? "border-l-2 border-amber-500 pl-[calc(0.5rem-2px)]" : ""
-                      }`}
-                      data-tour={item.path.replace('/', '')}
-                    >
-                      <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-amber-500" : ""}`}
-                      />
-                      <span className="flex-1">{item.label}</span>
-                      {item.badge && (
-                        <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 group-data-[collapsible=icon]:hidden">
-                          {item.badge}
-                        </span>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-              {user?.role === 'admin' && (
-                <SidebarMenuItem key="/admin-tools">
-                  <SidebarMenuButton
-                    isActive={location === '/admin-tools'}
-                    onClick={() => setLocation('/admin-tools')}
-                    tooltip="Admin Tools"
-                    className={`h-10 transition-all font-normal text-amber-500 hover:text-amber-400`}
-                  >
-                    <Shield
-                      className={`h-4 w-4 ${location === '/admin-tools' ? "text-primary" : "text-amber-500"}`}
-                    />
-                    <span>Admin Tools</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarContent>
-
-          <SidebarFooter className="p-3">
-            {/* Itens fixos no rodapé */}
-            <div className="mb-1 group-data-[collapsible=icon]:hidden">
-              {footerMenuItems.map(item => {
-                const isActive = location === item.path;
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => setLocation(item.path)}
-                    className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
-                      isActive
-                        ? "bg-accent text-accent-foreground font-medium border-l-2 border-amber-500"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                  >
-                    <item.icon className={`h-4 w-4 ${isActive ? "text-amber-500" : ""}`} />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-            {/* Indicador de consumo de quota */}
-            <div className="mb-3 group-data-[collapsible=icon]:hidden" data-tour="quota-widget">
+          {/* Quota widget — only when expanded */}
+          {!collapsed && (
+            <div className="pt-1 pb-1" data-tour="quota-widget">
               <QuotaWidget />
             </div>
+          )}
+
+          {/* User avatar + plan */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={`w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent/60 transition-colors text-left ${collapsed ? "justify-center" : ""}`}>
+                <Avatar className="h-7 w-7 border border-border flex-shrink-0">
+                  <AvatarFallback className="text-xs font-bold bg-primary/20 text-primary">
+                    {user?.name?.slice(0, 2).toUpperCase() ?? "U"}
+                  </AvatarFallback>
+                </Avatar>
+                {!collapsed && (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate leading-none">{user?.name || "—"}</p>
+                    <p className="text-[10px] text-primary truncate mt-0.5">{planLabel}</p>
+                  </div>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="right" className="w-56">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user?.name || "—"}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {user?.role === "admin" && (
+                <DropdownMenuItem onClick={() => setLocation("/admin-tools")} className="cursor-pointer">
+                  <Shield className="mr-2 h-4 w-4 text-primary" />
+                  <span className="font-medium">Admin Tools</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => setLocation("/configuracoes")} className="cursor-pointer">
+                <Users className="mr-2 h-4 w-4" />
+                <span>Meu Perfil</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLocation("/termos")} className="cursor-pointer">
+                <FileText className="mr-2 h-4 w-4" />
+                <span>Termos de Uso</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLocation("/privacidade")} className="cursor-pointer">
+                <Lock className="mr-2 h-4 w-4" />
+                <span>Privacidade</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </aside>
+
+      {/* ── MAIN AREA ─────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top header bar */}
+        <header className="h-12 flex-shrink-0 flex items-center justify-between px-4 border-b border-border bg-card/50 backdrop-blur">
+          {/* Left: collapse toggle + page title */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleCollapsed}
+              className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+              title={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
+            >
+              <ChevronRight className={`h-4 w-4 transition-transform ${collapsed ? "" : "rotate-180"}`} />
+            </button>
+            <span className="text-sm font-semibold text-foreground">{APP_TITLE}</span>
+          </div>
+
+          {/* Right: credits + plan + notifications + avatar */}
+          <div className="flex items-center gap-2">
+            {usage && (
+              <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-semibold">
+                <Coins className="w-3.5 h-3.5" />
+                {isUnlimited ? "Ilimitado" : `${creditos} créditos`}
+              </div>
+            )}
+            <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs font-medium text-muted-foreground">
+              <Crown className="w-3 h-3 text-primary" />
+              <span>{planLabel}</span>
+            </div>
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <Avatar className="h-9 w-9 border shrink-0">
-                    <AvatarFallback className="text-xs font-medium">
-                      {user?.name?.charAt(0).toUpperCase()}
+                <button className="flex items-center gap-2 hover:bg-accent/60 rounded-md px-2 py-1 transition-colors">
+                  <Avatar className="h-7 w-7 border border-border">
+                    <AvatarFallback className="text-xs font-bold bg-primary/20 text-primary">
+                      {user?.name?.slice(0, 2).toUpperCase() ?? "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium truncate leading-none">
-                      {user?.name || "-"}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">
-                      {PLAN_LABELS[(user as any)?.subscriptionPlan ?? "free"] ?? "Gratuito"}
-                    </p>
-                  </div>
+                  {user?.name && (
+                    <span className="text-xs font-medium text-foreground hidden md:block truncate max-w-[120px]">
+                      {user.name.split(" ").slice(0, 2).join(" ")}
+                    </span>
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name || "-"}</p>
+                    <p className="text-sm font-medium leading-none">{user?.name || "—"}</p>
                     <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {user?.role === 'admin' && (
-                  <DropdownMenuItem
-                    onClick={() => setLocation('/admin-tools')}
-                    className="cursor-pointer"
-                  >
-                    <Shield className="mr-2 h-4 w-4 text-primary" />
-                    <span className="font-medium">Admin Tools</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  onClick={() => setLocation('/configuracoes')}
-                  className="cursor-pointer"
-                >
+                <DropdownMenuItem onClick={() => setLocation("/configuracoes")} className="cursor-pointer">
                   <Users className="mr-2 h-4 w-4" />
                   <span>Meu Perfil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setLocation('/termos')}
-                  className="cursor-pointer"
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  <span>Termos de Uso</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setLocation('/privacidade')}
-                  className="cursor-pointer"
-                >
-                  <Lock className="mr-2 h-4 w-4" />
-                  <span>Privacidade</span>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={logout}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
+                <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </SidebarFooter>
-        </Sidebar>
-        <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors ${isCollapsed ? "hidden" : ""}`}
-          onMouseDown={() => {
-            if (isCollapsed) return;
-            setIsResizing(true);
-          }}
-          style={{ zIndex: 50 }}
-        />
+          </div>
+        </header>
+
+        <TrialBanner />
+
+        {/* Page content */}
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
       </div>
 
-      <SidebarInset>
-        <HeaderBar activeLabel={activeMenuItem?.label} isMobile={isMobile} />
-        {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? APP_TITLE}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        <TrialBanner />
-        <main className="flex-1 p-4">{children}</main>
-      </SidebarInset>
       <OnboardingTour steps={ONBOARDING_STEPS} storageKey="promptjur-onboarding-v3" />
-    </>
+    </div>
   );
 }

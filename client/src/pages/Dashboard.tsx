@@ -38,8 +38,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Bookmark, Trash2 } from "lucide-react";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 
+import DashboardLayout from "@/components/DashboardLayout";
+
 // Novos componentes modulares
-import DashboardHeader2 from "@/components/DashboardHeader2";
 import TabGerar from "@/components/TabGerar";
 import AIDisclaimer from "@/components/AIDisclaimer";
 import GenerationStepper from "@/components/GenerationStepper";
@@ -365,45 +366,43 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <DashboardLayout>
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Dialog de Referral (aparece automaticamente se houver código pendente) */}
       <ReferralDialog />
-      {/* Header com Navegação Persistente */}
-      <DashboardHeader2
-        isCompactMode={isCompactMode}
-        toggleCompactMode={toggleCompactMode}
-      />
+
+      {/* Subheader: título da página + controles */}
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-b border-border bg-card/30">
+        <div>
+          <h2 className="text-lg font-bold text-foreground leading-tight">Gerador de Peças Jurídicas</h2>
+          <p className="text-xs text-muted-foreground">Transforme prompts em peças profissionais com IA</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTourForceOpen(true)}
+            className="text-muted-foreground text-xs h-7 px-2"
+            title="Reabrir tour de boas-vindas"
+          >
+            <PlayCircle className="w-3.5 h-3.5 mr-1" />
+            Tour
+          </Button>
+          <Button
+            data-tour="wizard-toggle"
+            variant={modoWizard ? "default" : "outline"}
+            size="sm"
+            onClick={() => setModoWizard(!modoWizard)}
+            className="flex items-center gap-1.5 h-7 text-xs px-3"
+          >
+            {modoWizard ? (<><Maximize2 className="w-3.5 h-3.5" />Modo Avançado</>) : (<><Sparkles className="w-3.5 h-3.5" />Modo Assistido</>)}
+          </Button>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <main className={activeTab === 'gerar' && !modoWizard ? "container mx-auto px-6 pt-4 pb-0 max-w-7xl" : "container mx-auto px-6 py-8 max-w-7xl"}>
-        {/* Toggle Modo Wizard */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Ferramentas de Engenharia de Prompts</h2>
-            <p className="text-sm text-muted-foreground">Escolha entre modo avançado ou assistente guiado</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTourForceOpen(true)}
-              className="text-muted-foreground"
-              title="Reabrir tour de boas-vindas"
-            >
-              <PlayCircle className="w-4 h-4 mr-1" />
-              Tour
-            </Button>
-            <Button
-              data-tour="wizard-toggle"
-              variant={modoWizard ? "default" : "outline"}
-              onClick={() => setModoWizard(!modoWizard)}
-              className="flex items-center gap-2"
-            >
-              {modoWizard ? (<><Maximize2 className="w-4 h-4" />Modo Avançado</>) : (<><Sparkles className="w-4 h-4" />Modo Assistido</>)}
-            </Button>
-          </div>
-        </div>
-
+      <main className="flex-1 overflow-auto">
+      <div className={activeTab === 'gerar' && !modoWizard ? "px-6 pt-3 pb-0" : "px-6 py-4"}>
         {modoWizard ? (
           <WizardPromptGenerator
             onComplete={(data: WizardData) => {
@@ -967,6 +966,7 @@ export default function Dashboard() {
             <ProfPromptChat selectedModel={selectedModel} />
           )}
         </div>
+        </div>
       </main>
 
       {/* Dialog para Salvar Template */}
@@ -1016,5 +1016,6 @@ export default function Dashboard() {
         onClose={() => setTourForceOpen(false)}
       />
     </div>
+    </DashboardLayout>
   );
 }
