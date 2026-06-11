@@ -57,7 +57,15 @@ const ONBOARDING_STEPS: TourStep[] = [
   },
 ];
 
-const menuItems = [
+type MenuItem = {
+  icon: typeof FileText;
+  label: string;
+  path: string;
+  tour?: string;
+  badge?: string;
+};
+
+const menuItems: MenuItem[] = [
   { icon: FileText,        label: "Nova Peça",      path: "/dashboard",    tour: "nova-peca" },
   { icon: BookMarked,      label: "Modelos",        path: "/templates",    tour: "modelos" },
   { icon: History,         label: "Histórico",      path: "/historico",    tour: "historico" },
@@ -65,8 +73,7 @@ const menuItems = [
   { icon: BookOpen,        label: "Tutoriais",      path: "/tutoriais",    tour: "tutoriais" },
   { icon: Settings,        label: "Configurações",  path: "/configuracoes",tour: "configuracoes" },
 ];
-
-const footerMenuItems = [
+const footerMenuItems: MenuItem[] = [
   { icon: HelpCircle, label: "Suporte",    path: "/suporte" },
   { icon: Gift,       label: "Indicações", path: "/indicacoes", badge: "Novo" },
 ];

@@ -277,7 +277,7 @@ export default function Dashboard() {
   // Carregar template/prompt da URL
   useEffect(() => {
     if (templateIdFromUrl && templateQuery.data) {
-      const template = templateQuery.data.find(t => t.id === parseInt(templateIdFromUrl));
+      const template = templateQuery.data.find((t: { id: number; template: string; nome: string }) => t.id === parseInt(templateIdFromUrl));
       if (template) { setPromptAnalise(template.template); toast.success(`Template "${template.nome}" carregado!`); window.history.replaceState({}, '', '/dashboard'); }
     }
   }, [templateIdFromUrl, templateQuery.data]);
@@ -970,7 +970,7 @@ export default function Dashboard() {
             <div>
               <Label>Tags (opcional)</Label>
               <div className="mt-2 flex flex-wrap gap-2">
-                {tagsQuery.data && tagsQuery.data.length > 0 ? tagsQuery.data.map((tag) => (
+                {tagsQuery.data && tagsQuery.data.length > 0 ? tagsQuery.data.map((tag: { id: number; nome: string; cor?: string | null }) => (
                   <Badge key={tag.id} variant={selectedTags.includes(tag.id) ? "default" : "outline"} className="cursor-pointer"
                     style={{ backgroundColor: selectedTags.includes(tag.id) ? (tag.cor || "#3b82f6") : "transparent", borderColor: tag.cor || "#3b82f6", color: selectedTags.includes(tag.id) ? "white" : (tag.cor || "#3b82f6") }}
                     onClick={() => setSelectedTags(prev => prev.includes(tag.id) ? prev.filter(id => id !== tag.id) : [...prev, tag.id])}
