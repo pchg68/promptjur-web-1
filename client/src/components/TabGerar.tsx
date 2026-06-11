@@ -223,7 +223,7 @@ export default function TabGerar({
 
   // ── LAYOUT: 3 painéis fixos lado a lado ──────────────────────────────────
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-0 -mx-6 -mt-4 overflow-hidden rounded-lg border border-border">
+    <div className="flex gap-0 -mx-6 -mt-4 overflow-hidden rounded-lg border border-border" style={{height: 'calc(100vh - 360px)', minHeight: '500px'}}>
 
       {/* ── PAINEL CENTRAL: ENTRADA ─────────────────────────────────────────── */}
       <div className="w-[400px] flex-shrink-0 flex flex-col border-r border-border bg-card overflow-hidden">
@@ -240,7 +240,17 @@ export default function TabGerar({
         {/* Corpo do painel — scrollável */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
-          <DisclaimerLegal />
+          {/* Disclaimer compacto — colapsável para não ocupar espaço */}
+          <details className="group">
+            <summary className="flex items-center gap-1.5 text-[11px] text-amber-600 cursor-pointer list-none select-none">
+              <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+              <span className="font-medium">Aviso: revise sempre as referências jurídicas geradas pela IA</span>
+              <ChevronDown className="w-3 h-3 ml-auto group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed pl-4 border-l border-amber-500/30">
+              Citações legais e jurisprudências geradas por IA <strong>não são verificadas automaticamente</strong>. Confirme a validade de todas as referências antes de usar em documentos oficiais. A responsabilidade é sempre do profissional do Direito.
+            </div>
+          </details>
 
           {/* Tipo de documento */}
           <div className="space-y-1.5">

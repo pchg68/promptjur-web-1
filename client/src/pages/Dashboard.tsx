@@ -375,7 +375,7 @@ export default function Dashboard() {
       />
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 max-w-7xl">
+      <main className={activeTab === 'gerar' && !modoWizard ? "container mx-auto px-6 pt-4 pb-0 max-w-7xl" : "container mx-auto px-6 py-8 max-w-7xl"}>
         {/* Toggle Modo Wizard */}
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -593,7 +593,7 @@ export default function Dashboard() {
             </TabsContent>
 
             {/* ═══════════════ Tab: Gerar (Artifact View) ═══════════════ */}
-            <TabsContent value="gerar" className="space-y-6">
+            <TabsContent value="gerar" className="mt-0">
               <TabGerar
                 selectedModel={selectedModel}
                 handleModelChange={handleModelChange}
