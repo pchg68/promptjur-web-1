@@ -272,7 +272,7 @@ function HeroSection() {
           className="hidden lg:block"
         >
           <div className="relative rounded-xl overflow-hidden shadow-2xl shadow-black/40 border border-white/10">
-            <img src={DEMO_MOCKUP} alt="Interface do PromptJur mostrando geração de peça jurídica" className="w-full h-auto" />
+            <img src={DEMO_MOCKUP} alt="Interface do PromptJur mostrando geração de peça jurídica" className="w-full h-auto" fetchPriority="high" loading="eager" />
           </div>
         </motion.div>
       </div>
@@ -285,7 +285,7 @@ function HeroSection() {
 /* ─── DEMO SECTION ─── */
 function DemoSection() {
   return (
-    <section id="demo" className="py-24" style={{ background: "#1a2332" }}>
+    <section id="demo" aria-label="Demonstração prática do PromptJur" className="py-24" style={{ background: "#1a2332" }}>
       <div className="container">
         <motion.div
           initial="hidden"
@@ -363,7 +363,7 @@ const features = [
 
 function FeaturesSection() {
   return (
-    <section id="features" className="py-24 relative overflow-hidden" style={{ background: "#1a1a2e" }}>
+    <section id="features" aria-label="Funcionalidades do PromptJur" className="py-24 relative overflow-hidden" style={{ background: "#1a1a2e" }}>
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#c9a227] rounded-full blur-[200px]" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#1e3a5f] rounded-full blur-[200px]" />
@@ -417,7 +417,7 @@ const areas = [
 
 function LibrarySection() {
   return (
-    <section id="biblioteca" className="py-24" style={{ background: "#1a2332" }}>
+    <section id="biblioteca" aria-label="Biblioteca de prompts jurídicos" className="py-24" style={{ background: "#1a2332" }}>
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -473,7 +473,7 @@ function LibrarySection() {
 /* ─── COMPARISON ─── */
 function ComparisonSection() {
   return (
-    <section className="py-24" style={{ background: "#1e2a3a" }}>
+    <section id="comparativo" aria-label="Comparativo PromptJur vs ChatGPT genérico" className="py-24" style={{ background: "#1e2a3a" }}>
       <div className="container">
         <motion.div
           initial="hidden"
@@ -525,7 +525,7 @@ function ComparisonSection() {
 /* ─── TRUST ─── */
 function TrustSection() {
   return (
-    <section className="py-24 relative overflow-hidden" style={{ background: "#1a1a2e" }}>
+    <section id="confianca" aria-label="IA jurídica responsável e alinhada à OAB" className="py-24 relative overflow-hidden" style={{ background: "#1a1a2e" }}>
       <div className="container relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -575,7 +575,7 @@ function PricingSection() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <section id="planos" className="py-24" style={{ background: "#1a2332" }}>
+    <section id="planos" aria-label="Planos e preços do PromptJur" className="py-24" style={{ background: "#1a2332" }}>
       <div className="container">
         <motion.div
           initial="hidden"
@@ -667,7 +667,7 @@ function PricingSection() {
 /* ─── CONTACT SECTION (reaproveitando FormContato existente) ─── */
 function ContactSection() {
   return (
-    <section className="py-24" style={{ background: "#1a1a2e" }} id="contato">
+    <section id="contato" aria-label="Formulário de contato" className="py-24" style={{ background: "#1a1a2e" }}>
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
           {/* Texto */}
@@ -779,7 +779,7 @@ const faqItems = [
 
 function FAQSection() {
   return (
-    <section id="faq" className="py-24" style={{ background: "#1a1a2e" }}>
+    <section id="faq" aria-label="Perguntas frequentes sobre o PromptJur" className="py-24" style={{ background: "#1a1a2e" }}>
       <div className="container max-w-3xl mx-auto">
         <motion.div
           initial="hidden"
