@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import {
-  LayoutDashboard, LogOut, Users, Shield, FileText, Lock, Bot,
+  LogOut, Users, Shield, FileText, Lock, Bot,
   History, BookOpen, Settings, BookMarked, HelpCircle, Gift,
   Coins, Crown, ChevronRight, Bell, GraduationCap
 } from "lucide-react";
@@ -58,7 +58,6 @@ const ONBOARDING_STEPS: TourStep[] = [
 ];
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard",     path: "/dashboard",    tour: "dashboard" },
   { icon: FileText,        label: "Nova Peça",      path: "/dashboard",    tour: "nova-peca" },
   { icon: BookMarked,      label: "Modelos",        path: "/templates",    tour: "modelos" },
   { icon: History,         label: "Histórico",      path: "/historico",    tour: "historico" },
@@ -149,7 +148,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
           {menuItems.map(item => {
-            const isActive = location === item.path && (item.label === "Dashboard" ? location === "/dashboard" : true);
             const isReallyActive = location === item.path;
             return (
               <button
