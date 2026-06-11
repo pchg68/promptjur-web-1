@@ -153,7 +153,11 @@ export default function Dashboard() {
   const promptQuery = trpc.prompts.loadPrompt.useQuery({ id: parseInt(promptIdFromUrl!) }, { enabled: !!promptIdFromUrl });
   
   // Estado para Análise
-  const [promptAnalise, setPromptAnalise] = useState("");
+  // [Fase 1] Buffer único compartilhado por Analisar/Otimizar/Gerar — evita recolar texto entre etapas
+  const [pecaTexto, setPecaTexto] = useState("");
+  // Aliases retrocompatíveis: as referências existentes continuam funcionando, agora sobre o mesmo texto
+  const promptAnalise = pecaTexto;
+  const setPromptAnalise = setPecaTexto;
   const analiseMutation = trpc.prompts.analisar.useMutation({
     onSuccess: () => toast.success("Análise concluída com sucesso!"),
     onError: (error) => toast.error(`Erro na análise: ${error.message}`)
@@ -161,7 +165,8 @@ export default function Dashboard() {
 
   // Estado para Geração (mantido para compatibilidade com Wizard e usarModelo)
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("peticao");
-  const [contextoJuridico, setContextoJuridico] = useState("");
+  const contextoJuridico = pecaTexto;            // [Fase 1] alias do buffer único (pecaTexto)
+  const setContextoJuridico = setPecaTexto;
   const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
   const [areaGeracao, setAreaGeracao] = useState<"Civil" | "Penal" | "Trabalhista" | "Tributário" | "Administrativo" | "Constitucional" | "Empresarial" | "Consumidor" | "Família" | "Previdenciário" | "Ambiental" | "Internacional" | "Processo Civil" | "Direito Médico" | "Direito Digital" | "Direito Internacional">("Civil");
   const [partesEnvolvidas, setPartesEnvolvidas] = useState("");
@@ -240,7 +245,8 @@ export default function Dashboard() {
   const modelosMaisUsadosQuery = trpc.modelos.maisUsados.useQuery({ limit: 5 });
 
   // Otimização
-  const [promptOtimizacao, setPromptOtimizacao] = useState("");
+  const promptOtimizacao = pecaTexto;            // [Fase 1] alias do buffer único (pecaTexto)
+  const setPromptOtimizacao = setPecaTexto;
   const otimizacaoMutation = trpc.prompts.otimizar.useMutation({
     onSuccess: () => toast.success("Otimização concluída com sucesso!"),
     onError: (error) => toast.error(`Erro na otimização: ${error.message}`)
