@@ -505,7 +505,7 @@ export default function Assistente() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="flex h-[calc(100vh-3rem)] overflow-hidden">
         {/* Sidebar de sessões */}
         <aside className="w-64 border-r flex flex-col bg-muted/20 flex-shrink-0">
           <div className="p-3 border-b">
@@ -705,9 +705,9 @@ export default function Assistente() {
               ) : (
                 <>
                   {/* Mensagens */}
-                  <ScrollArea
-                    className="flex-1 p-4"
-                    ref={scrollRef as React.RefObject<HTMLDivElement>}
+                  <div
+                    ref={scrollRef}
+                    className="flex-1 overflow-y-auto p-4"
                   >
                     <div className="space-y-6 max-w-3xl mx-auto pb-4">
                       {mensagens.length === 0 ? (
@@ -721,7 +721,7 @@ export default function Assistente() {
                         ))
                       )}
                     </div>
-                  </ScrollArea>
+                  </div>
 
                   {/* Input */}
                   <div className="border-t p-4 bg-background">
