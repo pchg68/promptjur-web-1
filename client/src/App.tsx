@@ -1,45 +1,59 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
+import { lazy, Suspense } from "react";
 import { Route, Switch } from "wouter";
 import { SentryErrorBoundary } from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import Historico from "./pages/Historico";
-import Templates from "./pages/Templates";
-import TemplatePublico from "./pages/TemplatePublico";
-import MeusModelos from "./pages/MeusModelos";
-import BibliotecaPublica from "./pages/BibliotecaPublica";
-import Tutoriais from "./pages/Tutoriais";
-import BibliotecaTemplates from "./pages/BibliotecaTemplates";
-import AdminTools from "./pages/AdminTools";
-import Configuracoes from "./pages/Configuracoes";
-import Planos from "./pages/Planos";
-import Privacidade from "./pages/Privacidade";
-import Termos from "./pages/Termos";
-import AcessoRestrito from "./pages/AcessoRestrito";
-import Contato from "./pages/Contato";
-import Assistente from "./pages/Assistente";
-import MeusPrompts from "./pages/MeusPrompts";
-import CRM from "./pages/CRM";
-import MonitoramentoLLM from "./pages/MonitoramentoLLM";
-import DashboardCustos from "./pages/DashboardCustos";
-import SharedPrompt from "./pages/SharedPrompt";
-import MeuPlano from "./pages/MeuPlano";
 import CookieBanner from "./components/CookieBanner";
-import Suporte from "./pages/Suporte";
-import Referral from "./pages/Referral";
-import AdminPrecos from "./pages/AdminPrecos";
-import AdminBlog from "./pages/AdminBlog";
-import AdminBlogEditor from "./pages/AdminBlogEditor";
-import AdminBlogNovoLink from "./pages/AdminBlogNovoLink";
-import Blog from "./pages/Blog";
-import BlogArtigo from "./pages/BlogArtigo";
-import Sobre from "./pages/Sobre";
+
+// Páginas críticas (síncronas)
+import Home from "./pages/Home";
+import NotFound from "./pages/NotFound";
+
+// Páginas lazy (code splitting automático)
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Historico = lazy(() => import("./pages/Historico"));
+const Templates = lazy(() => import("./pages/Templates"));
+const TemplatePublico = lazy(() => import("./pages/TemplatePublico"));
+const MeusModelos = lazy(() => import("./pages/MeusModelos"));
+const BibliotecaPublica = lazy(() => import("./pages/BibliotecaPublica"));
+const Tutoriais = lazy(() => import("./pages/Tutoriais"));
+const BibliotecaTemplates = lazy(() => import("./pages/BibliotecaTemplates"));
+const AdminTools = lazy(() => import("./pages/AdminTools"));
+const Configuracoes = lazy(() => import("./pages/Configuracoes"));
+const Planos = lazy(() => import("./pages/Planos"));
+const Privacidade = lazy(() => import("./pages/Privacidade"));
+const Termos = lazy(() => import("./pages/Termos"));
+const AcessoRestrito = lazy(() => import("./pages/AcessoRestrito"));
+const Contato = lazy(() => import("./pages/Contato"));
+const Assistente = lazy(() => import("./pages/Assistente"));
+const MeusPrompts = lazy(() => import("./pages/MeusPrompts"));
+const CRM = lazy(() => import("./pages/CRM"));
+const MonitoramentoLLM = lazy(() => import("./pages/MonitoramentoLLM"));
+const DashboardCustos = lazy(() => import("./pages/DashboardCustos"));
+const SharedPrompt = lazy(() => import("./pages/SharedPrompt"));
+const MeuPlano = lazy(() => import("./pages/MeuPlano"));
+const Suporte = lazy(() => import("./pages/Suporte"));
+const Referral = lazy(() => import("./pages/Referral"));
+const AdminPrecos = lazy(() => import("./pages/AdminPrecos"));
+const AdminBlog = lazy(() => import("./pages/AdminBlog"));
+const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor"));
+const AdminBlogNovoLink = lazy(() => import("./pages/AdminBlogNovoLink"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogArtigo = lazy(() => import("./pages/BlogArtigo"));
+const Sobre = lazy(() => import("./pages/Sobre"));
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0f1a]">
+      <div className="w-8 h-8 border-2 border-[#c9a227] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 function Router() {
   return (
+    <Suspense fallback={<PageLoader />}>
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={Dashboard} />
@@ -77,6 +91,7 @@ function Router() {
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 
