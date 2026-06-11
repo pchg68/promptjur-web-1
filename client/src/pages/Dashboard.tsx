@@ -39,6 +39,7 @@ import { Bookmark, Trash2 } from "lucide-react";
 import { ModelSelector, parseModelValue } from "@/components/ModelSelector";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { DashboardHome } from "@/components/DashboardHome";
 
 // Novos componentes modulares
 import TabGerar from "@/components/TabGerar";
@@ -83,7 +84,7 @@ const ONBOARDING_STEPS: TourStep[] = [
 export default function Dashboard() {
   const { user } = useAuth();
   const [location] = useLocation();
-  const [activeTab, setActiveTab] = useState("analisar");
+  const [activeTab, setActiveTab] = useState("home");
   // Modo Wizard: ligado por padrão para usuários que ainda não concluíram o onboarding.
   // Quem já viu o tour fica no modo avançado (preferência preservada).
   const [modoWizard, setModoWizard] = useState(() => {
@@ -417,13 +418,19 @@ export default function Dashboard() {
             <div className="mb-4">
               <ProviderStatus />
             </div>
-            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-5 mb-8">
+            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-6 mb-8">
+              <TabsTrigger value="home" className="flex items-center gap-2"><Scale className="w-4 h-4" />Dashboard</TabsTrigger>
               <TabsTrigger value="analisar" className="flex items-center gap-2"><Sparkles className="w-4 h-4" />Analisar</TabsTrigger>
               <TabsTrigger value="otimizar" className="flex items-center gap-2"><Shield className="w-4 h-4" />Otimizar</TabsTrigger>
               <TabsTrigger value="gerar" className="flex items-center gap-2"><Zap className="w-4 h-4" />Gerar Prompt</TabsTrigger>
               <TabsTrigger value="documentos" className="flex items-center gap-2"><FileText className="w-4 h-4" />Documentos</TabsTrigger>
               <TabsTrigger value="modelos" className="flex items-center gap-2"><FileText className="w-4 h-4" />Modelos</TabsTrigger>
             </TabsList>
+
+            {/* ═══════════════ Tab: Home ═══════════════ */}
+            <TabsContent value="home" className="mt-0">
+              <DashboardHome onNavigate={(tab) => setActiveTab(tab)} />
+            </TabsContent>
 
             {/* ═══════════════ Tab: Analisar ═══════════════ */}
             <TabsContent value="analisar" className="space-y-6">
