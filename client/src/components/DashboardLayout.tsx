@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/sidebar";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock, Bot, History, BookOpen, Settings, BookMarked, HelpCircle, Gift } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Shield, FileText, Lock, Bot, History, BookOpen, Settings, BookMarked, HelpCircle, Gift, Coins, Crown } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 import { QuotaWidget } from "./QuotaWidget";
 import { OnboardingTour, TourStep } from "./OnboardingTour";
 import { TrialBanner } from "./TrialBanner";
@@ -70,10 +71,20 @@ const menuItems = [
   { icon: History, label: "Histórico", path: "/historico" },
   { icon: FileText, label: "Templates", path: "/templates" },
   { icon: BookOpen, label: "Tutoriais", path: "/tutoriais" },
-  { icon: HelpCircle, label: "Suporte", path: "/suporte" },
-  { icon: Gift, label: "Indicações", path: "/indicacoes" },
+  { icon: Gift, label: "Indicações", path: "/indicacoes", badge: "Novo" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
+
+// Itens fixos no rodapé da sidebar
+const footerMenuItems = [
+  { icon: HelpCircle, label: "Suporte", path: "/suporte" },
+];
+
+const PLAN_LABELS: Record<string, string> = {
+  free: "Gratuito",
+  pro: "Profissional",
+  enterprise: "Escritório",
+};
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 280;
@@ -146,6 +157,45 @@ export default function DashboardLayout({
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
+  );
+}
+
+// ─── HeaderBar com créditos ─────────────────────────────────────────────────
+function HeaderBar({ activeLabel, isMobile }: { activeLabel?: string; isMobile: boolean }) {
+  const { data: usage } = trpc.stripe.getMyUsage.useQuery(undefined, {
+    refetchInterval: 120_000,
+  });
+  const { user } = useAuth();
+  const planLabel = PLAN_LABELS[(user as any)?.subscriptionPlan ?? "free"] ?? "Gratuito";
+  const isUnlimited = usage?.isUnlimited;
+  const creditos = isUnlimited ? null : (usage ? usage.limit - usage.usageCount : null);
+
+  if (isMobile) return null;
+
+  return (
+    <div className="hidden md:flex border-b h-12 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
+      <span className="text-sm font-medium text-muted-foreground">
+        {activeLabel ?? APP_TITLE}
+      </span>
+      <div className="flex items-center gap-3">
+        {/* Créditos disponíveis */}
+        {usage && (
+          <div className="flex items-center gap-1.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2.5 py-1 rounded-full text-xs font-semibold">
+            <Coins className="w-3.5 h-3.5" />
+            {isUnlimited ? (
+              <span>Créditos ilimitados</span>
+            ) : (
+              <span>{creditos} créditos disponíveis</span>
+            )}
+          </div>
+        )}
+        {/* Badge de plano */}
+        <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs font-medium text-muted-foreground">
+          <Crown className="w-3 h-3" />
+          <span>{planLabel}</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -260,13 +310,20 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
+                      className={`h-10 transition-all font-normal relative ${
+                        isActive ? "border-l-2 border-amber-500 pl-[calc(0.5rem-2px)]" : ""
+                      }`}
                       data-tour={item.path.replace('/', '')}
                     >
                       <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
+                        className={`h-4 w-4 ${isActive ? "text-amber-500" : ""}`}
                       />
-                      <span>{item.label}</span>
+                      <span className="flex-1">{item.label}</span>
+                      {item.badge && (
+                        <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 group-data-[collapsible=icon]:hidden">
+                          {item.badge}
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -290,6 +347,26 @@ function DashboardLayoutContent({
           </SidebarContent>
 
           <SidebarFooter className="p-3">
+            {/* Itens fixos no rodapé */}
+            <div className="mb-1 group-data-[collapsible=icon]:hidden">
+              {footerMenuItems.map(item => {
+                const isActive = location === item.path;
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => setLocation(item.path)}
+                    className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
+                      isActive
+                        ? "bg-accent text-accent-foreground font-medium border-l-2 border-amber-500"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <item.icon className={`h-4 w-4 ${isActive ? "text-amber-500" : ""}`} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
             {/* Indicador de consumo de quota */}
             <div className="mb-3 group-data-[collapsible=icon]:hidden" data-tour="quota-widget">
               <QuotaWidget />
@@ -306,8 +383,8 @@ function DashboardLayoutContent({
                     <p className="text-sm font-medium truncate leading-none">
                       {user?.name || "-"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate mt-1.5">
-                      {user?.email || "-"}
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {PLAN_LABELS[(user as any)?.subscriptionPlan ?? "free"] ?? "Gratuito"}
                     </p>
                   </div>
                 </button>
@@ -373,6 +450,7 @@ function DashboardLayoutContent({
       </div>
 
       <SidebarInset>
+        <HeaderBar activeLabel={activeMenuItem?.label} isMobile={isMobile} />
         {isMobile && (
           <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
             <div className="flex items-center gap-2">

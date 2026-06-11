@@ -247,14 +247,19 @@ export default function TabGerar({
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm">Contexto do Caso *</Label>
-                <VoiceInput
-                  onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)}
-                  disabled={geracaoMutation.isPending}
-                />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Contexto do Caso *</Label>
+                  <VoiceInput
+                    onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)}
+                    disabled={geracaoMutation.isPending}
+                  />
+                </div>
+                <span className={`text-xs tabular-nums ${
+                  contexto.length > 1800 ? "text-destructive" : contexto.length > 1400 ? "text-amber-600" : "text-muted-foreground"
+                }`}>{contexto.length}/2000</span>
               </div>
-              <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Descreva os fatos ou use o microfone para ditar..." rows={hasResult ? 3 : 4} />
+              <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Descreva os fatos ou use o microfone para ditar..." rows={hasResult ? 3 : 4} maxLength={2000} />
             </div>
 
             {/* Sprint 3: anexo de múltiplos documentos client-side (PDF/DOCX/TXT) */}
@@ -265,8 +270,13 @@ export default function TabGerar({
             />
 
             <div className="space-y-2">
-              <Label className="text-sm">Objetivo do Prompt *</Label>
-              <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="O que você espera como resultado..." rows={hasResult ? 2 : 3} />
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Objetivo do Prompt *</Label>
+                <span className={`text-xs tabular-nums ${
+                  objetivo.length > 450 ? "text-destructive" : objetivo.length > 350 ? "text-amber-600" : "text-muted-foreground"
+                }`}>{objetivo.length}/500</span>
+              </div>
+              <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="O que você espera como resultado..." rows={hasResult ? 2 : 3} maxLength={500} />
             </div>
 
             <div className="space-y-2">
@@ -535,6 +545,12 @@ export default function TabGerar({
 
               {/* Fluxo Guiado */}
               <PostGenerationGuide className="mt-6" />
+
+              {/* Aviso de revisão fixo no rodapé do resultado */}
+              <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
+                <span className="text-amber-500">⚠</span>
+                <span>Sempre revise o conteúdo gerado. A IA pode cometer erros jurídicos. Não substitui consulta com advogado.</span>
+              </div>
             </CardContent>
           </Card>
         </div>
