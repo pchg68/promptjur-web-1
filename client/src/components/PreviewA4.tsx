@@ -15,6 +15,10 @@ interface PreviewA4Props {
 /**
  * Renderiza o prompt gerado como uma folha A4 com tipografia jurídica ABNT.
  * Fundo branco, fonte serif, margens reais, simulando um documento real.
+ *
+ * CORREÇÃO: O container de scroll usa bg-background (tema) em vez de cor hardcoded,
+ * e a folha A4 usa transformOrigin "top center" com marginBottom compensatório
+ * para evitar que o fundo escuro apareça abaixo da folha ao rolar.
  */
 export function PreviewA4({
   content,
@@ -44,8 +48,8 @@ export function PreviewA4({
           elements.push(
             <p
               key={key}
-              className="text-justify leading-[1.8] mb-3 text-[13px]"
-              style={{ textIndent: "2cm", fontFamily: "'Times New Roman', Georgia, serif" }}
+              className="text-justify leading-[1.8] mb-3 text-[13px] text-gray-900"
+              style={{ textIndent: "2cm", fontFamily: "Arial, sans-serif" }}
             >
               {joined}
             </p>
@@ -84,8 +88,8 @@ export function PreviewA4({
         elements.push(
           <p
             key={`cab-${idx}`}
-            className="text-center font-semibold text-[13px] mb-4 leading-[1.8]"
-            style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
+            className="text-center font-semibold text-[13px] mb-4 leading-[1.8] text-gray-900"
+            style={{ fontFamily: "Arial, sans-serif" }}
           >
             {trimmed}
           </p>
@@ -95,8 +99,8 @@ export function PreviewA4({
         elements.push(
           <h3
             key={`titulo-${idx}`}
-            className="text-center font-bold text-[13px] mt-6 mb-3 uppercase tracking-wide"
-            style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
+            className="text-center font-bold text-[13px] mt-6 mb-3 uppercase tracking-wide text-gray-900"
+            style={{ fontFamily: "Arial, sans-serif" }}
           >
             {trimmed}
           </h3>
@@ -106,8 +110,8 @@ export function PreviewA4({
         elements.push(
           <p
             key={`assin-${idx}`}
-            className="text-right text-[13px] mt-4 leading-[1.8]"
-            style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
+            className="text-right text-[13px] mt-4 leading-[1.8] text-gray-900"
+            style={{ fontFamily: "Arial, sans-serif" }}
           >
             {trimmed}
           </p>
@@ -124,10 +128,18 @@ export function PreviewA4({
   const zoomIn = () => setZoom(z => Math.min(z + 10, 150));
   const zoomOut = () => setZoom(z => Math.max(z - 10, 60));
 
+  // Calcula a altura real da folha A4 após o scale para compensar o espaço vazio
+  // A4 base height = 1123px. Após scale, a altura visual = 1123 * (zoom/100)
+  // O espaço "perdido" = 1123 * (1 - zoom/100), que deve ser subtraído como margin negativo
+  const a4BaseHeight = 1123;
+  const scaledHeight = a4BaseHeight * (zoom / 100);
+  const marginBottomCompensation = zoom < 100 ? scaledHeight - a4BaseHeight : 0;
+
   return (
-    <div className={`flex flex-col h-full ${fullscreen ? "fixed inset-0 z-50 bg-[#1a1a2e]" : ""}`}>
+    <div className={`flex flex-col ${fullscreen ? "fixed inset-0 z-50 bg-background" : ""}`}
+         style={{ height: fullscreen ? "100vh" : "auto" }}>
       {/* Barra de controles do preview */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-muted/40 border-b border-border flex-shrink-0">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-muted/40 border border-border rounded-t-md flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">Visualização A4</span>
           {tipoDocumento && (
@@ -151,48 +163,62 @@ export function PreviewA4({
         </div>
       </div>
 
-      {/* Área de scroll do documento */}
-      <div className="flex-1 overflow-y-auto bg-[#2a2a3e] p-4 flex justify-center">
-        {isEditing ? (
-          /* Modo edição: textarea simples */
-          <textarea
-            value={editedContent ?? content}
-            onChange={e => onEditChange?.(e.target.value)}
-            className="w-full max-w-[794px] min-h-[1123px] p-[2.5cm] bg-white text-gray-900 font-mono text-sm resize-none border-0 outline-none shadow-xl"
-            style={{
-              transform: `scale(${zoom / 100})`,
-              transformOrigin: "top center",
-              fontFamily: "'Times New Roman', Georgia, serif",
-              lineHeight: "1.8",
-            }}
-          />
-        ) : (
-          /* Modo visualização: folha A4 branca */
-          <div
-            className="bg-white shadow-2xl"
-            style={{
-              width: "794px",
-              minHeight: "1123px",
-              padding: "2.5cm 3cm 2.5cm 3cm",
-              transform: `scale(${zoom / 100})`,
-              transformOrigin: "top center",
-              marginBottom: zoom < 100 ? `${(zoom - 100) * 11.23}px` : "0",
-            }}
-          >
-            {/* Conteúdo do documento */}
-            <div className="text-gray-900">
-              {renderContent(displayContent)}
-            </div>
-
-            {/* Rodapé do documento */}
+      {/* Área de scroll do documento — fundo neutro que combina com o tema */}
+      <div
+        className="overflow-y-auto border border-t-0 border-border rounded-b-md"
+        style={{
+          background: "#e8e8e8",
+          // Altura fixa para o container de scroll: mostra ~2/3 da folha A4 por padrão
+          // Em fullscreen, ocupa o restante da tela
+          height: fullscreen ? "calc(100vh - 40px)" : "600px",
+        }}
+      >
+        {/* Wrapper centralizado que contém a folha A4 */}
+        <div className="flex justify-center py-6 px-4">
+          {isEditing ? (
+            /* Modo edição: textarea simples */
+            <textarea
+              value={editedContent ?? content}
+              onChange={e => onEditChange?.(e.target.value)}
+              className="w-full max-w-[794px] min-h-[1123px] p-[2.5cm] bg-white text-gray-900 font-mono text-sm resize-none border border-gray-200 outline-none shadow-xl"
+              style={{
+                fontFamily: "Arial, sans-serif",
+                lineHeight: "1.5",
+                fontSize: "12pt",
+              }}
+            />
+          ) : (
+            /* Modo visualização: folha A4 branca com sombra */
             <div
-              className="mt-12 pt-4 border-t border-gray-200 text-center text-[10px] text-gray-400"
-              style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
+              className="bg-white shadow-2xl flex-shrink-0"
+              style={{
+                width: "794px",
+                minHeight: `${a4BaseHeight}px`,
+                padding: "3cm 2.5cm 2.5cm 3cm",
+                transform: `scale(${zoom / 100})`,
+                transformOrigin: "top center",
+                // Compensação: quando zoom < 100%, a folha encolhe mas ocupa menos espaço visual.
+                // marginBottom negativo remove o espaço vazio abaixo da folha transformada.
+                marginBottom: marginBottomCompensation !== 0 ? `${marginBottomCompensation}px` : undefined,
+                // Sombra premium para simular papel real
+                boxShadow: "0 4px 32px rgba(0,0,0,0.25), 0 1px 4px rgba(0,0,0,0.15)",
+              }}
             >
-              Documento gerado pelo PromptJur — Sempre revise antes de usar em contexto profissional
+              {/* Conteúdo do documento */}
+              <div>
+                {renderContent(displayContent)}
+              </div>
+
+              {/* Rodapé do documento */}
+              <div
+                className="mt-12 pt-4 border-t border-gray-200 text-center text-[10px] text-gray-400"
+                style={{ fontFamily: "Arial, sans-serif" }}
+              >
+                Documento gerado pelo PromptJur — Sempre revise antes de usar em contexto profissional
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
