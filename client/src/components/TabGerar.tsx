@@ -34,6 +34,7 @@ import { ReviewChecklist } from "@/components/ReviewChecklist";
 import { RagToggle } from "@/components/RagToggle";
 import { RagResultsPanel } from "@/components/RagResultsPanel";
 import { AlucinacaoAlert } from "@/components/AlucinacaoAlert";
+import { PreviewA4 } from "@/components/PreviewA4";
 
 interface TabGerarProps {
   selectedModel: string;
@@ -123,6 +124,7 @@ export default function TabGerar({
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState("");
+  const [viewMode, setViewMode] = useState<"a4" | "secoes">("a4"); // Modo de visualização do resultado
   // Estado da sugestão inteligente
   const [sugestaoDica, setSugestaoDica] = useState<string | null>(null);
   const [sugestaoTipo, setSugestaoTipo] = useState<string | null>(null);
@@ -253,58 +255,131 @@ export default function TabGerar({
 
   const isSugerindo = sugerirMutation.isPending;
 
-  // ── LAYOUT: 3 painéis fixos lado a lado ──────────────────────────────────
+  // ── LAYOUT: 3 cards numerados + painel resultado ──────────────────────────
   return (
     <div className="flex gap-0 -mx-6 -mt-4 overflow-hidden rounded-lg border border-border" style={{height: 'calc(100vh - 360px)', minHeight: '500px'}}>
 
-      {/* ── PAINEL CENTRAL: ENTRADA ─────────────────────────────────────────── */}
-      <div className="w-[400px] flex-shrink-0 flex flex-col border-r border-border bg-card overflow-hidden">
+      {/* ── PAINEL ESQUERDO: 3 CARDS NUMERADOS ──────────────────────────────── */}
+      <div className="w-[420px] flex-shrink-0 flex flex-col border-r border-border bg-card overflow-hidden">
 
         {/* Header do painel */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/20 flex-shrink-0">
+          <span className="text-sm font-semibold text-foreground">Nova Peça Jurídica</span>
           <div className="flex items-center gap-2">
-            <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">1</span>
-            <span className="text-sm font-semibold">Parâmetros</span>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-primary border-primary/40">✨ IA Integrada</Badge>
+            <ModelSelector value={selectedModel} onChange={handleModelChange} />
           </div>
-          <ModelSelector value={selectedModel} onChange={handleModelChange} />
         </div>
 
-        {/* Corpo do painel — scrollável */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Corpo do painel — scrollável com 3 cards */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
 
-          {/* Disclaimer compacto — colapsável para não ocupar espaço */}
-          <details className="group">
-            <summary className="flex items-center gap-1.5 text-[11px] text-amber-600 cursor-pointer list-none select-none">
-              <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-              <span className="font-medium">Aviso: revise sempre as referências jurídicas geradas pela IA</span>
-              <ChevronDown className="w-3 h-3 ml-auto group-open:rotate-180 transition-transform" />
-            </summary>
-            <div className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed pl-4 border-l border-amber-500/30">
-              Citações legais e jurisprudências geradas por IA <strong>não são verificadas automaticamente</strong>. Confirme a validade de todas as referências antes de usar em documentos oficiais. A responsabilidade é sempre do profissional do Direito.
+          {/* ── CARD 1: PROMPT BÁSICO ─────────────────────────────────────────── */}
+          <div className="card-numerado overflow-hidden">
+            <div className="flex items-center gap-3 px-3 py-2.5 border-b border-border/40 bg-muted/10">
+              <span className="card-numero">1</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-foreground">Prompt Básico</span>
+                  <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Entrada simples</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Descreva o que precisa em linguagem natural</p>
+              </div>
             </div>
-          </details>
-
-          {/* Tipo de documento */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo de Documento</Label>
-            <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento)}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TIPOS_DOCUMENTO.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="p-3 space-y-2.5">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Descreva sua peça jurídica</Label>
+                  <span className="text-[10px] text-muted-foreground tabular-nums">{contexto.length > 0 ? contexto.length : 0} / 2000</span>
+                </div>
+                <Textarea
+                  value={contexto}
+                  onChange={e => setContexto(e.target.value)}
+                  placeholder="Ex: Elabore uma petição inicial de danos morais por cobrança indevida com fundamento no art. 42 do CDC, em favor de consumidor pessoa física..."
+                  rows={4}
+                  maxLength={2000}
+                  className="text-xs resize-none"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Área Jurídica */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Área Jurídica</Label>
-            <Select value={areaJuridica} onValueChange={setAreaJuridica}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>
-                {AREAS_JURIDICAS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* ── CARD 2: PROMPT PROFISSIONAL ──────────────────────────────────── */}
+          <div className="card-numerado-destaque overflow-hidden">
+            <div className="flex items-center gap-3 px-3 py-2.5 border-b border-primary/25 bg-primary/5">
+              <span className="card-numero">2</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-foreground">Prompt Profissional</span>
+                  <span className="text-[10px] text-primary font-semibold bg-primary/10 px-1.5 py-0.5 rounded">⭐ Recomendado</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Detalhamento completo para resultado superior</p>
+              </div>
+            </div>
+            <div className="p-3 space-y-3">
+
+              {/* Sugestão Inteligente */}
+              <div className="card-sugestao-ia p-2.5">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Wand2 className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] font-semibold text-foreground">✨ Sugestão Inteligente</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {historicoFiltrado.length > 0 && (
+                      <button onClick={() => setShowHistorico(v => !v)} className="text-[10px] text-primary/70 hover:text-primary flex items-center gap-0.5 transition-colors" title="Ver sugestões anteriores">
+                        <History className="w-3 h-3" />{historicoFiltrado.length}
+                      </button>
+                    )}
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">IA</Badge>
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground mb-2">Preencha os campos automaticamente com IA</p>
+                <div className="flex gap-1.5">
+                  <Button variant="default" size="sm" className="h-6 text-[11px] gap-1 flex-1" onClick={() => handleSugerirCampos("gerar")} disabled={isSugerindo || geracaoMutation.isPending}>
+                    {isSugerindo ? <><RefreshCw className="w-3 h-3 animate-spin" />Gerando...</> : <><Wand2 className="w-3 h-3" />Sugerir</>}
+                  </Button>
+                  {(contexto.trim() || objetivo.trim()) && (
+                    <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2" onClick={() => handleSugerirCampos("completar")} disabled={isSugerindo || geracaoMutation.isPending}>
+                      <Sparkles className="w-3 h-3" />Completar
+                    </Button>
+                  )}
+                </div>
+                {showHistorico && historicoFiltrado.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-primary/20 space-y-1">
+                    {historicoFiltrado.map((h, i) => (
+                      <button key={i} onClick={() => { setContexto(h.contexto); setObjetivo(h.objetivo); setSugestaoDica(h.dica); setShowHistorico(false); toast.success("Sugestão restaurada!", { duration: 2000 }); }} className="w-full text-left rounded bg-background/60 hover:bg-background border border-border/50 p-1.5 transition-colors">
+                        <p className="text-[10px] text-foreground line-clamp-1">{h.contexto}</p>
+                        <p className="text-[9px] text-muted-foreground">{h.areaJuridica} • {new Date(h.criadaEm).toLocaleDateString("pt-BR")}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {sugestaoDica && !showHistorico && (
+                  <div className="mt-2 pt-2 border-t border-primary/20 flex items-start gap-1.5">
+                    <Lightbulb className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-muted-foreground"><span className="font-medium text-amber-600">Dica:</span> {sugestaoDica}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Tipo e Área em linha */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Tipo de Documento</Label>
+                  <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento)}>
+                    <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>{TIPOS_DOCUMENTO.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Área Jurídica</Label>
+                  <Select value={areaJuridica} onValueChange={setAreaJuridica}>
+                    <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>{AREAS_JURIDICAS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
 
           {/* ── BOTÃO DE SUGESTÃO INTELIGENTE ─────────────────────────────── */}
           <div className="rounded-lg border border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 p-3">
@@ -404,149 +479,86 @@ export default function TabGerar({
             )}
           </div>
 
-          {/* Contexto */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contexto do Caso *</Label>
-                <VoiceInput
-                  onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)}
-                  disabled={geracaoMutation.isPending}
-                />
+              {/* Contexto do Caso */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Contexto do Caso *</Label>
+                    <VoiceInput onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)} disabled={geracaoMutation.isPending} />
+                  </div>
+                  <span className={`text-[10px] tabular-nums ${contexto.length > 1800 ? "text-destructive" : contexto.length > 1400 ? "text-amber-500" : "text-muted-foreground"}`}>{contexto.length}/2000</span>
+                </div>
+                <div className="relative">
+                  <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Descreva os fatos, partes, valores e datas disponíveis..." rows={4} maxLength={2000} className={`text-xs resize-none ${isSugerindo ? "opacity-50" : ""}`} />
+                  {isSugerindo && <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md"><RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" /></div>}
+                </div>
               </div>
-              <span className={`text-xs tabular-nums ${
-                contexto.length > 1800 ? "text-destructive" : contexto.length > 1400 ? "text-amber-500" : "text-muted-foreground"
-              }`}>{contexto.length}/2000</span>
-            </div>
-            <div className="relative">
-              <Textarea
-                value={contexto}
-                onChange={e => setContexto(e.target.value)}
-                placeholder="Descreva os fatos ou use o microfone para ditar..."
-                rows={4}
-                maxLength={2000}
-                className={`text-sm resize-none transition-all duration-300 ${isSugerindo ? "opacity-50" : ""}`}
-              />
-              {isSugerindo && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
-                    Gerando...
+
+              {/* Objetivo */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Objetivo da Peça *</Label>
+                  <span className={`text-[10px] tabular-nums ${objetivo.length > 450 ? "text-destructive" : objetivo.length > 350 ? "text-amber-500" : "text-muted-foreground"}`}>{objetivo.length}/500</span>
+                </div>
+                <div className="relative">
+                  <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Ex: Obter indenização por danos morais e repetição em dobro..." rows={2} maxLength={500} className={`text-xs resize-none ${isSugerindo ? "opacity-50" : ""}`} />
+                  {isSugerindo && <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md"><RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" /></div>}
+                </div>
+              </div>
+
+              {/* Documentos anexados */}
+              <DocumentAttachment docs={attachedDocs} onChange={setAttachedDocs} disabled={geracaoMutation.isPending} />
+
+              {/* Inspirações */}
+              {starters.length > 0 && (
+                <div className="rounded-lg border border-border bg-muted/10 p-2 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-primary" />
+                    <span className="text-[10px] font-semibold">Casos típicos{areaJuridica ? ` — ${areaJuridica}` : ""}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {starters.map((s, idx) => (
+                      <button key={idx} type="button" onClick={() => applyStarter(s)} className="text-left text-[10px] px-2 py-0.5 rounded bg-background hover:bg-primary/10 border border-border hover:border-primary/40 transition-colors" title={s.contexto}>{s.titulo}</button>
+                    ))}
                   </div>
                 </div>
               )}
+
+              {/* Checklist de contexto */}
+              <ContextChecklist campos={{ tipoDocumento, contexto, objetivo, areaJuridica, parteContraria, fundamentacao, tribunal, attachedDocs }} />
+
             </div>
           </div>
 
-          {/* Objetivo */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Objetivo do Prompt *</Label>
-              <span className={`text-xs tabular-nums ${
-                objetivo.length > 450 ? "text-destructive" : objetivo.length > 350 ? "text-amber-500" : "text-muted-foreground"
-              }`}>{objetivo.length}/500</span>
-            </div>
-            <div className="relative">
-              <Textarea
-                value={objetivo}
-                onChange={e => setObjetivo(e.target.value)}
-                placeholder="O que você espera como resultado..."
-                rows={3}
-                maxLength={500}
-                className={`text-sm resize-none transition-all duration-300 ${isSugerindo ? "opacity-50" : ""}`}
-              />
-              {isSugerindo && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
-                    Gerando...
-                  </div>
+          {/* ── CARD 3: PERSONALIZAR SAÍDA ──────────────────────────────────── */}
+          <div className="card-numerado overflow-hidden">
+            <button type="button" onClick={() => setShowPersonalizar(!showPersonalizar)} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/10 transition-colors">
+              <span className="card-numero" style={{background: 'oklch(0.32 0.03 240)', color: 'oklch(0.80 0.01 240)', boxShadow: 'none'}}>3</span>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-foreground">Personalizar Saída</span>
+                  <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Opcional</span>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Documentos anexados */}
-          <DocumentAttachment
-            docs={attachedDocs}
-            onChange={setAttachedDocs}
-            disabled={geracaoMutation.isPending}
-          />
-
-          {/* Inspirações */}
-          {starters.length > 0 && (
-            <div className="rounded-md border border-border bg-muted/20 p-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold">Casos típicos{areaJuridica ? ` — ${areaJuridica}` : ""}</span>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Configurações para refinar o resultado</p>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {starters.map((s, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => applyStarter(s)}
-                    className="text-left text-xs px-2 py-1 rounded bg-background hover:bg-primary/10 border border-border hover:border-primary/40 transition-colors"
-                    title={s.contexto}
-                  >
-                    {s.titulo}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Checklist de contexto */}
-          <ContextChecklist
-            campos={{ tipoDocumento, contexto, objetivo, areaJuridica, parteContraria, fundamentacao, tribunal, attachedDocs }}
-          />
-
-          {/* Personalizar saída — colapsável */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowPersonalizar(!showPersonalizar)}
-              className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full py-1"
-            >
-              {showPersonalizar ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              ⚙ Personalizar saída
-              <span className="text-[10px] text-muted-foreground/60 font-normal">(opcional)</span>
+              {showPersonalizar ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />}
             </button>
             {showPersonalizar && (
-              <div className="mt-2 space-y-3 pl-3 border-l border-border">
-                <PersonaSelector
-                  value={personaId}
-                  customValue={personaCustom}
-                  area={areaJuridica}
-                  onChange={setPersonaId}
-                  onCustomChange={setPersonaCustom}
-                  disabled={geracaoMutation.isPending}
-                  compact
-                />
-                <RagToggle
-                  ativo={ragAtivo}
-                  config={ragConfig}
-                  onAtivoChange={setRagAtivo}
-                  onConfigChange={setRagConfig}
-                  disabled={geracaoMutation.isPending}
-                  compact
-                />
+              <div className="px-3 pb-3 space-y-3 border-t border-border/60 pt-3">
+                <PersonaSelector value={personaId} customValue={personaCustom} area={areaJuridica} onChange={setPersonaId} onCustomChange={setPersonaCustom} disabled={geracaoMutation.isPending} compact />
+                <RagToggle ativo={ragAtivo} config={ragConfig} onAtivoChange={setRagAtivo} onConfigChange={setRagConfig} disabled={geracaoMutation.isPending} compact />
               </div>
             )}
           </div>
 
           {/* Opções avançadas — colapsável */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full py-1"
-            >
-              {showAdvanced ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              ▸ Opções avançadas
+          <div className="card-numerado overflow-hidden" style={{borderColor: 'oklch(0.28 0.025 240 / 0.6)'}}>
+            <button type="button" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted/20 transition-colors">
+              {showAdvanced ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+              <span className="text-[11px] font-semibold text-muted-foreground">Opções avançadas</span>
             </button>
             {showAdvanced && (
-              <div className="mt-2 space-y-3 pl-3 border-l border-border">
+              <div className="px-3 pb-3 space-y-2.5 border-t border-border/60 pt-2.5">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">Tom Profissional</Label>
                   <Switch checked={tomProfissional} onCheckedChange={setTomProfissional} />
@@ -585,11 +597,11 @@ export default function TabGerar({
         </div>
 
         {/* Botão Gerar — fixo no rodapé do painel */}
-        <div className="flex-shrink-0 p-4 border-t border-border bg-card">
+        <div className="flex-shrink-0 p-3 border-t border-border bg-card">
           <Button
             onClick={handleGerar}
             disabled={geracaoMutation.isPending || isSugerindo}
-            className="w-full"
+            className="w-full btn-gerar-principal"
             size="default"
           >
             {geracaoMutation.isPending
@@ -605,8 +617,8 @@ export default function TabGerar({
         </div>
       </div>
 
-      {/* ── PAINEL DIREITO: RESULTADO ────────────────────────────────────────── */}
-      <div ref={resultRef} className="flex-1 min-w-0 flex flex-col bg-background overflow-hidden">
+      {/* ── PAINEL DIREITO: RESULTADO ────────────────────────────────────────────── */}
+      <div ref={resultRef} className="flex-1 min-w-0 flex flex-col bg-background overflow-hidden painel-resultado">
 
         {/* Header do painel de resultado */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 flex-shrink-0 gap-3 flex-wrap">
@@ -676,6 +688,26 @@ export default function TabGerar({
             <>
               <AIDisclaimer />
 
+              {/* Toggle de modo de visualização */}
+              <div className="flex items-center gap-2 mb-2">
+                <Button
+                  variant={viewMode === "a4" ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs gap-1.5"
+                  onClick={() => setViewMode("a4")}
+                >
+                  <FileText className="w-3 h-3" />Visualização A4
+                </Button>
+                <Button
+                  variant={viewMode === "secoes" ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs gap-1.5"
+                  onClick={() => setViewMode("secoes")}
+                >
+                  <ListChecks className="w-3 h-3" />Seções do Prompt
+                </Button>
+              </div>
+
               {/* Refinamento iterativo */}
               <RefinamentoPanel
                 promptText={promptText}
@@ -712,41 +744,54 @@ export default function TabGerar({
                 onNavigateToAnalise={onNavigateToAnalise}
               />
 
-              {/* Conteúdo do Prompt */}
-              {isEditing ? (
-                <Textarea
-                  value={editedPrompt}
-                  onChange={e => setEditedPrompt(e.target.value)}
-                  className="min-h-[400px] font-mono text-sm"
+              {/* Conteúdo do Prompt — modo A4 ou Seções */}
+              {viewMode === "a4" ? (
+                /* Preview A4 — folha branca com tipografia jurídica */
+                <PreviewA4
+                  content={promptText}
+                  tipoDocumento={TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label}
+                  areaJuridica={geracaoMutation.data?.area || areaJuridica}
+                  isEditing={isEditing}
+                  editedContent={editedPrompt}
+                  onEditChange={setEditedPrompt}
                 />
               ) : (
-                <div className="space-y-2">
-                  {parsedSections.length > 1 ? (
-                    parsedSections.map((section, idx) => {
-                      const sectionConfig = PROMPT_SECTIONS.find(s => s.key === section.key);
-                      const Icon = sectionConfig?.icon || FileText;
-                      return (
-                        <div key={idx} className="p-3 bg-muted/30 rounded-sm border-l-2 border-primary/30">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <Icon className={`w-3.5 h-3.5 ${sectionConfig?.color || "text-muted-foreground"}`} />
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                              {sectionConfig?.label || "Conteúdo"}
-                            </span>
+                /* Modo Seções — exibe cada seção do prompt separadamente */
+                isEditing ? (
+                  <Textarea
+                    value={editedPrompt}
+                    onChange={e => setEditedPrompt(e.target.value)}
+                    className="min-h-[400px] font-mono text-sm"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    {parsedSections.length > 1 ? (
+                      parsedSections.map((section, idx) => {
+                        const sectionConfig = PROMPT_SECTIONS.find(s => s.key === section.key);
+                        const Icon = sectionConfig?.icon || FileText;
+                        return (
+                          <div key={idx} className="p-3 bg-muted/30 rounded-sm border-l-2 border-primary/30">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <Icon className={`w-3.5 h-3.5 ${sectionConfig?.color || "text-muted-foreground"}`} />
+                              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {sectionConfig?.label || "Conteúdo"}
+                              </span>
+                            </div>
+                            <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                              {section.content}
+                            </div>
                           </div>
-                          <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                            {section.content}
-                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="p-4 bg-muted/20 rounded-sm">
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground abnt-document">
+                          {promptText}
                         </div>
-                      );
-                    })
-                  ) : (
-                    <div className="p-4 bg-muted/20 rounded-sm">
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground abnt-document">
-                        {promptText}
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )
               )}
 
               {/* Qualidade */}

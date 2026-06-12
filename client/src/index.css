@@ -426,3 +426,122 @@
     transform: translateX(0);
   }
 }
+
+/* ============================================================
+   FASE 3 — Refinamentos Visuais Premium (navy + gold)
+   ============================================================ */
+
+/* Cards numerados do TabGerar — borda e glow dourado no hover */
+.card-numerado {
+  border-radius: 14px;
+  border: 1px solid oklch(0.28 0.025 240);
+  background: oklch(0.18 0.025 240);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-numerado:hover,
+.card-numerado:focus-within {
+  border-color: oklch(0.65 0.12 75 / 0.4);
+  box-shadow: 0 0 20px oklch(0.65 0.12 75 / 0.08), 0 4px 16px rgba(0,0,0,0.3);
+}
+
+/* Card Profissional (card 2) — destaque especial */
+.card-numerado-destaque {
+  border-radius: 14px;
+  border: 1px solid oklch(0.65 0.12 75 / 0.3);
+  background: oklch(0.18 0.025 240);
+  box-shadow: 0 0 30px oklch(0.65 0.12 75 / 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-numerado-destaque:hover,
+.card-numerado-destaque:focus-within {
+  border-color: oklch(0.65 0.12 75 / 0.6);
+  box-shadow: 0 0 40px oklch(0.65 0.12 75 / 0.15), 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* Número circular dourado dos cards */
+.card-numero {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: oklch(0.65 0.12 75);
+  color: oklch(0.15 0.03 240);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px oklch(0.65 0.12 75 / 0.4);
+}
+
+/* Botão principal de ação — glow dourado */
+.btn-gerar-principal {
+  background: oklch(0.65 0.12 75);
+  color: oklch(0.15 0.03 240);
+  border-radius: 10px;
+  font-weight: 600;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 0 16px oklch(0.65 0.12 75 / 0.3);
+}
+
+.btn-gerar-principal:hover:not(:disabled) {
+  background: oklch(0.72 0.14 75);
+  box-shadow: 0 0 28px oklch(0.65 0.12 75 / 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-gerar-principal:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 0 12px oklch(0.65 0.12 75 / 0.3);
+}
+
+/* Preview A4 — sombra premium */
+.preview-a4-wrapper {
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+  border-radius: 2px;
+}
+
+/* Painel de resultado — borda sutil dourada */
+.painel-resultado {
+  border-left: 1px solid oklch(0.65 0.12 75 / 0.15);
+}
+
+/* Sugestão Inteligente — card com glow âmbar */
+.card-sugestao-ia {
+  border-radius: 10px;
+  border: 1px solid oklch(0.65 0.12 75 / 0.25);
+  background: oklch(0.65 0.12 75 / 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-sugestao-ia:hover {
+  border-color: oklch(0.65 0.12 75 / 0.45);
+  box-shadow: 0 0 16px oklch(0.65 0.12 75 / 0.1);
+}
+
+/* Barra de ações do resultado — fundo sólido premium */
+.barra-acoes-resultado {
+  background: oklch(0.16 0.025 240);
+  border-top: 1px solid oklch(0.28 0.025 240);
+  border-radius: 0 0 14px 14px;
+}
+
+/* Scrollbar premium — fina e dourada */
+.painel-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.painel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.painel-scroll::-webkit-scrollbar-thumb {
+  background: oklch(0.65 0.12 75 / 0.3);
+  border-radius: 2px;
+}
+
+.painel-scroll::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.65 0.12 75 / 0.6);
+}
