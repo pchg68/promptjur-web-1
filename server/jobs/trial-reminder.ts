@@ -250,7 +250,7 @@ async function buscarUsuariosTrialExpirando(): Promise<
       )
     );
 
-  return resultado.filter((u) => u.trialEndsAt !== null) as Array<{
+  return resultado.filter((u: any) => u.trialEndsAt !== null) as Array<{
     id: number;
     name: string | null;
     email: string | null;

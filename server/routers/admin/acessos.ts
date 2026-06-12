@@ -67,7 +67,7 @@ export const adminAcessosRouter = router({
     if (!dbConn) return [];
     const { adminCardsArquivados } = await import("../../../drizzle/schema");
     const rows = await dbConn.select().from(adminCardsArquivados).orderBy(adminCardsArquivados.archivedAt);
-    return rows.map(r => ({
+    return rows.map((r: any) => ({
       ...r,
       archivedAt: r.archivedAt instanceof Date ? r.archivedAt.toISOString() : String(r.archivedAt),
     }));

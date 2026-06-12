@@ -84,9 +84,9 @@ async function executarReenvioAutomatico(): Promise<void> {
       const usuariosAtivos = await dbConn
         .select({ email: users.email })
         .from(users);
-      const emailsAtivos = new Set(usuariosAtivos.map((u) => u.email?.toLowerCase()));
+      const emailsAtivos = new Set(usuariosAtivos.map((u: any) => u.email?.toLowerCase()));
       alvosFiltrados = ativos.filter(
-        (e) => !emailsAtivos.has(e.email.toLowerCase())
+        (e: any) => !emailsAtivos.has(e.email.toLowerCase())
       );
     }
 

@@ -118,7 +118,7 @@ export function FavoritosSection() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {favoritosQuery.data.map((prompt) => (
+            {favoritosQuery.data.map((prompt: any) => (
               <Card key={prompt.id} className="border-muted">
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between gap-4">

@@ -348,7 +348,7 @@ export default function TabInteressados() {
 
   // Filtragem local
   const todos = data?.items ?? [];
-  const filtrados = todos.filter((i) => {
+  const filtrados = todos.filter((i: any) => {
     const planoOk = filtroPlano === "todos" || i.planoInteresse === filtroPlano;
     const notifOk =
       filtroNotificado === "todos" ||
@@ -357,7 +357,7 @@ export default function TabInteressados() {
     return planoOk && notifOk;
   });
 
-  const naoNotificados = todos.filter((i) => !i.notificado).length;
+  const naoNotificados = todos.filter((i: any) => !i.notificado).length;
 
   return (
     <div className="space-y-4">
@@ -481,7 +481,7 @@ export default function TabInteressados() {
 
           {/* Linhas */}
           <div className="divide-y divide-slate-700/20">
-            {filtrados.map((item) => (
+            {filtrados.map((item: any) => (
               <div
                 key={item.id}
                 className="grid grid-cols-[1fr_120px_100px_100px_80px] gap-2 px-4 py-3 items-center hover:bg-slate-800/30 transition-colors group"

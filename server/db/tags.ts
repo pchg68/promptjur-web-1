@@ -17,7 +17,7 @@ export async function getTagsUsuario(userId: number) {
     .orderBy(tags.nome);
     
   // Serializar campos Date para ISO strings
-  return result.map(tag => ({
+  return result.map((tag: any) => ({
     ...tag,
     createdAt: tag.createdAt.toISOString()
   }));

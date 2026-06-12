@@ -68,7 +68,7 @@ export const adminCacheRouter = router({
     // Teste 1: Verificar serialização de prompts
     try {
       const prompts = await db.getUserPrompts(ctx.user.id, 5);
-      const todosSerializaveis = prompts.every(p => 
+      const todosSerializaveis = prompts.every((p: any) => 
         typeof p.createdAt === 'string' && typeof p.updatedAt === 'string'
       ) || prompts.length === 0;
       testes.push({
@@ -87,7 +87,7 @@ export const adminCacheRouter = router({
     // Teste 2: Verificar serialização de histórico
     try {
       const historico = await db.getUserHistorico(ctx.user.id, 5);
-      const todosSerializaveis = historico.every(h => typeof h.createdAt === 'string') || historico.length === 0;
+      const todosSerializaveis = historico.every((h: any) => typeof h.createdAt === 'string') || historico.length === 0;
       testes.push({
         nome: 'Serialização de Histórico',
         sucesso: todosSerializaveis,
@@ -104,7 +104,7 @@ export const adminCacheRouter = router({
     // Teste 3: Verificar serialização de templates
     try {
       const templates = await db.getTemplatesUsuario(ctx.user.id);
-      const todosSerializaveis = templates.every(t => 
+      const todosSerializaveis = templates.every((t: any) => 
         typeof t.createdAt === 'string' && typeof t.updatedAt === 'string'
       ) || templates.length === 0;
       testes.push({

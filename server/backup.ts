@@ -165,7 +165,7 @@ export async function listarBackups(): Promise<Backup[]> {
     .orderBy(desc(backups.createdAt))
     .limit(100);
 
-  return result.map(backup => ({
+  return result.map((backup: any) => ({
     ...backup,
     createdAt: backup.createdAt.toISOString(),
   })) as any;

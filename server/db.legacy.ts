@@ -205,7 +205,7 @@ export async function getUserPrompts(userId: number, limit = 50) {
     .limit(limit);
   
   // Converter para formato serializável
-  return results.map(p => ({
+  return results.map((p: any) => ({
     ...p,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString()
@@ -356,7 +356,7 @@ export async function getUserHistorico(userId: number, limit = 100) {
     .limit(limit);
   
   // Converter para formato serializável
-  return results.map(h => ({
+  return results.map((h: any) => ({
     ...h,
     createdAt: h.createdAt.toISOString()
   }));
@@ -372,9 +372,9 @@ export async function getUserStats(userId: number) {
       eq(historico.sucesso, true)
     ));
   
-  const totalAnalises = hist.filter(h => h.acao === 'analise').length;
-  const totalGeracoes = hist.filter(h => h.acao === 'geracao').length;
-  const totalOtimizacoes = hist.filter(h => h.acao === 'otimizacao').length;
+  const totalAnalises = hist.filter((h: any) => h.acao === 'analise').length;
+  const totalGeracoes = hist.filter((h: any) => h.acao === 'geracao').length;
+  const totalOtimizacoes = hist.filter((h: any) => h.acao === 'otimizacao').length;
   
   // Contar templates do usuário
   const userTemplates = await db.select().from(templates)
@@ -432,7 +432,7 @@ export async function getTemplatesUsuario(userId: number) {
     .orderBy(desc(templates.createdAt));
   
   // Converter para formato serializável
-  return result.map(t => ({
+  return result.map((t: any) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString()
@@ -451,7 +451,7 @@ export async function getTemplatesSistema() {
     .orderBy(templates.areaJuridica);
   
   // Converter para formato serializável
-  return result.map(t => ({
+  return result.map((t: any) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString()
@@ -523,7 +523,7 @@ export async function getTagsUsuario(userId: number) {
     .orderBy(tags.nome);
     
   // Serializar campos Date para ISO strings
-  return result.map(tag => ({
+  return result.map((tag: any) => ({
     ...tag,
     createdAt: tag.createdAt.toISOString()
   }));
@@ -623,7 +623,7 @@ export async function getVersoesPrompt(promptId: number) {
     .orderBy(desc(promptVersoes.versao));
   
   // Converter para formato serializável
-  return result.map(v => ({
+  return result.map((v: any) => ({
     ...v,
     createdAt: v.createdAt.toISOString()
   }));
@@ -672,7 +672,7 @@ export async function getAnalytics(userId: number) {
     .orderBy(desc(historico.createdAt))
     .limit(10);
   
-  const recentHistorySerializable = recentHistory.map(item => ({
+  const recentHistorySerializable = recentHistory.map((item: any) => ({
     id: item.id,
     userId: item.userId,
     acao: item.acao,
@@ -1294,7 +1294,7 @@ export async function getHistoricoStats(userId: number) {
     }).from(historico).where(eq(historico.userId, userId)).groupBy(historico.acao);
 
     const porAcao: Record<string, number> = {};
-    acaoRows.forEach(r => { porAcao[r.acao] = Number(r.count); });
+    acaoRows.forEach((r: any) => { porAcao[r.acao] = Number(r.count); });
 
     // Contagem de prompts e favoritos (SQL agregado)
     const [promptsRow] = await db.select({
@@ -1314,7 +1314,7 @@ export async function getHistoricoStats(userId: number) {
       .groupBy(prompts.areaJuridica);
 
     const porArea: Record<string, number> = {};
-    areaRows.forEach(r => { if (r.area) porArea[r.area] = Number(r.count); });
+    areaRows.forEach((r: any) => { if (r.area) porArea[r.area] = Number(r.count); });
 
     // Por modelo - manter leitura leve (últimos 200 registros com detalhes)
     const porModelo: Record<string, number> = {};
@@ -1325,7 +1325,7 @@ export async function getHistoricoStats(userId: number) {
       .orderBy(desc(historico.createdAt))
       .limit(200);
 
-    recentWithDetails.forEach(h => {
+    recentWithDetails.forEach((h: any) => {
       if (h.detalhes && typeof h.detalhes === 'object') {
         const det = h.detalhes as any;
         const modelo = det.modelo || det.model || det.modeloId;
@@ -1406,14 +1406,14 @@ export async function getHistoricoUnificado(userId: number, filtros: {
 
   // Batch: coletar todos os promptIds de uma vez (evita N+1)
   const promptIdSet = new Set<number>();
-  items.forEach(i => { if (i.promptId) promptIdSet.add(i.promptId); });
+  items.forEach((i: any) => { if (i.promptId) promptIdSet.add(i.promptId); });
   const promptIds = Array.from(promptIdSet);
   const promptsMap = new Map<number, any>();
 
   if (promptIds.length > 0) {
     const promptRows = await db.select().from(prompts)
       .where(inArray(prompts.id, promptIds));
-    promptRows.forEach(p => {
+    promptRows.forEach((p: any) => {
       promptsMap.set(p.id, {
         id: p.id,
         tipo: p.tipo,
@@ -1427,7 +1427,7 @@ export async function getHistoricoUnificado(userId: number, filtros: {
   }
 
   // Enriquecer e filtrar
-  const enrichedItems = items.map(item => {
+  const enrichedItems = items.map((item: any) => {
     const promptData = item.promptId ? promptsMap.get(item.promptId) || null : null;
 
     // Filtrar por área (se especificado)
@@ -1575,7 +1575,7 @@ export async function getAtividadePorDia(userId: number, dias: number = 30) {
     }
 
     // Preencher com dados do banco
-    rows.forEach(row => {
+    rows.forEach((row: any) => {
       const dateStr = typeof row.dateStr === 'string' 
         ? row.dateStr.split('T')[0] 
         : new Date(row.dateStr).toISOString().split('T')[0];

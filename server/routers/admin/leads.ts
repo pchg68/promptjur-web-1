@@ -51,7 +51,7 @@ export const adminLeadsRouter = router({
       const totalPendentes = Number(pendentesResult[0]?.count ?? 0);
 
       return {
-        leads: leads.map(l => ({
+        leads: leads.map((l: any) => ({
           ...l,
           criadoEm: l.criadoEm.toISOString(),
           atualizadoEm: l.atualizadoEm.toISOString(),
@@ -86,7 +86,7 @@ export const adminLeadsRouter = router({
       const totalResult = await dbConn.select({ count: sql<number>`COUNT(*)` }).from(launchInterests).where(whereClause);
       const naoNotificadosResult = await dbConn.select({ count: sql<number>`COUNT(*)` }).from(launchInterests).where(eq(launchInterests.notificado, false));
       return {
-        interessados: rows.map(r => ({ ...r, criadoEm: r.criadoEm.toISOString(), atualizadoEm: r.atualizadoEm.toISOString() })),
+        interessados: rows.map((r: any) => ({ ...r, criadoEm: r.criadoEm.toISOString(), atualizadoEm: r.atualizadoEm.toISOString() })),
         total: Number(totalResult[0]?.count ?? 0),
         naoNotificados: Number(naoNotificadosResult[0]?.count ?? 0),
       };
@@ -161,13 +161,13 @@ export const adminLeadsRouter = router({
       const rows = await query;
 
       const filtrados = input?.apenasNaoNotificados
-        ? rows.filter(r => !r.notificado)
+        ? rows.filter((r: any) => !r.notificado)
         : rows;
 
       return {
         total: rows.length,
-        naoNotificados: rows.filter(r => !r.notificado).length,
-        items: filtrados.map(r => ({
+        naoNotificados: rows.filter((r: any) => !r.notificado).length,
+        items: filtrados.map((r: any) => ({
           id: r.id,
           email: r.email,
           nome: r.nome,

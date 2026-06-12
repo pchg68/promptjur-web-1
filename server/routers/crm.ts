@@ -203,7 +203,7 @@ export const crmRouter = router({
       .select()
       .from(crmContratos)
       .where(eq(crmContratos.status, "ativo"));
-    const mrr = contratosAtivos.reduce((sum, c) => sum + (c.valorMensal ?? 0), 0) / 100;
+    const mrr = contratosAtivos.reduce((sum: any, c: any) => sum + (c.valorMensal ?? 0), 0) / 100;
 
     const totalContratos = await db.select({ count: sql<number>`count(*)` }).from(crmContratos);
     const total = Number(totalContratos[0]?.count ?? 0);
@@ -246,8 +246,8 @@ export const crmRouter = router({
       taxaConversao,
       totalContratosAtivos: contratosAtivos.length,
       totalLeads: totalL,
-      leadsPorEtapa: leadsPorEtapa.map((l) => ({ etapa: l.etapa, count: Number(l.count) })),
-      leadsPorOrigem: leadsPorOrigem.map((l) => ({ origem: l.origem, count: Number(l.count) })),
+      leadsPorEtapa: leadsPorEtapa.map((l: any) => ({ etapa: l.etapa, count: Number(l.count) })),
+      leadsPorOrigem: leadsPorOrigem.map((l: any) => ({ origem: l.origem, count: Number(l.count) })),
     };
   }),
 
@@ -290,7 +290,7 @@ export const crmRouter = router({
     if (!db) return [];
     const membros = await db.select().from(crmMembros).orderBy(desc(crmMembros.createdAt));
     const result = await Promise.all(
-      membros.map(async (m) => {
+      membros.map(async (m: any) => {
         const db2 = await getDb();
         if (!db2) return { ...m, usuario: null };
         const user = await db2.select().from(users).where(eq(users.id, m.userId)).limit(1);

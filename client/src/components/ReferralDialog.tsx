@@ -109,7 +109,11 @@ export function ReferralDialog() {
   // Atualizar resultado da validação
   useEffect(() => {
     if (validateQuery.data) {
-      setValidationResult(validateQuery.data);
+      setValidationResult({
+        valid: validateQuery.data.valid,
+        referrerName: validateQuery.data.referrerName ?? null,
+        rewardCredits: validateQuery.data.rewardCredits ?? 0,
+      });
       setValidating(false);
     }
   }, [validateQuery.data]);

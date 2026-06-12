@@ -54,7 +54,7 @@ export async function assistenteSSEHandler(req: Request, res: Response) {
 
   // Buscar histórico de mensagens para contexto
   const mensagens = await listarMensagens(sessionId);
-  const contexto = mensagens.map((m) => ({
+  const contexto = mensagens.map((m: any) => ({
     role: m.role as "user" | "assistant" | "system",
     content: m.content,
   }));
@@ -63,7 +63,7 @@ export async function assistenteSSEHandler(req: Request, res: Response) {
   const systemPrompt = SYSTEM_PROMPT_ASSISTENTE(sessao);
   const messages = [
     { role: "system" as const, content: systemPrompt },
-    ...contexto.filter((m) => m.role !== "system"),
+    ...contexto.filter((m: any) => m.role !== "system"),
   ];
 
   // Configurar headers SSE

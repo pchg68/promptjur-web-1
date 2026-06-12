@@ -209,6 +209,6 @@ export async function listarAreasJuridicas(userId: number): Promise<string[]> {
     .orderBy(promptsSalvos.areaJuridica);
 
   return result
-    .map((r) => r.areaJuridica)
-    .filter((a): a is string => a !== null && a !== undefined);
+    .map((r: any) => r.areaJuridica)
+    .filter((a: any): a is string => a !== null && a !== undefined);
 }

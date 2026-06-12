@@ -91,10 +91,10 @@ export default function TabMensagens() {
   // Filtro local de assunto (a procedure não filtra por assunto ainda)
   const mensagens = filtroAssunto === "todos"
     ? todasMensagens
-    : todasMensagens.filter((m) => m.assunto === filtroAssunto);
+    : todasMensagens.filter((m: any) => m.assunto === filtroAssunto);
   // Filtro local de lidas (quando não é nao_lidas — já filtrado no servidor)
   const mensagensFiltradas = filtroLida === "lidas"
-    ? mensagens.filter((m) => m.lido)
+    ? mensagens.filter((m: any) => m.lido)
     : mensagens;
   const naoLidas = contarQuery.data?.total ?? 0;
 
@@ -102,7 +102,7 @@ export default function TabMensagens() {
   function exportarCSV() {
     if (mensagens.length === 0) return;
     const header = ["ID", "Nome", "E-mail", "Assunto", "Mensagem", "Lida", "Data"];
-    const rows = mensagensFiltradas.map((m) => [
+    const rows = mensagensFiltradas.map((m: any) => [
       m.id,
       `"${m.nome}"`,
       m.email,
@@ -208,7 +208,7 @@ export default function TabMensagens() {
         </div>
       ) : (
         <div className="space-y-3">
-          {mensagensFiltradas.map((msg) => {
+          {mensagensFiltradas.map((msg: any) => {
             const isExpanded = expandido === msg.id;
             const isRespondendo = respondendo === msg.id;
             return (

@@ -1129,7 +1129,7 @@ export default function Planos() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {usageData && usageData.bonusCredits > 0 && (
+              {usageData && "bonusCredits" in usageData && usageData.bonusCredits > 0 && (
                 <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">
                   {usageData.bonusCredits} créditos disponíveis
                 </span>

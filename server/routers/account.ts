@@ -210,25 +210,25 @@ export const accountRouter = router({
         criadoEm: userData?.createdAt,
         ultimoLogin: userData?.lastSignedIn,
       },
-      prompts: userPrompts.map(p => ({
+      prompts: userPrompts.map((p: any) => ({
         tipo: p.tipo,
         areaJuridica: p.areaJuridica,
         promptOriginal: p.promptOriginal,
         promptOtimizado: p.promptOtimizado,
         criadoEm: p.createdAt,
       })),
-      promptsSalvos: userPromptsSalvos.map(ps => ({
+      promptsSalvos: userPromptsSalvos.map((ps: any) => ({
         titulo: ps.titulo,
         conteudo: ps.conteudo,
         areaJuridica: ps.areaJuridica,
         criadoEm: ps.createdAt,
       })),
-      historico: userHistorico.map(h => ({
+      historico: userHistorico.map((h: any) => ({
         acao: h.acao,
         sucesso: h.sucesso,
         criadoEm: h.createdAt,
       })),
-      documentos: userDocVersions.map(d => ({
+      documentos: userDocVersions.map((d: any) => ({
         titulo: d.titulo,
         tipoDocumento: d.tipoDocumento,
         areaJuridica: d.areaJuridica,

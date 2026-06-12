@@ -45,7 +45,7 @@ export const modelosRouter = router({
       const { MODELOS_PROFISSIONAIS } = await import("../modelos-profissionais");
       const limit = input?.limit || 5;
       const usados = await db.getModelosMaisUsados(ctx.user.id, limit);
-      return usados.map(u => {
+      return usados.map((u: any) => {
         const modelo = MODELOS_PROFISSIONAIS.find(m => m.id === u.modeloId);
         if (!modelo) return null;
         return {
@@ -56,6 +56,6 @@ export const modelosRouter = router({
           detalhesAdicionais: modelo.detalhesAdicionais, isPremium: modelo.isPremium,
           tags: modelo.tags, vezesUsado: Number(u.count)
         };
-      }).filter(m => m !== null);
+      }).filter((m: any) => m !== null);
     })
 });

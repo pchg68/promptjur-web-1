@@ -187,7 +187,7 @@ export function TagManager() {
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
+          {tags.map((tag: any) => (
             <div key={tag.id} className="group relative">
               <Badge
                 style={{ backgroundColor: tag.cor || "#3b82f6", borderColor: tag.cor || "#3b82f6" }}

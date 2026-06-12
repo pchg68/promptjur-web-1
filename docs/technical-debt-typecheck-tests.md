@@ -88,3 +88,15 @@ Não é recomendável corrigir todas as falhas globais no mesmo PR da refatoraç
 [1]: https://www.typescriptlang.org/tsconfig/#noImplicitAny "TypeScript TSConfig — noImplicitAny"
 [2]: https://vitest.dev/guide/ "Vitest — Guide"
 [3]: https://playwright.dev/docs/best-practices "Playwright — Best Practices"
+
+## Atualização: etapa TypeScript concluída
+
+Após a aplicação da estratégia de baixo risco, foram tipados explicitamente callbacks, handlers e retornos de queries que geravam `TS7006`, além de ajustes pontuais para símbolos ausentes, campos de catálogo incorretos, inferências `unknown`, parâmetros curinga do Express e compatibilidade de iteração. O `tsconfig.json` também passou a declarar `target: "ES2020"`, coerente com o ambiente Node/Vite do projeto e necessário para iteração segura sobre `Map` e `Set`.
+
+| Validação | Resultado |
+|---|---:|
+| Typecheck após correções | 0 erros |
+| Comando | `pnpm exec tsc --noEmit --pretty false` |
+| Observação operacional | Foi necessário remover `node_modules/typescript/tsbuildinfo` para invalidar cache incremental antigo; após a limpeza, a configuração efetiva exibiu `target: "es2020"` e o typecheck concluiu com sucesso. |
+
+A próxima frente permanece concentrada nos testes globais. A prioridade técnica é isolar validações que dependem de serviços externos e segredos reais, depois revisar testes de contrato possivelmente acoplados a componentes ou arquitetura anterior.

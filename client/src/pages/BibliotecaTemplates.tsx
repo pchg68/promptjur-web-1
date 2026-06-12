@@ -105,7 +105,7 @@ export default function BibliotecaTemplates() {
   const templatesFiltrados = useMemo(() => {
     if (!templates) return [];
 
-    return templates.filter((template) => {
+    return templates.filter((template: any) => {
       const matchBusca = template.nome.toLowerCase().includes(busca.toLowerCase()) ||
                         (template.descricao?.toLowerCase() || "").includes(busca.toLowerCase());
       const matchArea = areaFiltro === "Todas" || template.areaJuridica === areaFiltro;
@@ -277,7 +277,7 @@ export default function BibliotecaTemplates() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templatesFiltrados.map((template) => (
+            {templatesFiltrados.map((template: any) => (
               <Card key={template.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">

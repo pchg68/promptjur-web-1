@@ -48,7 +48,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
   if (!isOpen) return null;
 
-  const unreadNotifications = notifications.filter((n) => !n.lida);
+  const unreadNotifications = notifications.filter((n: any) => !n.lida);
 
   return (
     <>
@@ -136,7 +136,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
               </div>
             ) : (
               <div className="divide-y divide-[#1e3a5f]">
-                {notifications.map((notification) => (
+                {notifications.map((notification: any) => (
                   <NotificationItem
                     key={notification.id}
                     notification={notification}

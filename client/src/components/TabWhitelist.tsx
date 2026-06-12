@@ -227,7 +227,7 @@ export default function TabWhitelist() {
     // Se o filtro "Sem convite" está ativo, exportar apenas os filtrados
     if (filtrarSemConvite && semConvitePendentes.length > 0) {
       const headers = "email,nome,convitesEnviados,criadoEm";
-      const rows = semConvitePendentes.map((w) => {
+      const rows = semConvitePendentes.map((w: any) => {
         const nome = (w.nome ?? "").replace(/,/g, " ");
         const criado = w.criadoEm ? new Date(w.criadoEm).toLocaleDateString("pt-BR") : "";
         return `${w.email},${nome},${w.convitesEnviados ?? 0},${criado}`;
@@ -299,13 +299,13 @@ export default function TabWhitelist() {
 
   // dados
 
-  const ativos = whitelist?.filter((w) => w.ativo && !isExpired(w.expiresAt)) ?? [];
-  const expirados = whitelist?.filter((w) => w.ativo && isExpired(w.expiresAt)) ?? [];
-  const inativos = whitelist?.filter((w) => !w.ativo) ?? [];
+  const ativos = whitelist?.filter((w: any) => w.ativo && !isExpired(w.expiresAt)) ?? [];
+  const expirados = whitelist?.filter((w: any) => w.ativo && isExpired(w.expiresAt)) ?? [];
+  const inativos = whitelist?.filter((w: any) => !w.ativo) ?? [];
 
   // Filtro: apenas e-mails sem convite enviado (convitesEnviados === 0)
   const [filtrarSemConvite, setFiltrarSemConvite] = useState(false);
-  const semConvitePendentes = ativos.filter((w) => (w.convitesEnviados ?? 0) === 0);
+  const semConvitePendentes = ativos.filter((w: any) => (w.convitesEnviados ?? 0) === 0);
   const ativosExibidos = filtrarSemConvite ? semConvitePendentes : ativos;
 
   // render
@@ -565,7 +565,7 @@ export default function TabWhitelist() {
           </div>
         ) : (
           <div className="space-y-1">
-            {ativosExibidos.map((item) => {
+            {ativosExibidos.map((item: any) => {
               const expiry = formatExpiry(item.expiresAt);
               return (
                 <div
@@ -726,7 +726,7 @@ export default function TabWhitelist() {
               {expirados.length} e-mail(s) com acesso expirado
             </summary>
             <div className="mt-2 space-y-1">
-              {expirados.map((item) => (
+              {expirados.map((item: any) => (
                 <div
                   key={item.id}
                   className="flex items-center justify-between bg-slate-800/20 border border-orange-500/10 rounded-lg px-4 py-2 opacity-60"
@@ -768,7 +768,7 @@ export default function TabWhitelist() {
               {inativos.length} e-mail(s) removido(s)
             </summary>
             <div className="mt-2 space-y-1">
-              {inativos.map((item) => (
+              {inativos.map((item: any) => (
                 <div
                   key={item.id}
                   className="flex items-center justify-between bg-slate-800/20 border border-slate-700/10 rounded-lg px-4 py-2 opacity-50"

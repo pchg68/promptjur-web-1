@@ -133,7 +133,7 @@ export async function getCacheStatistics(): Promise<{
     const porTipo: Record<string, number> = {};
     const porConfiabilidade: Record<string, number> = {};
 
-    allEntries.forEach((entry) => {
+    allEntries.forEach((entry: any) => {
       porTipo[entry.tipo] = (porTipo[entry.tipo] || 0) + 1;
       porConfiabilidade[entry.confiabilidade] = (porConfiabilidade[entry.confiabilidade] || 0) + 1;
     });

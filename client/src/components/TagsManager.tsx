@@ -164,7 +164,7 @@ export default function TagsManager() {
           </div>
         ) : tags && tags.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
+            {tags.map((tag: any) => (
               <div
                 key={tag.id}
                 className="group relative"

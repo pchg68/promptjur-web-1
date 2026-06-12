@@ -166,7 +166,7 @@ export const pushSubscriptionsRouter = router({
 
   list: protectedProcedure.query(async ({ ctx }) => {
     const subs = await getUserPushSubscriptions(ctx.user.id);
-    return subs.map(s => ({
+    return subs.map((s: any) => ({
       id: s.id,
       endpoint: s.endpoint.substring(0, 60) + "...",
       userAgent: s.userAgent,

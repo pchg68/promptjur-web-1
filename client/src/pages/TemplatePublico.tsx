@@ -17,7 +17,7 @@ export default function TemplatePublico() {
     enabled: !!templateId
   });
 
-  const template = templateQuery.data?.find(t => t.id === templateId);
+  const template = templateQuery.data?.find((t: any) => t.id === templateId);
 
   const handleCopiar = () => {
     if (template?.template) {

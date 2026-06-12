@@ -169,7 +169,7 @@ export async function checkAndIncrementQuota(userId: number): Promise<void> {
   if (!db) return;
 
   // Usar transação para garantir atomicidade entre check e increment
-  await db.transaction(async (tx) => {
+  await db.transaction(async (tx: any) => {
     const [user] = await tx
       .select({
         id: users.id,

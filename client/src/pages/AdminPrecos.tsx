@@ -737,7 +737,7 @@ export default function AdminPrecos() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {historico.data?.items.map((item) => (
+                      {historico.data?.items.map((item: any) => (
                         <TableRow key={item.id}>
                           <TableCell className="text-sm">
                             {new Date(item.appliedAt).toLocaleDateString("pt-BR")}

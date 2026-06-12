@@ -213,7 +213,7 @@ export default function Referral() {
             </div>
           ) : (
             <div className="divide-y divide-border">
-              {myReferrals.referrals.map((ref) => (
+              {myReferrals.referrals.map((ref: any) => (
                 <div key={ref.id} className="px-5 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">

@@ -166,7 +166,7 @@ export default function Templates() {
   };
 
   // Filtrar templates com base na busca e área selecionada
-  const filteredTemplates = templatesQuery.data?.filter(template => {
+  const filteredTemplates = templatesQuery.data?.filter((template: any) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch = 
       template.nome.toLowerCase().includes(query) ||
@@ -283,7 +283,7 @@ export default function Templates() {
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {tagsQuery.data.map((tag) => (
+                    {tagsQuery.data.map((tag: any) => (
                       <Badge
                         key={tag.id}
                         variant={selectedTags.includes(tag.id) ? "default" : "outline"}
@@ -366,7 +366,7 @@ export default function Templates() {
               </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
-                {filteredTemplates.map((template) => (
+                {filteredTemplates.map((template: any) => (
               <Card key={template.id} className="hover:border-primary/50 transition-colors">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -380,7 +380,7 @@ export default function Templates() {
                         {template.isPublico && <Badge variant="outline">Público</Badge>}
                         {/* Exibir tags atribuídas */}
                         {(templateTags[template.id] || []).map(tagId => {
-                          const tag = tagsQuery.data?.find(t => t.id === tagId);
+                          const tag = tagsQuery.data?.find((t: any) => t.id === tagId);
                           return tag ? (
                             <Badge 
                               key={tagId} 
@@ -521,7 +521,7 @@ export default function Templates() {
           <div className="space-y-4 py-4">
             {tagsQuery.data && tagsQuery.data.length > 0 ? (
               <div className="space-y-2">
-                {tagsQuery.data.map((tag) => {
+                {tagsQuery.data.map((tag: any) => {
                   const isSelected = managingTagsFor ? (templateTags[managingTagsFor] || []).includes(tag.id) : false;
                   return (
                     <div

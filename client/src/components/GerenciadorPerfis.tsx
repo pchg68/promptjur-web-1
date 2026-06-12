@@ -85,7 +85,7 @@ export function GerenciadorPerfis({
           {perfisQuery.data && perfisQuery.data.length > 0 && (
             <>
               <DropdownMenuSeparator />
-              {perfisQuery.data.map((perfil) => (
+              {perfisQuery.data.map((perfil: any) => (
                 <DropdownMenuItem
                   key={perfil.id}
                   className="flex justify-between"

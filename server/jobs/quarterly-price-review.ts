@@ -141,20 +141,20 @@ export async function quarterlyPriceReviewJob(): Promise<void> {
     }
 
     // Analisar pacotes de crédito
-    for (const [pkgId, pkg] of Object.entries(CREDIT_PACKAGES)) {
-      const preco = pkg.price / 100;
+    for (const pkg of CREDIT_PACKAGES) {
+      const preco = pkg.priceInCents / 100;
       const margem = calcularMargem(preco, "avulso", carga);
 
       if (margem < MARGEM_MINIMA) {
         const liquido = getLiquidoAtual(preco, "avulso", carga);
         const newPrice = calcularPrecoRecomendado(liquido, "avulso", carga);
-        const adjustmentPercent = ((newPrice - pkg.price) / pkg.price) * 100;
+        const adjustmentPercent = ((newPrice - pkg.priceInCents) / pkg.priceInCents) * 100;
 
         items.push({
-          entityId: pkgId,
+          entityId: pkg.id,
           entityType: "credit_package",
           entityName: pkg.name,
-          currentPrice: pkg.price,
+          currentPrice: pkg.priceInCents,
           newPrice,
           adjustmentPercent: Math.round(adjustmentPercent * 100) / 100,
           currentMargin: Math.round(margem * 10) / 10,

@@ -26,7 +26,7 @@ export async function getVersoesPrompt(promptId: number) {
     .orderBy(desc(promptVersoes.versao));
   
   // Converter para formato serializável
-  return result.map(v => ({
+  return result.map((v: any) => ({
     ...v,
     createdAt: v.createdAt.toISOString()
   }));

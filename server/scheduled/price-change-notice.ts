@@ -465,11 +465,11 @@ export async function applyPendingPriceChanges(): Promise<{
   // Notificar owner sobre aplicações
   if (applied > 0) {
     const nomes = pendingNotices
-      .filter(n => n.entityType === "plan")
-      .map(n => PLANS[n.entityId]?.name ?? n.entityId);
+      .filter((n: any) => n.entityType === "plan")
+      .map((n: any) => PLANS[n.entityId]?.name ?? n.entityId);
     const nomesPacotes = pendingNotices
-      .filter(n => n.entityType === "credit_package")
-      .map(n => CREDIT_PACKAGES.find(p => p.id === n.entityId)?.name ?? n.entityId);
+      .filter((n: any) => n.entityType === "credit_package")
+      .map((n: any) => CREDIT_PACKAGES.find(p => p.id === n.entityId)?.name ?? n.entityId);
 
     await notifyOwner({
       title: `✅ Reajustes Aplicados Automaticamente`,

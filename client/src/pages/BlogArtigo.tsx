@@ -218,7 +218,7 @@ export default function BlogArtigo() {
   }
 
   const cat = CATEGORIAS[post.categoria] ?? { label: post.categoria, cor: "bg-muted text-muted-foreground" };
-  const outrosArtigos = listagem?.posts.filter(p => p.slug !== post.slug).slice(0, 3) ?? [];
+  const outrosArtigos = listagem?.posts.filter((p: any) => p.slug !== post.slug).slice(0, 3) ?? [];
   const urlArtigo = `https://promptjur.com/blog/${post.slug}`;
 
   return (
@@ -358,7 +358,7 @@ export default function BlogArtigo() {
               <div className="rounded-xl border border-border bg-card p-5">
                 <h3 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Outros Artigos</h3>
                 <div className="space-y-4">
-                  {outrosArtigos.map(outro => {
+                  {outrosArtigos.map((outro: any) => {
                     const outroCat = CATEGORIAS[outro.categoria] ?? { label: outro.categoria, cor: "bg-muted text-muted-foreground" };
                     return (
                       <Link key={outro.id} href={`/blog/${outro.slug}`}>

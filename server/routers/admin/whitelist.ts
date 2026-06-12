@@ -98,7 +98,7 @@ export const adminWhitelistRouter = router({
         .orderBy(desc(accessWhitelist.criadoEm));
 
       const header = "email,nome,adicionadoPor,ativo,expiresAt,criadoEm";
-      const lines = rows.map(r => [
+      const lines = rows.map((r: any) => [
         `"${r.email}"`,
         `"${r.nome ?? ""}"`,
         `"${r.adicionadoPor ?? ""}"`,
@@ -347,10 +347,10 @@ export const adminWhitelistRouter = router({
       userId: ctx.user.id,
       acao: 'desativar_expirados_whitelist',
       descricao: `${expirados.length} entrada(s) expirada(s) desativadas manualmente`,
-      metadata: { emails: expirados.map(e => e.email) },
+      metadata: { emails: expirados.map((e: any) => e.email) },
       req: ctx.req,
     });
 
-    return { desativados: expirados.length, emails: expirados.map(e => e.email) };
+    return { desativados: expirados.length, emails: expirados.map((e: any) => e.email) };
   }),
 });
