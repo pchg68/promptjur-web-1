@@ -153,7 +153,11 @@ export default function Dashboard() {
   const promptQuery = trpc.prompts.loadPrompt.useQuery({ id: parseInt(promptIdFromUrl!) }, { enabled: !!promptIdFromUrl });
   
   // Estado para Análise
-  const [promptAnalise, setPromptAnalise] = useState("");
+  // [Fase 1] Buffer único compartilhado por Analisar/Otimizar/Gerar — evita recolar texto entre etapas
+  const [pecaTexto, setPecaTexto] = useState("");
+  // Aliases retrocompatíveis: as referências existentes continuam funcionando, agora sobre o mesmo texto
+  const promptAnalise = pecaTexto;
+  const setPromptAnalise = setPecaTexto;
   const analiseMutation = trpc.prompts.analisar.useMutation({
     onSuccess: () => toast.success("Análise concluída com sucesso!"),
     onError: (error) => toast.error(`Erro na análise: ${error.message}`)
@@ -161,7 +165,8 @@ export default function Dashboard() {
 
   // Estado para Geração (mantido para compatibilidade com Wizard e usarModelo)
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("peticao");
-  const [contextoJuridico, setContextoJuridico] = useState("");
+  const contextoJuridico = pecaTexto;            // [Fase 1] alias do buffer único (pecaTexto)
+  const setContextoJuridico = setPecaTexto;
   const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
   const [areaGeracao, setAreaGeracao] = useState<"Civil" | "Penal" | "Trabalhista" | "Tributário" | "Administrativo" | "Constitucional" | "Empresarial" | "Consumidor" | "Família" | "Previdenciário" | "Ambiental" | "Internacional" | "Processo Civil" | "Direito Médico" | "Direito Digital" | "Direito Internacional">("Civil");
   const [partesEnvolvidas, setPartesEnvolvidas] = useState("");
@@ -240,7 +245,8 @@ export default function Dashboard() {
   const modelosMaisUsadosQuery = trpc.modelos.maisUsados.useQuery({ limit: 5 });
 
   // Otimização
-  const [promptOtimizacao, setPromptOtimizacao] = useState("");
+  const promptOtimizacao = pecaTexto;            // [Fase 1] alias do buffer único (pecaTexto)
+  const setPromptOtimizacao = setPecaTexto;
   const otimizacaoMutation = trpc.prompts.otimizar.useMutation({
     onSuccess: () => toast.success("Otimização concluída com sucesso!"),
     onError: (error) => toast.error(`Erro na otimização: ${error.message}`)
@@ -271,7 +277,7 @@ export default function Dashboard() {
   // Carregar template/prompt da URL
   useEffect(() => {
     if (templateIdFromUrl && templateQuery.data) {
-      const template = templateQuery.data.find(t => t.id === parseInt(templateIdFromUrl));
+      const template = templateQuery.data.find((t: { id: number; template: string; nome: string }) => t.id === parseInt(templateIdFromUrl));
       if (template) { setPromptAnalise(template.template); toast.success(`Template "${template.nome}" carregado!`); window.history.replaceState({}, '', '/dashboard'); }
     }
   }, [templateIdFromUrl, templateQuery.data]);
@@ -964,7 +970,7 @@ export default function Dashboard() {
             <div>
               <Label>Tags (opcional)</Label>
               <div className="mt-2 flex flex-wrap gap-2">
-                {tagsQuery.data && tagsQuery.data.length > 0 ? tagsQuery.data.map((tag) => (
+                {tagsQuery.data && tagsQuery.data.length > 0 ? tagsQuery.data.map((tag: { id: number; nome: string; cor?: string | null }) => (
                   <Badge key={tag.id} variant={selectedTags.includes(tag.id) ? "default" : "outline"} className="cursor-pointer"
                     style={{ backgroundColor: selectedTags.includes(tag.id) ? (tag.cor || "#3b82f6") : "transparent", borderColor: tag.cor || "#3b82f6", color: selectedTags.includes(tag.id) ? "white" : (tag.cor || "#3b82f6") }}
                     onClick={() => setSelectedTags(prev => prev.includes(tag.id) ? prev.filter(id => id !== tag.id) : [...prev, tag.id])}
