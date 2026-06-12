@@ -359,9 +359,33 @@ export async function excluirHistorico(historicoId: number, userId: number) {
 /**
  * Retorna dados de uso por dia para gráfico de atividade.
  */
+function buildEmptyAtividadePorDia(dias: number) {
+  const groupedByDate: Record<string, Record<string, number>> = {};
+  for (let i = 0; i < dias; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - (dias - 1 - i));
+    const dateStr = date.toISOString().split('T')[0];
+    groupedByDate[dateStr] = { analise: 0, geracao: 0, otimizacao: 0, execucao_prompt: 0, verificacao: 0, exportacao_docx: 0, exportacao_pdf: 0 };
+  }
+
+  return groupedByDate;
+}
+
+function serializeAtividadePorDia(groupedByDate: Record<string, Record<string, number>>) {
+  return Object.entries(groupedByDate).map(([dateStr, counts]) => {
+    const [year, month, day] = dateStr.split('-');
+    return {
+      date: `${day}/${month}`,
+      dateISO: dateStr,
+      ...counts,
+      total: Object.values(counts).reduce((a, b) => a + b, 0),
+    };
+  });
+}
+
 export async function getAtividadePorDia(userId: number, dias: number = 30) {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) return serializeAtividadePorDia(buildEmptyAtividadePorDia(dias));
 
   try {
     // Calcular data de início
@@ -382,13 +406,7 @@ export async function getAtividadePorDia(userId: number, dias: number = 30) {
       .groupBy(sql`DATE(createdAt)`, sql`acao`);
 
     // Inicializar todos os dias
-    const groupedByDate: Record<string, Record<string, number>> = {};
-    for (let i = 0; i < dias; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - (dias - 1 - i));
-      const dateStr = date.toISOString().split('T')[0];
-      groupedByDate[dateStr] = { analise: 0, geracao: 0, otimizacao: 0, execucao_prompt: 0, verificacao: 0, exportacao_docx: 0, exportacao_pdf: 0 };
-    }
+    const groupedByDate = buildEmptyAtividadePorDia(dias);
 
     // Preencher com dados do banco
     rows.forEach((row: any) => {
@@ -400,15 +418,7 @@ export async function getAtividadePorDia(userId: number, dias: number = 30) {
       }
     });
 
-    return Object.entries(groupedByDate).map(([dateStr, counts]) => {
-      const [year, month, day] = dateStr.split('-');
-      return {
-        date: `${day}/${month}`,
-        dateISO: dateStr,
-        ...counts,
-        total: Object.values(counts).reduce((a, b) => a + b, 0),
-      };
-    });
+    return serializeAtividadePorDia(groupedByDate);
   } catch (error) {
     console.error('[getAtividadePorDia] Error:', error);
     return [];

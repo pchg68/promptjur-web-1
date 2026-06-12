@@ -7,7 +7,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
 import { readFileSync, writeFileSync, unlinkSync, existsSync } from "fs";
-import { storagePut } from "./storage";
+import { storagePut, storageDelete } from "./storage";
 import { getDb } from "./db";
 import { eq, desc, lt } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
@@ -128,6 +128,20 @@ export async function criarBackup(userId: number): Promise<BackupResult> {
     unlinkSync(tempPath);
     unlinkSync(encryptedPath);
 
+    try {
+      await notifyOwner({
+        title: "✅ Backup concluído com sucesso",
+        content: [
+          `Arquivo: ${filename}.enc`,
+          `Tabelas exportadas: dump completo do banco`,
+          `Tamanho: ${Math.round(encryptedData.length / 1024)} KB`,
+          "Criptografia: AES-256-GCM",
+        ].join("\n"),
+      });
+    } catch (notifyError) {
+      console.error("[Backup] Failed to notify owner about successful backup:", notifyError);
+    }
+
     return {
       success: true,
       filename: `${filename}.enc`,
@@ -142,6 +156,15 @@ export async function criarBackup(userId: number): Promise<BackupResult> {
       if (existsSync(tempPath)) unlinkSync(tempPath);
       if (existsSync(encryptedPath)) unlinkSync(encryptedPath);
     } catch {}
+
+    try {
+      await notifyOwner({
+        title: "❌ Falha ao criar backup",
+        content: `Erro: ${error.message}`,
+      });
+    } catch (notifyError) {
+      console.error("[Backup] Failed to notify owner about backup failure:", notifyError);
+    }
 
     return {
       success: false,
@@ -249,19 +272,51 @@ export async function restaurarBackup(backupId: number): Promise<{
 /**
  * Remove backups antigos (retenção de 30 dias)
  */
-export async function limparBackupsAntigos(): Promise<{
+export async function limparBackupsAntigos(retentionDays = 30): Promise<{
   removed: number;
+  errors: number;
 }> {
   const db = await getDb();
   if (!db) {
-    return { removed: 0 };
+    return { removed: 0, errors: 0 };
   }
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
-  // TODO: Implementar remoção de backups antigos do S3
-  // Por enquanto, apenas marca como removidos no banco
+  const antigos = await db
+    .select()
+    .from(backups)
+    .where(lt(backups.createdAt, cutoffDate))
+    .orderBy(desc(backups.createdAt));
 
-  return { removed: 0 };
+  let removed = 0;
+  let errors = 0;
+
+  for (const backup of antigos as Backup[]) {
+    try {
+      if (backup.s3Key) {
+        await storageDelete(backup.s3Key);
+      }
+
+      await db.delete(backups).where(eq(backups.id, backup.id));
+      removed += 1;
+    } catch (error) {
+      errors += 1;
+      console.error("[Backup] Failed to remove old backup:", error);
+    }
+  }
+
+  if (removed > 0) {
+    try {
+      await notifyOwner({
+        title: "🗑️ Backups antigos removidos",
+        content: `Foram removidos ${removed} backup(s) com mais de ${retentionDays} dias.${errors > 0 ? ` Erros: ${errors}.` : ""}`,
+      });
+    } catch (notifyError) {
+      console.error("[Backup] Failed to notify owner about cleanup:", notifyError);
+    }
+  }
+
+  return { removed, errors };
 }

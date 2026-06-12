@@ -100,3 +100,20 @@ Após a aplicação da estratégia de baixo risco, foram tipados explicitamente 
 | Observação operacional | Foi necessário remover `node_modules/typescript/tsbuildinfo` para invalidar cache incremental antigo; após a limpeza, a configuração efetiva exibiu `target: "es2020"` e o typecheck concluiu com sucesso. |
 
 A próxima frente permanece concentrada nos testes globais. A prioridade técnica é isolar validações que dependem de serviços externos e segredos reais, depois revisar testes de contrato possivelmente acoplados a componentes ou arquitetura anterior.
+
+## Atualização: etapa de testes concluída
+
+A frente de testes foi saneada seguindo a ordem de menor risco. Primeiro, as validações que exigiam serviços externos foram convertidas para execução condicional, mantendo verificações estruturais locais e pulando chamadas reais quando as credenciais ou a intenção explícita de teste de integração não estiverem presentes. Em seguida, foram corrigidos contratos textuais acoplados à arquitetura antiga, especialmente testes que ainda apontavam para módulos monolíticos ou componentes removidos. Por fim, foram tratados casos de domínio em backup, cache legislativo, histórico, serialização tRPC, Sentry e catálogo de planos, separando bugs reais de fixtures obsoletas.
+
+| Validação | Resultado |
+|---|---:|
+| Typecheck final após saneamento de testes | 0 erros |
+| Comando de typecheck | `pnpm exec tsc --noEmit` |
+| Suíte global final | 78 test files passed / 2 skipped / 80 total |
+| Testes finais | 1165 passed / 17 skipped / 1182 total |
+| Comando de testes | `pnpm test -- --run` |
+| Log de evidência | `/tmp/promptjur-tech-debt/global-tests-final-before-commit.log` |
+
+As principais decisões técnicas foram: manter testes de integração real atrás de skips condicionais quando `OPENAI_API_KEY`, `RESEND_API_KEY`, `SENTRY_DSN` ou banco real não estiverem disponíveis; atualizar contratos de estabilidade e memory leak para os módulos split atuais em vez de ressuscitar `server/db.ts` monolítico; mockar banco, dump e armazenamento nos testes de backup/cache para remover dependência de infraestrutura local; e introduzir fallbacks vazios em leitores de busca/histórico quando o banco está indisponível, preservando a forma esperada pelo cliente e evitando `Date` nativo em respostas tRPC.
+
+Permanece apenas ruído controlado de stderr em testes que intencionalmente exercitam caminhos de erro, como jobs de preço, e-mail sem provedor e alertas de schema/query. Esses logs não indicam falhas de asserção na execução final, mas podem ser alvo de refinamento futuro se o objetivo passar a incluir suíte silenciosa.

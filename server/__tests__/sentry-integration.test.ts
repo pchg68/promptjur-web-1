@@ -93,9 +93,9 @@ describe("Sentry Backend Integration", () => {
     expect(content).toContain("clearUserContext");
   });
 
-  it("deve ter endpoint sentryStatus no admin router", () => {
-    const adminPath = path.join(projectRoot, "server/admin.ts");
-    const content = fs.readFileSync(adminPath, "utf-8");
+  it("deve ter endpoint sentryStatus no router admin modular de performance", () => {
+    const performancePath = path.join(projectRoot, "server/routers/admin/performance.ts");
+    const content = fs.readFileSync(performancePath, "utf-8");
     
     expect(content).toContain("sentryStatus:");
     expect(content).toContain("getSentryStatus()");
@@ -126,22 +126,21 @@ describe("Sentry Frontend Integration", () => {
     expect(content).toContain("export function getSentryStatus");
   });
 
-  it("deve ter Session Replay configurado apenas para erros", () => {
+  it("deve manter Session Replay desabilitado para evitar consumo excessivo de memória", () => {
     const sentryPath = path.join(projectRoot, "client/src/_core/sentry.ts");
     const content = fs.readFileSync(sentryPath, "utf-8");
     
-    // Replay apenas em erros, não em sessões normais
     expect(content).toContain("replaysSessionSampleRate: 0");
-    expect(content).toContain("replaysOnErrorSampleRate: 1.0");
-    expect(content).toContain("replayIntegration");
+    expect(content).toContain("replaysOnErrorSampleRate: 0");
+    expect(content).not.toContain("replayIntegration");
   });
 
-  it("deve ter maskAllText e blockAllMedia para LGPD", () => {
+  it("deve documentar a remoção do Session Replay por risco operacional", () => {
     const sentryPath = path.join(projectRoot, "client/src/_core/sentry.ts");
     const content = fs.readFileSync(sentryPath, "utf-8");
     
-    expect(content).toContain("maskAllText: true");
-    expect(content).toContain("blockAllMedia: true");
+    expect(content).toContain("Session Replay: DESABILITADO");
+    expect(content).toContain("Out of Memory");
   });
 
   it("deve filtrar erros de extensões de navegador", () => {

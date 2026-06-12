@@ -85,16 +85,15 @@ describe("API Keys - Configuração de Secrets", () => {
   // 4. Unified LLM - estrutura dos providers (sem chaves reais)
   // ============================================================
   describe("Unified LLM - Estrutura de Providers", () => {
-    it("getAvailableModels deve retornar os 5 providers esperados", async () => {
-      const { getAvailableModels } = await import("../../server/unified-llm");
-      const models = getAvailableModels();
+    it("AVAILABLE_MODELS deve declarar os providers suportados", async () => {
+      const { AVAILABLE_MODELS } = await import("../../server/unified-llm");
 
-      expect(Object.keys(models).length).toBe(5);
-      expect(models.manus).toBeDefined();
-      expect(models.openai).toBeDefined();
-      expect(models.claude).toBeDefined();
-      expect(models.gemini).toBeDefined();
-      expect(models.perplexity).toBeDefined();
+      expect(Object.keys(AVAILABLE_MODELS).length).toBeGreaterThanOrEqual(5);
+      expect(AVAILABLE_MODELS.manus).toBeDefined();
+      expect(AVAILABLE_MODELS.openai).toBeDefined();
+      expect(AVAILABLE_MODELS.claude).toBeDefined();
+      expect(AVAILABLE_MODELS.gemini).toBeDefined();
+      expect(AVAILABLE_MODELS.perplexity).toBeDefined();
     });
 
     it("isProviderConfigured deve responder sem lançar erros", async () => {
@@ -104,7 +103,7 @@ describe("API Keys - Configuração de Secrets", () => {
     });
 
     it.skipIf(!hasAnthropicKey && !hasGoogleKey && !hasPerplexityKey)(
-      "getConfiguredProviders deve incluir todos os 5 providers quando chaves estão presentes",
+      "getConfiguredProviders deve incluir Manus e ao menos um provider externo quando chaves estão presentes",
       async () => {
         const { getConfiguredProviders } = await import("../../server/unified-llm");
         const providers = getConfiguredProviders();

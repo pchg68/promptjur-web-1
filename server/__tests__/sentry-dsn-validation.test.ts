@@ -7,14 +7,17 @@
 
 import { describe, it, expect } from "vitest";
 
+const hasSentryDsn = !!process.env.SENTRY_DSN;
+const hasViteSentryDsn = !!process.env.VITE_SENTRY_DSN;
+
 describe("Sentry DSN Validation", () => {
-  it("SENTRY_DSN deve estar configurado", () => {
+  it.skipIf(!hasSentryDsn)("SENTRY_DSN deve estar configurado", () => {
     const dsn = process.env.SENTRY_DSN;
     expect(dsn).toBeDefined();
     expect(dsn).not.toBe("");
   });
 
-  it("SENTRY_DSN deve ter formato válido de DSN", () => {
+  it.skipIf(!hasSentryDsn)("SENTRY_DSN deve ter formato válido de DSN", () => {
     const dsn = process.env.SENTRY_DSN;
     if (!dsn) return; // Skip if not configured
     
@@ -23,13 +26,13 @@ describe("Sentry DSN Validation", () => {
     expect(dsn).toMatch(dsnPattern);
   });
 
-  it("VITE_SENTRY_DSN deve estar configurado", () => {
+  it.skipIf(!hasViteSentryDsn)("VITE_SENTRY_DSN deve estar configurado", () => {
     const dsn = process.env.VITE_SENTRY_DSN;
     expect(dsn).toBeDefined();
     expect(dsn).not.toBe("");
   });
 
-  it("VITE_SENTRY_DSN deve ter formato válido de DSN", () => {
+  it.skipIf(!hasViteSentryDsn)("VITE_SENTRY_DSN deve ter formato válido de DSN", () => {
     const dsn = process.env.VITE_SENTRY_DSN;
     if (!dsn) return; // Skip if not configured
     
@@ -38,7 +41,7 @@ describe("Sentry DSN Validation", () => {
     expect(dsn).toMatch(dsnPattern);
   });
 
-  it("deve ser possível fazer uma requisição de teste ao Sentry", async () => {
+  it.skipIf(!hasSentryDsn)("deve ser possível fazer uma requisição de teste ao Sentry", async () => {
     const dsn = process.env.SENTRY_DSN;
     if (!dsn) return; // Skip if not configured
     

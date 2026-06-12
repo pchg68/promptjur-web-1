@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // ===== Backend Tests =====
 
 describe('Historico Painel de Controle - Backend', () => {
+  const itWithDatabase = process.env.DATABASE_URL ? it : it.skip;
   describe('getHistoricoStats', () => {
     it('should return correct stats structure', async () => {
       const { getHistoricoStats } = await import('../server/db');
@@ -91,7 +92,7 @@ describe('Historico Painel de Controle - Backend', () => {
   });
 
   describe('excluirHistorico', () => {
-    it('should throw error for non-existent item', async () => {
+    itWithDatabase('should throw error for non-existent item', async () => {
       const { excluirHistorico } = await import('../server/db');
       
       await expect(excluirHistorico(999999, 999999)).rejects.toThrow('Item não encontrado');

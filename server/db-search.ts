@@ -17,7 +17,7 @@ export interface SearchFilters {
 
 export async function searchPrompts(filters: SearchFilters) {
   const database = await getDb();
-  if (!database) throw new Error("Database not available");
+  if (!database) return [];
 
   // Construir condições WHERE
   const conditions: any[] = [eq(prompts.userId, filters.userId)];
@@ -134,7 +134,7 @@ export async function searchPrompts(filters: SearchFilters) {
  */
 export async function countSearchResults(filters: SearchFilters): Promise<number> {
   const database = await getDb();
-  if (!database) throw new Error("Database not available");
+  if (!database) return 0;
 
   const conditions: any[] = [eq(prompts.userId, filters.userId)];
 

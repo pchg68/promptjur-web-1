@@ -2,6 +2,8 @@
 import { describe, it, expect } from "vitest";
 
 // Testar a lógica de filtragem isolada (mesma lógica usada no componente)
+const DATA_REFERENCIA_TESTE = new Date("2026-04-02T12:00:00.000Z");
+
 const TIPO_DOC_LABELS: Record<string, string> = {
   peticao: "Petição Inicial",
   contestacao: "Contestação",
@@ -28,7 +30,7 @@ function filtrarGrupos(
 ): GrupoMock[] {
   const getDataLimite = (periodo: string): Date | null => {
     if (periodo === "todos") return null;
-    const now = new Date();
+    const now = DATA_REFERENCIA_TESTE;
     const dias = periodo === "7dias" ? 7 : periodo === "30dias" ? 30 : 90;
     return new Date(now.getTime() - dias * 24 * 60 * 60 * 1000);
   };

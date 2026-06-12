@@ -7,13 +7,16 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { join } from "path";
+
+const ROOT = process.cwd();
 
 // ─── 1. Índices no banco de dados ────────────────────────────────────────────
 
 describe("Índices no Banco de Dados", () => {
   it("deve ter script de criação de índices", async () => {
     const fs = await import("fs");
-    const scriptPath = "/home/ubuntu/promptjur-web/scripts/fix-db-indexes.mjs";
+    const scriptPath = join(ROOT, "scripts/fix-db-indexes.mjs");
     expect(fs.existsSync(scriptPath)).toBe(true);
     const content = fs.readFileSync(scriptPath, "utf-8");
     // Verificar que cria índices para as tabelas críticas
@@ -29,7 +32,7 @@ describe("Índices no Banco de Dados", () => {
 
   it("deve ter índices compostos para queries frequentes", async () => {
     const fs = await import("fs");
-    const content = fs.readFileSync("/home/ubuntu/promptjur-web/scripts/fix-db-indexes.mjs", "utf-8");
+    const content = fs.readFileSync(join(ROOT, "scripts/fix-db-indexes.mjs"), "utf-8");
     // Índices compostos para queries com múltiplas condições
     expect(content).toContain("idx_prompts_userId_tipo");
     expect(content).toContain("idx_historico_userId_createdAt");
@@ -38,7 +41,7 @@ describe("Índices no Banco de Dados", () => {
 
   it("deve criar tabela processed_stripe_events no script", async () => {
     const fs = await import("fs");
-    const content = fs.readFileSync("/home/ubuntu/promptjur-web/scripts/fix-db-indexes.mjs", "utf-8");
+    const content = fs.readFileSync(join(ROOT, "scripts/fix-db-indexes.mjs"), "utf-8");
     expect(content).toContain("processed_stripe_events");
     expect(content).toContain("eventId");
     expect(content).toContain("eventType");
@@ -55,7 +58,7 @@ describe("Idempotência no Webhook Stripe", () => {
 
   it("tabela processedStripeEvents deve ter campos corretos", async () => {
     const fs = await import("fs");
-    const schemaContent = fs.readFileSync("/home/ubuntu/promptjur-web/drizzle/schema.ts", "utf-8");
+    const schemaContent = fs.readFileSync(join(ROOT, "drizzle/schema.ts"), "utf-8");
     expect(schemaContent).toContain("processedStripeEvents");
     expect(schemaContent).toContain("eventId");
     expect(schemaContent).toContain("eventType");
@@ -64,7 +67,7 @@ describe("Idempotência no Webhook Stripe", () => {
 
   it("webhook handler deve verificar idempotência antes de processar", async () => {
     const fs = await import("fs");
-    const webhookContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/_core/stripeWebhook.ts", "utf-8");
+    const webhookContent = fs.readFileSync(join(ROOT, "server/_core/stripeWebhook.ts"), "utf-8");
     // Deve importar processedStripeEvents
     expect(webhookContent).toContain("processedStripeEvents");
     // Deve verificar se evento já foi processado
@@ -76,14 +79,14 @@ describe("Idempotência no Webhook Stripe", () => {
 
   it("webhook deve retornar resposta adequada para eventos duplicados", async () => {
     const fs = await import("fs");
-    const webhookContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/_core/stripeWebhook.ts", "utf-8");
+    const webhookContent = fs.readFileSync(join(ROOT, "server/_core/stripeWebhook.ts"), "utf-8");
     // Deve retornar { received: true, idempotent: true } para duplicatas
     expect(webhookContent).toContain("idempotent: true");
   });
 
   it("webhook deve continuar processando se verificação de idempotência falhar", async () => {
     const fs = await import("fs");
-    const webhookContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/_core/stripeWebhook.ts", "utf-8");
+    const webhookContent = fs.readFileSync(join(ROOT, "server/_core/stripeWebhook.ts"), "utf-8");
     // Deve ter try/catch na verificação de idempotência
     expect(webhookContent).toContain("Idempotency check failed");
   });
@@ -94,7 +97,7 @@ describe("Idempotência no Webhook Stripe", () => {
 describe("Operações Atômicas na Quota", () => {
   it("incrementQuota deve usar sql expression em vez de read-then-write", async () => {
     const fs = await import("fs");
-    const quotaContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/quota.ts", "utf-8");
+    const quotaContent = fs.readFileSync(join(ROOT, "server/quota.ts"), "utf-8");
     // Deve usar sql template literal para incremento atômico
     expect(quotaContent).toContain("sql`${users.usageCount} + 1`");
     // Deve usar sql template literal para decremento de bônus
@@ -103,14 +106,14 @@ describe("Operações Atômicas na Quota", () => {
 
   it("incrementQuota deve usar WHERE bonusCredits > 0 para evitar saldo negativo", async () => {
     const fs = await import("fs");
-    const quotaContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/quota.ts", "utf-8");
+    const quotaContent = fs.readFileSync(join(ROOT, "server/quota.ts"), "utf-8");
     // Deve usar gt(users.bonusCredits, 0) como condição
     expect(quotaContent).toContain("gt(users.bonusCredits, 0)");
   });
 
   it("deve exportar função checkAndIncrementQuota com transação", async () => {
     const fs = await import("fs");
-    const quotaContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/quota.ts", "utf-8");
+    const quotaContent = fs.readFileSync(join(ROOT, "server/quota.ts"), "utf-8");
     // Deve ter a função de check+increment atômico
     expect(quotaContent).toContain("export async function checkAndIncrementQuota");
     // Deve usar db.transaction
@@ -119,7 +122,7 @@ describe("Operações Atômicas na Quota", () => {
 
   it("addBonusCredits no webhook deve ser atômico", async () => {
     const fs = await import("fs");
-    const webhookContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/_core/stripeWebhook.ts", "utf-8");
+    const webhookContent = fs.readFileSync(join(ROOT, "server/_core/stripeWebhook.ts"), "utf-8");
     // Deve usar sql expression para soma atômica
     expect(webhookContent).toContain("sql`${users.bonusCredits} + ${credits}`");
     // NÃO deve ler o valor antes de somar (padrão read-then-write vulnerável)
@@ -132,20 +135,20 @@ describe("Operações Atômicas na Quota", () => {
 describe("Proteção contra Race Condition na Quota", () => {
   it("getPlanMonthlyLimit deve retornar limites corretos", async () => {
     const { getPlanMonthlyLimit } = await import("../quota");
-    expect(getPlanMonthlyLimit("free")).toBe(20);
+    expect(getPlanMonthlyLimit("free")).toBe(12);
     expect(getPlanMonthlyLimit("pro")).toBe(300);
     expect(getPlanMonthlyLimit("enterprise")).toBe(-1);
   });
 
   it("quota.ts deve importar sql e gt do drizzle-orm", async () => {
     const fs = await import("fs");
-    const quotaContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/quota.ts", "utf-8");
+    const quotaContent = fs.readFileSync(join(ROOT, "server/quota.ts"), "utf-8");
     expect(quotaContent).toContain('import { eq, sql, and, gt } from "drizzle-orm"');
   });
 
   it("checkAndIncrementQuota deve lançar TRPCError FORBIDDEN quando limite atingido", async () => {
     const fs = await import("fs");
-    const quotaContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/quota.ts", "utf-8");
+    const quotaContent = fs.readFileSync(join(ROOT, "server/quota.ts"), "utf-8");
     // Dentro da transação, deve lançar erro quando sem créditos
     expect(quotaContent).toContain("code: \"FORBIDDEN\"");
     expect(quotaContent).toContain("Adquira créditos extras ou faça upgrade");
@@ -153,7 +156,7 @@ describe("Proteção contra Race Condition na Quota", () => {
 
   it("checkAndIncrementQuota deve resetar mês dentro da transação", async () => {
     const fs = await import("fs");
-    const quotaContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/quota.ts", "utf-8");
+    const quotaContent = fs.readFileSync(join(ROOT, "server/quota.ts"), "utf-8");
     // Deve verificar sameMonth dentro da transação
     const txSection = quotaContent.substring(quotaContent.indexOf("db.transaction"));
     expect(txSection).toContain("sameMonth");
@@ -162,7 +165,7 @@ describe("Proteção contra Race Condition na Quota", () => {
 
   it("não deve usar padrão vulnerável user.usageCount + 1 em JS", async () => {
     const fs = await import("fs");
-    const quotaContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/quota.ts", "utf-8");
+    const quotaContent = fs.readFileSync(join(ROOT, "server/quota.ts"), "utf-8");
     // O padrão vulnerável era: .set({ usageCount: user.usageCount + 1 })
     // Não deve existir mais
     expect(quotaContent).not.toContain("usageCount: user.usageCount + 1");
@@ -182,7 +185,7 @@ describe("Integração Schema + Webhook", () => {
 
   it("webhook deve manter resposta de verificação para eventos de teste", async () => {
     const fs = await import("fs");
-    const webhookContent = fs.readFileSync("/home/ubuntu/promptjur-web/server/_core/stripeWebhook.ts", "utf-8");
+    const webhookContent = fs.readFileSync(join(ROOT, "server/_core/stripeWebhook.ts"), "utf-8");
     expect(webhookContent).toContain("evt_test_");
     expect(webhookContent).toContain("verified: true");
   });
