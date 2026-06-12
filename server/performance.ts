@@ -303,7 +303,7 @@ export async function listarAlertas(params?: {
     .limit(params?.limit || 100);
 
   // Converter Date para string
-  return alertas.map(alerta => ({
+  return alertas.map((alerta: any) => ({
     ...alerta,
     createdAt: alerta.createdAt.toISOString()
   }));
@@ -337,12 +337,12 @@ export async function getStatsAlertas() {
   };
 
   const todosAlertas = await db.select().from(performanceAlerts);
-  const alertasAtivos = todosAlertas.filter(a => a.resolvido === false);
-  const alertasResolvidos = todosAlertas.filter(a => a.resolvido === true);
+  const alertasAtivos = todosAlertas.filter((a: any) => a.resolvido === false);
+  const alertasResolvidos = todosAlertas.filter((a: any) => a.resolvido === true);
 
   // Contar alertas por rota
   const alertasPorRota: Record<string, number> = {};
-  todosAlertas.forEach(a => {
+  todosAlertas.forEach((a: any) => {
     alertasPorRota[a.rota] = (alertasPorRota[a.rota] || 0) + 1;
   });
 
@@ -396,7 +396,7 @@ export async function listarRegras() {
   const regras = await db.select().from(alertRules);
 
   // Converter Date para string
-  return regras.map(regra => ({
+  return regras.map((regra: any) => ({
     ...regra,
     createdAt: regra.createdAt.toISOString(),
     updatedAt: regra.updatedAt.toISOString()

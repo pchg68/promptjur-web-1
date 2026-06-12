@@ -95,7 +95,7 @@ export default function MeusModelos() {
   };
 
   // Filtrar modelos pela busca
-  const modelosFiltrados = modelosQuery.data?.filter((modelo) => {
+  const modelosFiltrados = modelosQuery.data?.filter((modelo: any) => {
     if (!busca) return true;
     const buscaLower = busca.toLowerCase();
     return (
@@ -164,7 +164,7 @@ export default function MeusModelos() {
         {/* Lista de Modelos */}
         {modelosFiltrados && modelosFiltrados.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {modelosFiltrados.map((modelo) => (
+            {modelosFiltrados.map((modelo: any) => (
               <Card key={modelo.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">

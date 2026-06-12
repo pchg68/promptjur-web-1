@@ -1,10 +1,15 @@
 /**
  * Helpers de prompts.
  */
+import { randomBytes } from "crypto";
 import { and, desc, eq } from "drizzle-orm";
 import { InsertPrompt, prompts } from "../../drizzle/schema";
 import { getDb } from "./connection";
 
+
+function generateToken(): string {
+  return randomBytes(32).toString("hex");
+}
 
 // ===== PROMPT HELPERS =====
 
@@ -27,7 +32,7 @@ export async function getUserPrompts(userId: number, limit = 50) {
     .limit(limit);
   
   // Converter para formato serializável
-  return results.map(p => ({
+  return results.map((p: any) => ({
     ...p,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString()

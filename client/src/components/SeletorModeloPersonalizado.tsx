@@ -121,7 +121,7 @@ export function SeletorModeloPersonalizado({ onModeloPreenchido, areaJuridica }:
               <SelectValue placeholder="Escolha um modelo..." />
             </SelectTrigger>
             <SelectContent>
-              {modelosFiltrados.map(modelo => (
+              {modelosFiltrados.map((modelo: any) => (
                 <SelectItem key={modelo.id} value={modelo.id.toString()}>
                   <div className="flex items-center gap-2">
                     <span>{modelo.nome}</span>

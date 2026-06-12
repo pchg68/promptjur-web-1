@@ -17,7 +17,7 @@ export interface SearchFilters {
 
 export async function searchPrompts(filters: SearchFilters) {
   const database = await getDb();
-  if (!database) throw new Error("Database not available");
+  if (!database) return [];
 
   // Construir condições WHERE
   const conditions: any[] = [eq(prompts.userId, filters.userId)];
@@ -95,7 +95,7 @@ export async function searchPrompts(filters: SearchFilters) {
 
   // Se houver filtro de tags, fazer join manual
   if (filters.tagIds && filters.tagIds.length > 0) {
-    const promptIds = results.map((p) => p.id);
+    const promptIds = results.map((p: any) => p.id);
     if (promptIds.length === 0) return [];
 
     // Buscar prompts que possuem TODAS as tags especificadas
@@ -111,10 +111,10 @@ export async function searchPrompts(filters: SearchFilters) {
       .groupBy(promptTags.promptId)
       .having(sql`COUNT(DISTINCT ${promptTags.tagId}) = ${filters.tagIds.length}`);
 
-    const idsComTodasTags = new Set(promptsComTags.map((p) => p.promptId));
-    const filtered = results.filter((p) => idsComTodasTags.has(p.id));
+    const idsComTodasTags = new Set(promptsComTags.map((p: any) => p.promptId));
+    const filtered = results.filter((p: any) => idsComTodasTags.has(p.id));
     // Serializar campos Date para ISO strings
-    return filtered.map(p => ({
+    return filtered.map((p: any) => ({
       ...p,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString()
@@ -122,7 +122,7 @@ export async function searchPrompts(filters: SearchFilters) {
   }
 
   // Serializar campos Date para ISO strings
-  return results.map(p => ({
+  return results.map((p: any) => ({
     ...p,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString()
@@ -134,7 +134,7 @@ export async function searchPrompts(filters: SearchFilters) {
  */
 export async function countSearchResults(filters: SearchFilters): Promise<number> {
   const database = await getDb();
-  if (!database) throw new Error("Database not available");
+  if (!database) return 0;
 
   const conditions: any[] = [eq(prompts.userId, filters.userId)];
 

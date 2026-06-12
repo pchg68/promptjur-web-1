@@ -206,7 +206,7 @@ export default function BibliotecaPublica() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {modelosFiltrados.map(modelo => (
+            {modelosFiltrados.map((modelo: any) => (
               <Card key={modelo.id} className="hover:border-primary/50 transition-colors">
                 <CardHeader>
                   <CardTitle className="text-lg">{modelo.nome}</CardTitle>

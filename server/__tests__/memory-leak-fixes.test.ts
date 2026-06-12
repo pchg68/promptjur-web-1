@@ -54,9 +54,9 @@ describe("Memory Leak Fixes", () => {
     });
   });
 
-  describe("getAnalytics uses SQL aggregation (db.ts)", () => {
+  describe("getAnalytics uses SQL aggregation (db/analytics.ts)", () => {
     const dbContent = fs.readFileSync(
-      path.resolve(__dirname, "../../server/db.ts"),
+      path.resolve(__dirname, "../../server/db/analytics.ts"),
       "utf-8"
     );
 
@@ -64,7 +64,7 @@ describe("Memory Leak Fixes", () => {
       // Check that getAnalytics uses SQL aggregation
       const analyticsSection = dbContent.substring(
         dbContent.indexOf("export async function getAnalytics"),
-        dbContent.indexOf("// ===== USAGE LIMIT HELPERS")
+        dbContent.indexOf("export async function getUsageByDate")
       );
       expect(analyticsSection).toContain("count()");
       expect(analyticsSection).toContain("avg(");
@@ -74,22 +74,22 @@ describe("Memory Leak Fixes", () => {
     it("should limit recent history to 10 records", () => {
       const analyticsSection = dbContent.substring(
         dbContent.indexOf("export async function getAnalytics"),
-        dbContent.indexOf("// ===== USAGE LIMIT HELPERS")
+        dbContent.indexOf("export async function getUsageByDate")
       );
       expect(analyticsSection).toContain(".limit(10)");
     });
   });
 
-  describe("getUsageByDate uses date filter and SQL GROUP BY (db.ts)", () => {
+  describe("getUsageByDate uses date filter and SQL GROUP BY (db/analytics.ts)", () => {
     const dbContent = fs.readFileSync(
-      path.resolve(__dirname, "../../server/db.ts"),
+      path.resolve(__dirname, "../../server/db/analytics.ts"),
       "utf-8"
     );
 
     it("should filter by startDate to avoid loading all records", () => {
       const usageSection = dbContent.substring(
         dbContent.indexOf("export async function getUsageByDate"),
-        dbContent.indexOf("export async function atribuirTagPrompt")
+        dbContent.length
       );
       expect(usageSection).toContain("startDate");
       expect(usageSection).toContain("createdAt");
@@ -98,7 +98,7 @@ describe("Memory Leak Fixes", () => {
     it("should use SQL GROUP BY instead of JavaScript grouping", () => {
       const usageSection = dbContent.substring(
         dbContent.indexOf("export async function getUsageByDate"),
-        dbContent.indexOf("export async function atribuirTagPrompt")
+        dbContent.length
       );
       expect(usageSection).toContain("groupBy");
       expect(usageSection).toContain("count()");

@@ -73,7 +73,7 @@ export async function listarLogs(params: {
   if (conditions.length > 0) {
     const results = await query.where(and(...conditions));
     // Converter Date para string
-    return results.map(log => ({
+    return results.map((log: any) => ({
       ...log,
       createdAt: log.createdAt.toISOString()
     }));
@@ -81,7 +81,7 @@ export async function listarLogs(params: {
 
   const results = await query;
   // Converter Date para string
-  return results.map(log => ({
+  return results.map((log: any) => ({
     ...log,
     createdAt: log.createdAt.toISOString()
   }));
@@ -102,7 +102,7 @@ export async function getAuditStats() {
   const logs = await db.select().from(auditLogs);
   
   const acoesCount: Record<string, number> = {};
-  logs.forEach(log => {
+  logs.forEach((log: any) => {
     acoesCount[log.acao] = (acoesCount[log.acao] || 0) + 1;
   });
 

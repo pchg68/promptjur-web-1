@@ -36,6 +36,16 @@ const TIPO_ICONE: Record<string, React.ElementType> = {
   outro: ExternalLink,
 };
 
+type BlogLink = {
+  id: number | string;
+  titulo?: string | null;
+  nome?: string | null;
+  descricao?: string | null;
+  url: string;
+  tipo: string;
+  categoria?: string | null;
+};
+
 const TIPO_COR: Record<string, string> = {
   instagram: "text-pink-400",
   facebook: "text-blue-500",
@@ -100,17 +110,18 @@ export default function Blog() {
   });
 
   const { data: links } = trpc.blog.linksExternos.useQuery({});
+  const linksLista = (links ?? []) as BlogLink[];
 
   // Agrupa links por categoria
-  const linksPorCategoria = (links ?? []).reduce<Record<string, typeof links>>((acc, link) => {
-    const cat = link!.categoria ?? "Outros";
+  const linksPorCategoria = linksLista.reduce<Record<string, BlogLink[]>>((acc, link) => {
+    const cat = link.categoria ?? "Outros";
     if (!acc[cat]) acc[cat] = [];
-    acc[cat]!.push(link);
+    acc[cat].push(link);
     return acc;
   }, {});
 
-  const redesSociais = (links ?? []).filter(l => ["instagram", "facebook", "linkedin", "youtube"].includes(l!.tipo));
-  const linksRecursos = (links ?? []).filter(l => !["instagram", "facebook", "linkedin", "youtube"].includes(l!.tipo));
+  const redesSociais = linksLista.filter((l) => ["instagram", "facebook", "linkedin", "youtube"].includes(l.tipo));
+  const linksRecursos = linksLista.filter((l) => !["instagram", "facebook", "linkedin", "youtube"].includes(l.tipo));
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -236,7 +247,7 @@ export default function Blog() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {listagem?.posts.map((post) => (
+                {listagem?.posts.map((post: any) => (
                   <CardArtigo key={post.id} post={post} destaque={post.destaque} />
                 ))}
               </div>
@@ -260,7 +271,7 @@ export default function Blog() {
                   Siga o PromptJur
                 </h3>
                 <div className="space-y-3">
-                  {redesSociais.map((link) => {
+                  {redesSociais.map((link: any) => {
                     const Icone = TIPO_ICONE[link!.tipo] ?? ExternalLink;
                     const cor = TIPO_COR[link!.tipo] ?? "text-muted-foreground";
                     return (
@@ -294,13 +305,13 @@ export default function Blog() {
                     {categoria}
                   </h3>
                   <div className="space-y-2">
-                    {items!.map((link) => {
-                      const Icone = TIPO_ICONE[link!.tipo] ?? ExternalLink;
-                      const cor = TIPO_COR[link!.tipo] ?? "text-muted-foreground";
+                    {items.map((link) => {
+                      const Icone = TIPO_ICONE[link.tipo] ?? ExternalLink;
+                      const cor = TIPO_COR[link.tipo] ?? "text-muted-foreground";
                       return (
                         <a
-                          key={link!.id}
-                          href={link!.url}
+                          key={link.id}
+                          href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-muted/50 transition-colors group"

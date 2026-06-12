@@ -15,18 +15,18 @@ describe("PLANS", () => {
     expect(Object.keys(PLANS).length).toBe(3);
   });
 
-  it("plano free tem preço zero e limite de 20 operações", () => {
+  it("plano free tem preço zero e limite de 12 operações", () => {
     const free = PLANS.free;
     expect(free.priceMonthly).toBe(0);
     expect(free.priceYearly).toBe(0);
-    expect(free.limits.promptsPerMonth).toBe(20);
+    expect(free.limits.promptsPerMonth).toBe(12);
     expect(free.limits.knowledgeRetrieval).toBe(false);
     expect(free.limits.multiAI).toBe(false);
   });
 
-  it("plano pro tem preço R$ 49,90/mês e 300 operações", () => {
+  it("plano pro tem preço R$ 57,90/mês e 300 operações", () => {
     const pro = PLANS.pro;
-    expect(pro.priceMonthly).toBe(4990);
+    expect(pro.priceMonthly).toBe(5790);
     expect(pro.limits.promptsPerMonth).toBe(300);
     expect(pro.popular).toBe(true);
     expect(pro.limits.knowledgeRetrieval).toBe(true);

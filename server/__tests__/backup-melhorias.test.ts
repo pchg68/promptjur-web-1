@@ -21,6 +21,25 @@ vi.mock("../_core/notification", () => ({
   notifyOwner: vi.fn(),
 }));
 
+vi.mock("child_process", () => ({
+  exec: vi.fn((command: string, options: unknown, callback?: (error: Error | null, result: { stdout: string; stderr: string }) => void) => {
+    const cb = typeof options === "function" ? options : callback;
+    cb?.(null, { stdout: "", stderr: "" });
+    return {};
+  }),
+}));
+
+vi.mock("fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("fs")>();
+  return {
+    ...actual,
+    existsSync: vi.fn(() => true),
+    readFileSync: vi.fn(() => Buffer.from("mock sql dump")),
+    writeFileSync: vi.fn(),
+    unlinkSync: vi.fn(),
+  };
+});
+
 vi.mock("mysql2/promise", () => ({
   default: {
     createConnection: vi.fn().mockResolvedValue({
@@ -73,6 +92,8 @@ beforeEach(() => {
   vi.mocked(storagePut).mockResolvedValue({ url: "https://s3.example.com/backup.enc", key: "backups/test.enc" });
   vi.mocked(storageDelete).mockResolvedValue(true);
   vi.mocked(notifyOwner).mockResolvedValue(true);
+  process.env.DATABASE_URL = "mysql://user:pass@localhost:3306/promptjur_test";
+  process.env.BACKUP_ENCRYPTION_KEY = "test-encryption-key";
   vi.mocked(getDb).mockResolvedValue(mockDbInstance as any);
   mockDbInstance.insert.mockReturnThis();
   mockDbInstance.values.mockResolvedValue({ insertId: 1 });

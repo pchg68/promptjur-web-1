@@ -300,7 +300,7 @@ export default function Assistente() {
       const sessao = data.sessao as unknown as Sessao;
       setSessaoAtiva(sessao);
       setMensagens(
-        data.mensagens.map((m) => ({
+        data.mensagens.map((m: any) => ({
           id: m.id,
           role: m.role as "user" | "assistant" | "system",
           content: m.content,
@@ -533,7 +533,7 @@ export default function Assistente() {
                   <p className="text-xs mt-1">Clique em "Nova Conversa" para começar</p>
                 </div>
               ) : (
-                sessoes.map((s) => (
+                sessoes.map((s: any) => (
                   <button
                     key={s.id}
                     onClick={() => carregarSessao(s.id)}

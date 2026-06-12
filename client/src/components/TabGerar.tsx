@@ -266,7 +266,7 @@ export default function TabGerar({
             <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">1</span>
             <span className="text-sm font-semibold">Parâmetros</span>
           </div>
-          <ModelSelector value={selectedModel} onChange={handleModelChange} compact />
+          <ModelSelector value={selectedModel} onChange={handleModelChange} />
         </div>
 
         {/* Corpo do painel — scrollável */}

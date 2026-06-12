@@ -329,7 +329,7 @@ export default function TabLogAcessos() {
                     </td>
                   </tr>
                 ) : (
-                  logsQuery.data?.logs.map((log) => (
+                  logsQuery.data?.logs.map((log: any) => (
                     <tr
                       key={log.id}
                       className={`border-b border-[#1e3a5f]/50 hover:bg-[#0a1628]/50 transition-colors ${

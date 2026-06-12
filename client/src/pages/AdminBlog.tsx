@@ -285,7 +285,7 @@ export default function AdminBlog() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800">
-                    {data.posts.map(post => (
+                    {data.posts.map((post: any) => (
                       <tr key={post.id} className="bg-gray-900/50 hover:bg-gray-800/60 transition-colors">
                         <td className="px-4 py-3">
                           <div>
@@ -433,7 +433,7 @@ export default function AdminBlog() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800">
-                    {links.map(link => (
+                    {links.map((link: any) => (
                       <tr key={link.id} className="bg-gray-900/50 hover:bg-gray-800/60 transition-colors">
                         <td className="px-4 py-3">
                           <p className="font-medium text-white">{link.titulo}</p>

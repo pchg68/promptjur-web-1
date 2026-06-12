@@ -49,7 +49,7 @@ export async function getAnalytics(userId: number) {
     .orderBy(desc(historico.createdAt))
     .limit(10);
   
-  const recentHistorySerializable = recentHistory.map(item => ({
+  const recentHistorySerializable = recentHistory.map((item: any) => ({
     id: item.id,
     userId: item.userId,
     acao: item.acao,

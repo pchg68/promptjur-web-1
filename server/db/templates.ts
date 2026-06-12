@@ -56,7 +56,7 @@ export async function getTemplatesUsuario(userId: number) {
     .orderBy(desc(templates.createdAt));
   
   // Converter para formato serializável
-  return result.map(t => ({
+  return result.map((t: any) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString()
@@ -76,7 +76,7 @@ export async function getTemplatesSistema() {
     .orderBy(templates.areaJuridica);
   
   // Converter para formato serializável
-  return result.map(t => ({
+  return result.map((t: any) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString()
@@ -95,7 +95,7 @@ export async function getTemplatesPublicos() {
     ))
     .orderBy(templates.areaJuridica);
   
-  return result.map(t => ({
+  return result.map((t: any) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString()

@@ -135,7 +135,7 @@ export function getQueryErrorStats(): Array<{
 
   for (const [fingerprint, state] of alertStates.entries()) {
     const recentErrors = state.errors.filter(
-      (e) => now - e.timestamp < TIME_WINDOW_MS
+      (e: any) => now - e.timestamp < TIME_WINDOW_MS
     );
 
     stats.push({
@@ -161,7 +161,7 @@ export function cleanupQueryErrorStates(): void {
   const now = Date.now();
   for (const [fingerprint, state] of alertStates.entries()) {
     state.errors = state.errors.filter(
-      (e) => now - e.timestamp < TIME_WINDOW_MS
+      (e: any) => now - e.timestamp < TIME_WINDOW_MS
     );
     // Remover entradas completamente vazias e sem notificação recente
     if (

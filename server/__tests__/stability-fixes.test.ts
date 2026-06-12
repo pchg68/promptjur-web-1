@@ -32,7 +32,8 @@ describe('Correções de Estabilidade', () => {
         'utf-8'
       );
 
-      expect(mainContent).toContain('retry: 2');
+      expect(mainContent).toContain('retry: (failureCount, error)');
+      expect(mainContent).toContain('return failureCount < 2');
       expect(mainContent).toContain('staleTime');
       expect(mainContent).toContain('refetchOnWindowFocus: false');
     });
@@ -53,7 +54,7 @@ describe('Correções de Estabilidade', () => {
     it('deve usar SQL COUNT/SUM/AVG em vez de carregar todos os registros', async () => {
       const fs = await import('fs');
       const dbContent = fs.readFileSync(
-        join(ROOT, 'server/db.ts'),
+        join(ROOT, 'server/db/historico.ts'),
         'utf-8'
       );
 
@@ -72,7 +73,7 @@ describe('Correções de Estabilidade', () => {
     it('deve usar SQL GROUP BY para contagem por ação', async () => {
       const fs = await import('fs');
       const dbContent = fs.readFileSync(
-        join(ROOT, 'server/db.ts'),
+        join(ROOT, 'server/db/historico.ts'),
         'utf-8'
       );
 
@@ -87,7 +88,7 @@ describe('Correções de Estabilidade', () => {
     it('deve ter try/catch para resiliência', async () => {
       const fs = await import('fs');
       const dbContent = fs.readFileSync(
-        join(ROOT, 'server/db.ts'),
+        join(ROOT, 'server/db/historico.ts'),
         'utf-8'
       );
 
@@ -105,7 +106,7 @@ describe('Correções de Estabilidade', () => {
     it('deve usar SQL GROUP BY em vez de carregar todos os registros', async () => {
       const fs = await import('fs');
       const dbContent = fs.readFileSync(
-        join(ROOT, 'server/db.ts'),
+        join(ROOT, 'server/db/historico.ts'),
         'utf-8'
       );
 
@@ -122,7 +123,7 @@ describe('Correções de Estabilidade', () => {
     it('deve filtrar por data de início para limitar dados', async () => {
       const fs = await import('fs');
       const dbContent = fs.readFileSync(
-        join(ROOT, 'server/db.ts'),
+        join(ROOT, 'server/db/historico.ts'),
         'utf-8'
       );
 
@@ -140,7 +141,7 @@ describe('Correções de Estabilidade', () => {
     it('deve usar batch lookup com inArray em vez de queries individuais', async () => {
       const fs = await import('fs');
       const dbContent = fs.readFileSync(
-        join(ROOT, 'server/db.ts'),
+        join(ROOT, 'server/db/historico.ts'),
         'utf-8'
       );
 
@@ -158,12 +159,12 @@ describe('Correções de Estabilidade', () => {
     it('deve importar inArray do drizzle-orm', async () => {
       const fs = await import('fs');
       const dbContent = fs.readFileSync(
-        join(ROOT, 'server/db.ts'),
+        join(ROOT, 'server/db/historico.ts'),
         'utf-8'
       );
 
       expect(dbContent).toContain('inArray');
-      expect(dbContent.split('\n')[0]).toContain('inArray');
+      expect(dbContent).toMatch(/import \{[^}]*inArray[^}]*\} from "drizzle-orm"/);
     });
   });
 

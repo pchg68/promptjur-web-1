@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 
+const runExternalApiTests = process.env.RUN_EXTERNAL_API_TESTS === 'true';
+const hasOpenAIKey = !!process.env.OPENAI_API_KEY && /^sk-/.test(process.env.OPENAI_API_KEY);
+
 describe('OpenAI API Key Validation', () => {
-  it('should validate OpenAI API key by making a simple API call', async () => {
-    const apiKey = process.env.OPENAI_API_KEY;
+  it.skipIf(!runExternalApiTests || !hasOpenAIKey)('should validate OpenAI API key by making a simple API call', async () => {
+    const apiKey = process.env.OPENAI_API_KEY!;
     
     expect(apiKey).toBeDefined();
     expect(apiKey).toMatch(/^sk-/);

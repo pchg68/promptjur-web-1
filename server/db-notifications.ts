@@ -24,7 +24,7 @@ export async function getUserNotifications(userId: number, limit: number = 50) {
     .limit(limit);
 
   // Serializar campos Date para ISO strings
-  return result.map(notif => ({
+  return result.map((notif: any) => ({
     ...notif,
     createdAt: notif.createdAt.toISOString()
   }));

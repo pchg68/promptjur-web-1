@@ -119,10 +119,12 @@ describe("Router Modules - Content Validation", () => {
 });
 
 describe("Component Refactoring - Content Validation", () => {
-  it("TabGerar should have Artifact View and generation mutation", () => {
+  it("TabGerar should have guided result view and generation mutation", () => {
     const content = readFileSync(resolve(clientDir, "components", "TabGerar.tsx"), "utf-8");
     expect(content).toContain("trpc.prompts.gerar");
-    expect(content).toContain("Artifact");
+    expect(content).toContain("Resultado Gerado");
+    expect(content).toContain("GenerationStepper");
+    expect(content).toContain("PostGenerationGuide");
   });
 
   it("TabAnalisar should have analysis mutation", () => {
@@ -151,10 +153,11 @@ describe("Component Refactoring - Content Validation", () => {
     expect(content).toContain("Tutoriais");
   });
 
-  it("Dashboard.tsx should import refactored components", () => {
+  it("Dashboard.tsx should import refactored generation components", () => {
     const content = readFileSync(resolve(clientDir, "pages", "Dashboard.tsx"), "utf-8");
     expect(content).toContain("TabGerar");
-    expect(content).toContain("DashboardHeader2");
+    expect(content).toContain("GenerationStepper");
+    expect(content).toContain("PostGenerationGuide");
   });
 
   it("Dashboard.tsx should not have old Tutoriais tab", () => {

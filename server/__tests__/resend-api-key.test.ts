@@ -4,15 +4,18 @@
  */
 import { describe, it, expect } from 'vitest';
 
+const runExternalApiTests = process.env.RUN_EXTERNAL_API_TESTS === 'true';
+const hasResendApiKey = !!process.env.RESEND_API_KEY;
+
 describe('Resend API Key Validation', () => {
-  it('deve ter RESEND_API_KEY configurada', () => {
+  it.skipIf(!hasResendApiKey)('deve ter RESEND_API_KEY configurada', () => {
     const apiKey = process.env.RESEND_API_KEY;
     expect(apiKey).toBeDefined();
     expect(apiKey).toBeTruthy();
     expect(apiKey!.startsWith('re_')).toBe(true);
   });
 
-  it('deve conseguir acessar GET /domains (Full Access)', async () => {
+  it.skipIf(!runExternalApiTests || !hasResendApiKey)('deve conseguir acessar GET /domains (Full Access)', async () => {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
       throw new Error('RESEND_API_KEY não configurada');
@@ -30,7 +33,7 @@ describe('Resend API Key Validation', () => {
     expect(body).toHaveProperty('data');
   });
 
-  it('deve conseguir acessar GET /api-keys (Full Access)', async () => {
+  it.skipIf(!runExternalApiTests || !hasResendApiKey)('deve conseguir acessar GET /api-keys (Full Access)', async () => {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
       throw new Error('RESEND_API_KEY não configurada');

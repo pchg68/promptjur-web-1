@@ -198,17 +198,17 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
   // Dados para comparação
   const versaoA = useMemo(() => {
     if (!compareVersions[0] || !versoesQuery.data) return null;
-    return versoesQuery.data.find((v) => v.id === compareVersions[0]) ?? null;
+    return versoesQuery.data.find((v: any) => v.id === compareVersions[0]) ?? null;
   }, [compareVersions[0], versoesQuery.data]);
 
   const versaoB = useMemo(() => {
     if (!compareVersions[1] || !versoesQuery.data) return null;
-    return versoesQuery.data.find((v) => v.id === compareVersions[1]) ?? null;
+    return versoesQuery.data.find((v: any) => v.id === compareVersions[1]) ?? null;
   }, [compareVersions[1], versoesQuery.data]);
 
   const versaoVisualizando = useMemo(() => {
     if (!viewingVersionId || !versoesQuery.data) return null;
-    return versoesQuery.data.find((v) => v.id === viewingVersionId) ?? null;
+    return versoesQuery.data.find((v: any) => v.id === viewingVersionId) ?? null;
   }, [viewingVersionId, versoesQuery.data]);
 
   const handleToggleCompare = (versionId: number) => {
@@ -233,16 +233,16 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
   };
 
   // Tipos de documento disponíveis nos dados
-  const tiposDocDisponiveis = useMemo(() => {
+  const tiposDocDisponiveis = useMemo<string[]>(() => {
     if (!gruposQuery.data) return [];
-    const tipos = new Set(gruposQuery.data.map((g) => g.tipoDocumento));
+    const tipos = new Set<string>(gruposQuery.data.map((g: any) => g.tipoDocumento));
     return Array.from(tipos);
   }, [gruposQuery.data]);
 
   // Áreas jurídicas disponíveis nos dados
   const areasDisponiveis = useMemo(() => {
     if (!gruposQuery.data) return [];
-    const areas = new Set(gruposQuery.data.map((g) => g.areaJuridica).filter(Boolean));
+    const areas = new Set(gruposQuery.data.map((g: any) => g.areaJuridica).filter(Boolean));
     return Array.from(areas) as string[];
   }, [gruposQuery.data]);
 
@@ -542,7 +542,7 @@ export default function HistoricoVersoes({ onCarregarVersao }: HistoricoVersoesP
                 </p>
               )}
 
-              {versoesQuery.data?.map((versao) => {
+              {versoesQuery.data?.map((versao: any) => {
                 const isSelectedA = compareVersions[0] === versao.id;
                 const isSelectedB = compareVersions[1] === versao.id;
                 const isSelected = isSelectedA || isSelectedB;

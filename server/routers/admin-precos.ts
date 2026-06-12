@@ -43,7 +43,7 @@ export const adminPrecosRouter = router({
     const overrides = await db.select().from(priceOverrides).orderBy(desc(priceOverrides.appliedAt));
 
     // Enriquecer com preço base para comparação
-    return overrides.map((o) => {
+    return overrides.map((o: any) => {
       let precoBase: number | null = null;
       let nome = o.entityId;
 
@@ -339,7 +339,7 @@ export const adminPrecosRouter = router({
         .orderBy(desc(priceReviewRequests.createdAt));
 
       const statusFilter = input?.status ?? "all";
-      return statusFilter === "all" ? rows : rows.filter(r => r.status === statusFilter);
+      return statusFilter === "all" ? rows : rows.filter((r: any) => r.status === statusFilter);
     }),
 
   /**
@@ -495,7 +495,7 @@ export const adminPrecosRouter = router({
         .offset(offset);
 
       // Enriquecer com nomes
-      const enriched = items.map((item) => {
+      const enriched = items.map((item: any) => {
         let nome = item.entityId;
         if (item.entityType === "plan") {
           nome = PLANS[item.entityId]?.name ?? item.entityId;

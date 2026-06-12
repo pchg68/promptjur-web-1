@@ -72,9 +72,9 @@ export async function contarEnviosPorEmail(email: string): Promise<{
     .where(eq(conviteLogs.email, email));
 
   return {
-    enviados: logs.filter((l) => l.resultado === "enviado").length,
-    falhas: logs.filter((l) => l.resultado === "falha").length,
-    pulados: logs.filter((l) => l.resultado === "pulado").length,
+    enviados: logs.filter((l: any) => l.resultado === "enviado").length,
+    falhas: logs.filter((l: any) => l.resultado === "falha").length,
+    pulados: logs.filter((l: any) => l.resultado === "pulado").length,
   };
 }
 

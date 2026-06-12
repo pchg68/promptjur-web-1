@@ -223,10 +223,10 @@ export const referralRouter = router({
       .orderBy(desc(referrals.createdAt))
       .limit(50);
 
-    const totalEarned = myReferrals.filter(r => r.referrerRewarded).length * codeRow.rewardCredits;
+    const totalEarned = myReferrals.filter((r: any) => r.referrerRewarded).length * codeRow.rewardCredits;
 
     return {
-      referrals: myReferrals.map(r => ({
+      referrals: myReferrals.map((r: any) => ({
         id: r.id,
         referredName: r.referredName ? r.referredName.split(" ")[0] + " ***" : "Usuário",
         status: r.status,

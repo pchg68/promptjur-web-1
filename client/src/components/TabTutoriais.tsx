@@ -83,14 +83,14 @@ export default function TabTutoriais() {
   // Verificar feedback do usuário para um tutorial
   const getMeuFeedback = (tutorialId: string): boolean | null => {
     if (!meusFeedbacks) return null;
-    const feedback = meusFeedbacks.find(f => f.tutorialId === tutorialId);
+    const feedback = meusFeedbacks.find((f: any) => f.tutorialId === tutorialId);
     return feedback ? feedback.util : null;
   };
 
   // Obter estatísticas de feedback para um tutorial
   const getEstatisticas = (tutorialId: string) => {
     if (!estatisticasFeedback) return null;
-    return estatisticasFeedback.find(s => s.tutorialId === tutorialId);
+    return estatisticasFeedback.find((s: any) => s.tutorialId === tutorialId);
   };
 
   const limparFiltros = () => {

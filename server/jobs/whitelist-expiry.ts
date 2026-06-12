@@ -52,7 +52,7 @@ export async function runWhitelistExpiryJob(): Promise<number> {
 
   console.log(
     `[WhitelistExpiry] ${expirados.length} entrada(s) expirada(s) desativada(s): ` +
-      expirados.map((e) => e.email).join(", ")
+      expirados.map((e: any) => e.email).join(", ")
   );
 
   return expirados.length;

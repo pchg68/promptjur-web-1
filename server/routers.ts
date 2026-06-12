@@ -82,7 +82,7 @@ export const appRouter = router({
 
     obterProgresso: protectedProcedure.query(async ({ ctx }) => {
       const progresso = await db.obterProgressoTutoriais(ctx.user.id);
-      const tutoriaisConcluidosIds = progresso.map(p => p.tutorialId);
+      const tutoriaisConcluidosIds = progresso.map((p: any) => p.tutorialId);
       return {
         tutoriaisConcluidosIds, totalConcluidos: progresso.length,
         totalTutoriais: tutoriais.length,
@@ -96,12 +96,12 @@ export const appRouter = router({
 
     obterFeedback: protectedProcedure.query(async ({ ctx }) => {
       const feedbacks = await db.obterFeedbackUsuario(ctx.user.id);
-      return feedbacks.map(f => ({ tutorialId: f.tutorialId, util: f.util }));
+      return feedbacks.map((f: any) => ({ tutorialId: f.tutorialId, util: f.util }));
     }),
 
     estatisticasFeedback: publicProcedure.query(async () => {
       const stats = await db.obterEstatisticasFeedback();
-      return stats.map(s => ({
+      return stats.map((s: any) => ({
         tutorialId: s.tutorialId, totalUtil: Number(s.totalUtil) || 0,
         totalNaoUtil: Number(s.totalNaoUtil) || 0, total: Number(s.total) || 0,
       }));

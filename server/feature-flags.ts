@@ -50,7 +50,7 @@ export async function listarFeatures() {
   const flags = await db.select().from(featureFlags);
   
   // Converter Date para string
-  return flags.map(flag => ({
+  return flags.map((flag: any) => ({
     ...flag,
     createdAt: flag.createdAt.toISOString(),
     updatedAt: flag.updatedAt.toISOString()

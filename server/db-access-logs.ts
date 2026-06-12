@@ -95,7 +95,7 @@ export async function listarAccessLogs(filtros: FiltrosAccessLog = {}) {
   ]);
 
   return {
-    logs: logs.map((l) => ({
+    logs: logs.map((l: any) => ({
       ...l,
       createdAt: l.createdAt.toISOString(),
     })),
@@ -163,7 +163,7 @@ export async function exportarAccessLogsCsv(filtros: FiltrosAccessLog = {}): Pro
     "Data/Hora",
   ].join(",");
 
-  const rows = logs.map((l) =>
+  const rows = logs.map((l: any) =>
     [
       l.id,
       `"${(l.nome ?? "").replace(/"/g, '""')}"`,
