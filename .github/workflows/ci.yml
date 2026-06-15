@@ -1,0 +1,249 @@
+name: CI — PromptJur
+
+# Dispara em push para main/develop E em qualquer Pull Request para main/develop.
+# Isso garante que nenhuma regressão de tipo ou teste quebrado entre na main.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancela runs anteriores do mesmo PR/branch para economizar minutos de CI.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "9"
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 1: TypeScript — pnpm run check (tsc --noEmit)
+  # Bloqueia merge se houver erros de tipo (ex: TS2503 JSX.Element no React 19)
+  # ─────────────────────────────────────────────────────────────────────────────
+  typecheck:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Verificar tipos TypeScript (pnpm run check)
+        # Usa o script definido em package.json para consistência com o dev local.
+        # Se o script não existir, cai no tsc --noEmit diretamente.
+        run: pnpm run check || pnpm exec tsc --noEmit
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 2: Testes — pnpm test (Vitest)
+  # Roda em paralelo com typecheck para economizar tempo.
+  # Bloqueia merge se qualquer teste falhar.
+  # ─────────────────────────────────────────────────────────────────────────────
+  test:
+    name: Testes (Vitest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Executar testes (pnpm test)
+        run: pnpm test
+        env:
+          # Variáveis mínimas para os testes rodarem sem banco de dados real.
+          DATABASE_URL: ""
+          JWT_SECRET: "ci-test-secret-32-chars-minimum!!"
+          VITE_APP_ID: "ci-test-app"
+          OAUTH_SERVER_URL: "https://api.manus.im"
+          VITE_OAUTH_PORTAL_URL: "https://manus.im"
+          OWNER_OPEN_ID: "ci-test-owner"
+          OWNER_NAME: "CI Test"
+          BUILT_IN_FORGE_API_URL: "https://api.manus.im"
+          BUILT_IN_FORGE_API_KEY: "ci-test-key"
+          VITE_FRONTEND_FORGE_API_URL: "https://api.manus.im"
+          VITE_FRONTEND_FORGE_API_KEY: "ci-test-key"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 3: Build de produção
+  # Garante que o bundle não quebra após mudanças de código.
+  # Depende de typecheck E test para não buildar código com erros.
+  # ─────────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build de Produção
+    runs-on: ubuntu-latest
+    needs: [typecheck, test]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_APP_ID: "ci-build"
+          VITE_OAUTH_PORTAL_URL: "https://manus.im"
+          VITE_FRONTEND_FORGE_API_URL: "https://api.manus.im"
+          VITE_FRONTEND_FORGE_API_KEY: "ci-build-key"
+          VITE_APP_TITLE: "PromptJur"
+          VITE_APP_URL: "https://promptjur.com"
+
+      - name: Verificar artefatos do build
+        run: |
+          echo "=== Artefatos gerados ==="
+          ls -lh dist/public/assets/*.js 2>/dev/null | head -10 || echo "Nenhum .js encontrado em dist/public/assets/"
+          echo ""
+          echo "=== Tamanho total do bundle ==="
+          du -sh dist/ 2>/dev/null || echo "dist/ não encontrado"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 4: Auditoria de Segurança de Dependências
+  # Roda independentemente (não bloqueia o build, mas reporta vulnerabilidades).
+  # ─────────────────────────────────────────────────────────────────────────────
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Auditoria de segurança (high/critical)
+        # || true para não bloquear o CI — apenas reporta no summary
+        run: pnpm audit --audit-level=high || true
+
+      - name: Verificar dependências desatualizadas
+        run: pnpm outdated || true
+
+      - name: Enviar resultado de auditoria para a API
+        if: always()
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CI_AUDIT_TOKEN: ${{ secrets.CI_AUDIT_TOKEN }}
+        run: |
+          START_TIME=$SECONDS
+          AUDIT_JSON=$(pnpm audit --json 2>/dev/null || echo '{}')
+          DURATION_MS=$(( (SECONDS - START_TIME) * 1000 ))
+
+          PAYLOAD=$(echo "$AUDIT_JSON" | node -e "
+            const data = require('fs').readFileSync('/dev/stdin','utf8');
+            try {
+              const j = JSON.parse(data);
+              const vulns = j.vulnerabilities || {};
+              const counts = { total: 0, critical: 0, high: 0, moderate: 0, low: 0, info: 0, vulns: [] };
+              for (const [name, v] of Object.entries(vulns)) {
+                counts.total++;
+                const sev = v.severity || 'info';
+                counts[sev] = (counts[sev] || 0) + 1;
+                if (counts.vulns.length < 20) {
+                  counts.vulns.push({ name, severity: sev, title: v.title || name, fixAvailable: v.fixAvailable !== false });
+                }
+              }
+              console.log(JSON.stringify({
+                totalVulnerabilities: counts.total,
+                critical: counts.critical,
+                high: counts.high,
+                moderate: counts.moderate,
+                low: counts.low,
+                info: counts.info,
+                vulnerabilities: counts.vulns,
+                commitRef: process.env.GITHUB_SHA?.substring(0, 8) || 'unknown',
+                durationMs: parseInt(process.env.DURATION_MS) || 0
+              }));
+            } catch(e) {
+              console.log(JSON.stringify({ totalVulnerabilities: 0, critical: 0, high: 0, moderate: 0, low: 0, info: 0, vulnerabilities: [], commitRef: 'error', durationMs: 0 }));
+            }
+          ")
+
+          if [ -n "$CI_AUDIT_TOKEN" ] && [ -n "$APP_URL" ]; then
+            curl -sf -X POST "${APP_URL}/api/ci/audit" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${CI_AUDIT_TOKEN}" \
+              -d "$PAYLOAD" && echo "[CI] Resultado de auditoria enviado" \
+              || echo "[CI] Falha ao enviar resultado (endpoint pode estar indisponível)"
+          else
+            echo "[CI] CI_AUDIT_TOKEN ou APP_URL não configurados — pulando envio"
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 5: Resumo do CI (sempre roda, mesmo se jobs anteriores falharem)
+  # Gera um sumário legível na aba "Summary" do GitHub Actions.
+  # ─────────────────────────────────────────────────────────────────────────────
+  summary:
+    name: Resumo do CI
+    runs-on: ubuntu-latest
+    needs: [typecheck, test, build, security-audit]
+    if: always()
+
+    steps:
+      - name: Gerar resumo
+        run: |
+          echo "## CI — PromptJur" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript Check | ${{ needs.typecheck.result == 'success' && '✅ Passou' || needs.typecheck.result == 'skipped' && '⏭️ Pulado' || '❌ Falhou' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Testes (Vitest)  | ${{ needs.test.result == 'success' && '✅ Passou' || needs.test.result == 'skipped' && '⏭️ Pulado' || '❌ Falhou' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Produção   | ${{ needs.build.result == 'success' && '✅ Passou' || needs.build.result == 'skipped' && '⏭️ Pulado' || '❌ Falhou' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Audit   | ${{ needs.security-audit.result == 'success' && '✅ Passou' || needs.security-audit.result == 'skipped' && '⏭️ Pulado' || '⚠️ Verificar' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Autor:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Data:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
