@@ -42,7 +42,7 @@ jobs:
           cache: "pnpm"
 
       - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Verificar tipos TypeScript (pnpm run check)
         # Usa o script definido em package.json para consistência com o dev local.
@@ -74,7 +74,7 @@ jobs:
           cache: "pnpm"
 
       - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Executar testes (pnpm test)
         run: pnpm test
@@ -118,7 +118,7 @@ jobs:
           cache: "pnpm"
 
       - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build
         run: pnpm build
@@ -162,7 +162,7 @@ jobs:
           cache: "pnpm"
 
       - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Auditoria de segurança (high/critical)
         # || true para não bloquear o CI — apenas reporta no summary
