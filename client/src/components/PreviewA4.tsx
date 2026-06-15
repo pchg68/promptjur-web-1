@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ZoomIn, ZoomOut, Maximize2, Minimize2 } from "lucide-react";
@@ -38,7 +38,7 @@ export function PreviewA4({
   // - Parágrafos normais ficam com recuo
   const renderContent = (text: string) => {
     const lines = text.split("\n");
-    const elements: JSX.Element[] = [];
+    const elements: ReactElement[] = [];
     let paraBuffer: string[] = [];
 
     const flushPara = (key: string) => {
