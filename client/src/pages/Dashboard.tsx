@@ -286,7 +286,7 @@ export default function Dashboard() {
     if (promptIdFromUrl && promptQuery.data) {
       const prompt = promptQuery.data;
       setPromptOtimizacao(prompt.promptOriginal || prompt.promptOtimizado || "");
-      setActiveTab("revisar");
+      setActiveTab("criar");
       toast.success(`Prompt #${prompt.id} carregado para reutilização!`);
       window.history.replaceState({}, '', '/dashboard');
     }
@@ -347,7 +347,7 @@ export default function Dashboard() {
     setTipoDocumento(modelo.tipoDocumento); setContextoJuridico(modelo.contextoJuridico); setObjetivoEspecifico(modelo.objetivoEspecifico);
     setAreaGeracao((modelo.areaJuridica || "Civil") as typeof areaGeracao);
     setPartesEnvolvidas(modelo.partesEnvolvidas || ""); setLegislacaoRelevante(modelo.legislacaoRelevante || ""); setDetalhesAdicionais(modelo.detalhesAdicionais || "");
-    setActiveTab("gerar"); toast.success(`Modelo "${modelo.nome}" carregado!`);
+    setActiveTab("criar"); toast.success(`Modelo "${modelo.nome}" carregado!`);
   };
 
   const gerarDocumentoFinal = () => {
@@ -403,9 +403,9 @@ export default function Dashboard() {
         {modoWizard ? (
           <WizardPromptGenerator
             onComplete={(data: WizardData) => {
-              if (data.objetivo === 'analisar') { setPromptAnalise(data.descricaoCaso); setActiveTab('revisar'); setModoWizard(false); setTimeout(handleAnalisar, 100); }
-              else if (data.objetivo === 'gerar') { setAreaGeracao((data.areaJuridica === 'auto' ? 'Civil' : data.areaJuridica) as typeof areaGeracao); setContextoJuridico(data.descricaoCaso); setActiveTab('gerar'); setModoWizard(false); setTimeout(handleGerar, 100); }
-              else if (data.objetivo === 'otimizar') { setPromptOtimizacao(data.descricaoCaso); setActiveTab('revisar'); setModoWizard(false); setTimeout(handleOtimizar, 100); }
+              if (data.objetivo === 'analisar') { setPromptAnalise(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); setTimeout(handleAnalisar, 100); }
+              else if (data.objetivo === 'gerar') { setAreaGeracao((data.areaJuridica === 'auto' ? 'Civil' : data.areaJuridica) as typeof areaGeracao); setContextoJuridico(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); setTimeout(handleGerar, 100); }
+              else if (data.objetivo === 'otimizar') { setPromptOtimizacao(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); setTimeout(handleOtimizar, 100); }
             }}
             onCancel={() => setModoWizard(false)}
           />
@@ -415,10 +415,9 @@ export default function Dashboard() {
             <div className="mb-4">
               <ProviderStatus />
             </div>
-            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-5 mb-8">
+            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="home" className="flex items-center gap-2"><Scale className="w-4 h-4" />Dashboard</TabsTrigger>
-              <TabsTrigger value="revisar" className="flex items-center gap-2"><Sparkles className="w-4 h-4" />Revisar</TabsTrigger>
-              <TabsTrigger value="gerar" className="flex items-center gap-2"><Zap className="w-4 h-4" />Gerar Prompt</TabsTrigger>
+              <TabsTrigger value="criar" className="flex items-center gap-2"><Sparkles className="w-4 h-4" />Criar peça</TabsTrigger>
               <TabsTrigger value="documentos" className="flex items-center gap-2"><FileText className="w-4 h-4" />Documentos</TabsTrigger>
               <TabsTrigger value="modelos" className="flex items-center gap-2"><FileText className="w-4 h-4" />Modelos</TabsTrigger>
             </TabsList>
@@ -429,34 +428,39 @@ export default function Dashboard() {
             </TabsContent>
 
             {/* ═══════════════ Tab: Analisar ═══════════════ */}
-            <TabsContent value="revisar" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary" />Revisar Prompt — Análise &amp; Otimização</CardTitle>
-                  <CardDescription>Escreva uma vez: analise a qualidade ou gere uma versão otimizada — tudo sobre o mesmo texto.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ModelSelector value={selectedModel} onChange={handleModelChange} disabled={analiseMutation.isPending} />
-                  <div className="space-y-2">
-                    <Label htmlFor="prompt-analise">Prompt</Label>
-                    <HighlightedTextarea value={promptAnalise} onChange={setPromptAnalise} placeholder="Cole aqui o prompt que deseja analisar..." showValidation={true} minHeight="200px" />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Button onClick={handleAnalisar} disabled={analiseMutation.isPending || otimizacaoMutation.isPending}>
-                      {analiseMutation.isPending ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Analisando...</>) : (<><Sparkles className="mr-2 w-4 h-4" />Analisar</>)}
-                    </Button>
-                    <Button type="button" variant="secondary" onClick={handleOtimizar} disabled={analiseMutation.isPending || otimizacaoMutation.isPending}>
-                      {otimizacaoMutation.isPending ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Otimizando...</>) : (<><Shield className="mr-2 w-4 h-4" />Otimizar</>)}
-                    </Button>
-                  </div>
-                  <Button onClick={() => {
-                      if (pecaTexto || analiseMutation.data || otimizacaoMutation.data) { if (!confirm('Limpar todos os campos de todas as abas?')) return; }
+            <TabsContent value="criar" className="mt-0">
+              <TabGerar
+                selectedModel={selectedModel}
+                handleModelChange={handleModelChange}
+                onPreview={(data) => { setPreviewData(data); setPreviewOpen(true); }}
+                onSaveTemplate={openSaveTemplateDialog}
+                onGerarDocumento={(promptId, conteudo, tipo) => {
+                  gerarDocMutation.mutate({ promptId, titulo: `Prompt Jurídico - ${tipo}`, conteudo, incluirCabecalho: true, incluirDataHora: true });
+                }}
+                isGerandoDoc={gerarDocMutation.isPending}
+                initialArea={areaGeracao}
+                contexto={contextoJuridico}
+                setContexto={setContextoJuridico}
+                onNavigateToDocumentos={() => {
+                  setActiveTab("documentos");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  toast.info("Navegando para a aba Documentos");
+                }}
+                onNavigateToAnalise={() => {
+                  setActiveTab("criar");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  toast.info("Navegando para a aba Análise");
+                }}
+                onAnalisar={handleAnalisar}
+                onOtimizar={handleOtimizar}
+                onLimpar={() => {
+                  if (pecaTexto || analiseMutation.data || otimizacaoMutation.data) { if (!confirm('Limpar todos os campos de todas as abas?')) return; }
                       setPromptAnalise(''); analiseMutation.reset(); setContextoJuridico(''); setObjetivoEspecifico(''); setPartesEnvolvidas(''); setLegislacaoRelevante(''); setDetalhesAdicionais(''); setTipoDocumento('peticao'); setAreaGeracao('Civil'); geracaoMutation.reset(); setPromptOtimizacao(''); otimizacaoMutation.reset();
                       toast.success('Todos os campos foram limpos!');
-                    }} variant="outline" className="w-full" disabled={analiseMutation.isPending || otimizacaoMutation.isPending}>
-                    <Trash2 className="mr-2 w-4 h-4" />Limpar Tudo
-                  </Button>
-
+                }}
+                isAnalisando={analiseMutation.isPending}
+                isOtimizando={otimizacaoMutation.isPending}
+                revisaoSlot={(<>
                   <GenerationStepper isGenerating={analiseMutation.isPending} type="analise" />
                   <GenerationStepper isGenerating={otimizacaoMutation.isPending} type="otimizacao" />
 
@@ -643,7 +647,7 @@ export default function Dashboard() {
                           if (otimizacaoMutation.data?.area) setAreaGeracao(otimizacaoMutation.data.area as typeof areaGeracao);
                           setContextoJuridico(`Prompt otimizado: ${otimizacaoMutation.data?.promptOtimizado?.substring(0, 150)}...`);
                           setObjetivoEspecifico('Gerar nova versão baseada no prompt otimizado');
-                          setActiveTab('gerar'); toast.success('Pronto para gerar nova versão!');
+                          setActiveTab('criar'); toast.success('Pronto para gerar nova versão!');
                         }} className="w-full" size="lg">
                           <Zap className="w-4 h-4 mr-2" />Gerar Prompt Profissional
                         </Button>
@@ -654,33 +658,7 @@ export default function Dashboard() {
                   {otimizacaoMutation.error && (
                     <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-sm text-destructive text-sm">Erro: {otimizacaoMutation.error.message}</div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* ═══════════════ Tab: Gerar (Artifact View) ═══════════════ */}
-            <TabsContent value="gerar" className="mt-0">
-              <TabGerar
-                selectedModel={selectedModel}
-                handleModelChange={handleModelChange}
-                onPreview={(data) => { setPreviewData(data); setPreviewOpen(true); }}
-                onSaveTemplate={openSaveTemplateDialog}
-                onGerarDocumento={(promptId, conteudo, tipo) => {
-                  gerarDocMutation.mutate({ promptId, titulo: `Prompt Jurídico - ${tipo}`, conteudo, incluirCabecalho: true, incluirDataHora: true });
-                }}
-                isGerandoDoc={gerarDocMutation.isPending}
-                initialArea={areaGeracao}
-                initialContexto={contextoJuridico}
-                onNavigateToDocumentos={() => {
-                  setActiveTab("documentos");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                  toast.info("Navegando para a aba Documentos");
-                }}
-                onNavigateToAnalise={() => {
-                  setActiveTab("revisar");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                  toast.info("Navegando para a aba Análise");
-                }}
+                </>)}
               />
             </TabsContent>
 
