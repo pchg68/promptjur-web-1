@@ -293,6 +293,18 @@ export default function Dashboard() {
     }
   }, [promptIdFromUrl, promptQuery.data]);
 
+  // [Fase 4] Recebe prompt vindo da JurIA / Meus Prompts (handoff via sessionStorage)
+  useEffect(() => {
+    const stash = sessionStorage.getItem("promptJur_promptSelecionado");
+    if (stash) {
+      setPecaTexto(stash);
+      setActiveTab("criar");
+      sessionStorage.removeItem("promptJur_promptSelecionado");
+      sessionStorage.removeItem("promptJur_estrategiaSelecionada");
+      toast.success("Prompt carregado na Criar peça!");
+    }
+  }, []);
+
   // Handlers
   const handleAnalisar = async () => {
     if (!promptAnalise.trim()) { toast.error("Por favor, insira um prompt para analisar"); return; }

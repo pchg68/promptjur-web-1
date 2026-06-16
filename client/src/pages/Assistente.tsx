@@ -492,10 +492,10 @@ export default function Assistente() {
       });
     }
 
-    toast.success("Prompt salvo em Meus Prompts! Acesse a aba Documentos para gerar seu documento.", {
+    toast.success("Prompt salvo! Abra a Criar peça para gerar seu documento.", {
       duration: 5000,
       action: {
-        label: "Ir para Documentos",
+        label: "Ir para Criar peça",
         onClick: () => navigate("/dashboard"),
       },
     });
