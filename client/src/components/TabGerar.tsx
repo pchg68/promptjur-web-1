@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, type Dispatch, type SetStateAction, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -43,9 +43,16 @@ interface TabGerarProps {
   onGerarDocumento: (promptId: number, conteudo: string, tipo: string) => void;
   isGerandoDoc: boolean;
   initialArea?: string;
-  initialContexto?: string;
+  contexto: string;
+  setContexto: Dispatch<SetStateAction<string>>;
   onNavigateToDocumentos?: () => void;
   onNavigateToAnalise?: () => void;
+  onAnalisar?: () => void;
+  onOtimizar?: () => void;
+  onLimpar?: () => void;
+  isAnalisando?: boolean;
+  isOtimizando?: boolean;
+  revisaoSlot?: ReactNode;
 }
 
 const PROMPT_SECTIONS = [
@@ -97,11 +104,11 @@ function parsePromptSections(text: string): { key: string; content: string }[] {
 
 export default function TabGerar({
   selectedModel, handleModelChange, onPreview, onSaveTemplate, onGerarDocumento, isGerandoDoc,
-  initialArea = "", initialContexto = "",
+  initialArea = "", contexto, setContexto,
   onNavigateToDocumentos, onNavigateToAnalise,
+  onAnalisar, onOtimizar, onLimpar, isAnalisando, isOtimizando, revisaoSlot,
 }: TabGerarProps) {
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("peticao");
-  const [contexto, setContexto] = useState(initialContexto);
   const [objetivo, setObjetivo] = useState("");
   const [areaJuridica, setAreaJuridica] = useState(initialArea);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -183,8 +190,7 @@ export default function TabGerar({
 
   useEffect(() => {
     if (initialArea) setAreaJuridica(initialArea);
-    if (initialContexto) setContexto(initialContexto);
-  }, [initialArea, initialContexto]);
+  }, [initialArea]);
 
   // Limpa a dica quando o tipo de documento ou área muda
   useEffect(() => {
@@ -597,6 +603,16 @@ export default function TabGerar({
 
         {/* Botão Gerar — fixo no rodapé do painel */}
         <div className="flex-shrink-0 p-3 border-t border-border bg-card">
+          {onAnalisar && (
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <Button type="button" variant="outline" size="sm" onClick={onAnalisar} disabled={isAnalisando || isOtimizando || geracaoMutation.isPending}>
+                {isAnalisando ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Analisando...</>) : (<><Sparkles className="mr-2 w-4 h-4" />Analisar</>)}
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => onOtimizar?.()} disabled={isAnalisando || isOtimizando || geracaoMutation.isPending}>
+                {isOtimizando ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Otimizando...</>) : (<><ShieldCheck className="mr-2 w-4 h-4" />Otimizar</>)}
+              </Button>
+            </div>
+          )}
           <Button
             onClick={handleGerar}
             disabled={geracaoMutation.isPending || isSugerindo}
@@ -612,6 +628,9 @@ export default function TabGerar({
             <div className="mt-2">
               <GenerationStepper isGenerating={geracaoMutation.isPending} type="geracao" />
             </div>
+          )}
+          {onLimpar && (
+            <button type="button" onClick={onLimpar} className="w-full mt-2 text-[11px] text-muted-foreground hover:text-foreground transition-colors">Limpar tudo</button>
           )}
         </div>
       </div>
@@ -655,6 +674,7 @@ export default function TabGerar({
 
         {/* Corpo do resultado — scrollável */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {revisaoSlot}
           {!hasResult && !geracaoMutation.isPending && (
             /* Estado vazio */
             <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground text-center py-16">
