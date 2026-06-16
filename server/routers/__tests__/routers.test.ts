@@ -30,8 +30,6 @@ describe("Router Modules - File Structure", () => {
     const expectedComponents = [
       "DashboardHeader2.tsx",
       "DashboardMetrics.tsx",
-      "TabAnalisar.tsx",
-      "TabOtimizar.tsx",
       "TabGerar.tsx",
       "PromptActions.tsx",
       "AIDisclaimer.tsx",
@@ -127,14 +125,14 @@ describe("Component Refactoring - Content Validation", () => {
     expect(content).toContain("PostGenerationGuide");
   });
 
-  it("TabAnalisar should have analysis mutation", () => {
-    const content = readFileSync(resolve(clientDir, "components", "TabAnalisar.tsx"), "utf-8");
-    expect(content).toContain("trpc.prompts.analisar");
-  });
-
-  it("TabOtimizar should have optimization mutation", () => {
-    const content = readFileSync(resolve(clientDir, "components", "TabOtimizar.tsx"), "utf-8");
-    expect(content).toContain("trpc.prompts.otimizar");
+  it("Dashboard should have analysis and optimization mutations (merged from 2B-2)", () => {
+    const dashboardContent = readFileSync(resolve(clientDir, "pages", "Dashboard.tsx"), "utf-8");
+    expect(dashboardContent).toContain("trpc.prompts.analisar");
+    expect(dashboardContent).toContain("trpc.prompts.otimizar");
+    // TabGerar receives callbacks (onAnalisar/onOtimizar) — mutations live in Dashboard
+    const tabGerarContent = readFileSync(resolve(clientDir, "components", "TabGerar.tsx"), "utf-8");
+    expect(tabGerarContent).toContain("onAnalisar");
+    expect(tabGerarContent).toContain("onOtimizar");
   });
 
   it("AIDisclaimer should warn about source verification", () => {
