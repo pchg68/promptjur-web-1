@@ -286,7 +286,7 @@ export default function Dashboard() {
     if (promptIdFromUrl && promptQuery.data) {
       const prompt = promptQuery.data;
       setPromptOtimizacao(prompt.promptOriginal || prompt.promptOtimizado || "");
-      setActiveTab("otimizar");
+      setActiveTab("revisar");
       toast.success(`Prompt #${prompt.id} carregado para reutilização!`);
       window.history.replaceState({}, '', '/dashboard');
     }
@@ -403,9 +403,9 @@ export default function Dashboard() {
         {modoWizard ? (
           <WizardPromptGenerator
             onComplete={(data: WizardData) => {
-              if (data.objetivo === 'analisar') { setPromptAnalise(data.descricaoCaso); setActiveTab('analisar'); setModoWizard(false); setTimeout(handleAnalisar, 100); }
+              if (data.objetivo === 'analisar') { setPromptAnalise(data.descricaoCaso); setActiveTab('revisar'); setModoWizard(false); setTimeout(handleAnalisar, 100); }
               else if (data.objetivo === 'gerar') { setAreaGeracao((data.areaJuridica === 'auto' ? 'Civil' : data.areaJuridica) as typeof areaGeracao); setContextoJuridico(data.descricaoCaso); setActiveTab('gerar'); setModoWizard(false); setTimeout(handleGerar, 100); }
-              else if (data.objetivo === 'otimizar') { setPromptOtimizacao(data.descricaoCaso); setActiveTab('otimizar'); setModoWizard(false); setTimeout(handleOtimizar, 100); }
+              else if (data.objetivo === 'otimizar') { setPromptOtimizacao(data.descricaoCaso); setActiveTab('revisar'); setModoWizard(false); setTimeout(handleOtimizar, 100); }
             }}
             onCancel={() => setModoWizard(false)}
           />
@@ -414,10 +414,9 @@ export default function Dashboard() {
             <div className="mb-4">
               <ProviderStatus />
             </div>
-            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-6 mb-8">
+            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-5 mb-8">
               <TabsTrigger value="home" className="flex items-center gap-2"><Scale className="w-4 h-4" />Dashboard</TabsTrigger>
-              <TabsTrigger value="analisar" className="flex items-center gap-2"><Sparkles className="w-4 h-4" />Analisar</TabsTrigger>
-              <TabsTrigger value="otimizar" className="flex items-center gap-2"><Shield className="w-4 h-4" />Otimizar</TabsTrigger>
+              <TabsTrigger value="revisar" className="flex items-center gap-2"><Sparkles className="w-4 h-4" />Revisar</TabsTrigger>
               <TabsTrigger value="gerar" className="flex items-center gap-2"><Zap className="w-4 h-4" />Gerar Prompt</TabsTrigger>
               <TabsTrigger value="documentos" className="flex items-center gap-2"><FileText className="w-4 h-4" />Documentos</TabsTrigger>
               <TabsTrigger value="modelos" className="flex items-center gap-2"><FileText className="w-4 h-4" />Modelos</TabsTrigger>
@@ -429,33 +428,37 @@ export default function Dashboard() {
             </TabsContent>
 
             {/* ═══════════════ Tab: Analisar ═══════════════ */}
-            <TabsContent value="analisar" className="space-y-6">
+            <TabsContent value="revisar" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary" />Análise de Prompt Jurídico</CardTitle>
-                  <CardDescription>Cole seu prompt abaixo para análise automática de área jurídica, palavras-chave e qualidade</CardDescription>
+                  <CardTitle className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary" />Revisar Prompt — Análise &amp; Otimização</CardTitle>
+                  <CardDescription>Escreva uma vez: analise a qualidade ou gere uma versão otimizada — tudo sobre o mesmo texto.</CardDescription>
                   <AIDisclaimer className="mt-4" />
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ModelSelector value={selectedModel} onChange={handleModelChange} disabled={analiseMutation.isPending} />
                   <div className="space-y-2">
-                    <Label htmlFor="prompt-analise">Prompt para Análise</Label>
+                    <Label htmlFor="prompt-analise">Prompt</Label>
                     <HighlightedTextarea value={promptAnalise} onChange={setPromptAnalise} placeholder="Cole aqui o prompt que deseja analisar..." showValidation={true} minHeight="200px" />
                   </div>
-                  <div className="grid grid-cols-[1fr_auto] gap-3">
-                    <Button onClick={handleAnalisar} disabled={analiseMutation.isPending}>
-                      {analiseMutation.isPending ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Analisando...</>) : (<><Sparkles className="mr-2 w-4 h-4" />Analisar Prompt</>)}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Button onClick={handleAnalisar} disabled={analiseMutation.isPending || otimizacaoMutation.isPending}>
+                      {analiseMutation.isPending ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Analisando...</>) : (<><Sparkles className="mr-2 w-4 h-4" />Analisar</>)}
                     </Button>
-                    <Button onClick={() => {
-                      if (promptAnalise || analiseMutation.data) { if (!confirm('Limpar todos os campos de todas as abas?')) return; }
-                      setPromptAnalise(''); analiseMutation.reset(); setContextoJuridico(''); setObjetivoEspecifico(''); setPartesEnvolvidas(''); setLegislacaoRelevante(''); setDetalhesAdicionais(''); setTipoDocumento('peticao'); setAreaGeracao('Civil'); geracaoMutation.reset(); setPromptOtimizacao(''); otimizacaoMutation.reset();
-                      toast.success('Todos os campos foram limpos!');
-                    }} variant="outline" disabled={analiseMutation.isPending}>
-                      <Trash2 className="mr-2 w-4 h-4" />Limpar Tudo
+                    <Button type="button" variant="secondary" onClick={handleOtimizar} disabled={analiseMutation.isPending || otimizacaoMutation.isPending}>
+                      {otimizacaoMutation.isPending ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Otimizando...</>) : (<><Shield className="mr-2 w-4 h-4" />Otimizar</>)}
                     </Button>
                   </div>
+                  <Button onClick={() => {
+                      if (pecaTexto || analiseMutation.data || otimizacaoMutation.data) { if (!confirm('Limpar todos os campos de todas as abas?')) return; }
+                      setPromptAnalise(''); analiseMutation.reset(); setContextoJuridico(''); setObjetivoEspecifico(''); setPartesEnvolvidas(''); setLegislacaoRelevante(''); setDetalhesAdicionais(''); setTipoDocumento('peticao'); setAreaGeracao('Civil'); geracaoMutation.reset(); setPromptOtimizacao(''); otimizacaoMutation.reset();
+                      toast.success('Todos os campos foram limpos!');
+                    }} variant="outline" className="w-full" disabled={analiseMutation.isPending || otimizacaoMutation.isPending}>
+                    <Trash2 className="mr-2 w-4 h-4" />Limpar Tudo
+                  </Button>
 
                   <GenerationStepper isGenerating={analiseMutation.isPending} type="analise" />
+                  <GenerationStepper isGenerating={otimizacaoMutation.isPending} type="otimizacao" />
 
                   {analiseMutation.data && (
                     <div className="mt-6 space-y-4 p-6 bg-card border border-border rounded-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -554,9 +557,8 @@ export default function Dashboard() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <Button
                             onClick={() => {
-                              setPromptOtimizacao(promptAnalise);
-                              setActiveTab("otimizar");
-                              toast.info("Prompt carregado na aba Otimizar!");
+                              handleOtimizar();
+                              toast.info("Otimizando este prompt...");
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             size="lg"
@@ -590,55 +592,6 @@ export default function Dashboard() {
                       Erro: {analiseMutation.error.message}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* ═══════════════ Tab: Gerar (Artifact View) ═══════════════ */}
-            <TabsContent value="gerar" className="mt-0">
-              <TabGerar
-                selectedModel={selectedModel}
-                handleModelChange={handleModelChange}
-                onPreview={(data) => { setPreviewData(data); setPreviewOpen(true); }}
-                onSaveTemplate={openSaveTemplateDialog}
-                onGerarDocumento={(promptId, conteudo, tipo) => {
-                  gerarDocMutation.mutate({ promptId, titulo: `Prompt Jurídico - ${tipo}`, conteudo, incluirCabecalho: true, incluirDataHora: true });
-                }}
-                isGerandoDoc={gerarDocMutation.isPending}
-                initialArea={areaGeracao}
-                initialContexto={contextoJuridico}
-                onNavigateToDocumentos={() => {
-                  setActiveTab("documentos");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                  toast.info("Navegando para a aba Documentos");
-                }}
-                onNavigateToAnalise={() => {
-                  setActiveTab("analisar");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                  toast.info("Navegando para a aba Análise");
-                }}
-              />
-            </TabsContent>
-
-            {/* ═══════════════ Tab: Otimizar ═══════════════ */}
-            <TabsContent value="otimizar" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-primary" />Otimização de Prompt Jurídico</CardTitle>
-                  <CardDescription>Cole um prompt existente para receber sugestões de melhoria e uma versão otimizada</CardDescription>
-                  <AIDisclaimer className="mt-4" />
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ModelSelector value={selectedModel} onChange={handleModelChange} disabled={otimizacaoMutation.isPending} />
-                  <div className="space-y-2">
-                    <Label>Prompt para Otimizar</Label>
-                    <HighlightedTextarea value={promptOtimizacao} onChange={setPromptOtimizacao} placeholder="Cole aqui o prompt que deseja otimizar..." showValidation={true} minHeight="200px" />
-                  </div>
-                  <Button type="button" onClick={handleOtimizar} disabled={otimizacaoMutation.isPending} className="w-full">
-                    {otimizacaoMutation.isPending ? (<><Loader2 className="mr-2 w-4 h-4 animate-spin" />Otimizando...</>) : (<><Shield className="mr-2 w-4 h-4" />Otimizar Prompt</>)}
-                  </Button>
-
-                  <GenerationStepper isGenerating={otimizacaoMutation.isPending} type="otimizacao" />
 
                   {otimizacaoMutation.data && (
                     <div className="mt-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -662,8 +615,8 @@ export default function Dashboard() {
                           <Button
                             onClick={() => {
                               setPromptAnalise(otimizacaoMutation.data?.promptOtimizado || "");
-                              setActiveTab('analisar');
-                              toast.info('Versão otimizada carregada na aba Análise!');
+                              setTimeout(handleAnalisar, 50);
+                              toast.info('Analisando a versão otimizada...');
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             variant="outline"
@@ -703,6 +656,32 @@ export default function Dashboard() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* ═══════════════ Tab: Gerar (Artifact View) ═══════════════ */}
+            <TabsContent value="gerar" className="mt-0">
+              <TabGerar
+                selectedModel={selectedModel}
+                handleModelChange={handleModelChange}
+                onPreview={(data) => { setPreviewData(data); setPreviewOpen(true); }}
+                onSaveTemplate={openSaveTemplateDialog}
+                onGerarDocumento={(promptId, conteudo, tipo) => {
+                  gerarDocMutation.mutate({ promptId, titulo: `Prompt Jurídico - ${tipo}`, conteudo, incluirCabecalho: true, incluirDataHora: true });
+                }}
+                isGerandoDoc={gerarDocMutation.isPending}
+                initialArea={areaGeracao}
+                initialContexto={contextoJuridico}
+                onNavigateToDocumentos={() => {
+                  setActiveTab("documentos");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  toast.info("Navegando para a aba Documentos");
+                }}
+                onNavigateToAnalise={() => {
+                  setActiveTab("revisar");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  toast.info("Navegando para a aba Análise");
+                }}
+              />
             </TabsContent>
 
             {/* ═══════════════ Tab: Documentos ═══════════════ */}
