@@ -99,14 +99,14 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
       icon: <Search className="w-4 h-4" />,
       label: "Analisar Prompt",
       desc: "Avalie qualidade e área jurídica automaticamente",
-      tab: "analisar",
+      tab: "revisar",
       primary: false,
     },
     {
       icon: <Zap className="w-4 h-4" />,
       label: "Otimizar Prompt",
       desc: "Melhore prompts existentes com sugestões de IA",
-      tab: "otimizar",
+      tab: "revisar",
       primary: false,
     },
     {
