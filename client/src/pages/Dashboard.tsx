@@ -234,6 +234,7 @@ export default function Dashboard() {
   // Estado para preencher TabDocumentos ao navegar da aba Análise
   const [documentosInitialContexto, setDocumentosInitialContexto] = useState<string>("");
   const [documentosInitialArea, setDocumentosInitialArea] = useState<string>("");
+  const [modoCriar, setModoCriar] = useState<"rapido" | "avancado">("rapido");
 
   // Modelos
   const [filtroTipoModelo, setFiltroTipoModelo] = useState<string | undefined>(undefined);
@@ -415,10 +416,9 @@ export default function Dashboard() {
             <div className="mb-4">
               <ProviderStatus />
             </div>
-            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-4 mb-8">
+            <TabsList data-tour="tabs-list" className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="home" className="flex items-center gap-2"><Scale className="w-4 h-4" />Dashboard</TabsTrigger>
               <TabsTrigger value="criar" className="flex items-center gap-2"><Sparkles className="w-4 h-4" />Criar peça</TabsTrigger>
-              <TabsTrigger value="documentos" className="flex items-center gap-2"><FileText className="w-4 h-4" />Documentos</TabsTrigger>
               <TabsTrigger value="modelos" className="flex items-center gap-2"><FileText className="w-4 h-4" />Modelos</TabsTrigger>
             </TabsList>
 
@@ -429,6 +429,15 @@ export default function Dashboard() {
 
             {/* ═══════════════ Tab: Analisar ═══════════════ */}
             <TabsContent value="criar" className="mt-0">
+              <div className="flex items-center gap-1 mb-4 w-fit rounded-lg border border-border bg-muted/30 p-1">
+                <Button type="button" variant={modoCriar === "rapido" ? "default" : "ghost"} size="sm" className="h-7 gap-1.5 text-xs" onClick={() => setModoCriar("rapido")}>
+                  <Sparkles className="w-3.5 h-3.5" />Rápido
+                </Button>
+                <Button type="button" variant={modoCriar === "avancado" ? "default" : "ghost"} size="sm" className="h-7 gap-1.5 text-xs" onClick={() => setModoCriar("avancado")}>
+                  <Maximize2 className="w-3.5 h-3.5" />Avançado
+                </Button>
+              </div>
+              {modoCriar === "rapido" ? (
               <TabGerar
                 selectedModel={selectedModel}
                 handleModelChange={handleModelChange}
@@ -442,9 +451,9 @@ export default function Dashboard() {
                 contexto={contextoJuridico}
                 setContexto={setContextoJuridico}
                 onNavigateToDocumentos={() => {
-                  setActiveTab("documentos");
+                  setModoCriar("avancado");
                   window.scrollTo({ top: 0, behavior: "smooth" });
-                  toast.info("Navegando para a aba Documentos");
+                  toast.info("Modo avançado ativado");
                 }}
                 onNavigateToAnalise={() => {
                   setActiveTab("criar");
@@ -575,8 +584,8 @@ export default function Dashboard() {
                             onClick={() => {
                               setDocumentosInitialContexto(promptAnalise);
                               setDocumentosInitialArea(analiseMutation.data?.area || "Civil");
-                              setActiveTab("documentos");
-                              toast.info("Prompt carregado na aba Documentos!");
+                              setModoCriar("avancado");
+                              toast.info("Enviado para o Modo Avançado!");
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             size="lg"
@@ -633,8 +642,8 @@ export default function Dashboard() {
                             onClick={() => {
                               setDocumentosInitialContexto(otimizacaoMutation.data?.promptOtimizado || "");
                               setDocumentosInitialArea(otimizacaoMutation.data?.area || "Civil");
-                              setActiveTab('documentos');
-                              toast.info('Prompt otimizado carregado na aba Documentos!');
+                              setModoCriar("avancado");
+                              toast.info('Enviado para o Modo Avançado!');
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             variant="outline"
@@ -660,11 +669,9 @@ export default function Dashboard() {
                   )}
                 </>)}
               />
-            </TabsContent>
-
-            {/* ═══════════════ Tab: Documentos ═══════════════ */}
-            <TabsContent value="documentos" className="space-y-6">
-              <TabDocumentos initialContexto={documentosInitialContexto} initialArea={documentosInitialArea} />
+              ) : (
+                <TabDocumentos initialContexto={documentosInitialContexto || contextoJuridico} initialArea={documentosInitialArea || areaGeracao} />
+              )}
             </TabsContent>
 
             {/* ═══════════════ Tab: Modelos ═══════════════ */}
