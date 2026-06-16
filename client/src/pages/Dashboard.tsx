@@ -411,6 +411,7 @@ export default function Dashboard() {
           />
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <AIDisclaimer className="mb-4" />
             <div className="mb-4">
               <ProviderStatus />
             </div>
@@ -433,7 +434,6 @@ export default function Dashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary" />Revisar Prompt — Análise &amp; Otimização</CardTitle>
                   <CardDescription>Escreva uma vez: analise a qualidade ou gere uma versão otimizada — tudo sobre o mesmo texto.</CardDescription>
-                  <AIDisclaimer className="mt-4" />
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ModelSelector value={selectedModel} onChange={handleModelChange} disabled={analiseMutation.isPending} />
