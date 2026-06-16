@@ -19,7 +19,6 @@ import { DisclaimerLegal } from "@/components/DisclaimerLegal";
 import { ValidacaoLegislacao } from "@/components/ValidacaoLegislacao";
 import PromptActions from "@/components/PromptActions";
 import GenerationStepper from "@/components/GenerationStepper";
-import AIDisclaimer from "@/components/AIDisclaimer";
 import PostGenerationGuide from "@/components/PostGenerationGuide";
 import { TIPOS_DOCUMENTO, type TipoDocumento } from "@/utils/dashboardUtils";
 import { AREAS_JURIDICAS } from "@/const";
@@ -686,7 +685,6 @@ export default function TabGerar({
 
           {hasResult && (
             <>
-              <AIDisclaimer />
 
               {/* Toggle de modo de visualização */}
               <div className="flex items-center gap-2 mb-2">
