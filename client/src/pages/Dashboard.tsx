@@ -164,7 +164,7 @@ export default function Dashboard() {
   });
 
   // Estado para Geração (mantido para compatibilidade com Wizard e usarModelo)
-  const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("peticao");
+  const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento | "auto">("auto"); // [2a] núcleo compartilhado
   const contextoJuridico = pecaTexto;            // [Fase 1] alias do buffer único (pecaTexto)
   const setContextoJuridico = setPecaTexto;
   const [objetivoEspecifico, setObjetivoEspecifico] = useState("");
@@ -316,7 +316,7 @@ export default function Dashboard() {
     e?.preventDefault(); e?.stopPropagation();
     if (!contextoJuridico.trim() || !objetivoEspecifico.trim()) { toast.error("Por favor, preencha os campos obrigatórios (Contexto e Objetivo)"); return; }
     const { provider, model } = parseModelValue(selectedModel);
-    geracaoMutation.mutate({ tipoDocumento, contextoJuridico, objetivoEspecifico, area: (areaGeracao === "auto" ? undefined : areaGeracao), partesEnvolvidas: partesEnvolvidas || undefined, legislacaoRelevante: legislacaoRelevante || undefined, detalhesAdicionais: detalhesAdicionais || undefined, provider, model });
+    geracaoMutation.mutate({ tipoDocumento: (tipoDocumento === "auto" ? undefined : tipoDocumento), contextoJuridico, objetivoEspecifico, area: (areaGeracao === "auto" ? undefined : areaGeracao), partesEnvolvidas: partesEnvolvidas || undefined, legislacaoRelevante: legislacaoRelevante || undefined, detalhesAdicionais: detalhesAdicionais || undefined, provider, model });
   };
 
   const handleOtimizar = async (e?: React.MouseEvent) => {
@@ -463,7 +463,10 @@ export default function Dashboard() {
                 }}
                 isGerandoDoc={gerarDocMutation.isPending}
                 initialArea={areaGeracao === "auto" ? "" : areaGeracao}
-                initialObjetivo={objetivoEspecifico}
+                objetivo={objetivoEspecifico}
+                setObjetivo={setObjetivoEspecifico}
+                tipoDocumento={tipoDocumento}
+                setTipoDocumento={setTipoDocumento}
                 contexto={contextoJuridico}
                 setContexto={setContextoJuridico}
                 onNavigateToDocumentos={() => {
@@ -480,7 +483,7 @@ export default function Dashboard() {
                 onOtimizar={handleOtimizar}
                 onLimpar={() => {
                   if (pecaTexto || analiseMutation.data || otimizacaoMutation.data) { if (!confirm('Limpar todos os campos de todas as abas?')) return; }
-                      setPromptAnalise(''); analiseMutation.reset(); setContextoJuridico(''); setObjetivoEspecifico(''); setPartesEnvolvidas(''); setLegislacaoRelevante(''); setDetalhesAdicionais(''); setTipoDocumento('peticao'); setAreaGeracao('auto'); geracaoMutation.reset(); setPromptOtimizacao(''); otimizacaoMutation.reset();
+                      setPromptAnalise(''); analiseMutation.reset(); setContextoJuridico(''); setObjetivoEspecifico(''); setPartesEnvolvidas(''); setLegislacaoRelevante(''); setDetalhesAdicionais(''); setTipoDocumento('auto'); setAreaGeracao('auto'); geracaoMutation.reset(); setPromptOtimizacao(''); otimizacaoMutation.reset();
                       toast.success('Todos os campos foram limpos!');
                 }}
                 isAnalisando={analiseMutation.isPending}
@@ -686,7 +689,7 @@ export default function Dashboard() {
                 </>)}
               />
               ) : (
-                <TabDocumentos initialContexto={documentosInitialContexto || contextoJuridico} initialArea={documentosInitialArea || (areaGeracao === "auto" ? "auto" : areaGeracao)} />
+                <TabDocumentos initialContexto={documentosInitialContexto || contextoJuridico} initialArea={documentosInitialArea || (areaGeracao === "auto" ? "auto" : areaGeracao)} initialObjetivo={objetivoEspecifico} initialTipo={tipoDocumento} />
               )}
             </TabsContent>
 

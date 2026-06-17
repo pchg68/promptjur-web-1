@@ -43,7 +43,10 @@ interface TabGerarProps {
   onGerarDocumento: (promptId: number, conteudo: string, tipo: string) => void;
   isGerandoDoc: boolean;
   initialArea?: string;
-  initialObjetivo?: string;
+  objetivo: string;
+  setObjetivo: Dispatch<SetStateAction<string>>;
+  tipoDocumento: TipoDocumento | "auto";
+  setTipoDocumento: Dispatch<SetStateAction<TipoDocumento | "auto">>;
   contexto: string;
   setContexto: Dispatch<SetStateAction<string>>;
   onNavigateToDocumentos?: () => void;
@@ -105,12 +108,10 @@ function parsePromptSections(text: string): { key: string; content: string }[] {
 
 export default function TabGerar({
   selectedModel, handleModelChange, onPreview, onSaveTemplate, onGerarDocumento, isGerandoDoc,
-  initialArea = "", initialObjetivo = "", contexto, setContexto,
+  initialArea = "", objetivo, setObjetivo, tipoDocumento, setTipoDocumento, contexto, setContexto,
   onNavigateToDocumentos, onNavigateToAnalise,
   onAnalisar, onOtimizar, onLimpar, isAnalisando, isOtimizando, revisaoSlot,
 }: TabGerarProps) {
-  const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento | "auto">("auto"); // [#3] "auto" = detectar do texto
-  const [objetivo, setObjetivo] = useState("");
   const [areaJuridica, setAreaJuridica] = useState(initialArea);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showPersonalizar, setShowPersonalizar] = useState(false);
@@ -198,10 +199,6 @@ export default function TabGerar({
   useEffect(() => {
     if (initialArea) setAreaJuridica(initialArea);
   }, [initialArea]);
-
-  useEffect(() => {
-    if (initialObjetivo) setObjetivo(initialObjetivo);
-  }, [initialObjetivo]);
 
   // Limpa a dica quando o tipo de documento ou área muda
   useEffect(() => {

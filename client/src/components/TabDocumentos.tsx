@@ -66,13 +66,15 @@ const TIPOS_DOCUMENTO = [
 interface TabDocumentosProps {
   initialContexto?: string;
   initialArea?: string;
+  initialObjetivo?: string;
+  initialTipo?: string;
 }
 
-export default function TabDocumentos({ initialContexto, initialArea }: TabDocumentosProps = {}) {
-  const [tipoDocumento, setTipoDocumento] = useState<string>("auto");
+export default function TabDocumentos({ initialContexto, initialArea, initialObjetivo, initialTipo }: TabDocumentosProps = {}) {
+  const [tipoDocumento, setTipoDocumento] = useState<string>(initialTipo || "auto");
   const [areaJuridica, setAreaJuridica] = useState<string>(initialArea || "auto");
   const [contexto, setContexto] = useState<string>(initialContexto || "");
-  const [objetivo, setObjetivo] = useState<string>("");
+  const [objetivo, setObjetivo] = useState<string>(initialObjetivo || "");
   const [partesEnvolvidas, setPartesEnvolvidas] = useState<string>("");
   const [legislacao, setLegislacao] = useState<string>("");
   const [detalhes, setDetalhes] = useState<string>("");
@@ -92,6 +94,12 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
   useEffect(() => {
     if (initialArea) setAreaJuridica(initialArea);
   }, [initialArea]);
+  useEffect(() => {
+    if (initialObjetivo) setObjetivo(initialObjetivo);
+  }, [initialObjetivo]);
+  useEffect(() => {
+    if (initialTipo) setTipoDocumento(initialTipo);
+  }, [initialTipo]);
 
   const handleModelChange = (value: string) => {
     setSelectedModel(value);
