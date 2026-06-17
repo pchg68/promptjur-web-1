@@ -3,6 +3,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { validarLegislacao } from "../_core/validacaoLegislacao";
 import { getCacheStatistics } from "../db-legislacao-cache";
 import { logger } from "../_core/logger";
+import { AREAS_JURIDICAS, TIPOS_DOCUMENTO } from "@shared/juridico";
 
 export const documentosRouter = router({
   gerar: protectedProcedure
@@ -18,14 +19,44 @@ export const documentosRouter = router({
       const startTime = Date.now();
       try {
         const { gerarDocumentoComEstrategia } = await import("../estrategias-ia");
+        const { invokeUnifiedLLM } = await import("../unified-llm");
+        const normTxt = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+        // [2C-2] Auto-detecção de área/tipo a partir do texto (sentinela "auto"; espelha prompts.gerar)
+        let areaFinal = input.areaJuridica;
+        if (areaFinal === "auto") {
+          const llmArea = await invokeUnifiedLLM({
+            provider: input.provider, model: input.model,
+            messages: [
+              { role: "system", content: `Você é um especialista em direito brasileiro. Identifique APENAS a área jurídica do caso. Responda com UMA destas opções (texto exato): ${AREAS_JURIDICAS.join(", ")}` },
+              { role: "user", content: `Contexto: ${input.contexto}${input.objetivo ? `\nObjetivo: ${input.objetivo}` : ""}` }
+            ]
+          });
+          const r = normTxt(llmArea.content);
+          areaFinal = AREAS_JURIDICAS.find(a => r.includes(normTxt(a))) || "Civil";
+        }
+        let tipoFinal = input.tipoDocumento;
+        if (tipoFinal === "auto") {
+          const llmTipo = await invokeUnifiedLLM({
+            provider: input.provider, model: input.model,
+            messages: [
+              { role: "system", content: `Você é um especialista em direito brasileiro. Identifique APENAS o tipo de peça/documento mais adequado. Responda com UMA destas opções (texto exato): ${TIPOS_DOCUMENTO.map(t => t.label).join(", ")}` },
+              { role: "user", content: `Contexto: ${input.contexto}${input.objetivo ? `\nObjetivo: ${input.objetivo}` : ""}` }
+            ]
+          });
+          const r = normTxt(llmTipo.content);
+          tipoFinal = TIPOS_DOCUMENTO.find(t => r.includes(normTxt(t.label)) || r.includes(t.value))?.value || "peticao";
+        }
+
         const resultado = await gerarDocumentoComEstrategia({
-          tipoDocumento: input.tipoDocumento, areaJuridica: input.areaJuridica,
+          tipoDocumento: tipoFinal, areaJuridica: areaFinal,
           contexto: input.contexto, objetivo: input.objetivo,
           partesEnvolvidas: input.partesEnvolvidas, legislacao: input.legislacao,
           detalhes: input.detalhes, estrategia: input.estrategia
         });
         const validacaoLegislacao = await validarLegislacao(resultado.documento);
         return {
+          areaDetectada: areaFinal, tipoDetectado: tipoFinal,
           documento: resultado.documento, estrategiaUsada: resultado.estrategiaUsada,
           metadados: resultado.metadados,
           validacaoLegislacao: {

@@ -686,7 +686,7 @@ export default function Dashboard() {
                 </>)}
               />
               ) : (
-                <TabDocumentos initialContexto={documentosInitialContexto || contextoJuridico} initialArea={documentosInitialArea || (areaGeracao === "auto" ? "Civil" : areaGeracao)} />
+                <TabDocumentos initialContexto={documentosInitialContexto || contextoJuridico} initialArea={documentosInitialArea || (areaGeracao === "auto" ? "auto" : areaGeracao)} />
               )}
             </TabsContent>
 

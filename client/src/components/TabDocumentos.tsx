@@ -69,8 +69,8 @@ interface TabDocumentosProps {
 }
 
 export default function TabDocumentos({ initialContexto, initialArea }: TabDocumentosProps = {}) {
-  const [tipoDocumento, setTipoDocumento] = useState<string>("peticao");
-  const [areaJuridica, setAreaJuridica] = useState<string>(initialArea || "Civil");
+  const [tipoDocumento, setTipoDocumento] = useState<string>("auto");
+  const [areaJuridica, setAreaJuridica] = useState<string>(initialArea || "auto");
   const [contexto, setContexto] = useState<string>(initialContexto || "");
   const [objetivo, setObjetivo] = useState<string>("");
   const [partesEnvolvidas, setPartesEnvolvidas] = useState<string>("");
@@ -115,13 +115,19 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
       // Inicializar o documento editável com o resultado
       setDocumentoComJurisprudencia(data.documento);
 
+      // [2C-2] sincroniza os selects com o que foi detectado do texto
+      const tipoEfetivo = data.tipoDetectado || tipoDocumento;
+      const areaEfetiva = data.areaDetectada || areaJuridica;
+      setTipoDocumento(tipoEfetivo);
+      setAreaJuridica(areaEfetiva);
+
       // Salvar automaticamente no histórico de versões
-      const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento;
+      const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === tipoEfetivo)?.label || tipoEfetivo;
       salvarVersaoMutation.mutate({
         groupId: currentGroupId,
-        titulo: `${tipoLabel} — ${areaJuridica}`,
-        tipoDocumento,
-        areaJuridica,
+        titulo: `${tipoLabel} — ${areaEfetiva}`,
+        tipoDocumento: tipoEfetivo,
+        areaJuridica: areaEfetiva,
         estrategia: data.estrategiaUsada,
         contexto,
         objetivo: objetivo || undefined,
@@ -444,6 +450,7 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="auto">🪄 Detectar automaticamente</SelectItem>
                       {TIPOS_DOCUMENTO.map((tipo) => (
                         <SelectItem key={tipo.value} value={tipo.value}>
                           {tipo.label}
@@ -460,6 +467,7 @@ export default function TabDocumentos({ initialContexto, initialArea }: TabDocum
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="auto">🪄 Detectar automaticamente</SelectItem>
                       {AREAS_JURIDICAS.map((area) => (
                         <SelectItem key={area} value={area}>
                           {area}
