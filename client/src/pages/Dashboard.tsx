@@ -443,12 +443,15 @@ export default function Dashboard() {
             <TabsContent value="criar" className="mt-0">
               <div className="flex items-center gap-1 mb-4 w-fit rounded-lg border border-border bg-muted/30 p-1">
                 <Button type="button" variant={modoCriar === "rapido" ? "default" : "ghost"} size="sm" className="h-7 gap-1.5 text-xs" onClick={() => setModoCriar("rapido")}>
-                  <Sparkles className="w-3.5 h-3.5" />Rápido
+                  <Sparkles className="w-3.5 h-3.5" />Prompt
                 </Button>
                 <Button type="button" variant={modoCriar === "avancado" ? "default" : "ghost"} size="sm" className="h-7 gap-1.5 text-xs" onClick={() => setModoCriar("avancado")}>
-                  <Maximize2 className="w-3.5 h-3.5" />Avançado
+                  <FileText className="w-3.5 h-3.5" />Documento pronto
                 </Button>
               </div>
+              <p className="text-[11px] text-muted-foreground mb-3 -mt-1">
+                {modoCriar === "rapido" ? "Gera um prompt para usar em outra ferramenta de IA (ChatGPT, Claude…)." : "Gera o documento final já redigido, aqui mesmo."}
+              </p>
               {modoCriar === "rapido" ? (
               <TabGerar
                 selectedModel={selectedModel}
@@ -465,7 +468,7 @@ export default function Dashboard() {
                 onNavigateToDocumentos={() => {
                   setModoCriar("avancado");
                   window.scrollTo({ top: 0, behavior: "smooth" });
-                  toast.info("Modo avançado ativado");
+                  toast.info("Mudado para Documento pronto");
                 }}
                 onNavigateToAnalise={() => {
                   setActiveTab("criar");
@@ -597,7 +600,7 @@ export default function Dashboard() {
                               setDocumentosInitialContexto(promptAnalise);
                               setDocumentosInitialArea(analiseMutation.data?.area || "Civil");
                               setModoCriar("avancado");
-                              toast.info("Enviado para o Modo Avançado!");
+                              toast.info("Enviado para Documento pronto!");
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             size="lg"
@@ -655,7 +658,7 @@ export default function Dashboard() {
                               setDocumentosInitialContexto(otimizacaoMutation.data?.promptOtimizado || "");
                               setDocumentosInitialArea(otimizacaoMutation.data?.area || "Civil");
                               setModoCriar("avancado");
-                              toast.info('Enviado para o Modo Avançado!');
+                              toast.info('Enviado para Documento pronto!');
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             variant="outline"
