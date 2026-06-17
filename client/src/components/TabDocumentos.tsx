@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, type Dispatch, type SetStateAction } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -64,17 +64,17 @@ const TIPOS_DOCUMENTO = [
 ];
 
 interface TabDocumentosProps {
-  initialContexto?: string;
+  contexto: string;
+  setContexto: Dispatch<SetStateAction<string>>;
+  objetivo: string;
+  setObjetivo: Dispatch<SetStateAction<string>>;
   initialArea?: string;
-  initialObjetivo?: string;
   initialTipo?: string;
 }
 
-export default function TabDocumentos({ initialContexto, initialArea, initialObjetivo, initialTipo }: TabDocumentosProps = {}) {
+export default function TabDocumentos({ contexto, setContexto, objetivo, setObjetivo, initialArea, initialTipo }: TabDocumentosProps) {
   const [tipoDocumento, setTipoDocumento] = useState<string>(initialTipo || "auto");
   const [areaJuridica, setAreaJuridica] = useState<string>(initialArea || "auto");
-  const [contexto, setContexto] = useState<string>(initialContexto || "");
-  const [objetivo, setObjetivo] = useState<string>(initialObjetivo || "");
   const [partesEnvolvidas, setPartesEnvolvidas] = useState<string>("");
   const [legislacao, setLegislacao] = useState<string>("");
   const [detalhes, setDetalhes] = useState<string>("");
@@ -89,14 +89,8 @@ export default function TabDocumentos({ initialContexto, initialArea, initialObj
 
   // Atualizar campos quando props iniciais mudam (navegação da aba Análise)
   useEffect(() => {
-    if (initialContexto) setContexto(initialContexto);
-  }, [initialContexto]);
-  useEffect(() => {
     if (initialArea) setAreaJuridica(initialArea);
   }, [initialArea]);
-  useEffect(() => {
-    if (initialObjetivo) setObjetivo(initialObjetivo);
-  }, [initialObjetivo]);
   useEffect(() => {
     if (initialTipo) setTipoDocumento(initialTipo);
   }, [initialTipo]);

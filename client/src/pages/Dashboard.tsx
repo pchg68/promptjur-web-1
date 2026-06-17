@@ -232,7 +232,6 @@ export default function Dashboard() {
   const [previewData, setPreviewData] = useState<{ titulo: string; conteudo: string; areaJuridica?: string; tipoDocumento?: string; promptId?: number } | null>(null);
 
   // Estado para preencher TabDocumentos ao navegar da aba Análise
-  const [documentosInitialContexto, setDocumentosInitialContexto] = useState<string>("");
   const [documentosInitialArea, setDocumentosInitialArea] = useState<string>("");
   const [modoCriar, setModoCriar] = useState<"rapido" | "avancado">("rapido");
 
@@ -601,7 +600,7 @@ export default function Dashboard() {
                           </Button>
                           <Button
                             onClick={() => {
-                              setDocumentosInitialContexto(promptAnalise);
+                              setContextoJuridico(promptAnalise);
                               setDocumentosInitialArea(analiseMutation.data?.area || "Civil");
                               setModoCriar("avancado");
                               toast.info("Enviado para Documento pronto!");
@@ -659,7 +658,7 @@ export default function Dashboard() {
                           </Button>
                           <Button
                             onClick={() => {
-                              setDocumentosInitialContexto(otimizacaoMutation.data?.promptOtimizado || "");
+                              setContextoJuridico(otimizacaoMutation.data?.promptOtimizado || "");
                               setDocumentosInitialArea(otimizacaoMutation.data?.area || "Civil");
                               setModoCriar("avancado");
                               toast.info('Enviado para Documento pronto!');
@@ -689,7 +688,7 @@ export default function Dashboard() {
                 </>)}
               />
               ) : (
-                <TabDocumentos initialContexto={documentosInitialContexto || contextoJuridico} initialArea={documentosInitialArea || (areaGeracao === "auto" ? "auto" : areaGeracao)} initialObjetivo={objetivoEspecifico} initialTipo={tipoDocumento} />
+                <TabDocumentos contexto={contextoJuridico} setContexto={setContextoJuridico} objetivo={objetivoEspecifico} setObjetivo={setObjetivoEspecifico} initialArea={documentosInitialArea || (areaGeracao === "auto" ? "auto" : areaGeracao)} initialTipo={tipoDocumento} />
               )}
             </TabsContent>
 
