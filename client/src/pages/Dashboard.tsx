@@ -417,7 +417,7 @@ export default function Dashboard() {
           <WizardPromptGenerator
             onComplete={(data: WizardData) => {
               if (data.objetivo === 'analisar') { setPromptAnalise(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); setTimeout(handleAnalisar, 100); }
-              else if (data.objetivo === 'gerar') { setAreaGeracao((data.areaJuridica === 'auto' ? 'auto' : data.areaJuridica) as typeof areaGeracao); setContextoJuridico(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); setTimeout(handleGerar, 100); }
+              else if (data.objetivo === 'gerar') { setAreaGeracao((data.areaJuridica === 'auto' ? 'auto' : data.areaJuridica) as typeof areaGeracao); setContextoJuridico(data.descricaoCaso); setObjetivoEspecifico(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); toast.success('Caso carregado na Criar peça. Revise e clique em Gerar Prompt (a área e o tipo serão detectados pelo texto).'); }
               else if (data.objetivo === 'otimizar') { setPromptOtimizacao(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); setTimeout(handleOtimizar, 100); }
             }}
             onCancel={() => setModoWizard(false)}
@@ -463,6 +463,7 @@ export default function Dashboard() {
                 }}
                 isGerandoDoc={gerarDocMutation.isPending}
                 initialArea={areaGeracao === "auto" ? "" : areaGeracao}
+                initialObjetivo={objetivoEspecifico}
                 contexto={contextoJuridico}
                 setContexto={setContextoJuridico}
                 onNavigateToDocumentos={() => {

@@ -43,6 +43,7 @@ interface TabGerarProps {
   onGerarDocumento: (promptId: number, conteudo: string, tipo: string) => void;
   isGerandoDoc: boolean;
   initialArea?: string;
+  initialObjetivo?: string;
   contexto: string;
   setContexto: Dispatch<SetStateAction<string>>;
   onNavigateToDocumentos?: () => void;
@@ -104,7 +105,7 @@ function parsePromptSections(text: string): { key: string; content: string }[] {
 
 export default function TabGerar({
   selectedModel, handleModelChange, onPreview, onSaveTemplate, onGerarDocumento, isGerandoDoc,
-  initialArea = "", contexto, setContexto,
+  initialArea = "", initialObjetivo = "", contexto, setContexto,
   onNavigateToDocumentos, onNavigateToAnalise,
   onAnalisar, onOtimizar, onLimpar, isAnalisando, isOtimizando, revisaoSlot,
 }: TabGerarProps) {
@@ -197,6 +198,10 @@ export default function TabGerar({
   useEffect(() => {
     if (initialArea) setAreaJuridica(initialArea);
   }, [initialArea]);
+
+  useEffect(() => {
+    if (initialObjetivo) setObjetivo(initialObjetivo);
+  }, [initialObjetivo]);
 
   // Limpa a dica quando o tipo de documento ou área muda
   useEffect(() => {
