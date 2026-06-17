@@ -198,18 +198,18 @@ export default function TabGerar({
     setSugestaoTipo(null);
   }, [tipoDocumento, areaJuridica]);
 
-  const handleSugerirCampos = (modo: "gerar" | "completar" = "gerar") => {
+  const handleSugerirCampos = (_modo: "gerar" | "completar" = "gerar") => {
     const temContexto = contexto.trim().length > 0;
     const temObjetivo = objetivo.trim().length > 0;
-    if (modo === "gerar" && (temContexto || temObjetivo)) {
-      if (!window.confirm("Os campos de contexto e objetivo serão substituídos pela sugestão da IA. Deseja continuar?")) return;
-    }
+    // [#3] Honra o texto já escrito: havendo contexto/objetivo, a IA REFINA o caso
+    // real do usuário (nunca descarta nem substitui por um exemplo genérico). Só
+    // gera exemplo do zero quando ambos os campos estão vazios.
     sugerirMutation.mutate({
       tipoDocumento,
       areaJuridica: areaJuridica || undefined,
       model: selectedModel,
-      contextoAtual: modo === "completar" && temContexto ? contexto : undefined,
-      objetivoAtual: modo === "completar" && temObjetivo ? objetivo : undefined,
+      contextoAtual: temContexto ? contexto : undefined,
+      objetivoAtual: temObjetivo ? objetivo : undefined,
     });
   };
 
@@ -225,7 +225,7 @@ export default function TabGerar({
       tipoDocumento: tipoDocumento as any,
       contextoJuridico: contextoFinal,
       objetivoEspecifico: objetivo,
-      area: (areaJuridica || "Civil") as any,
+      area: (areaJuridica || undefined) as any, // [#3] vazio => backend detecta a área pelo contexto
       partesEnvolvidas: parteContraria || undefined,
       legislacaoRelevante: fundamentacao || undefined,
       detalhesAdicionais: tribunal ? `Tribunal: ${tribunal}. Tom: ${tomProfissional ? "profissional" : "informal"}. ${incluirJurisprudencia ? "Incluir jurisprudência." : ""} ${incluirLegislacao ? "Incluir legislação." : ""}` : undefined,

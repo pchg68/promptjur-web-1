@@ -215,7 +215,7 @@ export const promptsRouter = router({
       tipoDocumento: z.enum(TIPO_DOCUMENTO_VALUES as [string, ...string[]]),
       contextoJuridico: z.string().min(20, "Contexto muito curto"),
       objetivoEspecifico: z.string().min(10, "Objetivo muito curto"),
-      area: z.enum(["Civil", "Penal", "Trabalhista", "Tributário", "Administrativo", "Constitucional", "Empresarial", "Consumidor", "Família", "Previdenciário", "Ambiental", "Internacional", "Processo Civil", "Direito Médico", "Direito Digital", "Direito Internacional"] as const),
+      area: z.enum(["Civil", "Penal", "Trabalhista", "Tributário", "Administrativo", "Constitucional", "Empresarial", "Consumidor", "Família", "Previdenciário", "Ambiental", "Internacional", "Processo Civil", "Direito Médico", "Direito Digital", "Direito Internacional"] as const).optional(), // [#3] opcional => ativa auto-detecção de área
       partesEnvolvidas: z.string().optional(),
       legislacaoRelevante: z.string().optional(),
       detalhesAdicionais: z.string().optional(),
@@ -259,7 +259,7 @@ export const promptsRouter = router({
           areaDetectada = (AREAS_JURIDICAS.find(a => areaResposta.includes(a)) || "Civil") as typeof input.area;
         }
         
-        const referencias = REFERENCIAS_LEGAIS[areaDetectada] || [];
+        const referencias = REFERENCIAS_LEGAIS[areaDetectada || "Civil"] || [];
         const exemploFewShot = getExemploFewShot(input.tipoDocumento);
         // P2: few-shot expandidos — complementa o exemplo base com exemplos adicionais
         const fewShotExpandido = buildFewShotFragment(input.tipoDocumento, areaDetectada);
