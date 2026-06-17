@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import * as db from "../db";
-import { AREAS_JURIDICAS, REFERENCIAS_LEGAIS, TIPO_DOCUMENTO_VALUES, getExemploFewShot, getRubricaQualidade } from "@shared/juridico";
+import { AREAS_JURIDICAS, REFERENCIAS_LEGAIS, TIPO_DOCUMENTO_VALUES, TIPOS_DOCUMENTO, getExemploFewShot, getRubricaQualidade } from "@shared/juridico";
 import { buildPersonaPromptFragment, getPersonaById } from "@shared/personas-juridicas";
 import { buildCoTFragment } from "@shared/chain-of-thought";
 import { buildFewShotFragment } from "@shared/few-shot-examples";
@@ -212,7 +212,7 @@ export const promptsRouter = router({
 
   gerar: protectedProcedure
     .input(z.object({
-      tipoDocumento: z.enum(TIPO_DOCUMENTO_VALUES as [string, ...string[]]),
+      tipoDocumento: z.enum(TIPO_DOCUMENTO_VALUES as [string, ...string[]]).optional(), // [#3] opcional => auto-deteccao
       contextoJuridico: z.string().min(20, "Contexto muito curto"),
       objetivoEspecifico: z.string().min(10, "Objetivo muito curto"),
       area: z.enum(["Civil", "Penal", "Trabalhista", "Tributário", "Administrativo", "Constitucional", "Empresarial", "Consumidor", "Família", "Previdenciário", "Ambiental", "Internacional", "Processo Civil", "Direito Médico", "Direito Digital", "Direito Internacional"] as const).optional(), // [#3] opcional => ativa auto-detecção de área
@@ -246,13 +246,30 @@ export const promptsRouter = router({
       try {
         let areaDetectada = input.area;
         const { invokeUnifiedLLM } = await import("../unified-llm");
+
+        // [#3] Detecção do TIPO de documento a partir do texto (espelha a detecção de área).
+        let tipoDetectado: string | undefined = input.tipoDocumento;
+        if (!tipoDetectado) {
+          const llmTipo = await invokeUnifiedLLM({
+            provider: smartRoute.provider as any, model: smartRoute.model,
+            messages: [
+              { role: "system", content: `Você é um especialista em direito brasileiro. Analise o caso e identifique APENAS o tipo de peça/documento mais adequado. Responda com UMA destas opções (texto exato): ${TIPOS_DOCUMENTO.map(t => t.label).join(", ")}` },
+              { role: "user", content: `Contexto: ${input.contextoJuridico}\nObjetivo: ${input.objetivoEspecifico}` }
+            ]
+          });
+          const normTipo = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+          const respTipo = normTipo(llmTipo.content);
+          const achadoTipo = TIPOS_DOCUMENTO.find(t => respTipo.includes(normTipo(t.label)) || respTipo.includes(t.value));
+          tipoDetectado = achadoTipo?.value;
+        }
+        const tipoDoc = tipoDetectado || "peticao";
         
         if (!areaDetectada) {
           const llmDeteccao = await invokeUnifiedLLM({
             provider: smartRoute.provider as any, model: smartRoute.model,
             messages: [
               { role: "system", content: `Você é um especialista em direito brasileiro. Analise o contexto e identifique APENAS a área jurídica principal. Responda com UMA das opções: ${AREAS_JURIDICAS.join(", ")}` },
-              { role: "user", content: `Tipo: ${input.tipoDocumento}\nContexto: ${input.contextoJuridico}\nObjetivo: ${input.objetivoEspecifico}` }
+              { role: "user", content: `Tipo: ${tipoDoc}\nContexto: ${input.contextoJuridico}\nObjetivo: ${input.objetivoEspecifico}` }
             ]
           });
           const areaResposta = llmDeteccao.content.trim() || "Civil";
@@ -260,9 +277,9 @@ export const promptsRouter = router({
         }
         
         const referencias = REFERENCIAS_LEGAIS[areaDetectada || "Civil"] || [];
-        const exemploFewShot = getExemploFewShot(input.tipoDocumento);
+        const exemploFewShot = getExemploFewShot(tipoDoc);
         // P2: few-shot expandidos — complementa o exemplo base com exemplos adicionais
-        const fewShotExpandido = buildFewShotFragment(input.tipoDocumento, areaDetectada);
+        const fewShotExpandido = buildFewShotFragment(tipoDoc, areaDetectada);
         const exemploFinal = fewShotExpandido ? `${exemploFewShot}\n\n${fewShotExpandido}` : exemploFewShot;
         // P1: persona jurídica especializada
         const personaFragment = input.personaCustom
@@ -270,7 +287,7 @@ export const promptsRouter = router({
           : buildPersonaPromptFragment(input.personaId);
         // P1: chain of thought jurídico
         const cotFragment = buildCoTFragment(input.chainOfThought ?? false);
-        const rubricaQualidade = getRubricaQualidade(input.tipoDocumento);
+        const rubricaQualidade = getRubricaQualidade(tipoDoc);
         const rubricaTexto = rubricaQualidade.map((r, i) => `${i + 1}. ${r}`).join("\n");
 
         // Sprint 3: detecta documentos anexados pelo frontend (delimitados por marcadores
@@ -289,7 +306,7 @@ export const promptsRouter = router({
             ragResult = await executarRAG(
               input.contextoJuridico,
               areaDetectada || "Civil",
-              input.tipoDocumento,
+              tipoDoc,
               input.ragConfig || {},
             );
             ragContexto = ragResult.contextoEnriquecido
@@ -301,9 +318,9 @@ export const promptsRouter = router({
           }
         }
 
-        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.${personaFragment}\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${input.tipoDocumento} jurídico de excelência.${cotFragment}\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Few-shot grounding**: Use o exemplo abaixo como referência de estilo, profundidade e formato\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Peça raciocínio jurídico passo a passo no prompt gerado\n6. **Critérios de qualidade explícitos**: Liste os critérios da rubrica abaixo no próprio prompt para guiar a IA-alvo\n\n${exemploFinal}\n\nRUBRICA DE QUALIDADE — o prompt gerado DEVE garantir que o ${input.tipoDocumento} resultante atenda a estes critérios:\n${rubricaTexto}\n\nREFERÊNCIAS LEGAIS DA ÁREA: ${referencias.join(", ")}${instrucaoDocumentos}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado em seções claras (Contexto, Instruções, Referências, Formato, Critérios de Qualidade).\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- INCLUA uma seção final \"Critérios de Qualidade\" enumerando os critérios da rubrica\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.${ragContexto}`;
+        const systemPrompt = `Você é um MESTRE em Engenharia de Prompts Jurídicos, com doutorado em Direito ${areaDetectada} e especialização em IA aplicada ao Direito.${personaFragment}\n\nSua tarefa É CRIAR UM PROMPT PROFISSIONAL PRONTO PARA USO que, quando usado em ferramentas de IA (ChatGPT, Claude, Gemini), gerará um ${tipoDoc} jurídico de excelência.${cotFragment}\n\nTÉCNICAS DE ENGENHARIA DE PROMPT A USAR:\n1. **Contexto Rico**: Fornecer todos os detalhes relevantes\n2. **Instruções Estruturadas**: Dividir em seções claras\n3. **Few-shot grounding**: Use o exemplo abaixo como referência de estilo, profundidade e formato\n4. **Restrições e Requisitos**: Legislação obrigatória, tom formal\n5. **Chain-of-Thought**: Peça raciocínio jurídico passo a passo no prompt gerado\n6. **Critérios de qualidade explícitos**: Liste os critérios da rubrica abaixo no próprio prompt para guiar a IA-alvo\n\n${exemploFinal}\n\nRUBRICA DE QUALIDADE — o prompt gerado DEVE garantir que o ${tipoDoc} resultante atenda a estes critérios:\n${rubricaTexto}\n\nREFERÊNCIAS LEGAIS DA ÁREA: ${referencias.join(", ")}${instrucaoDocumentos}\n\nO PROMPT FINAL deve ser autocontido, profissional, acionável, preciso e formatado em seções claras (Contexto, Instruções, Referências, Formato, Critérios de Qualidade).\n\nREGRAS CRÍTICAS DE FORMATO:\n- NÃO inicie o prompt com descrições de persona (ex: \"Você é um...\", \"Atue como...\")\n- NÃO inclua seções de \"Persona\", \"Contexto do Sistema\" ou \"Role\" no texto\n- Comece DIRETAMENTE com o conteúdo útil: endereçamento, fundamentação, instruções ou estrutura do documento\n- INCLUA uma seção final \"Critérios de Qualidade\" enumerando os critérios da rubrica\n- O texto gerado será apresentado ao usuário final (advogado), então deve ser limpo e profissional\n\nIMPORTANTE: Retorne APENAS o prompt final, sem explicações, comentários adicionais ou descrições de persona.${ragContexto}`;
 
-        const userPrompt = `TIPO DE DOCUMENTO: ${input.tipoDocumento.toUpperCase()}\nÁREA JURÍDICA: ${areaDetectada}\n\nCONTEXTO JURÍDICO:\n${input.contextoJuridico}\n\nOBJETIVO ESPECÍFICO:\n${input.objetivoEspecifico}\n\n${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
+        const userPrompt = `TIPO DE DOCUMENTO: ${tipoDoc.toUpperCase()}\nÁREA JURÍDICA: ${areaDetectada}\n\nCONTEXTO JURÍDICO:\n${input.contextoJuridico}\n\nOBJETIVO ESPECÍFICO:\n${input.objetivoEspecifico}\n\n${input.partesEnvolvidas ? `PARTES ENVOLVIDAS:\n${input.partesEnvolvidas}\n\n` : ""}${input.legislacaoRelevante ? `LEGISLAÇÃO RELEVANTE:\n${input.legislacaoRelevante}\n\n` : ""}${input.detalhesAdicionais ? `DETALHES ADICIONAIS:\n${input.detalhesAdicionais}\n\n` : ""}Gere o prompt profissional PRONTO PARA USO:`;
 
         const llmGeracao = await invokeUnifiedLLM({
           provider: smartRoute.provider as any, model: smartRoute.model,
@@ -387,18 +404,18 @@ export const promptsRouter = router({
         const promptId = await db.createPrompt({
           userId: ctx.user.id, tipo: "geracao", areaJuridica: areaDetectada?.substring(0, 100) || null,
           promptOriginal: input.contextoJuridico, promptOtimizado: promptProfissional, qualidade: qualidadeTexto,
-          metadata: { tipoDocumento: input.tipoDocumento, objetivoEspecifico: input.objetivoEspecifico, areaDetectadaAutomaticamente: !input.area }
+          metadata: { tipoDocumento: tipoDoc, objetivoEspecifico: input.objetivoEspecifico, areaDetectadaAutomaticamente: !input.area }
         });
 
         await db.createHistorico({ userId: ctx.user.id, acao: "geracao", promptId, duracaoMs: Date.now() - startTime, sucesso: true });
         await incrementQuota(ctx.user.id);
         checkAndSendQuotaAlert(ctx.user.id).catch(() => {}); // fire-and-forget
-        await notifyPromptGenerated(ctx.user.id, input.tipoDocumento).catch(err => { logger.error('Erro notificação', { error: err }); });
+        await notifyPromptGenerated(ctx.user.id, tipoDoc).catch(err => { logger.error('Erro notificação', { error: err }); });
         const avisosFontes = gerarAvisosFontes(promptProfissional);
 
         return {
           promptId: Number(promptId), promptProfissional, area: areaDetectada,
-          areaDetectadaAutomaticamente: !input.area, tipoDocumento: input.tipoDocumento,
+          areaDetectadaAutomaticamente: !input.area, tipoDocumento: tipoDoc,
           referencias, avisosFontes, validacaoLegislacao: validacao,
           avaliacaoQualidade,
           // P3: RAG — fontes jurídicas encontradas

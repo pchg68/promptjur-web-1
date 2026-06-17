@@ -108,7 +108,7 @@ export default function TabGerar({
   onNavigateToDocumentos, onNavigateToAnalise,
   onAnalisar, onOtimizar, onLimpar, isAnalisando, isOtimizando, revisaoSlot,
 }: TabGerarProps) {
-  const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("peticao");
+  const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento | "auto">("auto"); // [#3] "auto" = detectar do texto
   const [objetivo, setObjetivo] = useState("");
   const [areaJuridica, setAreaJuridica] = useState(initialArea);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -160,7 +160,13 @@ export default function TabGerar({
 
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const geracaoMutation = trpc.prompts.gerar.useMutation();
+  const geracaoMutation = trpc.prompts.gerar.useMutation({
+    onSuccess: (data) => {
+      // [#3] sincroniza dropdowns com o que foi detectado do texto
+      if (data.tipoDocumento) setTipoDocumento(data.tipoDocumento as TipoDocumento);
+      if (data.area) setAreaJuridica(data.area);
+    },
+  });
   const sugerirMutation = trpc.prompts.sugerirCampos.useMutation({
     onSuccess: (data) => {
       setContexto(data.contexto);
@@ -205,7 +211,7 @@ export default function TabGerar({
     // real do usuário (nunca descarta nem substitui por um exemplo genérico). Só
     // gera exemplo do zero quando ambos os campos estão vazios.
     sugerirMutation.mutate({
-      tipoDocumento,
+      tipoDocumento: tipoDocumento === "auto" ? "peticao" : tipoDocumento,
       areaJuridica: areaJuridica || undefined,
       model: selectedModel,
       contextoAtual: temContexto ? contexto : undefined,
@@ -222,7 +228,7 @@ export default function TabGerar({
         ).join("\n\n")}`
       : contexto;
     geracaoMutation.mutate({
-      tipoDocumento: tipoDocumento as any,
+      tipoDocumento: (tipoDocumento === "auto" ? undefined : tipoDocumento) as any, // [#3] auto => backend detecta
       contextoJuridico: contextoFinal,
       objetivoEspecifico: objetivo,
       area: (areaJuridica || undefined) as any, // [#3] vazio => backend detecta a área pelo contexto
@@ -372,9 +378,9 @@ export default function TabGerar({
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Tipo de Documento</Label>
-                  <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento)}>
+                  <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento | "auto")}>
                     <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>{TIPOS_DOCUMENTO.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                    <SelectContent><SelectItem value="auto">🪄 Detectar automaticamente</SelectItem>{TIPOS_DOCUMENTO.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1">
@@ -412,7 +418,7 @@ export default function TabGerar({
                 <p className="text-[11px] text-muted-foreground mb-2 leading-relaxed">
                   Preencha contexto e objetivo automaticamente com um exemplo realista para{" "}
                   <span className="font-medium text-foreground">
-                    {TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento}
+                    {tipoDocumento === "auto" ? "o tipo que a IA vai detectar" : (TIPOS_DOCUMENTO.find(t => t.value === tipoDocumento)?.label || tipoDocumento)}
                   </span>
                   {areaJuridica ? ` — ${areaJuridica}` : ""}.
                 </p>
