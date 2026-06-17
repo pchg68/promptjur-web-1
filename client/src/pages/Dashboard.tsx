@@ -412,7 +412,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
-      <div className={activeTab === 'gerar' && !modoWizard ? "px-6 pt-3 pb-0" : "px-6 py-4"}>
+      <div className={`mx-auto w-full max-w-[1400px] ${activeTab === 'criar' && !modoWizard ? "px-6 pt-3 pb-0" : "px-6 py-4"}`}>
         {modoWizard ? (
           <WizardPromptGenerator
             onComplete={(data: WizardData) => {
