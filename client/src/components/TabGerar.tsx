@@ -300,19 +300,18 @@ export default function TabGerar({
               </div>
             </div>
             <div className="p-3 space-y-2.5">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Descreva sua peça jurídica</Label>
-                  <span className="text-[10px] text-muted-foreground tabular-nums">{contexto.length > 0 ? contexto.length : 0} / 2000</span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Descreva sua peça jurídica</Label>
+                    <VoiceInput onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)} disabled={geracaoMutation.isPending} />
+                  </div>
+                  <span className={`text-[10px] tabular-nums ${contexto.length > 1800 ? "text-destructive" : contexto.length > 1400 ? "text-amber-500" : "text-muted-foreground"}`}>{contexto.length}/2000</span>
                 </div>
-                <Textarea
-                  value={contexto}
-                  onChange={e => setContexto(e.target.value)}
-                  placeholder="Ex: Elabore uma petição inicial de danos morais por cobrança indevida com fundamento no art. 42 do CDC, em favor de consumidor pessoa física..."
-                  rows={4}
-                  maxLength={2000}
-                  className="text-xs resize-none"
-                />
+                <div className="relative">
+                  <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Ex: Elabore uma petição inicial de danos morais por cobrança indevida com fundamento no art. 42 do CDC, em favor de consumidor pessoa física..." rows={4} maxLength={2000} className={`text-xs resize-none ${isSugerindo ? "opacity-50" : ""}`} />
+                  {isSugerindo && <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md"><RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" /></div>}
+                </div>
               </div>
             </div>
           </div>
@@ -491,21 +490,6 @@ export default function TabGerar({
               </div>
             )}
           </div>
-
-              {/* Contexto do Caso */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Contexto do Caso *</Label>
-                    <VoiceInput onTranscription={(text) => setContexto(contexto ? contexto + " " + text : text)} disabled={geracaoMutation.isPending} />
-                  </div>
-                  <span className={`text-[10px] tabular-nums ${contexto.length > 1800 ? "text-destructive" : contexto.length > 1400 ? "text-amber-500" : "text-muted-foreground"}`}>{contexto.length}/2000</span>
-                </div>
-                <div className="relative">
-                  <Textarea value={contexto} onChange={e => setContexto(e.target.value)} placeholder="Descreva os fatos, partes, valores e datas disponíveis..." rows={4} maxLength={2000} className={`text-xs resize-none ${isSugerindo ? "opacity-50" : ""}`} />
-                  {isSugerindo && <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md"><RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" /></div>}
-                </div>
-              </div>
 
               {/* Objetivo */}
               <div className="space-y-1">
