@@ -415,9 +415,10 @@ export default function Dashboard() {
         {modoWizard ? (
           <WizardPromptGenerator
             onComplete={(data: WizardData) => {
-              if (data.objetivo === 'analisar') { setPromptAnalise(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); setTimeout(handleAnalisar, 100); }
-              else if (data.objetivo === 'gerar') { setAreaGeracao((data.areaJuridica === 'auto' ? 'auto' : data.areaJuridica) as typeof areaGeracao); setContextoJuridico(data.descricaoCaso); setObjetivoEspecifico(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); toast.success('Caso carregado na Criar peça. Revise e clique em Gerar Prompt (a área e o tipo serão detectados pelo texto).'); }
-              else if (data.objetivo === 'otimizar') { setPromptOtimizacao(data.descricaoCaso); setActiveTab('criar'); setModoWizard(false); setTimeout(handleOtimizar, 100); }
+              setActiveTab('criar'); setModoCriar('rapido'); setModoWizard(false);
+              if (data.objetivo === 'analisar') { toast.info('Cole ou digite o prompt e clique em Analisar.'); }
+              else if (data.objetivo === 'otimizar') { toast.info('Cole ou digite o prompt e clique em Otimizar.'); }
+              else { toast.info('Descreva seu caso e clique em Gerar Prompt Profissional.'); }
             }}
             onCancel={() => setModoWizard(false)}
           />
