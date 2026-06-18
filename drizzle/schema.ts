@@ -1126,3 +1126,168 @@ export const blogLinksExternos = mysqlTable("blog_links_externos", {
 
 export type BlogLinkExterno = typeof blogLinksExternos.$inferSelect;
 export type InsertBlogLinkExterno = typeof blogLinksExternos.$inferInsert;
+
+
+// ─── Ontologia Jurídica (JurisOS) ─────────────────────────────────────────────
+// Grafo de conhecimento jurídico que alimenta:
+//   (1) a montagem de contexto (entrega ao modelo só os institutos/teses pertinentes)
+//   (2) o verificador do loop ancorado (confere se o precedente sustenta a tese)
+//
+// RBAC: todo nó nasce em status RASCUNHO (visível só a developer/admin).
+// Só conteúdo PUBLICADO entra na montagem de contexto do usuário final (axioma A6).
+
+/** Ramo do direito (ex.: Processual Civil, Falimentar) */
+export const areasDireito = mysqlTable("ont_areas_direito", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 200 }).notNull().unique(),
+  descricao: text("descricao"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AreaDireito = typeof areasDireito.$inferSelect;
+export type InsertAreaDireito = typeof areasDireito.$inferInsert;
+
+/** Artigo de lei/CF (ex.: CPC art. 1.022) */
+export const dispositivos = mysqlTable("ont_dispositivos", {
+  id: int("id").autoincrement().primaryKey(),
+  diploma: varchar("diploma", { length: 100 }).notNull(),
+  artigo: varchar("artigo", { length: 100 }).notNull(),
+  texto: text("texto"),
+  urlOficial: varchar("urlOficial", { length: 500 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("idx_disp_diploma_artigo").on(table.diploma, table.artigo),
+]);
+export type Dispositivo = typeof dispositivos.$inferSelect;
+export type InsertDispositivo = typeof dispositivos.$inferInsert;
+
+/** Tipo de peça processual (ex.: REsp, Apelação, ED) */
+export const tiposPeca = mysqlTable("ont_tipos_peca", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 200 }).notNull().unique(),
+  sigla: varchar("sigla", { length: 20 }),
+  cabimento: text("cabimento"),
+  prazoDias: int("prazoDias"),
+  areaId: int("areaId").notNull(),
+  prazoBaseId: int("prazoBaseId"),
+  status: mysqlEnum("status_ont_tp", ["RASCUNHO", "REVISAO", "PUBLICADO"]).default("RASCUNHO").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("idx_tp_status").on(table.status),
+  index("idx_tp_area").on(table.areaId),
+]);
+export type TipoPeca = typeof tiposPeca.$inferSelect;
+export type InsertTipoPeca = typeof tiposPeca.$inferInsert;
+
+/** Requisito que uma peça precisa satisfazer */
+export const requisitosLegais = mysqlTable("ont_requisitos_legais", {
+  id: int("id").autoincrement().primaryKey(),
+  descricao: text("descricao").notNull(),
+  obrigatorio: boolean("obrigatorio").default(true).notNull(),
+  ordem: int("ordem").default(0).notNull(),
+  tipoPecaId: int("tipoPecaId").notNull(),
+  dispositivoId: int("dispositivoId"),
+}, (table) => [
+  index("idx_req_tipo_peca").on(table.tipoPecaId),
+]);
+export type RequisitoLegal = typeof requisitosLegais.$inferSelect;
+export type InsertRequisitoLegal = typeof requisitosLegais.$inferInsert;
+
+/** Conceito/instituto jurídico (ex.: Prequestionamento) */
+export const institutos = mysqlTable("ont_institutos", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 200 }).notNull().unique(),
+  descricao: text("descricao"),
+  areaId: int("areaId"),
+  status: mysqlEnum("status_ont_inst", ["RASCUNHO", "REVISAO", "PUBLICADO"]).default("RASCUNHO").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("idx_inst_status").on(table.status),
+]);
+export type Instituto = typeof institutos.$inferSelect;
+export type InsertInstituto = typeof institutos.$inferInsert;
+
+/** Afirmação jurídica sustentável em uma peça */
+export const teses = mysqlTable("ont_teses", {
+  id: int("id").autoincrement().primaryKey(),
+  enunciado: text("enunciado").notNull(),
+  favoravelA: mysqlEnum("favoravelA", ["AUTOR", "REU", "AMBOS"]).default("AMBOS").notNull(),
+  institutoId: int("institutoId"),
+  status: mysqlEnum("status_ont_tese", ["RASCUNHO", "REVISAO", "PUBLICADO"]).default("RASCUNHO").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("idx_tese_instituto").on(table.institutoId),
+  index("idx_tese_status").on(table.status),
+]);
+export type Tese = typeof teses.$inferSelect;
+export type InsertTese = typeof teses.$inferInsert;
+
+/** Súmula, repetitivo, repercussão geral, acórdão, IRDR, IAC */
+export const precedentes = mysqlTable("ont_precedentes", {
+  id: int("id").autoincrement().primaryKey(),
+  tipo: mysqlEnum("tipo_precedente", [
+    "SUMULA_VINCULANTE", "REPETITIVO", "REPERCUSSAO_GERAL",
+    "SUMULA", "ACORDAO", "IRDR", "IAC", "ORIENTACAO",
+  ]).notNull(),
+  tribunal: varchar("tribunal", { length: 50 }).notNull(),
+  identificador: varchar("identificador", { length: 200 }).notNull(),
+  ementa: text("ementa"),
+  urlOficial: varchar("urlOficial", { length: 500 }),
+  vinculante: boolean("vinculante").default(false).notNull(),
+  dispositivoChave: varchar("dispositivoChave", { length: 200 }),
+  /** null = NÃO validado contra fonte oficial. O verificador reprova (axioma A1). */
+  verificadoEm: timestamp("verificadoEm"),
+  status: mysqlEnum("status_ont_prec", ["RASCUNHO", "REVISAO", "PUBLICADO"]).default("RASCUNHO").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("idx_prec_tribunal_id").on(table.tribunal, table.identificador),
+  index("idx_prec_tipo").on(table.tipo),
+  index("idx_prec_verificado").on(table.verificadoEm),
+  index("idx_prec_status").on(table.status),
+]);
+export type Precedente = typeof precedentes.$inferSelect;
+export type InsertPrecedente = typeof precedentes.$inferInsert;
+
+// ─── Tabelas de junção (arestas do grafo) ─────────────────────────────────────
+
+/** TipoPeca admite Tese (aresta TesePeca — axioma A3) */
+export const tesesPeca = mysqlTable("ont_teses_peca", {
+  teseId: int("teseId").notNull(),
+  tipoPecaId: int("tipoPecaId").notNull(),
+}, (table) => [
+  index("idx_tp_tese").on(table.teseId),
+  index("idx_tp_peca").on(table.tipoPecaId),
+]);
+
+/** Tese ancora em Dispositivo (aresta TeseDispositivo) */
+export const tesesDispositivo = mysqlTable("ont_teses_dispositivo", {
+  teseId: int("teseId").notNull(),
+  dispositivoId: int("dispositivoId").notNull(),
+}, (table) => [
+  index("idx_td_tese").on(table.teseId),
+  index("idx_td_disp").on(table.dispositivoId),
+]);
+
+/**
+ * Aresta-chave do verificador: a existência deste registro é o que torna um
+ * precedente PERTINENTE a uma tese. `peso` ordena a força (vinculante > peso).
+ * Axioma A2: citar precedente sem esta aresta gera BLOQUEIO.
+ */
+export const tesesPrecedente = mysqlTable("ont_teses_precedente", {
+  teseId: int("teseId").notNull(),
+  precedenteId: int("precedenteId").notNull(),
+  peso: int("peso").default(1).notNull(),
+}, (table) => [
+  index("idx_tpre_tese").on(table.teseId),
+  index("idx_tpre_prec").on(table.precedenteId),
+]);
+
+/** Instituto é regido por Dispositivo (aresta InstitutoDispositivo) */
+export const institutosDispositivo = mysqlTable("ont_institutos_dispositivo", {
+  institutoId: int("institutoId").notNull(),
+  dispositivoId: int("dispositivoId").notNull(),
+}, (table) => [
+  index("idx_id_inst").on(table.institutoId),
+  index("idx_id_disp").on(table.dispositivoId),
+]);

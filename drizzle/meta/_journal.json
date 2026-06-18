@@ -92,6 +92,13 @@
       "when": 1745249460000,
       "tag": "0046_email_digest",
       "breakpoints": false
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1781752000000,
+      "tag": "0047_ontologia_juridica",
+      "breakpoints": true
     }
   ]
 }

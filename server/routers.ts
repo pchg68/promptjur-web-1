@@ -35,6 +35,7 @@ import { accountRouter } from "./routers/account";
 import { referralRouter } from "./routers/referral";
 import { adminPrecosRouter } from "./routers/admin-precos";
 import { blogRouter } from "./routers/blog";
+import { ontologiaRouter } from "./routers/ontologia";
 
 export const appRouter = router({
   // Core system routers
@@ -171,6 +172,7 @@ export const appRouter = router({
   referral: referralRouter,
   adminPrecos: adminPrecosRouter,
   blog: blogRouter,
+  ontologia: ontologiaRouter,
 });
 
 export type AppRouter = typeof appRouter;
