@@ -14,6 +14,8 @@ const routersDir = resolve(import.meta.dirname, "..");
 const schemaPath = resolve(import.meta.dirname, "../../../drizzle/schema.ts");
 const migrationPath = resolve(import.meta.dirname, "../../../drizzle/0047_ontologia_juridica.sql");
 const seedPath = resolve(import.meta.dirname, "../../../scripts/seed-ontologia.mjs");
+const runbookPath = resolve(import.meta.dirname, "../../../references/ONTOLOGIA-MIGRATION-RUNBOOK.md");
+const rlsPath = resolve(import.meta.dirname, "../../../references/rls-ontologia.sql");
 
 // ─── Estrutura de arquivos ────────────────────────────────────────────────────
 
@@ -28,6 +30,14 @@ describe("Ontologia Jurídica — Estrutura de arquivos", () => {
 
   it("deve ter o seed script seed-ontologia.mjs", () => {
     expect(existsSync(seedPath)).toBe(true);
+  });
+
+  it("deve ter o runbook de migração em references/", () => {
+    expect(existsSync(runbookPath)).toBe(true);
+  });
+
+  it("deve ter o rls-ontologia.sql em references/", () => {
+    expect(existsSync(rlsPath)).toBe(true);
   });
 });
 
@@ -79,20 +89,25 @@ describe("Ontologia Jurídica — Schema Drizzle", () => {
   });
 });
 
-// ─── Router — procedimentos ───────────────────────────────────────────────────
+// ─── Router — procedimentos canônicos ────────────────────────────────────────
 
-describe("Ontologia Jurídica — Router (procedimentos)", () => {
+describe("Ontologia Jurídica — Router (procedimentos canônicos)", () => {
   const routerContent = readFileSync(resolve(routersDir, "ontologia.ts"), "utf8");
 
   const expectedProcedures = [
+    // Leitura pública
     "listarAreas",
-    "listarTiposPeca",
-    "buscarTipoPecaComRequisitos",
-    "buscarTesesPorTipoPeca",
+    "listTiposPeca",
+    "montarContexto",
     "buscarTeseCompleta",
-    "verificarPrecedenteTese",
+    // Verificador (loop ancorado)
+    "verificarCitacao",
+    // Escrita admin
+    "createTese",
+    "linkTesePrecedente",
+    "validarPrecedente",
+    "setStatus",
     "adminListarTodos",
-    "adminAlterarStatus",
   ];
 
   for (const proc of expectedProcedures) {
@@ -105,12 +120,57 @@ describe("Ontologia Jurídica — Router (procedimentos)", () => {
     expect(routerContent).toContain("publicProcedure");
   });
 
-  it("deve usar protectedProcedure para procedimentos admin", () => {
+  it("deve usar protectedProcedure para verificarCitacao", () => {
     expect(routerContent).toContain("protectedProcedure");
   });
 
-  it("deve verificar role admin antes de operações admin", () => {
-    expect(routerContent).toContain("requireAdmin");
+  it("deve definir adminProcedure com verificação de role admin", () => {
+    expect(routerContent).toContain("adminProcedure");
+    expect(routerContent).toContain("role !== \"admin\"");
+  });
+});
+
+// ─── Axiomas implementados ────────────────────────────────────────────────────
+
+describe("Ontologia Jurídica — Axiomas (verificação de contrato)", () => {
+  const routerContent = readFileSync(resolve(routersDir, "ontologia.ts"), "utf8");
+
+  it("A1: deve filtrar precedentes por verificadoEm != null no montarContexto", () => {
+    expect(routerContent).toContain("isNotNull(precedentes.verificadoEm)");
+  });
+
+  it("A1: verificarCitacao deve checar verificadoEm e urlOficial", () => {
+    expect(routerContent).toContain("FONTE_NAO_VALIDADA");
+    expect(routerContent).toContain("verificadoEm");
+    expect(routerContent).toContain("urlOficial");
+  });
+
+  it("A2: verificarCitacao deve checar aresta TesePrecedente", () => {
+    expect(routerContent).toContain("PRECEDENTE_IMPERTINENTE");
+    expect(routerContent).toContain("tesesPrecedente");
+  });
+
+  it("A3: verificarCitacao deve checar aresta TesePeca (cabimento)", () => {
+    expect(routerContent).toContain("TESE_INCABIVEL");
+    expect(routerContent).toContain("tesesPeca");
+  });
+
+  it("A5: montarContexto deve ordenar por vinculante desc, peso desc", () => {
+    expect(routerContent).toContain("desc(precedentes.vinculante)");
+    expect(routerContent).toContain("desc(tesesPrecedente.peso)");
+  });
+
+  it("A6: listTiposPeca deve filtrar status PUBLICADO para usuário comum", () => {
+    expect(routerContent).toContain("eq(tiposPeca.status, \"PUBLICADO\")");
+  });
+
+  it("A6: montarContexto deve filtrar status PUBLICADO", () => {
+    expect(routerContent).toContain("eq(tiposPeca.status, \"PUBLICADO\")");
+    expect(routerContent).toContain("eq(teses.status, \"PUBLICADO\")");
+  });
+
+  it("nós devem nascer em RASCUNHO (createTese)", () => {
+    expect(routerContent).toContain("status: \"RASCUNHO\"");
   });
 });
 
@@ -158,5 +218,26 @@ describe("Ontologia Jurídica — Registro no appRouter", () => {
 
   it("deve registrar ontologia no appRouter", () => {
     expect(mainRouters).toContain("ontologia: ontologiaRouter");
+  });
+});
+
+// ─── Documentação de referência ───────────────────────────────────────────────
+
+describe("Ontologia Jurídica — Documentação de referência", () => {
+  it("runbook deve mencionar os axiomas A1 e A6", () => {
+    const runbook = readFileSync(runbookPath, "utf8");
+    expect(runbook).toContain("A1");
+    expect(runbook).toContain("A6");
+  });
+
+  it("rls-ontologia.sql deve ter policies para TipoPeca e Tese", () => {
+    const rls = readFileSync(rlsPath, "utf8");
+    expect(rls).toContain("tipopeca_select");
+    expect(rls).toContain("tese_select");
+  });
+
+  it("rls-ontologia.sql deve ter rollback documentado", () => {
+    const rls = readFileSync(rlsPath, "utf8");
+    expect(rls).toContain("Rollback");
   });
 });
