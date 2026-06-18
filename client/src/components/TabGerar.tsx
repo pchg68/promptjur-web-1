@@ -634,7 +634,10 @@ export default function TabGerar({
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 flex-shrink-0 gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">2</span>
-            <span className="text-sm font-semibold">Resultado Gerado</span>
+            <span className="text-sm font-semibold">Prompt gerado</span>
+            {hasResult && (
+              <span className="hidden sm:inline text-[11px] font-normal text-muted-foreground">· para colar em ChatGPT, Claude ou Gemini</span>
+            )}
             {hasResult && geracaoMutation.data?.area && (
               <Badge variant="secondary" className="text-xs">{geracaoMutation.data.area}</Badge>
             )}
@@ -679,6 +682,9 @@ export default function TabGerar({
                   Preencha o contexto e o objetivo no painel ao lado — ou use{" "}
                   <span className="font-medium text-primary">Sugestão Inteligente</span>{" "}
                   para preencher automaticamente — e clique em <strong>Gerar Prompt Profissional</strong>.
+                </p>
+                <p className="text-xs max-w-xs text-muted-foreground/80 mt-1">
+                  A saída é um <strong>prompt</strong> para colar no ChatGPT, Claude ou Gemini — não a peça final. Para gerar a peça já redigida aqui, troque para <strong>Documento pronto</strong> no seletor acima.
                 </p>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground/60 mt-2">
@@ -856,7 +862,7 @@ export default function TabGerar({
             onClick={() => hasResult && geracaoMutation.data?.promptId && onGerarDocumento(geracaoMutation.data.promptId, promptText, tipoDocumento)}
           >
             <Download className="w-3 h-3" />
-            Gerar .docx
+            Baixar prompt (.docx)
           </Button>
           <Button
             variant="outline"

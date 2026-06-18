@@ -120,7 +120,7 @@ describe("Component Refactoring - Content Validation", () => {
   it("TabGerar should have guided result view and generation mutation", () => {
     const content = readFileSync(resolve(clientDir, "components", "TabGerar.tsx"), "utf-8");
     expect(content).toContain("trpc.prompts.gerar");
-    expect(content).toContain("Resultado Gerado");
+    expect(content).toContain("Prompt gerado");
     expect(content).toContain("GenerationStepper");
     expect(content).toContain("PostGenerationGuide");
   });
