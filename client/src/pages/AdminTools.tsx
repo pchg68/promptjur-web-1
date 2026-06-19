@@ -21,6 +21,7 @@ import TabWhitelist from "@/components/TabWhitelist";
 import TabMensagens from "@/components/TabMensagens";
 import TabLogAcessos from "@/components/TabLogAcessos";
 import PainelSaudeApp from "@/components/PainelSaudeApp";
+import AdminOntologia from "@/components/AdminOntologia";
 import { useLocation } from "wouter";
 
 // ── Constantes de cards arquiváveis ──────────────────────────────────────────
@@ -548,6 +549,11 @@ export default function AdminTools() {
             <PainelSaudeApp />
           </CardContent>
         </CollapsibleCard>
+
+        {/* Painel de Ontologia Jurídica (JurisOS) */}
+        <div className="mb-6">
+          <AdminOntologia />
+        </div>
 
         {/* Card de Métricas de Conversão de Convites */}
         {!idsArquivados.has("conversao-convites") && (

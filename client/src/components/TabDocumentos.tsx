@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, FileText, Sparkles, Brain, BookOpen, Save, Download, ArrowLeft, HardDrive, Mail, Send } from "lucide-react";
-import { useState as useStateDialog } from "react";
+import { useState as useStateDialog, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -52,15 +52,21 @@ const ESTRATEGIAS: Record<EstrategiaIA, EstrategiaInfo> = {
   },
 };
 
-const TIPOS_DOCUMENTO = [
+/** Fallback estático usado enquanto a ontologia carrega ou se estiver vazia */
+const TIPOS_DOCUMENTO_FALLBACK = [
   { value: "peticao", label: "Petição Inicial" },
   { value: "contestacao", label: "Contestação" },
   { value: "recurso", label: "Recurso" },
+  { value: "apelacao", label: "Apelação" },
+  { value: "recurso_especial", label: "Recurso Especial" },
+  { value: "embargos_declaracao", label: "Embargos de Declaração" },
+  { value: "habeas_corpus", label: "Habeas Corpus" },
+  { value: "mandado_seguranca", label: "Mandado de Segurança" },
   { value: "parecer", label: "Parecer Jurídico" },
   { value: "contrato", label: "Contrato" },
-  { value: "memorando", label: "Memorando" },
-  { value: "procuracao", label: "Procuração" },
   { value: "notificacao", label: "Notificação Extrajudicial" },
+  { value: "procuracao", label: "Procuração" },
+  { value: "memorando", label: "Memorando" },
 ];
 
 interface TabDocumentosProps {
@@ -99,6 +105,28 @@ export default function TabDocumentos({ contexto, setContexto, objetivo, setObje
     setSelectedModel(value);
     localStorage.setItem('promptjur_selected_model', value);
   };
+
+  // Ontologia: buscar tipos de peça PUBLICADOS para enriquecer o seletor
+  const { data: ontTipos } = trpc.ontologia.listTiposPeca.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // cache de 5 min — dado estável
+    retry: false,             // não bloquear se a ontologia estiver vazia
+  });
+
+  // Mescla tipos da ontologia (PUBLICADOS) com o fallback estático.
+  // Tipos da ontologia aparecem primeiro; fallback preenche lacunas.
+  // O retorno de listTiposPeca tem { id, nome, sigla } — convertemos para { value, label }.
+  const TIPOS_DOCUMENTO = useMemo(() => {
+    if (!ontTipos || ontTipos.length === 0) return TIPOS_DOCUMENTO_FALLBACK;
+    const ontMapped = ontTipos.map((t: { id: number; nome: string; sigla: string | null }) => ({
+      value: t.sigla
+        ? t.sigla.toLowerCase().replace(/[^a-z0-9]/g, '_')
+        : t.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_'),
+      label: t.sigla ? `${t.nome} (${t.sigla})` : t.nome,
+    }));
+    const ontValues = new Set(ontMapped.map((t: { value: string }) => t.value));
+    const extras = TIPOS_DOCUMENTO_FALLBACK.filter(t => !ontValues.has(t.value));
+    return [...ontMapped, ...extras];
+  }, [ontTipos]);
 
   // Utils para invalidar cache
   const utils = trpc.useUtils();
