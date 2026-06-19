@@ -24,7 +24,11 @@
     "test:perf:load": "k6 run k6-tests/load-test.js",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'ESLint não configurado ainda'",
-    "db:push": "drizzle-kit generate && drizzle-kit migrate"
+    "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "db:seed": "tsx prisma/seed-ontologia.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed-ontologia.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",
